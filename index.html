@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="description" content="DOING 活動營運管理系統｜主辦登入與使用申請" />
+  <title>DOING｜活動營運管理系統</title>
+  <style>
+    :root {
+      --ink: #242536;
+      --muted: #737589;
+      --line: #e9e9ef;
+      --white: #ffffff;
+      --cream: #f3d2ac;
+      --coral: #f3b8b1;
+      --lavender: #cec8d6;
+      --aqua: #7dc8ca;
+      --mint: #cae9e0;
+      --soft: #f8f9fb;
+      --shadow: 0 24px 70px rgba(43, 47, 65, 0.10);
+      --shadow-soft: 0 12px 30px rgba(43, 47, 65, 0.08);
+      --radius-xl: 34px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 86%, rgba(243, 184, 177, .32), transparent 24%),
+        radial-gradient(circle at 91% 80%, rgba(125, 200, 202, .28), transparent 22%),
+        radial-gradient(circle at 94% 20%, rgba(206, 200, 214, .30), transparent 20%),
+        #fff;
+      overflow-x: hidden;
+    }
+
+    button, input { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    .page {
+      width: min(1540px, calc(100% - 48px));
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: 28px 0 36px;
+      position: relative;
+    }
+
+    .page::before {
+      content: "";
+      position: fixed;
+      left: -90px;
+      top: -180px;
+      width: 620px;
+      height: 360px;
+      border: 1px solid rgba(243, 210, 172, .85);
+      border-radius: 50%;
+      transform: rotate(-14deg);
+      pointer-events: none;
+    }
+
+    .nav {
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 20;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-mark {
+      width: 56px;
+      height: 56px;
+      border: 1px solid rgba(243, 210, 172, .95);
+      border-radius: 17px;
+      background: #fff;
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-mark::before,
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 34px;
+      border-radius: 12px;
+      transform: rotate(12deg);
+    }
+    .brand-mark::before { left: 8px; top: 9px; background: linear-gradient(180deg, var(--cream), var(--coral)); }
+    .brand-mark::after { right: 7px; bottom: 8px; width: 23px; height: 23px; border-radius: 9px; background: linear-gradient(135deg, var(--mint), var(--aqua)); }
+
+    .brand-copy strong {
+      display: block;
+      font-size: 31px;
+      letter-spacing: .12em;
+      line-height: 1;
+      font-weight: 800;
+    }
+    .brand-copy span {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      letter-spacing: .28em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 38px;
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .nav-links a { color: var(--ink); text-decoration: none; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(340px, 1.02fr) minmax(360px, .82fr) minmax(320px, .72fr);
+      align-items: center;
+      gap: clamp(24px, 3vw, 58px);
+      min-height: calc(100vh - 160px);
+      padding: 44px 0 28px;
+      position: relative;
+      z-index: 5;
+    }
+
+    .intro { padding-left: 28px; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #607678;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: .08em;
+      margin-bottom: 20px;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--aqua);
+      box-shadow: 0 0 0 7px rgba(125, 200, 202, .17);
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 620px;
+      font-size: clamp(44px, 4.2vw, 74px);
+      line-height: 1.22;
+      letter-spacing: -.045em;
+      font-weight: 900;
+    }
+
+    .lead {
+      margin: 28px 0 0;
+      max-width: 610px;
+      font-size: 17px;
+      line-height: 1.95;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .primary-actions {
+      display: flex;
+      gap: 14px;
+      margin-top: 34px;
+    }
+
+    .btn {
+      min-height: 58px;
+      padding: 0 30px;
+      border-radius: 16px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary {
+      color: #fff;
+      background: linear-gradient(135deg, #67bfc2, var(--aqua));
+      box-shadow: 0 12px 28px rgba(125, 200, 202, .28);
+    }
+    .btn-outline {
+      color: #dc8f8a;
+      border-color: rgba(243, 184, 177, .8);
+      background: rgba(255,255,255,.72);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 42px;
+      max-width: 630px;
+    }
+
+    .stat-card,
+    .finance-card {
+      background: rgba(255,255,255,.82);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(230, 230, 238, .9);
+      border-radius: 20px;
+      box-shadow: 0 10px 28px rgba(47, 51, 68, .06);
+    }
+    .stat-card { padding: 18px; min-height: 104px; }
+    .stat-title { font-size: 13px; color: #67697c; font-weight: 700; }
+    .stat-num { margin-top: 9px; font-size: 30px; font-weight: 900; letter-spacing: -.04em; }
+    .stat-num small { font-size: 12px; margin-left: 5px; color: #9a9cac; font-weight: 700; }
+    .stat-card:nth-child(1) { border-color: rgba(243,210,172,.65); }
+    .stat-card:nth-child(2) { border-color: rgba(243,184,177,.65); }
+    .stat-card:nth-child(3) { border-color: rgba(206,200,214,.7); }
+
+    .finance-row {
+      display: grid;
+      grid-template-columns: .55fr 1.45fr;
+      gap: 12px;
+      margin-top: 12px;
+      max-width: 630px;
+    }
+    .finance-card { padding: 19px; min-height: 118px; }
+    .finance-card strong { display: block; margin-top: 12px; font-size: 26px; letter-spacing: -.03em; }
+    .finance-card strong small { font-size: 12px; color: var(--muted); margin-left: 4px; }
+    .sparkline { margin-top: 8px; width: 100%; height: 34px; }
+
+    .phone-wrap {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 690px;
+    }
+    .phone-wrap::before,
+    .phone-wrap::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      z-index: -1;
+    }
+    .phone-wrap::before {
+      width: 260px; height: 260px; right: -70px; top: 40px;
+      background: rgba(202,233,224,.55);
+    }
+    .phone-wrap::after {
+      width: 180px; height: 180px; left: -60px; bottom: 80px;
+      background: rgba(243,210,172,.27);
+    }
+
+    .phone {
+      width: 374px;
+      min-height: 720px;
+      padding: 14px;
+      background: linear-gradient(160deg, #f8f8f9, #e7e7ea);
+      border-radius: 52px;
+      box-shadow: 0 28px 70px rgba(48, 52, 68, .18), inset 0 0 0 2px rgba(255,255,255,.82);
+      position: relative;
+    }
+
+    .phone-screen {
+      min-height: 692px;
+      border-radius: 40px;
+      overflow: hidden;
+      background: #fbfbfc;
+      border: 1px solid rgba(225,225,231,.95);
+      position: relative;
+      padding: 26px 18px 72px;
+    }
+
+    .island {
+      position: absolute;
+      top: 11px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 104px;
+      height: 27px;
+      background: #24242a;
+      border-radius: 99px;
+      z-index: 3;
+    }
+
+    .phone-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 23px 0 18px;
+      font-size: 18px;
+    }
+    .menu-icon, .bell-icon { width: 24px; height: 24px; }
+
+    .hello strong { display: block; font-size: 19px; }
+    .hello span { display: block; margin-top: 6px; color: #9294a3; font-size: 11px; }
+
+    .section-title {
+      margin: 18px 0 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .section-title a { color: #69b9bc; text-decoration: none; font-size: 11px; }
+
+    .task-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .task {
+      padding: 12px 8px;
+      min-height: 78px;
+      border-radius: 15px;
+      background: #fff;
+      border: 1px solid #ececf1;
+    }
+    .task:nth-child(1) { background: rgba(202,233,224,.47); }
+    .task:nth-child(2) { background: rgba(243,210,172,.42); }
+    .task:nth-child(3) { background: rgba(243,184,177,.36); }
+    .task strong { display:block; font-size: 24px; }
+    .task span { display:block; margin-top: 4px; color: #737587; font-size: 10px; font-weight: 700; }
+
+    .overview-card {
+      padding: 14px;
+      background: #fff;
+      border: 1px solid #ececf1;
+      border-radius: 17px;
+    }
+    .overview-flex { display:flex; align-items:center; gap: 16px; }
+    .donut {
+      width: 86px; height: 86px; border-radius: 50%;
+      background: conic-gradient(var(--aqua) 0 42%, var(--cream) 42% 68%, var(--lavender) 68% 100%);
+      position:relative; flex: 0 0 auto;
+    }
+    .donut::after { content:""; position:absolute; inset:14px; background:white; border-radius:50%; }
+    .legend { flex:1; display:grid; gap:7px; font-size:10px; color:#67697a; }
+    .legend div { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .legend i { width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:6px; }
+
+    .todo-list { display:grid; gap:7px; }
+    .todo {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 8px;
+      padding: 10px 11px;
+      background:#fff;
+      border:1px solid #ececf1;
+      border-radius:12px;
+      font-size:11px;
+    }
+    .todo-left { display:flex; align-items:center; gap:9px; min-width:0; }
+    .tiny-icon { width:28px; height:28px; border-radius:9px; display:grid; place-items:center; font-size:13px; font-weight:900; }
+    .todo:nth-child(1) .tiny-icon { background: rgba(243,184,177,.38); color:#d9837d; }
+    .todo:nth-child(2) .tiny-icon { background: rgba(243,210,172,.45); color:#c58d4f; }
+    .todo:nth-child(3) .tiny-icon { background: rgba(125,200,202,.28); color:#4ca9ac; }
+    .badge { border-radius:999px; padding:4px 7px; font-size:9px; font-weight:800; white-space:nowrap; }
+    .todo:nth-child(1) .badge { background:rgba(243,184,177,.28); color:#ca7772; }
+    .todo:nth-child(2) .badge { background:rgba(243,210,172,.35); color:#b47f43; }
+    .todo:nth-child(3) .badge { background:rgba(125,200,202,.24); color:#409da0; }
+
+    .event-list { display:grid; gap:8px; }
+    .event-row { display:flex; align-items:center; gap:9px; font-size:10px; }
+    .event-thumb { width:42px; height:34px; border-radius:9px; background: linear-gradient(135deg, var(--cream), var(--mint)); flex:0 0 auto; }
+    .event-row:nth-child(2) .event-thumb { background:linear-gradient(135deg,var(--coral),var(--lavender)); }
+    .event-row:nth-child(3) .event-thumb { background:linear-gradient(135deg,var(--mint),var(--aqua)); }
+    .event-copy { flex:1; min-width:0; }
+    .event-copy strong { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .event-copy span { color:#9698a7; font-size:8px; }
+    .event-state { font-size:8px; padding:4px 7px; border-radius:999px; background:rgba(202,233,224,.65); color:#4f9f87; font-weight:800; }
+
+    .phone-nav {
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height:58px;
+      background:rgba(255,255,255,.94);
+      border-top:1px solid #ececf1;
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      align-items:center;
+      padding:0 8px;
+    }
+    .phone-nav div { text-align:center; color:#9193a1; font-size:8px; font-weight:800; }
+    .phone-nav b { display:block; font-size:16px; margin-bottom:1px; }
+    .phone-nav .active { color:#51b2b5; }
+    .phone-nav .plus b { width:34px; height:34px; border-radius:50%; margin:0 auto 2px; display:grid; place-items:center; color:white; background:linear-gradient(135deg,#6cc5c7,#55b3b6); box-shadow:0 7px 16px rgba(85,179,182,.30); }
+
+    .login-zone {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+    }
+    .login-zone::before {
+      content:"";
+      position:absolute;
+      width:280px; height:280px;
+      border-radius:50%;
+      top:-110px; right:-140px;
+      background:rgba(206,200,214,.38);
+      z-index:-1;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 410px;
+      background: rgba(255,255,255,.94);
+      border: 1px solid rgba(232,232,238,.98);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      padding: 38px 34px 30px;
+      backdrop-filter: blur(14px);
+    }
+
+    .login-card h2 { margin:0; text-align:center; font-size:23px; letter-spacing:.04em; }
+    .login-sub { text-align:center; margin:8px 0 30px; color:#9294a3; font-size:13px; }
+    .field { margin-bottom:17px; }
+    .field label { display:block; margin-bottom:8px; font-size:12px; font-weight:800; }
+    .input-wrap { position:relative; }
+    .field input {
+      width:100%;
+      height:54px;
+      border-radius:13px;
+      border:1px solid #dedfe7;
+      background:#fff;
+      outline:none;
+      padding:0 44px 0 15px;
+      color:var(--ink);
+      transition:border .16s ease, box-shadow .16s ease;
+    }
+    .field input:focus { border-color:var(--aqua); box-shadow:0 0 0 4px rgba(125,200,202,.16); }
+    .field input::placeholder { color:#b5b6c1; }
+    .toggle-password { position:absolute; right:12px; top:50%; transform:translateY(-50%); width:30px; height:30px; border:0; background:transparent; cursor:pointer; color:#9a9ca9; display:grid; place-items:center; }
+
+    .login-meta { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:-1px 0 20px; font-size:12px; }
+    .remember { display:flex; align-items:center; gap:8px; color:#6f7181; }
+    .remember input { width:16px; height:16px; accent-color:var(--aqua); }
+    .text-link { color:#55afb2; text-decoration:none; font-weight:800; }
+    .login-submit { width:100%; border:0; }
+
+    .divider { display:flex; align-items:center; gap:13px; margin:20px 0; color:#aaaab6; font-size:11px; }
+    .divider::before,.divider::after { content:""; height:1px; flex:1; background:#e9e9ee; }
+
+    .google-btn {
+      width:100%; height:52px; border-radius:13px; border:1px solid #dedfe7; background:white; cursor:pointer;
+      display:flex; justify-content:center; align-items:center; gap:11px; font-weight:800; color:#484a59;
+    }
+    .google-g { width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-weight:900; font-size:17px; background: conic-gradient(from -45deg,#4285f4 0 25%,#34a853 25% 50%,#fbbc05 50% 75%,#ea4335 75%); color:white; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+    .signup-note { text-align:center; margin-top:23px; color:#7c7e8d; font-size:12px; }
+
+    .feature-strip {
+      margin: 8px auto 0;
+      max-width: 1190px;
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:0;
+      padding:18px 24px;
+      border-radius:24px;
+      background:rgba(255,255,255,.92);
+      border:1px solid rgba(232,232,238,.95);
+      box-shadow:var(--shadow-soft);
+      position:relative;
+      z-index:10;
+    }
+    .feature { display:flex; align-items:center; gap:12px; padding:8px 14px; min-width:0; }
+    .feature-icon { width:40px; height:40px; border-radius:50%; flex:0 0 auto; display:grid; place-items:center; font-weight:900; }
+    .feature:nth-child(1) .feature-icon { background:rgba(202,233,224,.58); color:#4fa8aa; }
+    .feature:nth-child(2) .feature-icon { background:rgba(243,184,177,.40); color:#d47f7a; }
+    .feature:nth-child(3) .feature-icon { background:rgba(243,210,172,.45); color:#c08b4f; }
+    .feature:nth-child(4) .feature-icon { background:rgba(206,200,214,.42); color:#82799c; }
+    .feature:nth-child(5) .feature-icon { background:rgba(125,200,202,.28); color:#4ba3a6; }
+    .feature strong { display:block; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .feature span { display:block; margin-top:3px; font-size:9px; color:#9a9ba9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    .mobile-login-shortcut { display:none; }
+
+    @media (max-width: 1240px) {
+      .hero { grid-template-columns: 1fr .88fr; }
+      .login-zone { grid-column: 1 / -1; padding-top: 10px; }
+      .login-card { max-width: 620px; }
+      .phone-wrap { min-height: 650px; }
+      .feature-strip { grid-template-columns:repeat(3,1fr); }
+      .feature:nth-child(4), .feature:nth-child(5) { display:none; }
+    }
+
+    @media (max-width: 860px) {
+      .page { width:min(100% - 28px, 760px); padding-top:14px; }
+      .page::before { display:none; }
+      .nav { height:62px; }
+      .brand-mark { width:46px; height:46px; border-radius:14px; }
+      .brand-copy strong { font-size:24px; }
+      .brand-copy span { font-size:9px; }
+      .nav-links { display:none; }
+      .hero {
+        grid-template-columns:1fr;
+        min-height:auto;
+        padding-top:28px;
+        gap:24px;
+      }
+      .intro { padding:0; text-align:center; }
+      .eyebrow { justify-content:center; }
+      h1 { margin:0 auto; font-size:clamp(40px,10vw,62px); max-width:650px; }
+      .lead { margin:20px auto 0; font-size:15px; line-height:1.8; }
+      .primary-actions { justify-content:center; }
+      .stats, .finance-row { margin-left:auto; margin-right:auto; }
+      .phone-wrap { order:3; min-height:auto; padding:18px 0; }
+      .phone { width:min(365px, 94vw); }
+      .login-zone { order:2; grid-column:auto; padding:0; }
+      .login-card { max-width:560px; }
+      .feature-strip { grid-template-columns:1fr; margin-top:24px; }
+      .feature:nth-child(n+2) { display:none; }
+      .mobile-login-shortcut { display:inline-flex; }
+    }
+
+    @media (max-width: 560px) {
+      body {
+        background:
+          radial-gradient(circle at 12% 96%, rgba(243,184,177,.24), transparent 25%),
+          radial-gradient(circle at 94% 74%, rgba(125,200,202,.24), transparent 24%),
+          #fff;
+      }
+      .page { width:100%; padding:10px 16px 26px; }
+      .nav { height:58px; }
+      .brand { gap:9px; }
+      .brand-mark { width:40px; height:40px; border-radius:12px; }
+      .brand-mark::before { width:17px; height:27px; left:6px; top:7px; }
+      .brand-mark::after { width:18px; height:18px; right:5px; bottom:6px; }
+      .brand-copy strong { font-size:21px; }
+      .brand-copy span { display:none; }
+      .hero { padding-top:16px; gap:18px; }
+      .eyebrow { margin-bottom:13px; font-size:12px; }
+      h1 { font-size:42px; line-height:1.18; }
+      .lead { font-size:14px; margin-top:16px; }
+      .primary-actions { margin-top:22px; }
+      .primary-actions .btn { min-height:50px; padding:0 20px; }
+      .primary-actions .btn-outline { display:none; }
+      .stats, .finance-row { display:none; }
+      .login-card { padding:26px 20px 22px; border-radius:24px; box-shadow:0 18px 48px rgba(43,47,65,.10); }
+      .login-card h2 { font-size:21px; }
+      .login-sub { margin-bottom:21px; }
+      .field input { height:52px; }
+      .phone-wrap { padding-top:8px; }
+      .phone { width:min(330px, 92vw); min-height:auto; border-radius:44px; }
+      .phone-screen { min-height:620px; border-radius:34px; padding-left:15px; padding-right:15px; }
+      .feature-strip { margin-top:10px; padding:12px 14px; border-radius:18px; }
+      .feature { padding:5px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="nav">
+      <a class="brand" href="#" aria-label="DOING 首頁">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-copy">
+          <strong>DOING</strong>
+          <span>活動營運管理系統</span>
+        </span>
+      </a>
+      <nav class="nav-links" aria-label="主要導覽">
+        <a href="#features">功能介紹</a>
+        <a href="#login">登入</a>
+        <a href="#features">系統亮點</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <section class="intro" aria-labelledby="hero-title">
+        <div class="eyebrow">報名之後，才是真正的活動營運</div>
+        <h1 id="hero-title">一場活動，從報名到現場，<br />都在同一個工作台。</h1>
+        <p class="lead">
+          從報名審核、付款確認、設備與選位，到現場報到、取消退款與延期承接，
+          DOING 把主辦真正要處理的工作放進同一套系統。
+        </p>
+        <div class="primary-actions">
+          <a class="btn btn-primary" href="#login">登入 DOING</a>
+          <button class="btn btn-outline" type="button" id="openApply">申請使用</button>
+        </div>
+
+        <div class="stats" aria-label="示意營運數據">
+          <article class="stat-card">
+            <div class="stat-title">報名總數</div>
+            <div class="stat-num">84<small>筆</small></div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-title">待審核</div>
+            <div class="stat-num">7<small>筆</small></div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-title">待付款確認</div>
+            <div class="stat-num">4<small>筆</small></div>
+          </article>
+        </div>
+
+        <div class="finance-row">
+          <article class="finance-card">
+            <div class="stat-title">今日報到</div>
+            <strong>31<small>人</small></strong>
+          </article>
+          <article class="finance-card">
+            <div class="stat-title">本場已收</div>
+            <strong>NT$ 96,200</strong>
+            <svg class="sparkline" viewBox="0 0 220 34" fill="none" aria-hidden="true">
+              <path d="M2 29C22 30 29 23 43 23C57 23 64 27 78 20C91 14 99 11 110 18C125 28 137 12 149 10C163 8 171 19 185 15C199 11 205 4 218 3" stroke="#F3D2AC" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+          </article>
+        </div>
+      </section>
+
+      <section class="phone-wrap" aria-label="DOING 行動版介面示意">
+        <div class="phone">
+          <div class="island" aria-hidden="true"></div>
+          <div class="phone-screen">
+            <div class="phone-top">
+              <svg class="menu-icon" viewBox="0 0 24 24" fill="none"><path d="M4 7H20M4 12H20M4 17H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <svg class="bell-icon" viewBox="0 0 24 24" fill="none"><path d="M6.6 9.5A5.4 5.4 0 0112 4.1a5.4 5.4 0 015.4 5.4v3.2l1.5 2.6H5.1l1.5-2.6V9.5zM10 18h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+
+            <div class="hello">
+              <strong>你好，主辦團隊 👋</strong>
+              <span>先看今天需要處理的事情。</span>
+            </div>
+
+            <div class="section-title"><span>今日任務</span><a href="#">查看全部</a></div>
+            <div class="task-grid">
+              <div class="task"><strong>7</strong><span>待審核</span></div>
+              <div class="task"><strong>12</strong><span>未繳費</span></div>
+              <div class="task"><strong>4</strong><span>付款待確認</span></div>
+            </div>
+
+            <div class="section-title"><span>本場營運總覽</span><a href="#">本月</a></div>
+            <div class="overview-card">
+              <div class="overview-flex">
+                <div class="donut" aria-hidden="true"></div>
+                <div class="legend">
+                  <div><span><i style="background:#7DC8CA"></i>已錄取</span><b>63 筆</b></div>
+                  <div><span><i style="background:#F3D2AC"></i>未繳費</span><b>12 筆</b></div>
+                  <div><span><i style="background:#CEC8D6"></i>已報到</span><b>31 人</b></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-title"><span>待處理事項</span><a href="#">查看全部</a></div>
+            <div class="todo-list">
+              <div class="todo"><div class="todo-left"><span class="tiny-icon">審</span><span>報名審核</span></div><span class="badge">7 筆待審核</span></div>
+              <div class="todo"><div class="todo-left"><span class="tiny-icon">收</span><span>付款確認</span></div><span class="badge">4 筆待確認</span></div>
+              <div class="todo"><div class="todo-left"><span class="tiny-icon">備</span><span>退款處理</span></div><span class="badge">2 筆待處理</span></div>
+            </div>
+
+            <div class="section-title"><span>近期場次</span><a href="#">查看全部</a></div>
+            <div class="event-list">
+              <div class="event-row">
+                <div class="event-thumb"></div>
+                <div class="event-copy"><strong>城市創意生活日</strong><span>08/02（六）10:00–18:00</span></div>
+                <span class="event-state">進行中</span>
+              </div>
+              <div class="event-row">
+                <div class="event-thumb"></div>
+                <div class="event-copy"><strong>週末手作企劃</strong><span>08/09（六）13:00–18:00</span></div>
+                <span class="event-state" style="background:rgba(243,210,172,.45);color:#b57c3d">即將開始</span>
+              </div>
+              <div class="event-row">
+                <div class="event-thumb"></div>
+                <div class="event-copy"><strong>戶外生活體驗</strong><span>08/16（六）11:00–18:00</span></div>
+                <span class="event-state" style="background:#efeff3;color:#888b9a">已結束</span>
+              </div>
+            </div>
+
+            <div class="phone-nav" aria-hidden="true">
+              <div class="active"><b>⌂</b>首頁</div>
+              <div><b>▣</b>活動</div>
+              <div class="plus"><b>＋</b></div>
+              <div><b>▥</b>報表</div>
+              <div><b>•••</b>更多</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="login-zone" id="login">
+        <section class="login-card" id="loginForm" aria-label="DOING 主辦登入">
+<h2>登入 DOING</h2><p class="login-sub">回到你的活動營運工作台</p>
+<div style="padding:18px 16px;border:1px solid #ececf1;border-radius:16px;background:#fafbfc;margin-bottom:18px"><strong style="display:block;font-size:14px">主辦帳號登入</strong><span style="display:block;margin-top:6px;color:#8f91a0;font-size:11px;line-height:1.7">使用 Google 帳號登入。系統將依帳號帶出你可管理的主辦空間。</span></div>
+<button class="google-btn" type="button" id="googleLogin"><span class="google-g">G</span>使用 Google 登入</button>
+<div id="loginStatus" style="min-height:20px;margin-top:12px;text-align:center;color:#8f91a0;font-size:11px;line-height:1.6"></div>
+<div id="workspacePicker" style="display:none;margin-top:12px;padding:12px;border:1px solid #ececf1;border-radius:14px;background:#fff"></div>
+<div class="divider">第一次使用 DOING？</div><button class="btn btn-primary login-submit" type="button" id="openApplyCard">申請使用</button><p class="signup-note">不需要輸入主辦代碼。</p></section>
+      </aside>
+    </section>
+
+    <section class="feature-strip" id="features" aria-label="核心功能">
+      <div class="feature"><div class="feature-icon">曆</div><div><strong>報名與審核</strong><span>待審核、錄取、備取集中處理</span></div></div>
+      <div class="feature"><div class="feature-icon">審</div><div><strong>付款與財務</strong><span>未繳費、待確認、已繳費清楚掌握</span></div></div>
+      <div class="feature"><div class="feature-icon">收</div><div><strong>設備與選位</strong><span>設備數量與位置安排接在報名之後</span></div></div>
+      <div class="feature"><div class="feature-icon">表</div><div><strong>現場報到</strong><span>手機直接查資料與完成報到</span></div></div>
+      <div class="feature"><div class="feature-icon">到</div><div><strong>取消退款與延期</strong><span>主辦可取消、退款，延期資料可承接</span></div></div>
+    </section>
+  </main>
+
+  <script>
+const API='https://tobeloved-api.ndiangrace.workers.dev';
+const googleLogin=document.getElementById('googleLogin'),loginStatus=document.getElementById('loginStatus'),workspacePicker=document.getElementById('workspacePicker'),applyBackdrop=document.getElementById('applyBackdrop'),openApply=document.getElementById('openApply'),openApplyCard=document.getElementById('openApplyCard'),closeApply=document.getElementById('closeApply'),submitApply=document.getElementById('submitApply');
+function showApply(){applyBackdrop.style.display='flex';document.body.style.overflow='hidden'}
+function hideApply(){applyBackdrop.style.display='none';document.body.style.overflow=''}
+openApply?.addEventListener('click',showApply);openApplyCard?.addEventListener('click',showApply);closeApply?.addEventListener('click',hideApply);applyBackdrop?.addEventListener('click',e=>{if(e.target===applyBackdrop)hideApply()});
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function loginErrorText(code){return ({not_authorized:'這個 Google 帳號目前沒有可管理的主辦空間。',google_cancelled:'已取消 Google 登入。',missing_params:'Google 登入資料不完整，請重新登入。',invalid_state:'登入驗證已失效，請重新登入。',token_exchange_failed:'Google 登入交換失敗，請重新登入。',no_id_token:'Google 登入未取得有效憑證。',id_token_verify_failed:'Google 帳號驗證失敗，請重新登入。',staff_inactive:'這個管理帳號目前已停用。'})[code]||code}
+function cleanLoginQuery(){const u=new URL(location.href);['workspace_token','login_error','error'].forEach(k=>u.searchParams.delete(k));history.replaceState({},'',u.pathname+(u.searchParams.toString()?('?'+u.searchParams.toString()):''));}
+async function loadWorkspacePicker(token){
+  loginStatus.textContent='正在載入你可管理的主辦空間…';googleLogin.disabled=true;
+  try{
+    const r=await fetch(API+'?action=listLoginWorkspaces&workspace_token='+encodeURIComponent(token));
+    const j=await r.json().catch(()=>({error:'回傳格式錯誤'}));
+    if(!r.ok||j.error||j.ok===false)throw new Error(j.error||j.message||('HTTP '+r.status));
+    const rows=Array.isArray(j.workspaces)?j.workspaces:[];
+    if(!rows.length)throw new Error('目前沒有可管理的主辦空間');
+    workspacePicker.innerHTML='<strong style="display:block;font-size:13px;margin-bottom:8px">選擇主辦空間</strong>'+rows.map(w=>`<button type="button" data-tenant="${esc(w.tenant_id)}" style="width:100%;text-align:left;border:1px solid #e8e8ef;background:#fafbfc;border-radius:11px;padding:12px;margin-top:7px;cursor:pointer"><b style="display:block;font-size:13px;color:#2f3140">${esc(w.name)}</b><span style="font-size:10px;color:#9698a6">${esc(w.role||'管理員')}${w.is_locked?' · 唯讀鎖定':''}</span></button>`).join('');
+    workspacePicker.style.display='block';loginStatus.textContent='這個帳號可管理多個主辦空間，請選擇要進入哪一個。';
+    workspacePicker.querySelectorAll('[data-tenant]').forEach(btn=>btn.addEventListener('click',()=>selectWorkspace(token,btn.dataset.tenant,btn)));
+    cleanLoginQuery();
+  }catch(e){loginStatus.style.color='#ca7772';loginStatus.textContent=e.message;googleLogin.disabled=false;cleanLoginQuery();}
+}
+async function selectWorkspace(token,tenant,btn){
+  btn.disabled=true;loginStatus.style.color='#8f91a0';loginStatus.textContent='正在進入主辦後台…';
+  try{
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'selectLoginWorkspace',workspace_token:token,tenant})});
+    const j=await r.json().catch(()=>({error:'回傳格式錯誤'}));
+    if(!r.ok||j.error||j.ok===false)throw new Error(j.error||j.message||('HTTP '+r.status));
+    const adminBase=j.admin_url||new URL('admin.html',location.href).toString();
+    const u=new URL(adminBase);u.searchParams.set('admin_token',j.admin_token);u.searchParams.set('tenant',j.tenant||tenant);location.href=u.toString();
+  }catch(e){btn.disabled=false;loginStatus.style.color='#ca7772';loginStatus.textContent=e.message;}
+}
+googleLogin.addEventListener('click',()=>{const tenant=new URLSearchParams(location.search).get('tenant');let url=API.replace(/\/+$/,'')+'/auth/google/start';if(tenant)url+='?tenant='+encodeURIComponent(tenant);location.href=url;});
+const initialParams=new URLSearchParams(location.search),workspaceToken=initialParams.get('workspace_token'),loginError=initialParams.get('login_error')||initialParams.get('error');
+if(loginError){loginStatus.style.color='#ca7772';loginStatus.textContent=loginErrorText(loginError);cleanLoginQuery();}
+if(workspaceToken)loadWorkspacePicker(workspaceToken);
+submitApply.addEventListener('click',async()=>{const payload={action:'applyTrial',brand_name:document.getElementById('applyBrand').value.trim(),contact_name:document.getElementById('applyName').value.trim(),contact_email:document.getElementById('applyEmail').value.trim(),contact_phone:document.getElementById('applyPhone').value.trim(),event_type:'event_registration',note:document.getElementById('applyNote').value.trim()},status=document.getElementById('applyStatus');status.textContent='';if(!payload.brand_name||!payload.contact_email){status.textContent='請填寫主辦／品牌名稱與 Email。';return}submitApply.disabled=true;submitApply.textContent='送出中…';try{const r=await fetch(API+'?action=applyTrial',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}),j=await r.json().catch(()=>({error:'回傳格式錯誤'}));if(!r.ok||j.error||j.ok===false)throw new Error(j.error||j.message||('HTTP '+r.status));status.style.color='#4f9f87';status.textContent=j.message||'申請已送出。';submitApply.textContent='已送出'}catch(e){status.style.color='#ca7772';status.textContent='送出失敗：'+e.message;submitApply.disabled=false;submitApply.textContent='送出申請'}});
+</script>
+<div id="applyBackdrop" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(36,37,54,.38);padding:16px;align-items:center;justify-content:center"><div style="width:min(520px,100%);max-height:88vh;overflow:auto;background:#fff;border:1px solid #e9e9ef;border-radius:26px;box-shadow:0 28px 80px rgba(43,47,65,.18);padding:24px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><div><strong style="font-size:21px">申請使用 DOING</strong><div style="margin-top:5px;color:#8d8f9e;font-size:11px">留下主辦資料，送出使用申請。</div></div><button type="button" id="closeApply" style="width:34px;height:34px;border:0;border-radius:10px;background:#f4f5f8;color:#6e7080;font-weight:900">×</button></div>
+<div class="field" style="margin-top:18px"><label for="applyBrand">主辦／品牌名稱 *</label><div class="input-wrap"><input id="applyBrand" type="text" maxlength="80" placeholder="請輸入名稱"></div></div><div class="field"><label for="applyName">聯絡人</label><div class="input-wrap"><input id="applyName" type="text" maxlength="60" placeholder="請輸入聯絡人"></div></div><div class="field"><label for="applyEmail">Email *</label><div class="input-wrap"><input id="applyEmail" type="email" maxlength="120" placeholder="name@example.com"></div></div><div class="field"><label for="applyPhone">電話</label><div class="input-wrap"><input id="applyPhone" type="text" maxlength="30" placeholder="請輸入聯絡電話"></div></div><div class="field"><label for="applyNote">補充說明</label><div class="input-wrap"><input id="applyNote" type="text" maxlength="300" placeholder="主要活動類型或需求"></div></div><button class="btn btn-primary login-submit" type="button" id="submitApply" style="margin-top:8px">送出申請</button><div id="applyStatus" style="min-height:20px;margin-top:10px;text-align:center;font-size:11px;color:#8d8f9e"></div></div></div>
+</body>
+</html>
