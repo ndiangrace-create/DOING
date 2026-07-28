@@ -91,9 +91,9 @@ html,body{background:radial-gradient(circle at 10% 12%,rgba(100,199,198,.16),tra
     <div class="grid" id="tenantGrid"></div>
 
     <div class="platform-tools">
-      <div class="tool"><b>租戶開通</b><span>新增品牌、設定試用與管理員</span></div>
-      <div class="tool"><b>方案與帳單</b><span>查看方案、鎖定狀態與費用</span></div>
-      <div class="tool"><b>平台監控</b><span>查看租戶數量與系統異常</span></div>
+      <div class="tool"><b>租戶空間</b><span>查看目前已建立的主辦空間與使用狀態</span></div>
+      <div class="tool"><b>工作台切換</b><span>從租戶卡直接進入該主辦的正式工作台</span></div>
+      <div class="tool"><b>平台概況</b><span>目前顯示租戶數、試用中與唯讀鎖定摘要</span></div>
     </div>
   </section>
 </main>
@@ -119,7 +119,7 @@ function getToken(){
 function setStatus(t){ statusEl.textContent=t; }
 
 loginBtn.onclick = () => {
-  location.href = API + '/auth/google/start';
+  location.href = API + '/auth/google/platform/start';
 };
 logoutBtn.onclick = () => {
   localStorage.removeItem(TOKEN_KEY);

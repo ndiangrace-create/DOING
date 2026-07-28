@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>DOING｜活動報名</title>
 <style>
 :root{--bg:#f8f9fb;--paper:#fff;--ink:#242536;--muted:#737589;--line:#e9e9ef;--main:#7dc8ca;--main2:#5aaeb2;--soft:#cae9e0;--blue:#e9f3ff;--yellow:#f3d2ac;--pink:#f3b8b1;--danger:#c87570;--shadow:0 16px 40px rgba(16,72,67,.09);--safe:env(safe-area-inset-bottom,0px)}
@@ -16,10 +16,19 @@ body{background:linear-gradient(180deg,#f9fcfc,#f5f9fa 55%,#fff)!important}.top{
 @media(max-width:780px){.hero{grid-template-columns:1fr!important;min-height:0!important}.hero-copy{padding:25px 18px!important}.hero-art{min-height:155px!important}.hero-art:before{width:125px;height:145px;border-width:5px;border-radius:21px;line-height:1.7}.grid{grid-template-columns:1fr!important}.record-info{grid-template-columns:1fr 1fr!important}.reg-wizard{grid-template-columns:repeat(4,minmax(72px,1fr));overflow:auto}.reg-step{padding:7px;font-size:8px}.reg-step b{font-size:9px}.pre-notice{grid-template-columns:1fr}.support-flow{grid-template-columns:1fr}}
 @media(max-width:520px){.shell{padding-left:8px!important;padding-right:8px!important}.top-in{padding:9px!important}.hero{margin:10px 0!important;border-radius:24px!important}.hero-copy h2{font-size:31px!important}.hero-copy p{font-size:12px!important}.hero-art{display:none!important}.section-title{margin:18px 3px 9px!important}.section-title h2{font-size:20px!important}.event-card{flex-basis:88vw!important}.cover{height:150px!important}.modal-bg{padding:0!important}.modal{border-radius:0!important;height:100%!important;max-height:none!important}.modal-head{padding:12px 14px!important}.modal-body{padding:0 14px 14px!important}.modal-foot{display:grid!important;grid-template-columns:1fr 1fr!important;padding:9px 14px calc(9px + var(--safe))!important}.modal-foot .btn{width:100%!important}.modal-foot #submitRegBtn{grid-column:1/-1}.record{padding:13px!important}.record-info{gap:6px!important}.info{padding:8px!important;min-height:62px!important}.bottom-nav{bottom:7px!important;padding:6px!important}.bottom-nav button{min-height:46px!important;font-size:12px!important}}
 
+
+.lang-select{border:1px solid var(--line);background:#fff;border-radius:12px;min-height:38px;padding:5px 9px;font-weight:800}
+.brand{position:relative;user-select:none;-webkit-user-select:none}
+.hold-ring{position:absolute;left:-4px;top:-4px;width:54px;height:54px;border-radius:18px;pointer-events:none;border:3px solid transparent}
+.brand.holding .hold-ring{border-color:var(--main);animation:holdPulse 3s linear forwards}
+@keyframes holdPulse{0%{opacity:.2;transform:scale(.9)}100%{opacity:1;transform:scale(1.08)}}
+@media(max-width:520px){.lang-select{max-width:92px}.top-in .nav{gap:5px}.top-in .btn{min-height:38px}}
+.market-only.hidden{display:none!important}
+.reg-step.hidden{display:none!important}
 </style>
 </head>
 <body>
-<header class="top"><div class="top-in"><div class="brand"><img id="tenantLogo" class="logo hidden" alt="主辦 LOGO"><div><h1 id="tenantName">DOING 活動報名</h1><p>一次建立資料，後續活動快速帶入</p></div></div><div class="nav"></div></div></header>
+<header class="top"><div class="top-in"><div class="brand" id="brandHoldTarget" title="主辦品牌"><img id="tenantLogo" class="logo hidden" alt="主辦 LOGO"><div><h1 id="tenantName">DOING</h1><p id="brandSub">一次建立資料，之後報名快速帶入</p></div><span id="holdRing" class="hold-ring"></span></div><div class="nav"><select id="languageSelect" class="lang-select hidden" aria-label="Language"></select><button id="memberLoginBtn" class="btn outline small" type="button">登入</button></div></div></header>
 <main class="shell">
 <section id="pageSessions" class="page active">
   <div id="hero" class="hero"><div class="hero-copy"><h2 id="heroTitle">活動報名，從這裡開始</h2><p id="heroText">選擇場次、完成報名；登入我的報名即可查看審核、付款、設備、選位與行前資訊。</p><div class="actions"><button class="btn" id="heroMyBtn">查看我的報名</button><a id="lineBtn" class="btn outline hidden" target="_blank" rel="noopener">聯繫主辦</a></div></div><div id="heroArt" class="hero-art"><div class="hero-mark"></div></div></div>
@@ -30,7 +39,7 @@ body{background:linear-gradient(180deg,#f9fcfc,#f5f9fa 55%,#fff)!important}.top{
   <div id="sessionGrid" class="grid"><div class="empty">載入中…</div></div>
 </section>
 <section id="pageMy" class="page">
-  <div class="section-title"><div><h2>我的報名</h2><p>使用報名時的 Email＋手機查詢，保護你的個人資料。</p></div><span class="pill" title="回報問題時請附上此版本號">DOING-R0726-FUNC1</span></div>
+  <div class="section-title"><div><h2>我的報名</h2><p>使用報名時的 Email＋手機查詢，保護你的個人資料。</p></div><span class="pill" title="回報問題時請附上此版本號">DOING-R0726-CLOSE1</span></div>
   <div id="myLogin" class="card"><div class="card-body"><div class="form-grid"><div class="field"><label>Email</label><input id="myEmail" type="email" autocomplete="email"></div><div class="field"><label>手機</label><input id="myPhone" inputmode="tel" autocomplete="tel"></div></div><div class="actions"><button class="btn" id="loadMyBtn">登入我的報名</button></div></div></div>
   <div id="myRecords" class="record-list" style="margin-top:14px"></div>
 </section>
@@ -50,16 +59,18 @@ body{background:linear-gradient(180deg,#f9fcfc,#f5f9fa 55%,#fff)!important}.top{
 <div id="sessionModal" class="modal-bg"><div class="modal"><div class="modal-head"><div><h2 id="regTitle">場次報名</h2><p id="regSub"></p></div><button class="close" data-close>×</button></div><div class="modal-body"><div class="reg-wizard"><button type="button" class="reg-step active" data-step="1"><b>01 基本資料</b>會員與場次</button><button type="button" class="reg-step" data-step="2"><b>02 報名內容</b>日期、設備、選位</button><button type="button" class="reg-step" data-step="3"><b>03 帳務資料</b>發票與其他</button><button type="button" class="reg-step" data-step="4"><b>04 確認送出</b>合約與摘要</button></div>
 <form id="regForm">
 <div class="form-section reg-step-panel active" data-reg-step="1"><h3>場次內容</h3><div id="sessionDetail"></div></div>
-<div class="form-section reg-step-panel active" data-reg-step="1"><h3>聯絡與會員資料</h3><div class="form-grid"><div class="field"><label>Email *</label><input id="regEmail" type="email" required></div><div class="field"><label>手機 *</label><input id="regPhone" inputmode="tel" required></div></div><div class="actions"><button type="button" class="btn outline small" id="loadMemberBtn">帶入既有會員資料</button></div><div class="form-grid" style="margin-top:10px"><div class="field"><label>姓名 *</label><input id="regName" required></div><div class="field"><label>品牌／單位名稱</label><input id="regBrand"></div><div class="field full"><label>品牌／參加內容介紹</label><textarea id="regIntro"></textarea></div><div class="field"><label>販售／參加類型</label><input id="regSellCat"></div><div class="field"><label>品項說明</label><input id="regSellItem"></div><div class="field"><label>Facebook</label><input id="regFb" type="url"></div><div class="field"><label>Instagram</label><input id="regIg" type="url"></div><div class="field full"><label>作品／照片網址</label><input id="regPhoto" type="url"></div></div></div>
-<div id="dateSection" class="form-section reg-step-panel" data-reg-step="2"><h3>日期與名額</h3><div id="dateChoices" class="choice-grid"></div><div class="field" style="margin-top:10px"><label>攤位／報名數量</label><select id="regStalls"></select></div></div>
+<div class="form-section reg-step-panel active" data-reg-step="1"><h3>聯絡與會員資料</h3><div class="form-grid"><div class="field"><label>Email *</label><input id="regEmail" type="email" required></div><div class="field"><label>手機 *</label><input id="regPhone" inputmode="tel" required></div></div><div class="actions"><button type="button" class="btn outline small" id="loadMemberBtn">帶入既有會員資料</button></div><label class="choice" style="margin-top:10px"><input id="syncMemberProfile" type="checkbox"><span><b>同步更新我的會員資料</b><small>未勾選時，本次報名可修改資料，但不會覆蓋原會員主檔。</small></span></label><div class="form-grid" style="margin-top:10px"><div class="field"><label>姓名 *</label><input id="regName" required></div><div class="field"><label>品牌／單位名稱</label><input id="regBrand"></div><div class="field full"><label>參加內容／單位介紹</label><textarea id="regIntro"></textarea></div><div class="field market-only"><label>販售／參加類型</label><input id="regSellCat"></div><div class="field market-only"><label>品項說明</label><input id="regSellItem"></div><div class="field market-only"><label>Facebook</label><input id="regFb" type="url"></div><div class="field market-only"><label>Instagram</label><input id="regIg" type="url"></div><div class="field full market-only"><label>作品／照片網址</label><input id="regPhoto" type="url"></div></div></div>
+<div id="dateSection" class="form-section reg-step-panel" data-reg-step="2"><h3 id="dateSectionTitle">日期與名額</h3><div id="dateChoices" class="choice-grid"></div><div class="field" style="margin-top:10px"><label>攤位／報名數量</label><select id="regStalls"></select></div></div>
+<div id="bundleSection" class="form-section reg-step-panel hidden" data-reg-step="2"><h3>加報其他場次</h3><div class="help">組合優惠會在同一份報名中建立各場獨立紀錄；設備、押金、報到仍按場管理，正式金額由 Worker 依各場資料庫設定重新計算。</div><div id="bundleChoices" class="choice-grid" style="margin-top:10px"></div></div>
 <div id="participantSection" class="form-section reg-step-panel hidden" data-reg-step="2"><h3>參加人數</h3><div class="form-grid"><div class="field"><label>成人</label><input id="adultCount" type="number" min="0" value="1"></div><div class="field"><label>兒童</label><input id="childCount" type="number" min="0" value="0"></div></div></div>
 <div id="equipSection" class="form-section reg-step-panel hidden" data-reg-step="2"><h3>設備</h3><div id="equipChoices" class="choice-grid"></div><div id="equipNote" class="help"></div></div>
 <div id="addonSection" class="form-section reg-step-panel hidden" data-reg-step="2"><h3>加購項目</h3><div id="addonChoices" class="choice-grid"></div></div>
 <div id="customSection" class="form-section reg-step-panel hidden" data-reg-step="3"><h3>其他資料</h3><div id="customFields" class="form-grid"></div></div>
+<div id="businessModuleSection" class="form-section reg-step-panel hidden" data-reg-step="2"><h3 id="businessModuleTitle">預約／報名內容</h3><div id="businessModuleFields" class="form-grid"></div></div>
 <div id="seatIntentSection" class="form-section reg-step-panel hidden" data-reg-step="2"><h3>位置安排</h3><div class="choice-grid"><label class="choice"><input type="radio" name="seatIntent" value="auto" checked><span><b>主辦配位</b><small>付款確認後，進入活動前 7 天內由系統持續自動補位。</small></span></label><label class="choice"><input type="radio" name="seatIntent" value="paid"><span><b>加價選位</b><small>錄取後、付款前到「我的報名」挑選有加價的位置。</small></span></label></div></div>
-<div class="form-section reg-step-panel" data-reg-step="3"><h3>發票資料</h3><div class="form-grid"><div class="field"><label>發票需求</label><select id="invoiceType"><option value="不需要">不需要</option><option value="個人">個人</option><option value="公司／機關">公司／機關</option></select></div><div class="field"><label>發票 Email</label><input id="invoiceEmail" type="email"></div><div class="field"><label>統一編號</label><input id="taxId"></div><div class="field"><label>抬頭</label><input id="invoiceTitle"></div><div class="field full"><label>載具</label><input id="invoiceCarrier"></div></div></div>
-<div class="form-section reg-step-panel" data-reg-step="4"><h3>合約與規範</h3><div class="choice"><input id="agreementCheck" type="checkbox"><span><b>我已閱讀並同意報名合約／活動規範</b><small><button type="button" class="btn outline small" id="readAgreementBtn" style="margin-top:7px">閱讀完整內容</button></small></span></div><div id="refundRuleBox" class="summary" style="margin-top:10px"></div></div>
-<div id="regSummary" class="summary reg-step-panel" data-reg-step="4"></div>
+<div id="invoiceSection" class="form-section reg-step-panel" data-reg-step="3"><h3>發票資料</h3><div class="form-grid"><div class="field"><label>發票需求</label><select id="invoiceType"><option value="不需要">不需要</option><option value="個人">個人</option><option value="公司／機關">公司／機關</option></select></div><div class="field"><label>發票 Email</label><input id="invoiceEmail" type="email"></div><div class="field"><label>統一編號</label><input id="taxId"></div><div class="field"><label>抬頭</label><input id="invoiceTitle"></div><div class="field full"><label>載具</label><input id="invoiceCarrier"></div></div></div>
+<div id="agreementSection" class="form-section reg-step-panel" data-reg-step="4"><h3>合約與規範</h3><div class="choice"><input id="agreementCheck" type="checkbox"><span><b>我已閱讀並同意報名合約／活動規範</b><small><button type="button" class="btn outline small" id="readAgreementBtn" style="margin-top:7px">閱讀完整內容</button></small></span></div><div id="refundRuleBox" class="summary" style="margin-top:10px"></div></div>
+<div class="form-section reg-step-panel" data-reg-step="4"><h3>送出前確認</h3><div class="help">請確認資料無誤。正式金額、名額與狀態會在送出當下由系統再次驗證。</div></div><div id="regSummary" class="summary reg-step-panel" data-reg-step="4"></div>
 </form></div><div class="modal-foot"><button class="btn outline" data-close>取消</button><button class="btn wizard-back hidden" type="button" id="regPrevBtn">上一步</button><button class="btn wizard-next" type="button" id="regNextBtn">下一步</button><button class="btn hidden" id="submitRegBtn">確認送出報名</button></div></div></div>
 
 <div id="agreementModal" class="modal-bg"><div class="modal" style="max-width:760px"><div class="modal-head"><div><h2 id="agreementTitle">報名合約</h2><p id="agreementVersion"></p></div><button class="close" data-close>×</button></div><div class="modal-body"><div id="agreementContent" class="agreement"></div></div><div class="modal-foot"><button class="btn" id="agreementDoneBtn">我已閱讀</button></div></div></div>
@@ -67,6 +78,7 @@ body{background:linear-gradient(180deg,#f9fcfc,#f5f9fa 55%,#fff)!important}.top{
 <div id="seatModal" class="modal-bg"><div class="modal"><div class="modal-head"><div><h2>加價選位</h2><p id="seatHint"></p></div><button class="close" data-close>×</button></div><div class="modal-body"><img id="seatMapImg" class="hidden" style="width:100%;max-height:360px;object-fit:contain;border:1px solid var(--line);border-radius:16px;margin-bottom:14px"><div id="seatGrid" class="seat-grid"></div></div><div class="modal-foot"><button class="btn outline" data-close>取消</button><button class="btn" id="confirmSeatBtn">確認選位</button></div></div></div>
 
 <div id="paymentModal" class="modal-bg"><div class="modal" style="max-width:620px"><div class="modal-head"><div><h2>付款與回報</h2><p id="paySub"></p></div><button class="close" data-close>×</button></div><div class="modal-body"><div id="payAccount" class="summary"></div><div id="payExternal" class="actions" style="margin-top:12px"></div><div id="payExternalNote" class="ann hidden">使用 LINE Pay／信用卡前，請先確認本次應付金額；付款完成後回到這裡送出付款回報，方便主辦確認入帳。</div><div class="form-grid" style="margin-top:12px"><div class="field"><label>付款方式</label><select id="payMethod"></select></div><div class="field"><label>本次應付金額</label><input id="payAmount" type="number" min="0" readonly></div><div class="field full"><label>帳號末五碼（銀行轉帳／ATM 才需填）</label><input id="payLast5" inputmode="numeric" maxlength="5"></div></div></div><div class="modal-foot"><button class="btn outline" data-close>取消</button><button class="btn" id="submitPayBtn">送出付款回報</button></div></div></div>
+<div id="adminEntryModal" class="modal-bg"><div class="modal" style="max-width:470px"><div class="modal-head"><div><h2 data-i18n="workspace">DOING 工作台</h2><p>主辦與工作人員請使用已授權的 Google 帳號。</p></div><button class="close" data-close>×</button></div><div class="modal-body"><button class="btn" style="width:100%" id="adminGoogleBtn">使用 Google 登入</button><div class="help" style="margin-top:10px">系統會依帳號自動辨識你可管理的工作空間。</div></div></div></div>
 <div id="paymentSuccessModal" class="modal-bg"><div class="modal" style="max-width:650px"><div class="modal-head"><div><h2>付款回報已送出</h2><p>目前狀態為「付款待確認」，請等待主辦核帳。</p></div><button class="close" data-close>×</button></div><div class="modal-body"><div class="ann">請先截圖保存本頁，再視需要傳給主辦客服。</div><div id="paymentSuccessCard" class="summary" style="white-space:pre-wrap"></div></div><div class="modal-foot"><button class="btn outline" id="copyPaymentCardBtn">① 複製付款卡</button><button class="btn" id="openPaymentLineBtn">② 傳 LINE 客服</button><button class="btn outline" data-close>完成</button></div></div></div>
 <div id="preNoticeModal" class="modal-bg"><div class="modal" style="max-width:760px"><div class="modal-head"><div><h2>行前通知</h2><p>活動前請再次確認最新公告</p></div><button class="close" data-close>×</button></div><div class="modal-body"><div class="pre-notice"><div class="notice-main"><small style="font-weight:900;color:#3e9292">PRE-EVENT</small><h3 id="preNoticeName">場次</h3><div id="preNoticeDate" style="color:var(--muted);font-size:13px"></div><div id="preNoticeVenue" style="margin-top:7px;font-weight:900"></div><div class="ann" style="margin-top:14px">報到時間依主辦公告；最新異動以「我的報名」與主辦通知為準。</div></div><div class="notice-side"><div><span>位置</span><b id="preNoticeSeat">—</b></div><div><span>設備</span><b id="preNoticeEquip">設備自備</b></div><div><span>付款</span><b id="preNoticePay">—</b></div></div></div></div><div class="modal-foot"><button class="btn" data-close>知道了</button></div></div></div>
 <div id="toast" class="toast"></div>
@@ -74,7 +86,72 @@ body{background:linear-gradient(180deg,#f9fcfc,#f5f9fa 55%,#fff)!important}.top{
 const API='https://tobeloved-api.ndiangrace.workers.dev';
 const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const money=n=>'NT$'+Number(n||0).toLocaleString('zh-TW');
-const state={tenant:'',tenantData:null,events:[],sessions:[],portal:'',eventId:'',session:null,agreement:null,agreementViewed:false,myEmail:'',myPhone:'',currentReg:null,lastPaymentCard:''};
+const state={tenant:'',tenantData:null,events:[],sessions:[],bundles:[],bundlesLoaded:false,selectedBundleId:'',portal:'',eventId:'',session:null,agreement:null,agreementViewed:false,myEmail:'',myPhone:'',myRows:[],currentReg:null,bundlePaymentRegs:[],lastPaymentCard:'',regSubmitKey:'',paymentSubmitKey:''};
+state.lang='zh-TW';
+
+const I18N={
+ 'zh-TW':{login:'登入',home:'活動報名',my:'我的報名',support:'客服',open:'開放報名',view:'查看並報名',date:'日期',venue:'地點',free:'免費活動',register:'報名',book:'預約',next:'下一步',prev:'上一步',submit:'確認送出',service:'服務項目',resource:'指定人員／資源',participants:'參加人數',quantity:'數量',workspace:'DOING 工作台'},
+ en:{login:'Sign in',home:'Activities',my:'My bookings',support:'Support',open:'Open',view:'View / Book',date:'Date',venue:'Venue',free:'Free',register:'Register',book:'Book',next:'Next',prev:'Back',submit:'Confirm',service:'Service',resource:'Staff / Resource',participants:'Participants',quantity:'Quantity',workspace:'DOING Workspace'},
+ ja:{login:'ログイン',home:'申込・予約',my:'マイ予約',support:'サポート',open:'受付中',view:'詳細・予約',date:'日程',venue:'場所',free:'無料',register:'申込',book:'予約',next:'次へ',prev:'戻る',submit:'送信確認',service:'サービス',resource:'担当者／リソース',participants:'参加人数',quantity:'数量',workspace:'DOING ワークスペース'},
+ ko:{login:'로그인',home:'신청·예약',my:'내 예약',support:'고객지원',open:'접수 중',view:'상세·예약',date:'일정',venue:'장소',free:'무료',register:'신청',book:'예약',next:'다음',prev:'이전',submit:'확인 제출',service:'서비스',resource:'담당자／리소스',participants:'참가 인원',quantity:'수량',workspace:'DOING 워크스페이스'}
+};
+function moduleCfg(s){const m=(s&&s.modules&&typeof s.modules==='object')?s.modules:{};return {profile:m.profile||'general',quantityMode:m.quantityMode||'booking',review:m.review!==false,timeslot:!!m.timeslot,service:!!m.service,resource:!!m.resource,participants:!!m.participants,equipment:!!m.equipment,seats:!!m.seats,addons:!!m.addons,agreement:m.agreement!==false,invoice:!!m.invoice,payment:m.payment!==false,checkin:m.checkin!==false,services:Array.isArray(m.services)?m.services:[],resources:Array.isArray(m.resources)?m.resources:[],participantTypes:Array.isArray(m.participantTypes)?m.participantTypes:[],depositKind:m.depositKind||'none',i18n:m.i18n||{}}}
+function lang(){return state.lang||'zh-TW'}
+function tr(key){return (I18N[lang()]&&I18N[lang()][key])||I18N['zh-TW'][key]||key}
+function translatedSession(s,key,fallback=''){const m=moduleCfg(s),p=m.i18n&&m.i18n.translations&&m.i18n.translations[lang()];return p&&String(p[key]||'').trim()?String(p[key]).trim():fallback}
+function sessionDisplay(s){return {...s,name:translatedSession(s,'name',s.name||''),venue:translatedSession(s,'venue',s.venue||''),desc:translatedSession(s,'desc',s.desc||'')}}
+function applyStaticI18n(){
+  $('memberLoginBtn').textContent=tr('login');
+  document.querySelector('[data-page="sessions"]').textContent=tr('home');
+  document.querySelector('[data-page="my"]').textContent=tr('my');
+  document.querySelector('[data-page="support"]').textContent=tr('support');
+  if($('regNextBtn'))$('regNextBtn').textContent=tr('next');
+  if($('regPrevBtn'))$('regPrevBtn').textContent=tr('prev');
+  if($('submitRegBtn'))$('submitRegBtn').textContent=tr('submit');
+}
+function setupLanguages(){
+  const cfg=(state.tenantData&&state.tenantData.i18n)||{enabled:false,defaultLanguage:'zh-TW',languages:['zh-TW']};
+  const langs=Array.isArray(cfg.languages)?cfg.languages:['zh-TW'];
+  state.lang=langs.includes(localStorage.getItem('doing_lang'))?localStorage.getItem('doing_lang'):(langs.includes(cfg.defaultLanguage)?cfg.defaultLanguage:'zh-TW');
+  const sel=$('languageSelect');sel.innerHTML=langs.map(x=>'<option value="'+esc(x)+'">'+({'zh-TW':'繁中',en:'English',ja:'日本語',ko:'한국어'}[x]||x)+'</option>').join('');sel.value=state.lang;sel.classList.toggle('hidden',!cfg.enabled||langs.length<2);
+  sel.onchange=()=>{state.lang=sel.value;localStorage.setItem('doing_lang',state.lang);applyStaticI18n();renderTenant();renderPortals();renderEvents();renderSessions();if(state.session)renderBusinessModuleFields(state.session)};
+  applyStaticI18n();
+}
+function renderBusinessModuleFields(s){
+  const m=moduleCfg(s),box=$('businessModuleFields'),sec=$('businessModuleSection');if(!box||!sec)return;
+  let h='';
+  if(m.service){
+    h+='<div class="field"><label>'+tr('service')+'</label><select id="moduleService"><option value="">— '+tr('service')+' —</option>'+m.services.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.label||x.name||x.id)+(Number(x.price||0)?' · '+money(x.price):'')+'</option>').join('')+'</select></div>';
+  }
+  if(m.resource){
+    h+='<div class="field"><label>'+tr('resource')+'</label><select id="moduleResource"><option value="">— '+tr('resource')+' —</option>'+m.resources.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.label||x.name||x.id)+(Number(x.price||0)?' · '+money(x.price):'')+'</option>').join('')+'</select></div>';
+  }
+  if(m.participants){
+    h+='<div class="field full"><label>'+tr('participants')+'</label><div class="choice-grid">'+m.participantTypes.map(x=>'<label class="choice"><span><b>'+esc(x.label||x.name||x.id)+'</b><small>'+money(x.price||0)+'</small></span><input data-participant="'+esc(x.id)+'" type="number" min="0" value="0" style="max-width:86px;margin-left:auto"></label>').join('')+'</div></div>';
+  }
+  sec.classList.toggle('hidden',!h);box.innerHTML=h;
+  if($('regStalls')){
+    const q=$('regStalls').closest('.field');
+    if(q)q.classList.toggle('hidden',m.quantityMode!=='stall');
+    const lab=q&&q.querySelector('label');if(lab)lab.textContent=m.quantityMode==='stall'?'攤位／單位數':tr('quantity');
+  }
+  if($('dateSectionTitle'))$('dateSectionTitle').textContent=m.timeslot?'選擇日期／時段':'活動日期';
+  const explicitProfile=!!(s.modules&&s.modules.profile);
+  if(explicitProfile)$('participantSection')?.classList.add('hidden');
+  $('seatIntentSection').classList.toggle('hidden',!(m.seats&&s.seatPricingEnabled));
+  $('equipSection')?.classList.toggle('hidden',!m.equipment);
+  $('addonSection')?.classList.toggle('hidden',!m.addons);
+  $('invoiceSection')?.classList.toggle('hidden',!m.invoice);
+  $('agreementSection')?.classList.toggle('hidden',!m.agreement);
+  document.querySelectorAll('.market-only').forEach(x=>x.classList.toggle('hidden',!(m.profile==='market'||!s.modules?.profile)));
+  syncRegWizardSteps();
+}
+function collectModuleSelections(){
+  const qty={};document.querySelectorAll('[data-participant]').forEach(x=>qty[x.dataset.participant]=Number(x.value)||0);
+  return {moduleSelections:{serviceId:$('moduleService')?.value||'',resourceId:$('moduleResource')?.value||''},participantQty:qty};
+}
+
+function newActionKey(prefix='act'){try{return prefix+':'+crypto.randomUUID()}catch(e){return prefix+':'+Date.now()+':'+Math.random().toString(36).slice(2)}}
 function toast(t){const x=$('toast');x.textContent=t;x.classList.add('show');clearTimeout(x._t);x._t=setTimeout(()=>x.classList.remove('show'),2800)}
 function openModal(id){$(id).classList.add('show');document.body.style.overflow='hidden'}
 function closeModals(){document.querySelectorAll('.modal-bg.show').forEach(x=>x.classList.remove('show'));document.body.style.overflow=''}
@@ -107,6 +184,7 @@ async function bootstrap(){
     state.tenant=String(state.tenantData.id||'').trim();
     state.events=Array.isArray(d.events)?d.events:[];
     state.sessions=Array.isArray(d.sessions)?d.sessions:[];
+    setupLanguages();
     renderTenant();
     renderAnnouncements(d.announcements||[]);
     renderPortals();
@@ -121,7 +199,15 @@ async function bootstrap(){
     toast(e.message);
   }
 }
-function renderTenant(){const t=state.tenantData||{};$('tenantName').textContent=t.name||'DOING 活動報名';$('heroTitle').textContent=(t.name||'活動主辦')+'｜開放報名';$('heroText').textContent=t.infoText||'選擇場次完成報名，後續可在「我的報名」查看審核、付款、設備、位置與行前資訊。';if(t.heroImg){$('heroArt').innerHTML='<img src="'+esc(t.heroImg)+'" alt="活動主視覺">'}if(t.lineUrl){$('lineBtn').href=t.lineUrl;$('lineBtn').classList.remove('hidden');if($('supportLineBtn')){$('supportLineBtn').href=t.lineUrl;$('supportLineBtn').classList.remove('hidden')}}}
+function renderTenant(){
+  const t=state.tenantData||{};
+  $('tenantName').textContent=t.name||'DOING';
+  $('heroTitle').textContent=(t.name||'活動主辦')+'｜'+tr('open');
+  $('heroText').textContent=t.infoText||'選擇服務／場次完成報名或預約，後續可在「我的報名」查看狀態。';
+  if(t.logoUrl){$('tenantLogo').src=t.logoUrl;$('tenantLogo').classList.remove('hidden')}
+  if(t.heroImg){$('heroArt').innerHTML='<img src="'+esc(t.heroImg)+'" alt="">'}
+  if(t.lineUrl){$('lineBtn').href=t.lineUrl;$('lineBtn').classList.remove('hidden');if($('supportLineBtn')){$('supportLineBtn').href=t.lineUrl;$('supportLineBtn').classList.remove('hidden')}}
+}
 function renderAnnouncements(a){$('announcements').innerHTML=a.map(x=>'<div class="ann"><b>'+esc(x.title||'公告')+'</b><div>'+esc(x.content||'')+'</div></div>').join('')}
 function sessionStartTs(s){
   const rows=Array.isArray(s&&s.dates)?s.dates:[];
@@ -150,57 +236,106 @@ function renderSessions(){
   if(state.portal)arr=arr.filter(s=>(s.portals||[]).includes(state.portal));
   if(state.eventId)arr=arr.filter(s=>String(s.eventId||'')===state.eventId);
   arr.sort((a,b)=>sessionStartTs(a)-sessionStartTs(b));
-  $('sessionGrid').innerHTML=arr.length?arr.map(s=>`<article class="card"><div class="cover">${s.cover?`<img src="${esc(s.cover)}" alt="${esc(s.name)}">`:'活動主視覺'}</div><div class="card-body"><h3>${esc(s.name)}</h3><div class="meta"><span class="pill green">${esc(s.type||'活動報名')}</span><span class="pill">${esc(s.status||'報名中')}</span>${s.needReview?'<span class="pill blue">需審核</span>':'<span class="pill green">免審核</span>'}</div><div class="desc">${esc(s.desc||'')}</div><div><b>日期：</b>${esc(dateText(s.dates))}</div><div><b>地點：</b>${esc(s.venue||'待公告')}</div><div class="money">${Number(s.fee||0)>0?money(s.fee)+' 起':'免費活動'}${Number(s.deposit||0)>0?'＋押金 '+money(s.deposit):''}</div><div class="actions"><button class="btn" onclick="openRegistration('${esc(s.id)}')">查看並報名</button></div></div></article>`).join(''):'<div class="empty">目前沒有符合條件的開放場次。</div>';
+  $('sessionGrid').innerHTML=arr.length?arr.map(raw=>{const s=sessionDisplay(raw),m=moduleCfg(raw),verb=m.profile==='appointment'?'book':'register';return `<article class="card"><div class="cover">${s.cover?`<img src="${esc(s.cover)}" alt="${esc(s.name)}">`:'DOING'}</div><div class="card-body"><h3>${esc(s.name)}</h3><div class="meta"><span class="pill green">${esc(s.type||'')}</span><span class="pill">${esc(s.status||'')}</span>${m.timeslot?'<span class="pill blue">TIME SLOT</span>':''}</div><div class="desc">${esc(s.desc||'')}</div><div><b>${tr('date')}：</b>${esc(dateText(s.dates))}</div><div><b>${tr('venue')}：</b>${esc(s.venue||'—')}</div><div class="money">${Number(s.fee||0)>0?money(s.fee)+' 起':tr('free')}${Number(s.deposit||0)>0?'＋ '+money(s.deposit):''}</div><div class="actions"><button class="btn" onclick="openRegistration('${esc(s.id)}')">${tr('view')}</button></div></div></article>`}).join(''):'<div class="empty">目前沒有符合條件的開放項目。</div>';
 }
-async function openRegistration(id){try{const s=await apiGet('getSession',{id});state.session=s;state.agreement=null;state.agreementViewed=false;buildForm(s);setRegStep(1);openModal('sessionModal')}catch(e){toast(e.message)}}
-function buildForm(s){$('regTitle').textContent=s.name||'場次報名';$('regSub').textContent=dateText(s.dates)+'｜'+(s.venue||'地點待公告');$('sessionDetail').innerHTML=`<div class="summary"><div class="summary-line"><span>日期</span><b>${esc(dateText(s.dates))}</b></div><div class="summary-line"><span>地點</span><b>${esc(s.venue||'待公告')}</b></div><div class="summary-line"><span>基本費用</span><b>${money(s.fee)}</b></div><div class="summary-line"><span>押金</span><b>${money(s.deposit)}</b></div>${s.desc?`<div style="margin-top:8px;white-space:pre-wrap">${esc(s.desc)}</div>`:''}</div>`;
-$('dateChoices').innerHTML=(s.dates||[]).map((d,i)=>`<label class="choice"><input type="checkbox" name="regDate" value="${esc(d.date)}" ${s.dates.length===1?'checked':''}><span><b>${esc(d.label||d.date)}</b><small>${esc([d.start,d.end].filter(Boolean).join('–'))}${Number(d.fee)>0?'｜'+money(d.fee):''}${Number(d.limit)>0?'｜名額 '+d.limit:''}</small></span></label>`).join('')||'<div class="empty">日期待公告</div>';
+
+async function ensurePublicBundles(){
+  if(state.bundlesLoaded)return state.bundles;
+  try{const d=await apiGet('getBundlesPublic');state.bundles=Array.isArray(d)?d:[]}catch(e){state.bundles=[]}
+  state.bundlesLoaded=true;return state.bundles;
+}
+async function renderBundleOptions(s){
+  const sec=$('bundleSection'),box=$('bundleChoices');if(!sec||!box)return;
+  state.selectedBundleId='';
+  const all=await ensurePublicBundles();
+  const matches=all.filter(b=>Array.isArray(b.sessions)&&b.sessions.some(x=>String(x.id)===String(s.id)));
+  if(!matches.length){sec.classList.add('hidden');box.innerHTML='';return}
+  sec.classList.remove('hidden');
+  box.innerHTML='<label class="choice"><input type="radio" name="regBundle" value="" checked><span><b>只報本場</b><small>依本場原價與設定報名</small></span></label>'
+    +matches.map(b=>{const others=(b.sessions||[]).filter(x=>String(x.id)!==String(s.id)).map(x=>x.name).join('、');return '<label class="choice"><input type="radio" name="regBundle" value="'+esc(b.id)+'"><span><b>＋ 加報 '+esc(others||b.name||'其他場次')+'</b><small>'+esc(b.name||'組合優惠')+'｜組合場地／報名費 '+money(b.bundlePrice||0)+'；各場押金、設備、加購另依資料庫計算</small></span></label>'}).join('');
+  box.querySelectorAll('[name=regBundle]').forEach(x=>x.onchange=()=>{state.selectedBundleId=x.value||'';updateSummary()});
+}
+
+async function openRegistration(id){try{const s=await apiGet('getSession',{id});state.session=s;state.agreement=null;state.agreementViewed=false;state.regSubmitKey=newActionKey('register');state.selectedBundleId='';buildForm(s);await renderBundleOptions(s);if($('syncMemberProfile'))$('syncMemberProfile').checked=false;setRegStep(1);openModal('sessionModal')}catch(e){toast(e.message)}}
+function buildForm(s){const ds=sessionDisplay(s),m=moduleCfg(s);$('regTitle').textContent=ds.name||'場次報名';$('regSub').textContent=dateText(s.dates)+'｜'+(ds.venue||'地點待公告');$('sessionDetail').innerHTML=`<div class="summary"><div class="summary-line"><span>日期</span><b>${esc(dateText(s.dates))}</b></div><div class="summary-line"><span>${tr('venue')}</span><b>${esc(ds.venue||'待公告')}</b></div><div class="summary-line"><span>基本費用</span><b>${money(s.fee)}</b></div><div class="summary-line"><span>押金</span><b>${money(s.deposit)}</b></div>${ds.desc?`<div style="margin-top:8px;white-space:pre-wrap">${esc(ds.desc)}</div>`:''}</div>`;
+$('dateChoices').innerHTML=(s.dates||[]).map((d,i)=>`<label class="choice"><input type="${m.timeslot?'radio':'checkbox'}" name="regDate" value="${esc(d.date)}" data-timeslot-id="${esc(d.timeslotId||'')}" ${s.dates.length===1?'checked':''} ${Number(d.remaining)===0&&Number(d.limit)>0?'disabled':''}><span><b>${esc(d.label||d.date)}</b><small>${esc([d.start,d.end].filter(Boolean).join('–'))}${Number(d.fee)>0?'｜'+money(d.fee):''}${Number(d.limit)>0?'｜'+(Number.isFinite(Number(d.remaining))?'剩 '+Math.max(0,Number(d.remaining))+' / ':'名額 ')+d.limit:''}${Number(d.remaining)===0&&Number(d.limit)>0?'｜已額滿':''}</small></span></label>`).join('')||'<div class="empty">日期待公告</div>';
 const max=Math.max(1,Number(s.maxStalls)||((s.type==='市集場次')?3:10));$('regStalls').innerHTML=Array.from({length:max},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('');
 $('participantSection').classList.toggle('hidden',s.type==='市集場次');
 const eq=Object.entries(s.equip||{});$('equipSection').classList.toggle('hidden',!eq.length);$('equipChoices').innerHTML=eq.map(([name,v],i)=>{v=v||{};const open=v.open!==false;const incl=Number(v.incl||0),price=Number(v.price||v.fee||0),maxq=Number(v.max||v.limit||10);return `<div class="choice"><span style="flex:1"><b>${esc(name)}</b><small>${incl>0?'每攤內含 '+incl:'不內含'}${open&&price>0?'｜加租 '+money(price):''}</small></span>${open&&price>0?`<select data-equip="${esc(name)}">${Array.from({length:maxq+1},(_,q)=>`<option value="${q}">加租 ${q}</option>`).join('')}</select>`:''}</div>`}).join('');$('equipNote').textContent=s.basicEquip||'';
 const ads=(s.addons||[]).filter(a=>a&&a.open===true);$('addonSection').classList.toggle('hidden',!ads.length);$('addonChoices').innerHTML=ads.map((a,i)=>`<div class="choice"><span style="flex:1"><b>${esc(a.name||a.label||'加購')}</b><small>${money(a.price||0)}</small></span><select data-addon="${i}">${Array.from({length:Number(a.limit||a.max||10)+1},(_,q)=>`<option value="${q}">${q}</option>`).join('')}</select></div>`).join('');
 const cf=s.customFields||[];$('customSection').classList.toggle('hidden',!cf.length);$('customFields').innerHTML=cf.map((f,i)=>`<div class="field ${f.full?'full':''}"><label>${esc(f.label||f.name||'欄位')}${f.required?' *':''}</label>${f.type==='textarea'?`<textarea data-custom="${i}" ${f.required?'required':''}></textarea>`:`<input data-custom="${i}" type="${esc(f.type||'text')}" ${f.required?'required':''}>`}</div>`).join('');
-$('seatIntentSection').classList.toggle('hidden',!s.seatPricingEnabled);$('agreementCheck').checked=false;$('refundRuleBox').innerHTML='<b>退款規則</b><div style="margin-top:6px">'+esc(refundText(s.refundRules)||'依主辦公告與單場規則辦理。')+'</div>';updateSummary()}
+$('seatIntentSection').classList.toggle('hidden',!s.seatPricingEnabled);$('agreementCheck').checked=false;$('refundRuleBox').innerHTML='<b>退款規則</b><div style="margin-top:6px">'+esc(refundText(s.refundRules)||'依主辦公告與單場規則辦理。')+'</div>';renderBusinessModuleFields(s);updateSummary()}
 function refundText(r){if(!r)return'';if(typeof r==='string')return r;return r.text||r.description||r.label||JSON.stringify(r)}
 function collectEquip(){const o={};document.querySelectorAll('[data-equip]').forEach(x=>o[x.dataset.equip]=Number(x.value)||0);return o}
 function collectAddons(){const o={};document.querySelectorAll('[data-addon]').forEach(x=>o[x.dataset.addon]=Number(x.value)||0);return o}
 function collectCustom(){return [...document.querySelectorAll('[data-custom]')].map((x,i)=>({index:i,value:x.value}))}
-function updateSummary(){const s=state.session;if(!s)return;const dates=[...document.querySelectorAll('[name=regDate]:checked')].map(x=>x.value);$('regSummary').innerHTML=`<div class="summary-line"><span>選擇日期</span><b>${dates.length?dates.join('、'):'尚未選擇'}</b></div><div class="summary-line"><span>數量</span><b>${$('regStalls').value||1}</b></div><div class="summary-line"><span>正式應收</span><b>送出後由系統依資料庫設定計算</b></div>`}
-document.addEventListener('change',e=>{if(e.target.matches('[name=regDate],#regStalls,[data-equip],[data-addon]'))updateSummary()});
+function updateSummary(){const s=state.session;if(!s)return;const m=moduleCfg(s),dates=[...document.querySelectorAll('[name=regDate]:checked')].map(x=>x.closest('label')?.querySelector('b')?.textContent||x.value),svc=$('moduleService')?.selectedOptions?.[0]?.textContent||'',res=$('moduleResource')?.selectedOptions?.[0]?.textContent||'',parts=[...document.querySelectorAll('[data-participant]')].filter(x=>Number(x.value)>0).map(x=>(x.closest('label')?.querySelector('b')?.textContent||'參加者')+' × '+x.value);let rows=`<div class="summary-line"><span>日期／場次</span><b>${dates.length?dates.join('、'):'尚未選擇'}</b></div>`;if(m.quantityMode==='stall')rows+=`<div class="summary-line"><span>攤位／單位數</span><b>${$('regStalls').value||1}</b></div>`;if(svc&&!svc.startsWith('—'))rows+=`<div class="summary-line"><span>${tr('service')}</span><b>${esc(svc)}</b></div>`;if(res&&!res.startsWith('—'))rows+=`<div class="summary-line"><span>${tr('resource')}</span><b>${esc(res)}</b></div>`;if(parts.length)rows+=`<div class="summary-line"><span>${tr('participants')}</span><b>${esc(parts.join('、'))}</b></div>`;if(state.selectedBundleId){const b=(state.bundles||[]).find(x=>String(x.id)===String(state.selectedBundleId));rows+=`<div class="summary-line"><span>組合加報</span><b>${esc(b?.name||'組合優惠')}｜組合報名費 ${money(b?.bundlePrice||0)}</b></div>`}rows+=`<div class="summary-line"><span>正式應收</span><b>送出時由系統依資料庫設定重新計算</b></div>`;$('regSummary').innerHTML=rows}
+document.addEventListener('change',e=>{if(e.target.matches('[name=regDate],[name=regBundle],#regStalls,[data-equip],[data-addon],#moduleService,#moduleResource,[data-participant]'))updateSummary()});
 
 let regStep=1;
+function activeRegSteps(){const has3=!![...document.querySelectorAll('[data-reg-step="3"]')].find(x=>!x.classList.contains('hidden'));return has3?[1,2,3,4]:[1,2,4]}
+function syncRegWizardSteps(){const active=activeRegSteps();document.querySelectorAll('.reg-step').forEach(x=>x.classList.toggle('hidden',!active.includes(Number(x.dataset.step))));if(!active.includes(regStep))regStep=active.find(x=>x>regStep)||active[active.length-1]}
 function setRegStep(step){
-  regStep=Math.max(1,Math.min(4,Number(step)||1));
+  const active=activeRegSteps();let wanted=Number(step)||1;if(!active.includes(wanted)){wanted=active.find(x=>x>wanted)||[...active].reverse().find(x=>x<wanted)||active[0]}
+  regStep=wanted;const pos=active.indexOf(regStep);
   document.querySelectorAll('[data-reg-step]').forEach(x=>x.classList.toggle('active',Number(x.dataset.regStep)===regStep));
-  document.querySelectorAll('.reg-step').forEach(x=>{const n=Number(x.dataset.step);x.classList.toggle('active',n===regStep);x.classList.toggle('done',n<regStep)});
-  $('regPrevBtn').classList.toggle('hidden',regStep===1);
-  $('regNextBtn').classList.toggle('hidden',regStep===4);
+  document.querySelectorAll('.reg-step').forEach(x=>{const n=Number(x.dataset.step);x.classList.toggle('active',n===regStep);x.classList.toggle('done',active.indexOf(n)>=0&&active.indexOf(n)<pos)});
+  $('regPrevBtn').classList.toggle('hidden',pos<=0);
+  $('regNextBtn').classList.toggle('hidden',pos===active.length-1);
   $('submitRegBtn').classList.toggle('hidden',regStep!==4);
+  if(regStep===4)updateSummary();
   const body=$('sessionModal')?.querySelector('.modal-body'); if(body) body.scrollTop=0;
 }
 function validateRegStep(step){
   if(step===1){if(!$('regEmail').value.trim()||!$('regPhone').value.trim()||!$('regName').value.trim()){toast('請先完成 Email、手機與姓名');return false}}
-  if(step===2){const s=state.session;if((s?.dates||[]).length&&![...document.querySelectorAll('[name=regDate]:checked')].length){toast('請先選擇報名日期');return false}}
+  if(step===2){const s=state.session,m=moduleCfg(s);if((s?.dates||[]).length&&![...document.querySelectorAll('[name=regDate]:checked')].length){toast(m.timeslot?'請先選擇日期／時段':'請先選擇報名日期');return false}if(m.service&&!$('moduleService')?.value){toast('請選擇服務項目');return false}if(m.resource&&!$('moduleResource')?.value){toast('請選擇服務人員／資源');return false}if(m.participants){const n=[...document.querySelectorAll('[data-participant]')].reduce((a,x)=>a+(Number(x.value)||0),0);if(n<1){toast('請選擇參加人數');return false}}}
   return true;
 }
-$('regNextBtn').onclick=()=>{if(validateRegStep(regStep))setRegStep(regStep+1)};
-$('regPrevBtn').onclick=()=>setRegStep(regStep-1);
-document.querySelectorAll('.reg-step').forEach(x=>x.onclick=()=>{const target=Number(x.dataset.step);if(target<=regStep||validateRegStep(regStep))setRegStep(target)});
+$('regNextBtn').onclick=()=>{if(!validateRegStep(regStep))return;const a=activeRegSteps(),i=a.indexOf(regStep);setRegStep(a[Math.min(i+1,a.length-1)])};
+$('regPrevBtn').onclick=()=>{const a=activeRegSteps(),i=a.indexOf(regStep);setRegStep(a[Math.max(0,i-1)])};
+document.querySelectorAll('.reg-step').forEach(x=>x.onclick=()=>{const target=Number(x.dataset.step),a=activeRegSteps();if(!a.includes(target))return;if(a.indexOf(target)<=a.indexOf(regStep)||validateRegStep(regStep))setRegStep(target)});
 
-$('loadMemberBtn').onclick=async()=>{const email=$('regEmail').value.trim(),phone=$('regPhone').value.trim();if(!email||!phone)return toast('請先填 Email 與手機');try{const m=await apiGet('getMember',{email,phone});if(!m)return toast('查無既有會員資料，可直接建立新資料');$('regName').value=m.name||'';$('regBrand').value=m.brandName||m.brand||'';$('regIntro').value=m.brandIntro||'';$('regSellCat').value=m.sellCat||'';$('regPhoto').value=m.photo||'';$('regFb').value=m.fb||'';$('regIg').value=m.ig||'';$('invoiceEmail').value=m.invoiceEmail||email;$('taxId').value=m.taxId||'';$('invoiceTitle').value=m.invoiceTitle||'';$('invoiceCarrier').value=m.invoiceCarrier||'';toast('已帶入會員資料')}catch(e){toast(e.message)}};
-$('readAgreementBtn').onclick=async()=>{try{if(!state.agreement)state.agreement=await apiGet('getSessionAgreement',{sessionId:state.session.id});$('agreementTitle').textContent=state.agreement.title||'報名合約';$('agreementVersion').textContent=state.agreement.version?'版本：'+state.agreement.version:'';$('agreementContent').textContent=state.agreement.content||'主辦尚未提供合約內容。';openModal('agreementModal')}catch(e){toast(e.message)}};
+$('loadMemberBtn').onclick=async()=>{const email=$('regEmail').value.trim(),phone=$('regPhone').value.trim();if(!email||!phone)return toast('請先填 Email 與手機');try{const m=await apiGet('getMember',{email,phone});if(!m)return toast('查無既有會員資料，可直接建立新資料');$('regName').value=m.name||'';$('regBrand').value=m.brandName||m.brand_name||m.brand||'';$('regIntro').value=m.brandIntro||m.brand_intro||'';$('regSellCat').value=m.sellCat||m.sell_category||'';$('regSellItem').value=m.sellItem||m.sell_items||'';$('regPhoto').value=m.photo||m.photo_url||'';$('regFb').value=m.fb||m.fb_url||'';$('regIg').value=m.ig||m.ig_url||'';$('invoiceType').value=m.invoiceType||m.invoice_type||'不需要';$('invoiceEmail').value=m.invoiceEmail||m.invoice_email||email;$('taxId').value=m.taxId||m.tax_id||'';$('invoiceTitle').value=m.invoiceTitle||m.invoice_title||m.company||'';$('invoiceCarrier').value=m.invoiceCarrier||m.invoice_carrier||'';$('syncMemberProfile').checked=false;toast('已完整帶入會員資料')}catch(e){toast(e.message)}};
+$('readAgreementBtn').onclick=async()=>{try{if(!state.agreement)state.agreement=await apiGet('getSessionAgreement',{sessionId:state.session.id,lang:lang()});$('agreementTitle').textContent=state.agreement.title||'報名合約';$('agreementVersion').textContent=state.agreement.version?'版本：'+state.agreement.version:'';$('agreementContent').textContent=state.agreement.content||'主辦尚未提供合約內容。';openModal('agreementModal')}catch(e){toast(e.message)}};
 $('agreementDoneBtn').onclick=()=>{state.agreementViewed=true;$('agreementCheck').checked=true;closeModals();openModal('sessionModal');setRegStep(4);toast('已記錄閱讀合約')};
-$('submitRegBtn').onclick=async()=>{const s=state.session;if(!s)return;const btn=$('submitRegBtn');const selectedDates=[...document.querySelectorAll('[name=regDate]:checked')].map(x=>x.value);if((s.dates||[]).length&&!selectedDates.length)return toast('請選擇日期');if(s.agreementRequired!==false&&(!state.agreementViewed||!$('agreementCheck').checked))return toast('請先閱讀並同意合約');const payload={sessionId:s.id,email:$('regEmail').value.trim(),phone:$('regPhone').value.trim(),name:$('regName').value.trim(),brand:$('regBrand').value.trim(),brandIntro:$('regIntro').value.trim(),sellCat:$('regSellCat').value.trim(),sellItem:$('regSellItem').value.trim(),fb:$('regFb').value.trim(),ig:$('regIg').value.trim(),photo:$('regPhoto').value.trim(),selectedDates,stallCount:Number($('regStalls').value)||1,equip:collectEquip(),addonQty:collectAddons(),customFields:collectCustom(),adultCount:Number($('adultCount').value)||0,childCount:Number($('childCount').value)||0,seatChoiceIntent:(document.querySelector('[name=seatIntent]:checked')||{}).value||'auto',invoiceType:$('invoiceType').value,needInvoice:$('invoiceType').value!=='不需要',invoiceEmail:$('invoiceEmail').value.trim()||$('regEmail').value.trim(),taxId:$('taxId').value.trim(),invoiceTitle:$('invoiceTitle').value.trim(),invoiceCarrier:$('invoiceCarrier').value.trim(),agreementViewed:state.agreementViewed,agreementAccepted:$('agreementCheck').checked};if(!payload.email||!payload.phone||!payload.name)return toast('請填寫 Email、手機與姓名');btn.disabled=true;try{const r=await apiPost('register',payload);closeModals();toast('報名成功');$('myEmail').value=payload.email;$('myPhone').value=payload.phone;setPage('my');await loadMy()}catch(e){toast(e.message)}finally{btn.disabled=false}};
+$('submitRegBtn').onclick=async()=>{const s=state.session;if(!s)return;const m=moduleCfg(s),btn=$('submitRegBtn');const selectedDateInputs=[...document.querySelectorAll('[name=regDate]:checked')];const selectedDates=selectedDateInputs.map(x=>x.value);const timeslotIds=selectedDateInputs.map(x=>x.dataset.timeslotId||'').filter(Boolean);if((s.dates||[]).length&&!selectedDates.length)return toast('請選擇日期');if(m.agreement&&s.agreementRequired!==false&&(!state.agreementViewed||!$('agreementCheck').checked))return toast('請先閱讀並同意合約');const modSel=collectModuleSelections();const payload={sessionId:s.id,email:$('regEmail').value.trim(),phone:$('regPhone').value.trim(),name:$('regName').value.trim(),brand:$('regBrand').value.trim(),brandIntro:$('regIntro').value.trim(),sellCat:$('regSellCat').value.trim(),sellItem:$('regSellItem').value.trim(),fb:$('regFb').value.trim(),ig:$('regIg').value.trim(),photo:$('regPhoto').value.trim(),selectedDates,stallCount:Number($('regStalls').value)||1,equip:collectEquip(),addonQty:collectAddons(),customFields:collectCustom(),adultCount:Number($('adultCount').value)||0,childCount:Number($('childCount').value)||0,seatChoiceIntent:(document.querySelector('[name=seatIntent]:checked')||{}).value||'auto',invoiceType:$('invoiceType').value,needInvoice:$('invoiceType').value!=='不需要',invoiceEmail:$('invoiceEmail').value.trim()||$('regEmail').value.trim(),taxId:$('taxId').value.trim(),invoiceTitle:$('invoiceTitle').value.trim(),invoiceCarrier:$('invoiceCarrier').value.trim(),agreementViewed:state.agreementViewed,agreementAccepted:$('agreementCheck').checked,moduleSelections:modSel.moduleSelections,participantQty:modSel.participantQty,timeslotIds,syncMemberProfile:!!$('syncMemberProfile')?.checked,idempotencyKey:state.regSubmitKey||newActionKey('register')};if(!payload.email||!payload.phone||!payload.name)return toast('請填寫 Email、手機與姓名');if(m.invoice&&payload.invoiceType!=='不需要'){if(!payload.invoiceEmail)return toast('請填寫發票 Email');if(payload.invoiceType==='公司／機關'&&(!payload.taxId||!payload.invoiceTitle))return toast('公司／機關發票請填統一編號與抬頭')}if(state.selectedBundleId)payload.bundleId=state.selectedBundleId;btn.disabled=true;try{const action=state.selectedBundleId?'registerBundle':'register';const d=await apiPost(action,payload);state.regSubmitKey='';state.selectedBundleId='';closeModals();toast(action==='registerBundle'?'組合報名成功':'報名成功');$('myEmail').value=payload.email;$('myPhone').value=payload.phone;setPage('my');await loadMy()}catch(e){toast(e.message)}finally{btn.disabled=false}};
 function setPage(p){
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   const id=p==='my'?'pageMy':(p==='support'?'pageSupport':'pageSessions');
   $(id).classList.add('active');
   document.querySelectorAll('.bottom-nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===p));
 }
-document.querySelectorAll('.bottom-nav button').forEach(x=>x.onclick=()=>setPage(x.dataset.page));$('heroMyBtn').onclick=()=>setPage('my');
+document.querySelectorAll('.bottom-nav button').forEach(x=>x.onclick=()=>setPage(x.dataset.page));$('heroMyBtn').onclick=()=>setPage('my');$('memberLoginBtn').onclick=()=>setPage('my');
 $('payMethod').onchange=()=>{const bank=/ATM|銀行|轉帳|匯款/.test($('payMethod').value);$('payLast5').closest('.field').classList.toggle('hidden',!bank);};
-$('loadMyBtn').onclick=loadMy;async function loadMy(){const email=$('myEmail').value.trim(),phone=$('myPhone').value.trim();if(!email||!phone)return toast('請填 Email 與手機');state.myEmail=email;state.myPhone=phone;localStorage.setItem('doing_my_email',email);try{const rows=await apiGet('getMyRegs',{email,phone});renderMy(rows)}catch(e){$('myRecords').innerHTML='<div class="empty">'+esc(e.message)+'</div>';toast(e.message)}}
-function renderMy(rows){$('myRecords').innerHTML=rows.length?rows.map(r=>{const canSeat=r.status==='已錄取'&&r.seatChoiceIntent==='paid'&&r.seatPricingEnabled&&!['reserved','locked'].includes(r.seatChoiceStatus||'')&&!['待確認','付款待確認','已繳費'].includes(r.payStatus);const canPay=r.status==='已錄取'&&Number(r.due)>0&&!['待確認','付款待確認'].includes(r.payStatus)&&!(r.seatChoiceIntent==='paid'&&!['reserved','locked'].includes(r.seatChoiceStatus||''));const paid=Number(r.paid)>0||r.payStatus==='已繳費';return `<article class="record"><div class="record-top"><div><h3>${esc(r.sessionName)}</h3><div class="meta"><span class="pill blue">${esc(r.status||'')}</span><span class="pill ${r.payStatus==='已繳費'?'green':'pink'}">${esc(r.payStatus||'')}</span></div></div><b>${money(r.total)}</b></div><div class="record-info"><div class="info"><span>日期</span><b>${esc((r.selectedDates||[]).join('、')||'—')}</b></div><div class="info"><span>位置</span><b>${esc(r.stallNumber||((r.seatChoiceIntent==='auto')?'活動前 7 天內由系統持續自動配位':'尚未選位'))}</b></div><div class="info"><span>設備</span><b>${esc(r.totalEquipmentText||'設備自備')}</b></div><div class="info"><span>待繳金額</span><b>${money(r.due)}</b></div></div>${r.seatHoldExpiresAt?`<div class="ann">位置保留至：${esc(new Date(r.seatHoldExpiresAt).toLocaleString('zh-TW'))}</div>`:''}<div class="actions">${canSeat?`<button class="btn small" onclick='openSeat(${JSON.stringify(r)})'>加價選位</button>`:''}${canPay?`<button class="btn small" onclick='openPayment(${JSON.stringify(r)})'>回報付款</button>`:''}${!paid&&!['已取消','不錄取'].includes(r.status)?`<button class="btn outline small" onclick='cancelReg(${JSON.stringify(r)})'>取消報名</button>`:''}${paid?`<button class="btn outline small" onclick='showPreNotice(${JSON.stringify(r)})'>行前通知</button>`:''}${r.forceStatus==='pending_force_choice'&&r.forceTransferTargetSessionId?`<button class="btn small" onclick='forceTransfer(${JSON.stringify(r)})'>選擇延期</button>`:''}${r.forceStatus==='pending_force_choice'?`<button class="btn outline small" onclick='forceRefund(${JSON.stringify(r)})'>不可抗力退費</button>`:''}${paid&&!['退費中','已退費'].includes(r.transferStatus)&&r.forceStatus!=='pending_force_choice'?`<button class="btn outline small" onclick='refundReg(${JSON.stringify(r)})'>申請退款</button>`:''}</div></article>`}).join(''):'<div class="empty">目前沒有報名紀錄。</div>'}
+$('loadMyBtn').onclick=loadMy;async function loadMy(){const email=$('myEmail').value.trim(),phone=$('myPhone').value.trim();if(!email||!phone)return toast('請填 Email 與手機');state.myEmail=email;state.myPhone=phone;localStorage.setItem('doing_my_email',email);try{const rows=await apiGet('getMyRegs',{email,phone});state.myRows=Array.isArray(rows)?rows:[];renderMy(state.myRows)}catch(e){$('myRecords').innerHTML='<div class="empty">'+esc(e.message)+'</div>';toast(e.message)}}
+function bundleGroupRows(r,rows=state.myRows){
+  const gid=String(r&&r.bundleGroupId||'');return gid?(rows||[]).filter(x=>String(x.bundleGroupId||'')===gid):[r];
+}
+function bundleCanPay(group){
+  if(!Array.isArray(group)||group.length!==2)return false;
+  return group.every(r=>r.status==='已錄取'&&!['待確認','付款待確認','已取消','不錄取'].includes(r.payStatus||'') &&
+    !(r.seatChoiceIntent==='paid'&&!['reserved','locked'].includes(r.seatChoiceStatus||''))) &&
+    group.some(r=>Number(r.due)>0);
+}
+function renderMy(rows){
+  $('myRecords').innerHTML=rows.length?rows.map((r,idx)=>{
+    const group=bundleGroupRows(r,rows),isBundle=!!r.bundleGroupId&&group.length===2;
+    const primary=!isBundle||String(group[0]?.id)===String(r.id);
+    const groupDue=group.reduce((n,x)=>n+Number(x.due||0),0);
+    const groupPaid=group.some(x=>Number(x.paid)>0||x.payStatus==='已繳費');
+    const canSeat=r.status==='已錄取'&&r.seatChoiceIntent==='paid'&&r.seatPricingEnabled&&!['reserved','locked'].includes(r.seatChoiceStatus||'')&&!['待確認','付款待確認','已繳費'].includes(r.payStatus);
+    const canPay=!isBundle&&r.status==='已錄取'&&Number(r.due)>0&&!['待確認','付款待確認'].includes(r.payStatus)&&!(r.seatChoiceIntent==='paid'&&!['reserved','locked'].includes(r.seatChoiceStatus||''));
+    const paid=Number(r.paid)>0||r.payStatus==='已繳費';
+    const bundleBadge=isBundle?`<div class="ann"><b>兩場組合</b>｜一起報名、一起繳費、取消／退款整組處理；本卡仍保留本場獨立資料與費用。</div>`:'';
+    const bundlePayBtn=isBundle&&primary&&bundleCanPay(group)?`<button class="btn small" onclick='openBundlePayment(${JSON.stringify(group)})'>兩場一起付款 ${money(groupDue)}</button>`:'';
+    const bundleWait=isBundle&&!primary&&bundleCanPay(group)?`<span class="sub">付款請由同組另一張卡的「兩場一起付款」操作</span>`:'';
+    const cancelBtn=!groupPaid&&!['已取消','不錄取'].includes(r.status)
+      ?`<button class="btn outline small" onclick='cancelReg(${JSON.stringify(r)})'>${isBundle?'整組取消':'取消報名'}</button>`:'';
+    const refundBtn=groupPaid&&!['退費中','已退費'].includes(r.transferStatus)&&r.forceStatus!=='pending_force_choice'
+      ?`<button class="btn outline small" onclick='refundReg(${JSON.stringify(r)})'>${isBundle?'整組申請退款':'申請退款'}</button>`:'';
+    return `<article class="record">${bundleBadge}<div class="record-top"><div><h3>${esc(r.sessionName)}</h3><div class="meta"><span class="pill blue">${esc(r.status||'')}</span><span class="pill ${r.payStatus==='已繳費'?'green':'pink'}">${esc(r.payStatus||'')}</span></div></div><b>${money(r.total)}</b></div><div class="record-info"><div class="info"><span>日期</span><b>${esc((r.selectedDates||[]).join('、')||'—')}</b></div><div class="info"><span>位置</span><b>${esc(r.stallNumber||((r.seatChoiceIntent==='auto')?'活動前 7 天內由系統持續自動配位':'尚未選位'))}</b></div><div class="info"><span>設備</span><b>${esc(r.totalEquipmentText||'設備自備')}</b></div><div class="info"><span>本場待繳</span><b>${money(r.due)}</b></div></div>${r.paymentDueAt&&Number(r.due)>0?`<div class="ann">繳費期限：${esc(new Date(r.paymentDueAt).toLocaleString('zh-TW'))}</div>`:''}${r.seatHoldExpiresAt?`<div class="ann">位置保留至：${esc(new Date(r.seatHoldExpiresAt).toLocaleString('zh-TW'))}</div>`:''}${Number(r.transferCreditAmount||0)>0||Number(r.transferBalanceDue||0)>0?`<div class="ann">延期轉場：原付款已延續 ${money(r.transferCreditAmount||0)}${Number(r.transferBalanceDue||0)>0?'｜尚待繳 '+money(r.transferBalanceDue):''}</div>`:''}<div class="actions">${canSeat?`<button class="btn small" onclick='openSeat(${JSON.stringify(r)})'>加價選位</button>`:''}${canPay?`<button class="btn small" onclick='openPayment(${JSON.stringify(r)})'>回報付款</button>`:''}${bundlePayBtn}${bundleWait}${cancelBtn}${paid?`<button class="btn outline small" onclick='showPreNotice(${JSON.stringify(r)})'>行前通知</button>`:''}${r.forceStatus==='pending_force_choice'&&r.forceTransferTargetSessionId?`<button class="btn small" onclick='forceTransfer(${JSON.stringify(r)})'>選擇延期</button>`:''}${r.forceStatus==='pending_force_choice'?`<button class="btn outline small" onclick='forceRefund(${JSON.stringify(r)})'>不可抗力退費</button>`:''}${refundBtn}</div></article>`;
+  }).join(''):'<div class="empty">目前沒有報名紀錄。</div>'
+}
 function showPreNotice(r){
   $('preNoticeName').textContent=r.sessionName||'場次';
   $('preNoticeDate').textContent=dateText(r.sessionDates||[]);
@@ -212,11 +347,11 @@ function showPreNotice(r){
 }
 async function forceTransfer(r){
   if(!confirm('確定將這筆報名延期至主辦指定的新場次？'))return;
-  try{await apiPost('agreeForceTransfer',{regId:r.id,email:state.myEmail});toast('已完成延期選擇');await loadMy()}catch(e){toast(e.message)}
+  try{await apiPost('agreeForceTransfer',{regId:r.id,email:state.myEmail,phone:state.myPhone,idempotencyKey:newActionKey('force-transfer')});toast('已完成延期選擇');await loadMy()}catch(e){toast(e.message)}
 }
 async function forceRefund(r){
   if(!confirm('確定選擇不可抗力退費？'))return;
-  try{await apiPost('applyForceRefundFM',{regId:r.id,email:state.myEmail});toast('已送出不可抗力退費申請');await loadMy()}catch(e){toast(e.message)}
+  try{await apiPost('applyForceRefundFM',{regId:r.id,email:state.myEmail,phone:state.myPhone,idempotencyKey:newActionKey('force-refund')});toast('已送出不可抗力退費申請');await loadMy()}catch(e){toast(e.message)}
 }
 async function openSeat(r){
   state.currentReg=r;
@@ -234,9 +369,9 @@ async function openSeat(r){
     openModal('seatModal');
   }catch(e){toast(e.message)}
 }
-$('confirmSeatBtn').onclick=async()=>{const r=state.currentReg,codes=[...document.querySelectorAll('[name=seatPick]:checked')].map(x=>x.value);if(codes.length!==Number(r.stallCount||1))return toast('請選滿 '+(r.stallCount||1)+' 個位置');try{const d=await apiPost('claimPaidSeat',{regId:r.id,sessionId:r.sessionId,email:state.myEmail,phone:state.myPhone,seats:codes});closeModals();toast(d.message||'選位成功');await loadMy()}catch(e){toast(e.message)}};
+$('confirmSeatBtn').onclick=async()=>{const r=state.currentReg,codes=[...document.querySelectorAll('[name=seatPick]:checked')].map(x=>x.value);if(codes.length!==Number(r.stallCount||1))return toast('請選滿 '+(r.stallCount||1)+' 個位置');try{const d=await apiPost('claimPaidSeat',{regId:r.id,sessionId:r.sessionId,email:state.myEmail,phone:state.myPhone,seats:codes,idempotencyKey:'seat:'+r.id+':'+codes.slice().sort().join(',')});closeModals();toast(d.message||'選位成功');await loadMy()}catch(e){toast(e.message)}};
 function openPayment(r){
-  state.currentReg=r;
+  state.currentReg=r;state.bundlePaymentRegs=[];state.paymentSubmitKey=newActionKey('payment:'+r.id);
   $('paySub').textContent=(r.sessionName||'場次')+'｜待繳 '+money(r.due);
   $('payAmount').value=Number(r.due||r.total||0);
 
@@ -270,6 +405,28 @@ function openPayment(r){
   openModal('paymentModal');
 }
 
+
+function openBundlePayment(group){
+  if(!Array.isArray(group)||group.length!==2)return toast('兩場組合資料不完整，請重新載入');
+  if(!bundleCanPay(group))return toast('兩場必須都完成錄取與必要選位後，才能一起付款');
+  state.bundlePaymentRegs=group;state.currentReg=group[0];state.paymentSubmitKey=newActionKey('bundle-payment:'+group[0].bundleGroupId);
+  const total=group.reduce((n,x)=>n+Number(x.due||0),0),r=group[0];
+  $('paySub').textContent='兩場組合一起付款｜'+group.map(x=>x.sessionName).join(' ＋ ')+'｜合計 '+money(total);
+  $('payAmount').value=total;$('payAmount').readOnly=true;
+  const p=r.paymentProfile||{},bank=(r.bankAccount&&typeof r.bankAccount==='object')?r.bankAccount:(p.bankAccount||{});
+  const bankLines=[bank.bankName?('銀行：'+bank.bankName):'',bank.branchName?('分行：'+bank.branchName):'',bank.accountName?('戶名：'+bank.accountName):'',bank.accountNumber?('帳號：'+bank.accountNumber):''].filter(Boolean);
+  $('payAccount').innerHTML='<b>'+esc(r.paymentProfileName||'主辦收款資訊')+'</b>'+(bankLines.length?'<div style="white-space:pre-wrap;margin-top:7px">'+esc(bankLines.join('\n'))+'</div>':'')+(p.note?'<div style="white-space:pre-wrap;margin-top:7px">'+esc(p.note)+'</div>':'');
+  const allowed=(r.allowedPaymentMethods&&typeof r.allowedPaymentMethods==='object')?r.allowedPaymentMethods:{bank:true,linepay:false,card:false},options=[];
+  if(allowed.bank!==false)options.push('銀行轉帳','ATM');if(allowed.linepay)options.push('LINE Pay');if(allowed.card)options.push('信用卡');
+  $('payMethod').innerHTML=(options.length?options:['銀行轉帳']).map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+  $('payExternal').innerHTML='';$('payExternalNote').classList.add('hidden');$('payLast5').value='';
+  $('payLast5').closest('.field').classList.toggle('hidden',!/ATM|銀行|轉帳|匯款/.test($('payMethod').value));
+  openModal('paymentModal');
+}
+function buildBundlePaymentCard(group,method,total,lastFive){
+  return ['【DOING 兩場組合付款回報】','場次：'+group.map(x=>x.sessionName+' '+money(x.due)).join(' ＋ '),'合計：'+money(total),'付款方式：'+method,lastFive?('帳號末五碼：'+lastFive):'','狀態：兩場付款待確認'].filter(Boolean).join('\n')
+}
+
 function buildPaymentCard(reg,method,amount,lastFive){
   return ['【DOING 付款回報】','場次：'+(reg.sessionName||''),reg.brand?('品牌／單位：'+reg.brand):'',reg.name?('報名人：'+reg.name):'','付款方式：'+method,'設備：'+(reg.totalEquipmentText||'設備自備'),'位置：'+(reg.stallNumber||((reg.seatChoiceIntent==='paid')?'加價位置保留中／待確認':'等待主辦配位')),Number(reg.deposit||0)>0?('押金：'+money(reg.deposit)):'',Number(reg.seatFeeTotal||0)>0?('選位加價：'+money(reg.seatFeeTotal)):'','本次回報金額：'+money(amount),lastFive?('帳號末五碼：'+lastFive):'','狀態：付款待確認'].filter(Boolean).join('\n')
 }
@@ -279,14 +436,31 @@ function openPaymentLine(){const url=state.tenantData&&state.tenantData.lineUrl;
 $('copyPaymentCardBtn').onclick=copyPaymentCard;$('openPaymentLineBtn').onclick=openPaymentLine;
 
 $('submitPayBtn').onclick=async()=>{
-  const reg=state.currentReg,method=$('payMethod').value,amount=Number($('payAmount').value)||0,lastFive=$('payLast5').value.trim(),btn=$('submitPayBtn');
+  const reg=state.currentReg,group=state.bundlePaymentRegs||[],method=$('payMethod').value,
+        amount=Number($('payAmount').value)||0,lastFive=$('payLast5').value.trim(),btn=$('submitPayBtn');
   btn.disabled=true;
-  try{await apiPost('submitPayment',{regId:reg.id,email:state.myEmail,phone:state.myPhone,method,amount,lastFive});closeModals();showPaymentSuccess(reg,method,amount,lastFive);await loadMy()}
-  catch(e){toast(e.message)}finally{btn.disabled=false}
+  try{
+    if(group.length===2){
+      const d=await apiPost('submitPaymentBatch',{regIds:group.map(x=>x.id),email:state.myEmail,phone:state.myPhone,method,lastFive,idempotencyKey:state.paymentSubmitKey||newActionKey('bundle-payment')});
+      state.lastPaymentCard=d.paymentLineCardText||buildBundlePaymentCard(group,method,amount,lastFive);
+      state.bundlePaymentRegs=[];state.paymentSubmitKey='';$('payAmount').readOnly=false;closeModals();$('paymentSuccessCard').textContent=state.lastPaymentCard;const hasLine=!!(state.tenantData&&state.tenantData.lineUrl);$('openPaymentLineBtn').classList.toggle('hidden',!hasLine);openModal('paymentSuccessModal');await loadMy();
+    }else{
+      await apiPost('submitPayment',{regId:reg.id,email:state.myEmail,phone:state.myPhone,method,amount,lastFive,idempotencyKey:state.paymentSubmitKey||newActionKey('payment:'+reg.id)});
+      state.paymentSubmitKey='';$('payAmount').readOnly=false;closeModals();showPaymentSuccess(reg,method,amount,lastFive);await loadMy();
+    }
+  }catch(e){toast(e.message)}finally{btn.disabled=false}
 };
-async function cancelReg(r){if(!confirm('確定取消這筆未付款報名？'))return;try{await apiPost('cancelReg',{regId:r.id,email:state.myEmail,phone:state.myPhone});toast('報名已取消');await loadMy()}catch(e){toast(e.message)}}
-async function refundReg(r){if(!confirm('送出退款申請後，位置與名額會釋放，確定繼續？'))return;try{await apiPost('applyRefund',{regId:r.id,email:state.myEmail,phone:state.myPhone});toast('退款申請已送出');await loadMy()}catch(e){toast(e.message)}}
-$('myEmail').value=localStorage.getItem('doing_my_email')||'';bootstrap();
+async function cancelReg(r){const g=bundleGroupRows(r);if(!confirm(r.bundleGroupId?'確定取消這個兩場組合？兩場報名會一起取消並釋放兩場名額。':'確定取消這筆未付款報名？'))return;try{await apiPost('cancelReg',{regId:r.id,email:state.myEmail,phone:state.myPhone,idempotencyKey:'cancel:'+(r.bundleGroupId||r.id)});toast(r.bundleGroupId?'兩場組合已一起取消':'報名已取消');await loadMy()}catch(e){toast(e.message)}}
+async function refundReg(r){if(!confirm(r.bundleGroupId?'此為兩場組合，退款會兩場一起申請、兩場一起釋放名額與位置，確定繼續？':'送出退款申請後，位置與名額會釋放，確定繼續？'))return;try{await apiPost('applyRefund',{regId:r.id,email:state.myEmail,phone:state.myPhone,idempotencyKey:'refund:'+(r.bundleGroupId||r.id)});toast(r.bundleGroupId?'兩場組合退款申請已一起送出':'退款申請已送出');await loadMy()}catch(e){toast(e.message)}}
+$('myEmail').value=localStorage.getItem('doing_my_email')||'';
+let holdTimer=null,holdStart=0;
+function cancelAdminHold(){if(holdTimer){clearTimeout(holdTimer);holdTimer=null}holdStart=0;$('brandHoldTarget')?.classList.remove('holding')}
+function startAdminHold(e){if(e&&e.type==='mousedown'&&e.button!==0)return;holdStart=Date.now();$('brandHoldTarget')?.classList.add('holding');holdTimer=setTimeout(()=>{cancelAdminHold();openModal('adminEntryModal')},3000)}
+['mousedown','touchstart'].forEach(ev=>$('brandHoldTarget')?.addEventListener(ev,startAdminHold,{passive:true}));
+['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=>$('brandHoldTarget')?.addEventListener(ev,cancelAdminHold,{passive:true}));
+$('adminGoogleBtn').onclick=()=>{location.href=API+'/auth/google/start'};
+
+bootstrap();
 </script>
 </body>
 </html>

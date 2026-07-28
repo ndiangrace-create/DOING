@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>認識 DOING｜活動營運管理系統</title>
+<meta name="description" content="DOING 是一套協助活動主辦管理報名、審核、付款、通知、設備、選位、報到、取消退款與財務的活動營運管理系統。">
+<style>
+:root{--main:#319da0;--main2:#257e82;--ink:#183b3b;--muted:#607878;--line:#dbe8e7;--soft:#eaf8f5;--paper:#fff;--bg:#f6fbfa;--yellow:#fff7e5;--shadow:0 16px 46px rgba(38,78,78,.09);--safe:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(180deg,#f7fcfb,#fff);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","Segoe UI",sans-serif;line-height:1.7}
+a{color:inherit}.top{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.93);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}.top-in{max-width:1120px;margin:auto;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px}.logo{width:122px;height:40px;object-fit:contain}.top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.link{padding:9px 12px;border-radius:12px;text-decoration:none;font-weight:850;font-size:13px}.link:hover{background:var(--soft)}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border-radius:13px;background:linear-gradient(135deg,var(--main2),var(--main));color:#fff;text-decoration:none;font-weight:900;box-shadow:0 8px 20px rgba(49,157,160,.16)}.shell{max-width:1120px;margin:auto;padding:0 18px calc(50px + var(--safe))}.hero{margin:22px 0 18px;border:1px solid var(--line);border-radius:32px;background:linear-gradient(130deg,#eaf8f5,#fff 58%,#fff7e8);box-shadow:var(--shadow);padding:clamp(28px,6vw,66px);position:relative;overflow:hidden}.eyebrow{display:inline-flex;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:11px;font-weight:950;letter-spacing:.08em;color:var(--main2)}h1{font-size:clamp(34px,6vw,64px);line-height:1.08;letter-spacing:-.045em;margin:16px 0 16px;max-width:820px}.lead{max-width:760px;color:var(--muted);font-size:clamp(15px,2vw,19px);margin:0}.hero-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:24px}.btn.outline{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:none}.quick-nav{position:sticky;top:61px;z-index:15;margin:14px 0 24px;padding:8px;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:18px;display:flex;gap:6px;overflow:auto;box-shadow:0 10px 30px rgba(38,78,78,.07);scrollbar-width:none}.quick-nav::-webkit-scrollbar{display:none}.quick-nav a{flex:0 0 auto;text-decoration:none;padding:9px 12px;border-radius:12px;font-size:12px;font-weight:900;color:var(--muted)}.quick-nav a:hover{background:var(--soft);color:var(--main2)}section{scroll-margin-top:130px;padding:28px 0}.section-head{max-width:760px;margin-bottom:18px}.section-head h2{font-size:clamp(27px,4vw,40px);line-height:1.18;letter-spacing:-.035em;margin:0 0 9px}.section-head p{margin:0;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.card{background:#fff;border:1px solid var(--line);border-radius:23px;padding:20px;box-shadow:var(--shadow)}.card h3{margin:0 0 8px;font-size:18px}.card p{margin:0;color:var(--muted);font-size:14px}.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.step{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px;min-height:132px}.step b{display:block;color:var(--main2);font-size:12px;margin-bottom:8px}.step strong{display:block;font-size:16px;line-height:1.35}.step span{display:block;color:var(--muted);font-size:12px;margin-top:8px}.feature-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.feature{border:1px solid var(--line);background:linear-gradient(145deg,#fff,#f7fbfa);border-radius:19px;padding:16px}.feature b{display:block;margin-bottom:5px}.feature span{font-size:13px;color:var(--muted)}.pricing{display:grid;grid-template-columns:1fr 1fr;gap:14px}.price-card{background:#fff;border:1px solid var(--line);border-radius:25px;padding:24px;box-shadow:var(--shadow)}.price-card.primary{background:linear-gradient(145deg,#eaf8f5,#fff);border-color:#c8e5df}.price-card h3{margin:0 0 8px;font-size:21px}.price{font-size:34px;font-weight:950;letter-spacing:-.04em;margin:8px 0}.price small{font-size:13px;color:var(--muted);font-weight:800}.note{margin-top:14px;padding:14px;border-radius:16px;background:var(--yellow);border:1px solid #efdfb8;color:#665b40;font-size:13px}.cta{border-radius:29px;padding:clamp(24px,5vw,48px);background:linear-gradient(135deg,#173b3b,#267f82);color:#fff}.cta p{color:#d5eaea;max-width:720px}.legal{background:#fff;border:1px solid var(--line);border-radius:22px;padding:20px}.legal h3{margin:0 0 7px}.legal p{margin:0;color:var(--muted);font-size:13px}footer{margin-top:30px;padding:24px 0;text-align:center;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:850px){.grid{grid-template-columns:1fr}.flow{grid-template-columns:repeat(2,minmax(0,1fr))}.feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.top-in{padding:9px 12px}.logo{width:105px;height:36px}.top-actions .link{display:none}.shell{padding-left:10px;padding-right:10px}.hero{margin-top:10px;border-radius:24px;padding:28px 20px}.quick-nav{top:55px;margin-left:-2px;margin-right:-2px}.flow,.feature-grid,.pricing{grid-template-columns:1fr}section{padding:22px 0}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a href="index.html" aria-label="返回 DOING 報名首頁"><img class="logo" src="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20160%2052%22%20role=%22img%22%20aria-label=%22DOING%22%3E%0A%20%20%3Crect%20x=%221%22%20y=%221%22%20width=%22158%22%20height=%2250%22%20rx=%2217%22%20fill=%22#ffffff%22/%3E%0A%20%20%3Ccircle%20cx=%2227%22%20cy=%2226%22%20r=%2219%22%20fill=%22#dff5ef%22/%3E%0A%20%20%3Cpath%20d=%22M16%2028.2c5.2-1.1%2010-3.8%2014.2-7.8v15.2c-4.2-4-9-6.7-14.2-7.8v.4z%22%20fill=%22none%22%20stroke=%22#178f91%22%20stroke-width=%223.2%22%20stroke-linejoin=%22round%22/%3E%0A%20%20%3Cpath%20d=%22M30.3%2020.4c3.1%201.7%205.2%203.5%207.2%205.6-2%202.1-4.1%203.9-7.2%205.6%22%20fill=%22none%22%20stroke=%22#178f91%22%20stroke-width=%223.2%22%20stroke-linecap=%22round%22/%3E%0A%20%20%3Cpath%20d=%22M19.4%2031.6l2.9%206.2%22%20fill=%22none%22%20stroke=%22#178f91%22%20stroke-width=%223.2%22%20stroke-linecap=%22round%22/%3E%0A%20%20%3Ctext%20x=%2253%22%20y=%2233.5%22%20font-family=%22Arial,%20Helvetica,%20sans-serif%22%20font-size=%2223%22%20font-weight=%22800%22%20letter-spacing=%221.2%22%20fill=%22#173b3b%22%3EDOING%3C/text%3E%0A%3C/svg%3E" alt="DOING LOGO"></a>
+    <div class="top-actions">
+      <a class="link" href="#features">功能</a>
+      <a class="link" href="#pricing">收費</a>
+      <a class="btn" href="index.html">前往報名入口</a>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+  <section class="hero" id="about">
+    <span class="eyebrow">DOING｜活動營運管理系統</span>
+    <h1>一支手機，掌握一場活動。</h1>
+    <p class="lead">DOING 是一套通用報名營運系統，協助活動主辦從開放報名、名單管理、審核與付款，到設備、選位、通知、現場報到、取消退款與單場財務，都能集中在同一套流程中處理。</p>
+    <div class="hero-actions">
+      <a class="btn" href="index.html">查看目前開放活動</a>
+      <a class="btn outline" href="#organizer">我是活動主辦</a>
+    </div>
+  </section>
+
+  <nav class="quick-nav" aria-label="系統說明快速導覽">
+    <a href="#about">關於 DOING</a>
+    <a href="#workflow">使用流程</a>
+    <a href="#features">功能說明</a>
+    <a href="#pricing">收費方式</a>
+    <a href="#organizer">主辦申請</a>
+    <a href="#terms">使用條款</a>
+    <a href="#privacy">隱私權政策</a>
+    <a href="#support">客服</a>
+  </nav>
+
+  <section id="workflow">
+    <div class="section-head">
+      <h2>不是只有表單，而是一條完整的營運流程</h2>
+      <p>正式資料由系統與資料庫管理，報名者與主辦不需要在多個表單、試算表和訊息之間反覆核對。</p>
+    </div>
+    <div class="flow">
+      <div class="step"><b>STEP 01</b><strong>選擇使用類型</strong><span>市集、體驗、講座、展演、課程或一般活動報名。</span></div>
+      <div class="step"><b>STEP 02</b><strong>建立主辦帳號</strong><span>設定主辦資料、工作人員與權限。</span></div>
+      <div class="step"><b>STEP 03</b><strong>設定活動場次</strong><span>日期、名額、費用、設備、審核、付款與報到規則。</span></div>
+      <div class="step"><b>STEP 04</b><strong>確認報名流程</strong><span>開放前完成必要資料檢查，避免缺漏。</span></div>
+      <div class="step"><b>STEP 05</b><strong>正式開放報名</strong><span>主辦從後台掌握名單、付款與現場進度。</span></div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="section-head">
+      <h2>依活動需求組合功能</h2>
+      <p>DOING 的核心不是為單一活動客製一張表單，而是讓不同主辦使用既有模組建立自己的正式報名流程。</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature"><b>會員資料帶入</b><span>報名者完成一次資料後，後續報名可快速帶入。</span></div>
+      <div class="feature"><b>場次與名額</b><span>依日期、場次與實際報名數管理容量。</span></div>
+      <div class="feature"><b>審核與錄取</b><span>支援需要審核或直接成立的不同流程。</span></div>
+      <div class="feature"><b>付款與核帳</b><span>保存應收、實收、付款回報與正式金流紀錄。</span></div>
+      <div class="feature"><b>設備與加購</b><span>設定內含設備、加租數量與加購項目。</span></div>
+      <div class="feature"><b>選位與配位</b><span>支援加價選位、主辦配位與活動前自動補位。</span></div>
+      <div class="feature"><b>通知與行前資訊</b><span>依報名狀態提供付款、行前與異動通知。</span></div>
+      <div class="feature"><b>現場報到</b><span>工作人員可使用手機處理報到與現場狀態。</span></div>
+      <div class="feature"><b>取消與退款</b><span>依實收金額、行政費及轉帳手續費處理。</span></div>
+      <div class="feature"><b>延期轉場</b><span>保留原報名與付款資料，重新掛到延期場次。</span></div>
+      <div class="feature"><b>單場財務</b><span>彙整應收、實收、退款、押金與帳務紀錄。</span></div>
+      <div class="feature"><b>多語系</b><span>可依主辦需求提供繁體中文、英文、日文與韓文內容。</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>適用情境</h2>
+      <p>預約只是其中一種模式。DOING 的母流程仍是「活動／方案 → 場次 → 報名 → 名額 → 審核 → 付款 → 通知 → 現場 → 取消退款 → 財務」。</p>
+    </div>
+    <div class="grid">
+      <article class="card"><h3>市集報名</h3><p>攤商招募、品牌資料、審核、付款、設備、選位、報到與單場財務。</p></article>
+      <article class="card"><h3>手作體驗／預約</h3><p>體驗時段、名額、服務項目、參加人數、付款確認與現場報到。</p></article>
+      <article class="card"><h3>一般活動報名</h3><p>講座、展演、課程、導覽及各類需要名單、通知與報到的活動。</p></article>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <div class="section-head">
+      <h2>依活動實際營運方式計費</h2>
+      <p>所有正式功能開放，不以基礎版／進階版拆分必要功能。</p>
+    </div>
+    <div class="pricing">
+      <article class="price-card">
+        <h3>免費活動</h3>
+        <div class="price">NT$100 <small>／場</small></div>
+        <p>活動本身不向報名者收費時，依正式建立並使用的活動場次計費。</p>
+      </article>
+      <article class="price-card primary">
+        <h3>收費活動</h3>
+        <div class="price">實際已收金額 × 1%</div>
+        <p>依主辦實際確認收到的金額計算，不另外加收免費活動的單場 NT$100。</p>
+      </article>
+    </div>
+    <div class="note">免費活動與收費活動的系統費用合計，正式牌價採單月最高 NT$3,800。退款回沖、延期歸屬及正式金流服務，仍依實際啟用規則與雙方約定處理。</div>
+  </section>
+
+  <section id="organizer">
+    <div class="cta">
+      <h2>你是活動主辦嗎？</h2>
+      <p>DOING 協助你把原本分散在表單、試算表、私訊與人工核對的工作，整理成可以持續使用的正式營運流程。</p>
+      <div class="hero-actions">
+        <a class="btn" href="mailto:Ndiangrace@gmail.com?subject=DOING%20主辦申請">提出主辦申請</a>
+        <a class="btn outline" href="index.html">先查看報名者入口</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="terms">
+    <div class="legal">
+      <h3>使用條款</h3>
+      <p>實際報名規則、付款期限、取消退款、設備與現場規範，以各活動主辦在該場次公告並由報名者同意的正式內容為準。DOING 系統服務的完整平台條款，將於正式商用啟用前另行公告。</p>
+    </div>
+  </section>
+
+  <section id="privacy">
+    <div class="legal">
+      <h3>隱私權政策</h3>
+      <p>報名資料僅用於會員識別、活動報名、付款、通知、現場作業與必要的客服處理。完整的資料保存期限、權利申請與平台隱私政策，將於正式商用啟用前另行公告。</p>
+    </div>
+  </section>
+
+  <section id="support">
+    <div class="legal">
+      <h3>客服與聯絡</h3>
+      <p>單一活動的審核、付款、位置、設備或退款問題，請優先聯絡該場主辦。DOING 系統合作與主辦申請可寄信至 Ndiangrace@gmail.com。</p>
+    </div>
+  </section>
+</main>
+
+<footer>DOING｜活動營運管理系統</footer>
+</body>
+</html>

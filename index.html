@@ -1,799 +1,509 @@
 <!DOCTYPE html>
-<!-- DOING_FINAL_HOMEPAGE_LOCK：品牌官網式首頁，登入在右上，不可回退成早期單登入框版本。 -->
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#ffffff" />
-  <meta name="description" content="DOING 活動營運管理系統｜主辦登入與使用申請" />
-  <title>DOING｜活動營運管理系統</title>
-  <style>
-    :root {
-      --ink: #242536;
-      --muted: #737589;
-      --line: #e9e9ef;
-      --white: #ffffff;
-      --cream: #f3d2ac;
-      --coral: #f3b8b1;
-      --lavender: #cec8d6;
-      --aqua: #7dc8ca;
-      --mint: #cae9e0;
-      --soft: #f8f9fb;
-      --shadow: 0 24px 70px rgba(43, 47, 65, 0.10);
-      --shadow-soft: 0 12px 30px rgba(43, 47, 65, 0.08);
-      --radius-xl: 34px;
-      --radius-lg: 24px;
-      --radius-md: 18px;
-    }
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DOING｜活動報名</title>
+<style>
+:root{--bg:#f8f9fb;--paper:#fff;--ink:#242536;--muted:#737589;--line:#e9e9ef;--main:#7dc8ca;--main2:#5aaeb2;--soft:#cae9e0;--blue:#e9f3ff;--yellow:#f3d2ac;--pink:#f3b8b1;--danger:#c87570;--shadow:0 16px 40px rgba(16,72,67,.09);--safe:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","Segoe UI",sans-serif;line-height:1.55}button,input,select,textarea{font:inherit}.hidden{display:none!important}button{cursor:pointer}.shell{max-width:1180px;margin:auto;padding:0 16px calc(94px + var(--safe))}.top{position:sticky;top:0;z-index:30;background:rgba(245,250,249,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}.top-in{max-width:1180px;margin:auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{display:flex;align-items:center;gap:10px;min-width:0}.logo{width:46px;height:46px;border-radius:15px;background:#fff;border:1px solid var(--line);object-fit:contain;padding:5px}.brand h1{font-size:18px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand p{font-size:12px;color:var(--muted);margin:1px 0 0}.hero{margin:18px 0;border:1px solid var(--line);background:linear-gradient(135deg,#fff 0%,#edf8f6 100%);border-radius:28px;overflow:hidden;box-shadow:var(--shadow);display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr)}.hero-copy{padding:28px}.hero-copy h2{font-size:clamp(27px,4vw,44px);line-height:1.15;margin:0 0 12px}.hero-copy p{color:var(--muted);margin:0;max-width:650px}.hero-art{min-height:250px;background:linear-gradient(150deg,#dff3ef,#cbe8e4);display:grid;place-items:center;overflow:hidden}.hero-art img{width:100%;height:100%;object-fit:cover}.hero-mark{width:130px;height:200px;border:10px solid #fff;border-radius:30px;background:linear-gradient(#fff,#eef8f6);box-shadow:0 16px 34px rgba(10,78,72,.16);position:relative}.hero-mark:before,.hero-mark:after{content:"";position:absolute;left:16px;right:16px;border-radius:12px;background:#cae7e2}.hero-mark:before{height:45px;top:34px}.hero-mark:after{height:70px;top:92px}.nav{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:999px;padding:11px 16px;min-height:44px;font-weight:900;background:var(--main);color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none}.btn:hover{background:var(--main2)}.btn.outline{background:#fff;color:var(--ink);border:1px solid var(--line)}.btn.danger{background:var(--danger)}.btn.small{min-height:36px;padding:7px 12px;font-size:14px}.btn:disabled{opacity:.5;cursor:not-allowed}.section-title{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:22px 0 11px}.section-title h2{margin:0;font-size:24px}.section-title p{margin:3px 0 0;color:var(--muted);font-size:14px}.ann{padding:12px 14px;background:var(--yellow);border:1px solid #eedda0;border-radius:16px;margin:8px 0}.portal-row{display:flex;gap:8px;overflow:auto;padding:2px 0 6px;scrollbar-width:none}.portal-row::-webkit-scrollbar{display:none}.portal-chip{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 14px;font-weight:900;color:var(--ink)}.portal-chip.active{background:var(--main);color:#fff;border-color:var(--main)}.event-strip{display:flex;gap:12px;overflow:auto;padding:2px 0 8px;scroll-snap-type:x proximity;scrollbar-width:none}.event-strip::-webkit-scrollbar{display:none}.event-card{flex:0 0 min(310px,82vw);min-height:145px;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:#fff;box-shadow:var(--shadow);display:grid;grid-template-columns:112px 1fr;scroll-snap-align:start;text-decoration:none;color:inherit}.event-card .event-cover{background:linear-gradient(135deg,var(--soft),var(--blue));min-height:145px}.event-card .event-cover img{width:100%;height:100%;object-fit:cover}.event-card .event-copy{padding:14px}.event-card h3{margin:0 0 6px;font-size:18px}.event-card p{margin:0;color:var(--muted);font-size:13px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}.card{background:var(--paper);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:hidden}.cover{height:170px;background:linear-gradient(135deg,#e0f2ef,#eef7ff);display:grid;place-items:center;color:var(--muted);font-weight:900}.cover img{width:100%;height:100%;object-fit:cover}.card-body{padding:16px}.card h3{font-size:20px;line-height:1.3;margin:0 0 7px}.meta{display:flex;gap:6px;flex-wrap:wrap}.pill{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:5px 9px;background:#fff;font-size:12px;font-weight:850}.pill.green{background:var(--soft)}.pill.blue{background:var(--blue)}.pill.pink{background:var(--pink)}.desc{color:var(--muted);font-size:14px;margin:10px 0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.money{font-size:18px;font-weight:950;margin-top:9px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.empty{padding:28px;border:1px dashed var(--line);background:#fff;border-radius:20px;text-align:center;color:var(--muted);font-weight:800}.bottom-nav{position:fixed;z-index:50;left:50%;bottom:10px;transform:translateX(-50%);width:min(520px,calc(100vw - 20px));padding:7px;background:rgba(255,255,255,.96);border:1px solid var(--line);box-shadow:0 16px 40px rgba(0,0,0,.13);border-radius:22px;display:grid;grid-template-columns:1fr 1fr;gap:7px}.bottom-nav button{border:0;background:transparent;border-radius:16px;min-height:48px;font-weight:900}.bottom-nav button.active{background:var(--main);color:#fff}.page{display:none}.page.active{display:block}.modal-bg{position:fixed;inset:0;z-index:100;background:rgba(12,28,27,.52);display:none;align-items:center;justify-content:center;padding:18px}.modal-bg.show{display:flex}.modal{width:min(920px,100%);max-height:92vh;background:#fff;border-radius:25px;box-shadow:0 28px 80px rgba(0,0,0,.25);display:flex;flex-direction:column;overflow:hidden}.modal-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.modal-head h2{margin:0;font-size:22px}.modal-head p{margin:3px 0 0;color:var(--muted);font-size:13px}.close{width:42px;height:42px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:22px}.modal-body{overflow:auto;padding:18px}.modal-foot{border-top:1px solid var(--line);padding:12px 18px calc(12px + var(--safe));display:flex;gap:8px;justify-content:flex-end;background:#fff}.form-section{padding:16px 0;border-top:1px solid var(--line)}.form-section:first-child{padding-top:0;border-top:0}.form-section h3{margin:0 0 10px;font-size:16px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}.field label{font-size:13px;font-weight:900;color:#445452}.field input,.field select,.field textarea{width:100%;border:1px solid #cadbd8;border-radius:13px;background:#fff;padding:11px 12px;min-height:44px}.field textarea{min-height:110px;resize:vertical}.help{font-size:11px;color:var(--muted)}.choice-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}.choice{border:1px solid var(--line);background:#fff;border-radius:15px;padding:11px;display:flex;gap:8px;align-items:flex-start}.choice input{margin-top:4px}.choice b{display:block}.choice small{color:var(--muted)}.summary{background:var(--soft);border:1px solid #c6e3de;border-radius:17px;padding:13px}.summary-line{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed #c7ddd9}.summary-line:last-child{border:0}.record-list{display:grid;gap:13px}.record{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow)}.record-top{display:flex;justify-content:space-between;gap:12px}.record h3{margin:0;font-size:19px}.record-info{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}.info{background:#f8fbfa;border:1px solid var(--line);border-radius:14px;padding:9px}.info span{display:block;font-size:11px;color:var(--muted)}.info b{display:block;margin-top:2px;word-break:break-word}.seat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}.seat{border:1px solid var(--line);border-radius:14px;padding:10px 6px;background:#fff;text-align:center}.seat input{display:none}.seat.available{cursor:pointer}.seat.available:has(input:checked){border:2px solid var(--main);background:var(--soft)}.seat.used{opacity:.48;background:#f1f2f2}.seat b{display:block;font-size:16px}.seat small{color:var(--muted)}.agreement{white-space:pre-wrap;line-height:1.75;font-size:14px}.toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(20px);z-index:200;background:#172322;color:#fff;border-radius:999px;padding:11px 16px;opacity:0;pointer-events:none;transition:.2s;max-width:92vw;text-align:center}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:760px){.shell{padding-left:10px;padding-right:10px}.top-in{padding:10px}.hero{grid-template-columns:1fr}.hero-copy{padding:22px 18px}.hero-art{min-height:155px}.hero-mark{transform:scale(.7)}.grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.modal-bg{padding:0}.modal{width:100%;height:100%;max-height:none;border-radius:0}.modal-head{position:sticky;top:0;background:#fff;z-index:2}.modal-foot{position:sticky;bottom:0}.modal-foot .btn{flex:1}.record-info{grid-template-columns:1fr 1fr}.top .btn{padding:9px 11px;font-size:13px}}
 
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Inter, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 8% 86%, rgba(243, 184, 177, .32), transparent 24%),
-        radial-gradient(circle at 91% 80%, rgba(125, 200, 202, .28), transparent 22%),
-        radial-gradient(circle at 94% 20%, rgba(206, 200, 214, .30), transparent 20%),
-        #fff;
-      overflow-x: hidden;
-    }
+/* DOING PRODUCT-GRADE REGISTRATION LAYER */
+:root{--bg:#f6fafb!important;--paper:#fff!important;--ink:#202332!important;--muted:#74798a!important;--line:#e5ebee!important;--main:#58bfc1!important;--main2:#319da0!important;--soft:#dff5ef!important;--blue:#eaf5ff!important;--yellow:#fff0d7!important;--pink:#ffd9d3!important;--shadow:0 16px 42px rgba(42,70,84,.08)!important}
+body{background:linear-gradient(180deg,#f9fcfc,#f5f9fa 55%,#fff)!important}.top{background:rgba(255,255,255,.9)!important;border-bottom:1px solid rgba(229,235,238,.9)!important}.top-in{max-width:1240px!important}.brand h1{letter-spacing:-.02em!important}.logo{border:0!important;background:linear-gradient(135deg,#dff5ef,#78d3d0)!important;box-shadow:0 8px 20px rgba(49,157,160,.14)!important}.shell{max-width:1240px!important}.hero{border-radius:32px!important;background:linear-gradient(125deg,#effaf7 0,#fff 60%,#fff7e9 100%)!important;border:1px solid var(--line)!important;box-shadow:0 22px 62px rgba(42,70,84,.09)!important;min-height:330px!important}.hero-copy{padding:35px!important}.hero-copy:before{content:"ACTIVITY PORTAL";display:inline-flex;padding:6px 9px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:9px;letter-spacing:.12em;font-weight:950;color:#438f91;margin-bottom:12px}.hero-copy h2{font-size:clamp(31px,4.5vw,52px)!important;letter-spacing:-.04em!important}.hero-copy p{font-size:14px!important;max-width:680px!important}.hero-art{background:linear-gradient(145deg,#dff5ef,#eaf5ff)!important;position:relative}.hero-art:before{content:"報名\A 審核\A 付款\A 設備 · 選位\A 我的報名";white-space:pre;position:absolute;width:180px;height:230px;background:#fff;border:7px solid #25313a;border-radius:29px;box-shadow:0 20px 55px rgba(35,52,64,.19);display:flex;align-items:center;justify-content:center;text-align:center;line-height:2.15;font-size:10px;font-weight:900;color:#52717a;transform:rotate(3deg)}.hero-mark{display:none!important}.portal-chip{border:0!important;background:#fff!important;box-shadow:0 7px 18px rgba(42,70,84,.05)!important}.portal-chip.active{background:linear-gradient(135deg,var(--main2),var(--main))!important}.event-card{border-radius:24px!important;box-shadow:0 13px 34px rgba(42,70,84,.07)!important;border-color:var(--line)!important}.grid{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))!important;gap:16px!important}.card{border-radius:25px!important;border-color:var(--line)!important;box-shadow:0 14px 38px rgba(42,70,84,.07)!important;transition:.15s!important}.card:hover{transform:translateY(-2px);box-shadow:0 20px 46px rgba(42,70,84,.105)!important}.cover{height:190px!important}.card-body{padding:18px!important}.card h3{font-size:21px!important}.money{color:#287f82!important}.btn{border-radius:13px!important}.btn:not(.outline){background:linear-gradient(135deg,var(--main2),var(--main))!important;box-shadow:0 8px 20px rgba(49,157,160,.16)}.bottom-nav{width:min(560px,calc(100vw - 18px))!important;border-radius:23px!important;box-shadow:0 18px 52px rgba(34,58,70,.15)!important}.bottom-nav button{border-radius:16px!important}.bottom-nav button.active{background:linear-gradient(135deg,var(--main2),var(--main))!important}.record{border-radius:24px!important;box-shadow:0 13px 35px rgba(42,70,84,.07)!important;padding:18px!important}.record-top{align-items:flex-start!important}.record-info{grid-template-columns:repeat(4,minmax(0,1fr))!important}.info{background:#f8fbfb!important;border-color:#edf1f2!important;min-height:70px!important}.info span{font-size:9px!important}.info b{font-size:12px!important}.ann{border-radius:15px!important;background:#fff8e9!important;border-color:#f0dfbd!important}.empty{border-radius:23px!important;background:linear-gradient(145deg,#fff,#f8fbfb)!important}.modal-bg{background:rgba(23,37,46,.45)!important;backdrop-filter:blur(8px)!important}.modal{width:min(1040px,100%)!important;border-radius:30px!important;box-shadow:0 32px 92px rgba(28,48,61,.25)!important}.modal-head{padding:18px 20px!important;background:rgba(255,255,255,.96)!important}.modal-body{padding:0 20px 20px!important}.modal-foot{padding:12px 20px calc(12px + var(--safe))!important}.reg-wizard{position:sticky;top:0;z-index:3;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:12px 0;background:#fff}.reg-step{border:1px solid var(--line);border-radius:13px;padding:9px;background:#f8fafb;color:#7d8290;font-size:10px;font-weight:900;text-align:left}.reg-step b{display:block;color:#343946;font-size:11px}.reg-step.active{background:var(--soft);border-color:#c6e9df;color:#3c8782}.reg-step.done{background:#f1faf7;color:#5a8f82}.reg-step-panel{display:none!important}.reg-step-panel.active{display:block!important}.form-section{padding:19px 0!important}.form-section h3{font-size:18px!important;letter-spacing:-.015em!important}.field label{color:#555b68!important}.field input,.field select,.field textarea{border-color:#dce6e8!important;border-radius:14px!important;background:#fcfdfd!important}.choice{border-radius:16px!important;border-color:#e3eaec!important}.summary{background:linear-gradient(145deg,#effaf7,#fff)!important;border-color:#d8ebe6!important;border-radius:19px!important}.wizard-back,.wizard-next{min-width:120px}.wizard-back{background:#fff!important;color:var(--ink)!important;border:1px solid var(--line)!important;box-shadow:none!important}.seat{border-radius:15px!important}.seat.available{background:#f5fcfa!important}.seat.available:has(input:checked){background:#dff5ef!important;border-color:#55bdbb!important}.pre-notice{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}.notice-main{padding:18px;border-radius:20px;background:linear-gradient(145deg,#effaf7,#fff);border:1px solid #dceee9}.notice-main h3{margin:0 0 8px;font-size:22px}.notice-side{display:grid;gap:8px}.notice-side div{border:1px solid var(--line);background:#fff;border-radius:15px;padding:12px}.notice-side span{display:block;font-size:9px;color:var(--muted)}.notice-side b{display:block;margin-top:4px;font-size:13px}.support-flow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.support-flow .card{min-height:180px}.support-flow .card-body{display:flex;flex-direction:column;height:100%}.support-flow h3{font-size:17px!important}.support-flow .desc{display:block!important;-webkit-line-clamp:unset!important}.page#pageMy .section-title{padding-top:7px}
+@media(max-width:780px){.hero{grid-template-columns:1fr!important;min-height:0!important}.hero-copy{padding:25px 18px!important}.hero-art{min-height:155px!important}.hero-art:before{width:125px;height:145px;border-width:5px;border-radius:21px;line-height:1.7}.grid{grid-template-columns:1fr!important}.record-info{grid-template-columns:1fr 1fr!important}.reg-wizard{grid-template-columns:repeat(4,minmax(72px,1fr));overflow:auto}.reg-step{padding:7px;font-size:8px}.reg-step b{font-size:9px}.pre-notice{grid-template-columns:1fr}.support-flow{grid-template-columns:1fr}}
+@media(max-width:520px){.shell{padding-left:8px!important;padding-right:8px!important}.top-in{padding:9px!important}.hero{margin:10px 0!important;border-radius:24px!important}.hero-copy h2{font-size:31px!important}.hero-copy p{font-size:12px!important}.hero-art{display:none!important}.section-title{margin:18px 3px 9px!important}.section-title h2{font-size:20px!important}.event-card{flex-basis:88vw!important}.cover{height:150px!important}.modal-bg{padding:0!important}.modal{border-radius:0!important;height:100%!important;max-height:none!important}.modal-head{padding:12px 14px!important}.modal-body{padding:0 14px 14px!important}.modal-foot{display:grid!important;grid-template-columns:1fr 1fr!important;padding:9px 14px calc(9px + var(--safe))!important}.modal-foot .btn{width:100%!important}.modal-foot #submitRegBtn{grid-column:1/-1}.record{padding:13px!important}.record-info{gap:6px!important}.info{padding:8px!important;min-height:62px!important}.bottom-nav{bottom:7px!important;padding:6px!important}.bottom-nav button{min-height:46px!important;font-size:12px!important}}
 
-    button, input { font: inherit; }
-    button, a { -webkit-tap-highlight-color: transparent; }
 
-    .page {
-      width: min(1540px, calc(100% - 48px));
-      margin: 0 auto;
-      min-height: 100vh;
-      padding: 28px 0 36px;
-      position: relative;
-    }
+.lang-select{border:1px solid var(--line);background:#fff;border-radius:12px;min-height:38px;padding:5px 9px;font-weight:800}
+.brand{position:relative;user-select:none;-webkit-user-select:none}
+.hold-ring{position:absolute;left:-4px;top:-4px;width:54px;height:54px;border-radius:18px;pointer-events:none;border:3px solid transparent}
+.brand.holding .hold-ring{border-color:var(--main);animation:holdPulse 3s linear forwards}
+@keyframes holdPulse{0%{opacity:.2;transform:scale(.9)}100%{opacity:1;transform:scale(1.08)}}
+@media(max-width:520px){.lang-select{max-width:92px}.top-in .nav{gap:5px}.top-in .btn{min-height:38px}}
+.market-only.hidden{display:none!important}
+.reg-step.hidden{display:none!important}
 
-    .page::before {
-      content: "";
-      position: fixed;
-      left: -90px;
-      top: -180px;
-      width: 620px;
-      height: 360px;
-      border: 1px solid rgba(243, 210, 172, .85);
-      border-radius: 50%;
-      transform: rotate(-14deg);
-      pointer-events: none;
-    }
+.doing-logo{width:122px;height:40px;display:block;flex:0 0 auto;object-fit:contain}
+.tenant-logo{width:36px;height:36px;border-radius:12px;background:#fff;border:1px solid var(--line);object-fit:contain;padding:4px;flex:0 0 auto}
+.brand-copy{min-width:0}
+@media(max-width:640px){
+  .top-in{padding:9px 12px}
+  .brand{gap:8px}
+  .doing-logo{width:104px;height:36px}
+  .tenant-logo{width:32px;height:32px;border-radius:10px}
+  .brand-copy h1{font-size:15px}
+  .brand-copy p{font-size:10px;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+@media(max-width:430px){
+  .brand-copy{display:none}
+  .doing-logo{width:108px}
+}
 
-    .nav {
-      height: 70px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-      z-index: 20;
-    }
 
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 14px;
-      text-decoration: none;
-      color: inherit;
-    }
-
-    .brand-mark {
-      width: 56px;
-      height: 56px;
-      border: 1px solid rgba(243, 210, 172, .95);
-      border-radius: 17px;
-      background: #fff;
-      box-shadow: var(--shadow-soft);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .brand-mark::before,
-    .brand-mark::after {
-      content: "";
-      position: absolute;
-      width: 22px;
-      height: 34px;
-      border-radius: 12px;
-      transform: rotate(12deg);
-    }
-    .brand-mark::before { left: 8px; top: 9px; background: linear-gradient(180deg, var(--cream), var(--coral)); }
-    .brand-mark::after { right: 7px; bottom: 8px; width: 23px; height: 23px; border-radius: 9px; background: linear-gradient(135deg, var(--mint), var(--aqua)); }
-
-    .brand-copy strong {
-      display: block;
-      font-size: 31px;
-      letter-spacing: .12em;
-      line-height: 1;
-      font-weight: 800;
-    }
-    .brand-copy span {
-      display: block;
-      margin-top: 6px;
-      font-size: 12px;
-      letter-spacing: .28em;
-      color: var(--muted);
-      font-weight: 700;
-    }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 38px;
-      font-weight: 700;
-      font-size: 15px;
-    }
-    .nav-links a { color: var(--ink); text-decoration: none; }
-
-    .hero {
-      display: grid;
-      grid-template-columns: minmax(340px, 1.02fr) minmax(360px, .82fr) minmax(320px, .72fr);
-      align-items: center;
-      gap: clamp(24px, 3vw, 58px);
-      min-height: calc(100vh - 160px);
-      padding: 44px 0 28px;
-      position: relative;
-      z-index: 5;
-    }
-
-    .intro { padding-left: 28px; }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: #607678;
-      font-weight: 800;
-      font-size: 14px;
-      letter-spacing: .08em;
-      margin-bottom: 20px;
-    }
-    .eyebrow::before {
-      content: "";
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--aqua);
-      box-shadow: 0 0 0 7px rgba(125, 200, 202, .17);
-    }
-
-    h1 {
-      margin: 0;
-      max-width: 620px;
-      font-size: clamp(44px, 4.2vw, 74px);
-      line-height: 1.22;
-      letter-spacing: -.045em;
-      font-weight: 900;
-    }
-
-    .lead {
-      margin: 28px 0 0;
-      max-width: 610px;
-      font-size: 17px;
-      line-height: 1.95;
-      color: var(--muted);
-      font-weight: 500;
-    }
-
-    .primary-actions {
-      display: flex;
-      gap: 14px;
-      margin-top: 34px;
-    }
-
-    .btn {
-      min-height: 58px;
-      padding: 0 30px;
-      border-radius: 16px;
-      border: 1px solid transparent;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
-    }
-    .btn:hover { transform: translateY(-2px); }
-    .btn-primary {
-      color: #fff;
-      background: linear-gradient(135deg, #67bfc2, var(--aqua));
-      box-shadow: 0 12px 28px rgba(125, 200, 202, .28);
-    }
-    .btn-outline {
-      color: #dc8f8a;
-      border-color: rgba(243, 184, 177, .8);
-      background: rgba(255,255,255,.72);
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 42px;
-      max-width: 630px;
-    }
-
-    .stat-card,
-    .finance-card {
-      background: rgba(255,255,255,.82);
-      backdrop-filter: blur(14px);
-      border: 1px solid rgba(230, 230, 238, .9);
-      border-radius: 20px;
-      box-shadow: 0 10px 28px rgba(47, 51, 68, .06);
-    }
-    .stat-card { padding: 18px; min-height: 104px; }
-    .stat-title { font-size: 13px; color: #67697c; font-weight: 700; }
-    .stat-num { margin-top: 9px; font-size: 30px; font-weight: 900; letter-spacing: -.04em; }
-    .stat-num small { font-size: 12px; margin-left: 5px; color: #9a9cac; font-weight: 700; }
-    .stat-card:nth-child(1) { border-color: rgba(243,210,172,.65); }
-    .stat-card:nth-child(2) { border-color: rgba(243,184,177,.65); }
-    .stat-card:nth-child(3) { border-color: rgba(206,200,214,.7); }
-
-    .finance-row {
-      display: grid;
-      grid-template-columns: .55fr 1.45fr;
-      gap: 12px;
-      margin-top: 12px;
-      max-width: 630px;
-    }
-    .finance-card { padding: 19px; min-height: 118px; }
-    .finance-card strong { display: block; margin-top: 12px; font-size: 26px; letter-spacing: -.03em; }
-    .finance-card strong small { font-size: 12px; color: var(--muted); margin-left: 4px; }
-    .sparkline { margin-top: 8px; width: 100%; height: 34px; }
-
-    .phone-wrap {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 690px;
-    }
-    .phone-wrap::before,
-    .phone-wrap::after {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-      z-index: -1;
-    }
-    .phone-wrap::before {
-      width: 260px; height: 260px; right: -70px; top: 40px;
-      background: rgba(202,233,224,.55);
-    }
-    .phone-wrap::after {
-      width: 180px; height: 180px; left: -60px; bottom: 80px;
-      background: rgba(243,210,172,.27);
-    }
-
-    .phone {
-      width: 374px;
-      min-height: 720px;
-      padding: 14px;
-      background: linear-gradient(160deg, #f8f8f9, #e7e7ea);
-      border-radius: 52px;
-      box-shadow: 0 28px 70px rgba(48, 52, 68, .18), inset 0 0 0 2px rgba(255,255,255,.82);
-      position: relative;
-    }
-
-    .phone-screen {
-      min-height: 692px;
-      border-radius: 40px;
-      overflow: hidden;
-      background: #fbfbfc;
-      border: 1px solid rgba(225,225,231,.95);
-      position: relative;
-      padding: 26px 18px 72px;
-    }
-
-    .island {
-      position: absolute;
-      top: 11px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 104px;
-      height: 27px;
-      background: #24242a;
-      border-radius: 99px;
-      z-index: 3;
-    }
-
-    .phone-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 23px 0 18px;
-      font-size: 18px;
-    }
-    .menu-icon, .bell-icon { width: 24px; height: 24px; }
-
-    .hello strong { display: block; font-size: 19px; }
-    .hello span { display: block; margin-top: 6px; color: #9294a3; font-size: 11px; }
-
-    .section-title {
-      margin: 18px 0 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      font-weight: 900;
-    }
-    .section-title a { color: #69b9bc; text-decoration: none; font-size: 11px; }
-
-    .task-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .task {
-      padding: 12px 8px;
-      min-height: 78px;
-      border-radius: 15px;
-      background: #fff;
-      border: 1px solid #ececf1;
-    }
-    .task:nth-child(1) { background: rgba(202,233,224,.47); }
-    .task:nth-child(2) { background: rgba(243,210,172,.42); }
-    .task:nth-child(3) { background: rgba(243,184,177,.36); }
-    .task strong { display:block; font-size: 24px; }
-    .task span { display:block; margin-top: 4px; color: #737587; font-size: 10px; font-weight: 700; }
-
-    .overview-card {
-      padding: 14px;
-      background: #fff;
-      border: 1px solid #ececf1;
-      border-radius: 17px;
-    }
-    .overview-flex { display:flex; align-items:center; gap: 16px; }
-    .donut {
-      width: 86px; height: 86px; border-radius: 50%;
-      background: conic-gradient(var(--aqua) 0 42%, var(--cream) 42% 68%, var(--lavender) 68% 100%);
-      position:relative; flex: 0 0 auto;
-    }
-    .donut::after { content:""; position:absolute; inset:14px; background:white; border-radius:50%; }
-    .legend { flex:1; display:grid; gap:7px; font-size:10px; color:#67697a; }
-    .legend div { display:flex; align-items:center; justify-content:space-between; gap:10px; }
-    .legend i { width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:6px; }
-
-    .todo-list { display:grid; gap:7px; }
-    .todo {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 8px;
-      padding: 10px 11px;
-      background:#fff;
-      border:1px solid #ececf1;
-      border-radius:12px;
-      font-size:11px;
-    }
-    .todo-left { display:flex; align-items:center; gap:9px; min-width:0; }
-    .tiny-icon { width:28px; height:28px; border-radius:9px; display:grid; place-items:center; font-size:13px; font-weight:900; }
-    .todo:nth-child(1) .tiny-icon { background: rgba(243,184,177,.38); color:#d9837d; }
-    .todo:nth-child(2) .tiny-icon { background: rgba(243,210,172,.45); color:#c58d4f; }
-    .todo:nth-child(3) .tiny-icon { background: rgba(125,200,202,.28); color:#4ca9ac; }
-    .badge { border-radius:999px; padding:4px 7px; font-size:9px; font-weight:800; white-space:nowrap; }
-    .todo:nth-child(1) .badge { background:rgba(243,184,177,.28); color:#ca7772; }
-    .todo:nth-child(2) .badge { background:rgba(243,210,172,.35); color:#b47f43; }
-    .todo:nth-child(3) .badge { background:rgba(125,200,202,.24); color:#409da0; }
-
-    .event-list { display:grid; gap:8px; }
-    .event-row { display:flex; align-items:center; gap:9px; font-size:10px; }
-    .event-thumb { width:42px; height:34px; border-radius:9px; background: linear-gradient(135deg, var(--cream), var(--mint)); flex:0 0 auto; }
-    .event-row:nth-child(2) .event-thumb { background:linear-gradient(135deg,var(--coral),var(--lavender)); }
-    .event-row:nth-child(3) .event-thumb { background:linear-gradient(135deg,var(--mint),var(--aqua)); }
-    .event-copy { flex:1; min-width:0; }
-    .event-copy strong { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .event-copy span { color:#9698a7; font-size:8px; }
-    .event-state { font-size:8px; padding:4px 7px; border-radius:999px; background:rgba(202,233,224,.65); color:#4f9f87; font-weight:800; }
-
-    .phone-nav {
-      position:absolute;
-      left:0; right:0; bottom:0;
-      height:58px;
-      background:rgba(255,255,255,.94);
-      border-top:1px solid #ececf1;
-      display:grid;
-      grid-template-columns:repeat(5,1fr);
-      align-items:center;
-      padding:0 8px;
-    }
-    .phone-nav div { text-align:center; color:#9193a1; font-size:8px; font-weight:800; }
-    .phone-nav b { display:block; font-size:16px; margin-bottom:1px; }
-    .phone-nav .active { color:#51b2b5; }
-    .phone-nav .plus b { width:34px; height:34px; border-radius:50%; margin:0 auto 2px; display:grid; place-items:center; color:white; background:linear-gradient(135deg,#6cc5c7,#55b3b6); box-shadow:0 7px 16px rgba(85,179,182,.30); }
-
-    .login-zone {
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      position:relative;
-    }
-    .login-zone::before {
-      content:"";
-      position:absolute;
-      width:280px; height:280px;
-      border-radius:50%;
-      top:-110px; right:-140px;
-      background:rgba(206,200,214,.38);
-      z-index:-1;
-    }
-
-    .login-card {
-      width: 100%;
-      max-width: 410px;
-      background: rgba(255,255,255,.94);
-      border: 1px solid rgba(232,232,238,.98);
-      border-radius: 30px;
-      box-shadow: var(--shadow);
-      padding: 38px 34px 30px;
-      backdrop-filter: blur(14px);
-    }
-
-    .login-card h2 { margin:0; text-align:center; font-size:23px; letter-spacing:.04em; }
-    .login-sub { text-align:center; margin:8px 0 30px; color:#9294a3; font-size:13px; }
-    .field { margin-bottom:17px; }
-    .field label { display:block; margin-bottom:8px; font-size:12px; font-weight:800; }
-    .input-wrap { position:relative; }
-    .field input {
-      width:100%;
-      height:54px;
-      border-radius:13px;
-      border:1px solid #dedfe7;
-      background:#fff;
-      outline:none;
-      padding:0 44px 0 15px;
-      color:var(--ink);
-      transition:border .16s ease, box-shadow .16s ease;
-    }
-    .field input:focus { border-color:var(--aqua); box-shadow:0 0 0 4px rgba(125,200,202,.16); }
-    .field input::placeholder { color:#b5b6c1; }
-    .toggle-password { position:absolute; right:12px; top:50%; transform:translateY(-50%); width:30px; height:30px; border:0; background:transparent; cursor:pointer; color:#9a9ca9; display:grid; place-items:center; }
-
-    .login-meta { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:-1px 0 20px; font-size:12px; }
-    .remember { display:flex; align-items:center; gap:8px; color:#6f7181; }
-    .remember input { width:16px; height:16px; accent-color:var(--aqua); }
-    .text-link { color:#55afb2; text-decoration:none; font-weight:800; }
-    .login-submit { width:100%; border:0; }
-
-    .divider { display:flex; align-items:center; gap:13px; margin:20px 0; color:#aaaab6; font-size:11px; }
-    .divider::before,.divider::after { content:""; height:1px; flex:1; background:#e9e9ee; }
-
-    .google-btn {
-      width:100%; height:52px; border-radius:13px; border:1px solid #dedfe7; background:white; cursor:pointer;
-      display:flex; justify-content:center; align-items:center; gap:11px; font-weight:800; color:#484a59;
-    }
-    .google-g { width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-weight:900; font-size:17px; background: conic-gradient(from -45deg,#4285f4 0 25%,#34a853 25% 50%,#fbbc05 50% 75%,#ea4335 75%); color:white; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
-    .signup-note { text-align:center; margin-top:23px; color:#7c7e8d; font-size:12px; }
-
-    .feature-strip {
-      margin: 8px auto 0;
-      max-width: 1190px;
-      display:grid;
-      grid-template-columns:repeat(5,1fr);
-      gap:0;
-      padding:18px 24px;
-      border-radius:24px;
-      background:rgba(255,255,255,.92);
-      border:1px solid rgba(232,232,238,.95);
-      box-shadow:var(--shadow-soft);
-      position:relative;
-      z-index:10;
-    }
-    .feature { display:flex; align-items:center; gap:12px; padding:8px 14px; min-width:0; }
-    .feature-icon { width:40px; height:40px; border-radius:50%; flex:0 0 auto; display:grid; place-items:center; font-weight:900; }
-    .feature:nth-child(1) .feature-icon { background:rgba(202,233,224,.58); color:#4fa8aa; }
-    .feature:nth-child(2) .feature-icon { background:rgba(243,184,177,.40); color:#d47f7a; }
-    .feature:nth-child(3) .feature-icon { background:rgba(243,210,172,.45); color:#c08b4f; }
-    .feature:nth-child(4) .feature-icon { background:rgba(206,200,214,.42); color:#82799c; }
-    .feature:nth-child(5) .feature-icon { background:rgba(125,200,202,.28); color:#4ba3a6; }
-    .feature strong { display:block; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .feature span { display:block; margin-top:3px; font-size:9px; color:#9a9ba9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-    .mobile-login-shortcut { display:none; }
-
-    @media (max-width: 1240px) {
-      .hero { grid-template-columns: 1fr .88fr; }
-      .login-zone { grid-column: 1 / -1; padding-top: 10px; }
-      .login-card { max-width: 620px; }
-      .phone-wrap { min-height: 650px; }
-      .feature-strip { grid-template-columns:repeat(3,1fr); }
-      .feature:nth-child(4), .feature:nth-child(5) { display:none; }
-    }
-
-    @media (max-width: 860px) {
-      .page { width:min(100% - 28px, 760px); padding-top:14px; }
-      .page::before { display:none; }
-      .nav { height:62px; }
-      .brand-mark { width:46px; height:46px; border-radius:14px; }
-      .brand-copy strong { font-size:24px; }
-      .brand-copy span { font-size:9px; }
-      .nav-links { display:none; }
-      .hero {
-        grid-template-columns:1fr;
-        min-height:auto;
-        padding-top:28px;
-        gap:24px;
-      }
-      .intro { padding:0; text-align:center; }
-      .eyebrow { justify-content:center; }
-      h1 { margin:0 auto; font-size:clamp(40px,10vw,62px); max-width:650px; }
-      .lead { margin:20px auto 0; font-size:15px; line-height:1.8; }
-      .primary-actions { justify-content:center; }
-      .stats, .finance-row { margin-left:auto; margin-right:auto; }
-      .phone-wrap { order:3; min-height:auto; padding:18px 0; }
-      .phone { width:min(365px, 94vw); }
-      .login-zone { order:2; grid-column:auto; padding:0; }
-      .login-card { max-width:560px; }
-      .feature-strip { grid-template-columns:1fr; margin-top:24px; }
-      .feature:nth-child(n+2) { display:none; }
-      .mobile-login-shortcut { display:inline-flex; }
-    }
-
-    @media (max-width: 560px) {
-      body {
-        background:
-          radial-gradient(circle at 12% 96%, rgba(243,184,177,.24), transparent 25%),
-          radial-gradient(circle at 94% 74%, rgba(125,200,202,.24), transparent 24%),
-          #fff;
-      }
-      .page { width:100%; padding:10px 16px 26px; }
-      .nav { height:58px; }
-      .brand { gap:9px; }
-      .brand-mark { width:40px; height:40px; border-radius:12px; }
-      .brand-mark::before { width:17px; height:27px; left:6px; top:7px; }
-      .brand-mark::after { width:18px; height:18px; right:5px; bottom:6px; }
-      .brand-copy strong { font-size:21px; }
-      .brand-copy span { display:none; }
-      .hero { padding-top:16px; gap:18px; }
-      .eyebrow { margin-bottom:13px; font-size:12px; }
-      h1 { font-size:42px; line-height:1.18; }
-      .lead { font-size:14px; margin-top:16px; }
-      .primary-actions { margin-top:22px; }
-      .primary-actions .btn { min-height:50px; padding:0 20px; }
-      .primary-actions .btn-outline { display:none; }
-      .stats, .finance-row { display:none; }
-      .login-card { padding:26px 20px 22px; border-radius:24px; box-shadow:0 18px 48px rgba(43,47,65,.10); }
-      .login-card h2 { font-size:21px; }
-      .login-sub { margin-bottom:21px; }
-      .field input { height:52px; }
-      .phone-wrap { padding-top:8px; }
-      .phone { width:min(330px, 92vw); min-height:auto; border-radius:44px; }
-      .phone-screen { min-height:620px; border-radius:34px; padding-left:15px; padding-right:15px; }
-      .feature-strip { margin-top:10px; padding:12px 14px; border-radius:18px; }
-      .feature { padding:5px 8px; }
-    }
-  
-/* DOING PRODUCT-GRADE VISUAL LAYER — 2026-07-26 */
-:root{--doing-aqua:#64c7c6;--doing-aqua-deep:#2f9ea1;--doing-mint:#dff5ef;--doing-cream:#fff0d7;--doing-coral:#ffd9d3;--doing-lav:#eeeafb;--doing-ink:#202332;--doing-muted:#74798a;--doing-line:#e6ecef}
-body{background:linear-gradient(180deg,#fcfefe 0,#f6fafb 50%,#fff 100%)}
-.nav{position:sticky;top:0;z-index:80;background:rgba(255,255,255,.88);backdrop-filter:blur(18px);border:1px solid rgba(230,236,239,.82);border-radius:0 0 22px 22px;padding:10px 18px!important;box-shadow:0 8px 30px rgba(38,65,78,.06)}
-.nav-links{align-items:center}.nav-links a{font-weight:850}.nav-links a[href="#login"]{background:#fff;border:1px solid var(--doing-line);border-radius:999px;padding:9px 15px;box-shadow:0 6px 18px rgba(44,71,84,.06)}
-.hero{grid-template-columns:minmax(0,1fr) minmax(460px,.95fr)!important;gap:44px!important;align-items:center!important;padding-top:48px!important}
-.intro h1{font-size:clamp(43px,5vw,68px)!important;line-height:1.05!important;letter-spacing:-.045em!important;max-width:720px}
-.lead{font-size:17px!important;max-width:680px!important}.eyebrow{background:rgba(223,245,239,.8)!important;color:#337f81!important;border-color:#d5eeea!important}
-.stats,.finance-row{display:none!important}.phone-wrap{position:relative;min-height:570px!important;display:block!important}.phone-wrap:before{content:"";position:absolute;left:0;top:10px;width:88%;height:455px;background:#fff;border:1px solid var(--doing-line);border-radius:28px;box-shadow:0 26px 70px rgba(42,70,84,.12);transform:rotate(-1deg)}
-.phone-wrap:after{content:"跨場次營運\A 84 報名　7 待審核　4 待確認\A\A 本場已收　NT$ 96,200\A 設備需求　桌 6 · 椅 7\A 加價選位　尚餘 8 位";white-space:pre;position:absolute;left:34px;top:82px;width:61%;height:310px;border-radius:20px;background:linear-gradient(145deg,#f5fbfa,#fff);border:1px solid #e9efef;padding:22px;color:#50606b;font-size:12px;line-height:2;font-weight:800;box-shadow:inset 0 0 0 10px rgba(255,255,255,.45)}
-.phone{position:absolute!important;right:0!important;bottom:0!important;z-index:3!important;transform:scale(.82) rotate(3deg)!important;transform-origin:right bottom!important;box-shadow:0 30px 70px rgba(36,53,68,.24)!important}
-.login-zone{position:fixed!important;inset:0!important;z-index:120!important;background:rgba(28,40,49,.28)!important;backdrop-filter:blur(9px)!important;display:none!important;align-items:center!important;justify-content:flex-end!important;padding:18px!important}.login-zone.show{display:flex!important}.login-zone .login-card{width:min(420px,100%)!important;margin:0!important;border-radius:28px!important;box-shadow:0 35px 90px rgba(34,54,66,.25)!important}.login-zone:before{content:"×";position:absolute;top:25px;right:25px;width:38px;height:38px;border-radius:12px;background:#fff;display:grid;place-items:center;font-weight:900;color:#65707d;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.08)}
-.feature-strip{display:none!important}
-.product-section{max-width:1180px;margin:0 auto;padding:78px 18px}.product-kicker{font-size:12px;letter-spacing:.13em;font-weight:950;color:#3d9a9b}.product-section h2{font-size:clamp(30px,4vw,50px);line-height:1.13;letter-spacing:-.035em;margin:9px 0 12px}.product-lead{color:var(--doing-muted);font-size:16px;max-width:760px;margin:0}
-.chaos-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:40px;align-items:center;margin-top:32px}.chaos-stage{min-height:360px;border-radius:30px;border:1px solid var(--doing-line);background:linear-gradient(145deg,#f5f8fa,#fff);position:relative;overflow:hidden}.chaos-note{position:absolute;width:175px;background:#fff;border:1px solid var(--doing-line);border-radius:17px;padding:13px;box-shadow:0 14px 34px rgba(43,69,82,.09);font-size:11px;font-weight:900}.chaos-note small{display:block;color:#858b99;margin-top:4px;font-weight:650}.chaos-note.n1{left:24px;top:32px;transform:rotate(-5deg)}.chaos-note.n2{right:24px;top:45px;transform:rotate(4deg)}.chaos-note.n3{left:48px;bottom:36px;transform:rotate(3deg)}.chaos-note.n4{right:42px;bottom:42px;transform:rotate(-4deg)}.chaos-core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:108px;height:108px;border-radius:28px;background:linear-gradient(135deg,var(--doing-aqua-deep),var(--doing-aqua));display:grid;place-items:center;color:#fff;font-size:17px;font-weight:950;box-shadow:0 19px 45px rgba(47,158,161,.25)}
-.value-list{display:grid;gap:17px}.value-row{display:grid;grid-template-columns:40px 1fr;gap:12px}.value-row i{width:40px;height:40px;border-radius:13px;background:#fff;border:1px solid var(--doing-line);display:grid;place-items:center;font-style:normal;color:#338b8d;font-weight:950}.value-row h3{margin:0 0 3px;font-size:18px}.value-row p{margin:0;color:var(--doing-muted);font-size:13px}
-.flow-line{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-top:34px;position:relative}.flow-line:before{content:"";position:absolute;left:5%;right:5%;top:23px;height:2px;background:linear-gradient(90deg,var(--doing-aqua),#eec98f,#cabbe8)}.flow-step{position:relative;z-index:1;text-align:center}.flow-step b{width:48px;height:48px;margin:auto;border-radius:15px;background:#fff;border:1px solid var(--doing-line);display:grid;place-items:center;box-shadow:0 8px 22px rgba(51,84,98,.08);font-size:11px}.flow-step span{display:block;font-size:11px;font-weight:900;margin-top:8px}.flow-step small{display:block;font-size:8px;color:#898e9c;margin-top:2px}
-.story-grid{display:grid;gap:18px;margin-top:30px}.story-row{display:grid;grid-template-columns:.9fr 1.1fr;gap:28px;align-items:center;padding:28px 0;border-top:1px solid var(--doing-line)}.story-row:nth-child(even){grid-template-columns:1.1fr .9fr}.story-row:nth-child(even) .story-copy{order:2}.story-copy h3{font-size:27px;margin:0 0 8px}.story-copy p{margin:0 0 14px;color:var(--doing-muted);font-size:14px}.chips{display:flex;gap:6px;flex-wrap:wrap}.chips span{padding:7px 10px;border:1px solid var(--doing-line);border-radius:999px;background:#fff;font-size:10px;font-weight:850}.ui-panel{min-height:270px;border:1px solid var(--doing-line);border-radius:26px;background:linear-gradient(145deg,#fff,#f4fbfa);box-shadow:0 16px 45px rgba(42,70,84,.08);padding:18px}.ui-row{display:grid;grid-template-columns:125px 1fr 82px;gap:10px;align-items:center;padding:11px 7px;border-bottom:1px solid #edf1f2}.ui-row:last-child{border-bottom:0}.ui-row b{font-size:11px}.ui-row small{display:block;color:#8b909d;font-size:8px}.progress{height:8px;background:#eef2f3;border-radius:99px;overflow:hidden}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--doing-aqua-deep),var(--doing-aqua));border-radius:99px}.ui-state{font-size:9px;font-weight:900;text-align:right;color:#438a7d}.seat-show{display:grid;grid-template-columns:1.2fr .8fr;gap:12px}.seat-map-mini{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:11px;background:#f6faf9;border-radius:18px}.seat-map-mini i{aspect-ratio:1;border-radius:8px;background:var(--doing-mint);border:1px solid #c9e9e1;display:grid;place-items:center;font-style:normal;font-size:8px;font-weight:900;color:#468f84}.seat-map-mini i:nth-child(3n){background:var(--doing-cream);border-color:#efd6aa;color:#a2743d}.seat-side-mini{display:grid;gap:8px}.seat-side-mini div{padding:12px;border:1px solid var(--doing-line);background:#fff;border-radius:14px}.seat-side-mini b{display:block;font-size:19px}.seat-side-mini small{font-size:8px;color:#8b909d}.finance-show{display:grid;grid-template-columns:1fr 1fr;gap:10px}.finance-big{grid-row:span 2;border-radius:20px;background:linear-gradient(145deg,var(--doing-mint),#f5fcfa);padding:18px}.finance-big small{font-size:9px;color:#63807b}.finance-big strong{display:block;font-size:27px;margin:9px 0}.spark{height:70px;display:flex;align-items:end;gap:5px}.spark i{flex:1;border-radius:5px 5px 2px 2px;background:linear-gradient(#7fd2cf,#d7f1ec)}.finance-box{border:1px solid var(--doing-line);background:#fff;border-radius:16px;padding:13px}.finance-box span{font-size:8px;color:#8b909d}.finance-box b{display:block;margin-top:5px;font-size:17px}
-.mobile-block{margin-top:26px;background:linear-gradient(135deg,#173b42,#285e64);color:#fff;border-radius:34px;padding:38px;display:grid;grid-template-columns:.8fr 1.2fr;gap:34px;align-items:center;overflow:hidden}.mobile-block h2{margin-top:8px}.mobile-block p{color:#cae0e2}.mobile-points{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:15px}.mobile-points span{padding:9px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);font-size:10px;font-weight:850}.phone-pair{display:flex;justify-content:center;gap:14px}.mini-phone2{width:170px;height:322px;border:6px solid #101f24;border-radius:29px;background:#f8fbfb;color:#22303a;padding:25px 9px 9px;box-shadow:0 22px 52px rgba(0,0,0,.23)}.mini-phone2:nth-child(2){transform:translateY(-14px)}.m-title{font-size:10px;font-weight:950}.m-kpi{margin-top:9px;padding:10px;border-radius:13px;background:var(--doing-mint);font-size:8px}.m-row{margin-top:6px;padding:8px;border:1px solid var(--doing-line);background:#fff;border-radius:10px;font-size:7px;display:flex;justify-content:space-between}.m-cta{margin-top:9px;background:var(--doing-aqua-deep);color:#fff;padding:8px;border-radius:10px;text-align:center;font-size:8px;font-weight:900}
-.usecases{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px}.usecase{min-height:210px;border-radius:25px;padding:22px;border:1px solid var(--doing-line);position:relative;overflow:hidden}.usecase:nth-child(1){background:linear-gradient(145deg,#effbf7,#fff)}.usecase:nth-child(2){background:linear-gradient(145deg,#fff7e9,#fff)}.usecase:nth-child(3){background:linear-gradient(145deg,#f3f2fb,#fff)}.usecase h3{font-size:22px;margin:31px 0 6px}.usecase p{font-size:12px;color:var(--doing-muted);margin:0}.usecase:after{content:"";position:absolute;width:125px;height:125px;border-radius:50%;right:-36px;top:-36px;background:rgba(100,199,198,.13)}
-.final-cta{max-width:1180px;margin:20px auto 72px;padding:42px 20px;border:1px solid var(--doing-line);border-radius:34px;text-align:center;background:linear-gradient(135deg,#edf9f6,#fff6e9 68%,#f4f2fb)}.final-cta h2{font-size:clamp(29px,4vw,48px);margin:0 0 8px}.final-cta p{color:var(--doing-muted);margin:0 0 18px}.final-cta .btn{margin:4px}
-@media(max-width:900px){.hero{grid-template-columns:1fr!important}.phone-wrap{max-width:690px}.chaos-grid,.story-row,.story-row:nth-child(even),.mobile-block{grid-template-columns:1fr}.story-row:nth-child(even) .story-copy{order:0}.flow-line{grid-template-columns:repeat(4,1fr);row-gap:18px}.flow-line:before{display:none}.usecases{grid-template-columns:1fr 1fr}}
-@media(max-width:620px){.nav{padding:8px 10px!important;border-radius:0 0 18px 18px}.nav-links a:not([href="#login"]){display:none}.hero{padding-top:22px!important;gap:18px!important}.intro h1{font-size:39px!important}.lead{font-size:14px!important}.primary-actions{gap:7px!important}.primary-actions .btn{flex:1!important}.phone-wrap{min-height:355px!important}.phone-wrap:before{height:295px;width:92%;border-radius:22px}.phone-wrap:after{left:18px;top:55px;width:63%;height:205px;padding:13px;font-size:8px;line-height:1.9}.phone{transform:scale(.52) rotate(3deg)!important}.product-section{padding:52px 10px}.product-section h2{font-size:33px}.product-lead{font-size:13px}.chaos-grid{gap:22px}.chaos-stage{min-height:270px}.chaos-note{width:140px;padding:9px;font-size:8px}.chaos-note.n1{left:10px;top:20px}.chaos-note.n2{right:10px;top:25px}.chaos-note.n3{left:20px;bottom:26px}.chaos-note.n4{right:20px;bottom:28px}.chaos-core{width:82px;height:82px;border-radius:22px;font-size:13px}.value-row{grid-template-columns:34px 1fr}.value-row i{width:34px;height:34px}.value-row h3{font-size:15px}.value-row p{font-size:11px}.flow-line{gap:12px 2px}.flow-step b{width:42px;height:42px}.flow-step span{font-size:9px}.story-copy h3{font-size:22px}.story-copy p{font-size:12px}.ui-panel{padding:11px;min-height:220px}.ui-row{grid-template-columns:90px 1fr 58px;padding:8px 3px}.seat-show{grid-template-columns:1fr}.seat-side-mini{grid-template-columns:repeat(3,1fr)}.finance-show{grid-template-columns:1fr 1fr}.finance-big{grid-column:1/-1;grid-row:auto}.mobile-block{padding:24px 14px;border-radius:27px}.mobile-points{grid-template-columns:1fr 1fr}.phone-pair{gap:6px}.mini-phone2{width:130px;height:245px;border-width:5px;border-radius:23px;padding:20px 6px 6px}.usecases{grid-template-columns:1fr}.final-cta{margin:15px 10px 52px;border-radius:27px;padding:28px 14px}.login-zone{padding:7px!important;align-items:flex-end!important}.login-zone .login-card{border-radius:26px 26px 18px 18px!important}}
+.site-footer{margin:34px 0 14px;padding:22px 12px 4px;border-top:1px solid var(--line);text-align:center}
+.footer-links{display:flex;justify-content:center;gap:8px 18px;flex-wrap:wrap}
+.footer-links a{color:var(--muted);font-size:13px;font-weight:800;text-decoration:none}
+.footer-links a:hover{color:var(--main)}
+.footer-note{margin:12px 0 0;color:#8a9898;font-size:11px}
+@media(max-width:520px){
+  .site-footer{margin-top:26px;padding-left:4px;padding-right:4px}
+  .footer-links{gap:7px 14px}
+  .footer-links a{font-size:12px}
+}
 
 </style>
 </head>
 <body>
-  <main class="page">
-    <header class="nav">
-      <a class="brand" href="#" aria-label="DOING 首頁">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-copy">
-          <strong>DOING</strong>
-          <span>活動營運管理系統</span>
-        </span>
-      </a>
-      <nav class="nav-links" aria-label="主要導覽">
-        <a href="#features">功能介紹</a>
-        <a href="#login">登入</a>
-        <a href="#features">系統亮點</a>
-      </nav>
-    </header>
-
-    <section class="hero">
-      <section class="intro" aria-labelledby="hero-title">
-        <div class="eyebrow">報名之後，才是真正的活動營運</div>
-        <h1 id="hero-title">一場活動，從報名到現場，<br />都在同一個工作台。</h1>
-        <p class="lead">
-          從報名審核、付款確認、設備與選位，到現場報到、取消退款與延期承接，
-          DOING 把主辦真正要處理的工作放進同一套系統。
-        </p>
-        <div class="primary-actions">
-          <a class="btn btn-primary" href="#login">登入 DOING</a>
-          <button class="btn btn-outline" type="button" id="openApply">申請使用</button>
-        </div>
-
-        <div class="stats" aria-label="示意營運數據">
-          <article class="stat-card">
-            <div class="stat-title">報名總數</div>
-            <div class="stat-num">84<small>筆</small></div>
-          </article>
-          <article class="stat-card">
-            <div class="stat-title">待審核</div>
-            <div class="stat-num">7<small>筆</small></div>
-          </article>
-          <article class="stat-card">
-            <div class="stat-title">待付款確認</div>
-            <div class="stat-num">4<small>筆</small></div>
-          </article>
-        </div>
-
-        <div class="finance-row">
-          <article class="finance-card">
-            <div class="stat-title">今日報到</div>
-            <strong>31<small>人</small></strong>
-          </article>
-          <article class="finance-card">
-            <div class="stat-title">本場已收</div>
-            <strong>NT$ 96,200</strong>
-            <svg class="sparkline" viewBox="0 0 220 34" fill="none" aria-hidden="true">
-              <path d="M2 29C22 30 29 23 43 23C57 23 64 27 78 20C91 14 99 11 110 18C125 28 137 12 149 10C163 8 171 19 185 15C199 11 205 4 218 3" stroke="#F3D2AC" stroke-width="2.2" stroke-linecap="round"/>
-            </svg>
-          </article>
-        </div>
-      </section>
-
-      <section class="phone-wrap" aria-label="DOING 行動版介面示意">
-        <div class="phone">
-          <div class="island" aria-hidden="true"></div>
-          <div class="phone-screen">
-            <div class="phone-top">
-              <svg class="menu-icon" viewBox="0 0 24 24" fill="none"><path d="M4 7H20M4 12H20M4 17H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-              <svg class="bell-icon" viewBox="0 0 24 24" fill="none"><path d="M6.6 9.5A5.4 5.4 0 0112 4.1a5.4 5.4 0 015.4 5.4v3.2l1.5 2.6H5.1l1.5-2.6V9.5zM10 18h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
-
-            <div class="hello">
-              <strong>你好，主辦團隊 👋</strong>
-              <span>先看今天需要處理的事情。</span>
-            </div>
-
-            <div class="section-title"><span>今日任務</span><a href="#">查看全部</a></div>
-            <div class="task-grid">
-              <div class="task"><strong>7</strong><span>待審核</span></div>
-              <div class="task"><strong>12</strong><span>未繳費</span></div>
-              <div class="task"><strong>4</strong><span>付款待確認</span></div>
-            </div>
-
-            <div class="section-title"><span>本場營運總覽</span><a href="#">本月</a></div>
-            <div class="overview-card">
-              <div class="overview-flex">
-                <div class="donut" aria-hidden="true"></div>
-                <div class="legend">
-                  <div><span><i style="background:#7DC8CA"></i>已錄取</span><b>63 筆</b></div>
-                  <div><span><i style="background:#F3D2AC"></i>未繳費</span><b>12 筆</b></div>
-                  <div><span><i style="background:#CEC8D6"></i>已報到</span><b>31 人</b></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="section-title"><span>待處理事項</span><a href="#">查看全部</a></div>
-            <div class="todo-list">
-              <div class="todo"><div class="todo-left"><span class="tiny-icon">審</span><span>報名審核</span></div><span class="badge">7 筆待審核</span></div>
-              <div class="todo"><div class="todo-left"><span class="tiny-icon">收</span><span>付款確認</span></div><span class="badge">4 筆待確認</span></div>
-              <div class="todo"><div class="todo-left"><span class="tiny-icon">備</span><span>退款處理</span></div><span class="badge">2 筆待處理</span></div>
-            </div>
-
-            <div class="section-title"><span>近期場次</span><a href="#">查看全部</a></div>
-            <div class="event-list">
-              <div class="event-row">
-                <div class="event-thumb"></div>
-                <div class="event-copy"><strong>城市創意生活日</strong><span>08/02（六）10:00–18:00</span></div>
-                <span class="event-state">進行中</span>
-              </div>
-              <div class="event-row">
-                <div class="event-thumb"></div>
-                <div class="event-copy"><strong>週末手作企劃</strong><span>08/09（六）13:00–18:00</span></div>
-                <span class="event-state" style="background:rgba(243,210,172,.45);color:#b57c3d">即將開始</span>
-              </div>
-              <div class="event-row">
-                <div class="event-thumb"></div>
-                <div class="event-copy"><strong>戶外生活體驗</strong><span>08/16（六）11:00–18:00</span></div>
-                <span class="event-state" style="background:#efeff3;color:#888b9a">已結束</span>
-              </div>
-            </div>
-
-            <div class="phone-nav" aria-hidden="true">
-              <div class="active"><b>⌂</b>首頁</div>
-              <div><b>▣</b>活動</div>
-              <div class="plus"><b>＋</b></div>
-              <div><b>▥</b>報表</div>
-              <div><b>•••</b>更多</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <aside class="login-zone" id="login">
-        <section class="login-card" id="loginForm" aria-label="DOING 主辦登入">
-<h2>登入 DOING</h2><p class="login-sub">回到你的活動營運工作台</p>
-<div style="padding:18px 16px;border:1px solid #ececf1;border-radius:16px;background:#fafbfc;margin-bottom:18px"><strong style="display:block;font-size:14px">主辦帳號登入</strong><span style="display:block;margin-top:6px;color:#8f91a0;font-size:11px;line-height:1.7">使用 Google 帳號登入。系統將依帳號帶出你可管理的主辦空間。</span></div>
-<button class="google-btn" type="button" id="googleLogin"><span class="google-g">G</span>使用 Google 登入</button>
-<div id="loginStatus" style="min-height:20px;margin-top:12px;text-align:center;color:#8f91a0;font-size:11px;line-height:1.6"></div>
-<div id="workspacePicker" style="display:none;margin-top:12px;padding:12px;border:1px solid #ececf1;border-radius:14px;background:#fff"></div>
-<div class="divider">第一次使用 DOING？</div><button class="btn btn-primary login-submit" type="button" id="openApplyCard">申請使用</button></section>
-      </aside>
-    </section>
-
-
-<section class="product-section" id="why">
-  <div class="product-kicker">WHY DOING</div>
-  <h2>不是缺一張報名表，<br>而是報名之後的工作散在太多地方。</h2>
-  <p class="product-lead">表單、試算表、LINE、匯款紀錄、設備表、位置圖與現場名單分散時，主辦真正耗時間的是一直核對「這個人現在到底到哪一步」。</p>
-  <div class="chaos-grid"><div class="chaos-stage"><div class="chaos-note n1">報名表單<small>誰錄取？誰要補資料？</small></div><div class="chaos-note n2">匯款紀錄<small>誰付了？金額對不對？</small></div><div class="chaos-note n3">設備與位置<small>桌椅、加購、選位分開記</small></div><div class="chaos-note n4">現場名單<small>到了現場又重做一次</small></div><div class="chaos-core">DOING</div></div><div class="value-list"><div class="value-row"><i>01</i><div><h3>資料只建立一次</h3><p>會員資料可延續到後續活動，主辦留下會員與參與歷史，不再每辦一場就重新開始。</p></div></div><div class="value-row"><i>02</i><div><h3>每個狀態都有下一步</h3><p>待審核、錄取、付款待確認、已付款、備取、取消、退款，都直接對應下一個營運動作。</p></div></div><div class="value-row"><i>03</i><div><h3>金額、設備、位置跟著同一筆報名走</h3><p>主辦不用再把不同檔案與訊息人工拼回同一個人。</p></div></div></div></div>
+<header class="top"><div class="top-in"><div class="brand" id="brandHoldTarget" title="長按 3 秒進入 DOING 工作台"><img id="doingLogo" class="doing-logo" src="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20160%2052%22%20role=%22img%22%20aria-label=%22DOING%22%3E%0A%20%20%3Crect%20x=%221%22%20y=%221%22%20width=%22158%22%20height=%2250%22%20rx=%2217%22%20fill=%22#ffffff%22/%3E%0A%20%20%3Ccircle%20cx=%2227%22%20cy=%2226%22%20r=%2219%22%20fill=%22#dff5ef%22/%3E%0A%20%20%3Cpath%20d=%22M16%2028.2c5.2-1.1%2010-3.8%2014.2-7.8v15.2c-4.2-4-9-6.7-14.2-7.8v.4z%22%20fill=%22none%22%20stroke=%22#178f91%22%20stroke-width=%223.2%22%20stroke-linejoin=%22round%22/%3E%0A%20%20%3Cpath%20d=%22M30.3%2020.4c3.1%201.7%205.2%203.5%207.2%205.6-2%202.1-4.1%203.9-7.2%205.6%22%20fill=%22none%22%20stroke=%22#178f91%22%20stroke-width=%223.2%22%20stroke-linecap=%22round%22/%3E%0A%20%20%3Cpath%20d=%22M19.4%2031.6l2.9%206.2%22%20fill=%22none%22%20stroke=%22#178f91%22%20stroke-width=%223.2%22%20stroke-linecap=%22round%22/%3E%0A%20%20%3Ctext%20x=%2253%22%20y=%2233.5%22%20font-family=%22Arial,%20Helvetica,%20sans-serif%22%20font-size=%2223%22%20font-weight=%22800%22%20letter-spacing=%221.2%22%20fill=%22#173b3b%22%3EDOING%3C/text%3E%0A%3C/svg%3E" alt="DOING LOGO"><img id="tenantLogo" class="tenant-logo hidden" alt="主辦品牌 LOGO"><div class="brand-copy"><h1 id="tenantName">DOING</h1><p id="brandSub">一次建立資料，之後報名快速帶入</p></div><span id="holdRing" class="hold-ring"></span></div><div class="nav"><select id="languageSelect" class="lang-select hidden" aria-label="Language"></select><button id="memberLoginBtn" class="btn outline small" type="button">登入</button></div></div></header>
+<main class="shell">
+<section id="pageSessions" class="page active">
+  <div id="hero" class="hero"><div class="hero-copy"><h2 id="heroTitle">活動報名，從這裡開始</h2><p id="heroText">選擇場次、完成報名；登入我的報名即可查看審核、付款、設備、選位與行前資訊。</p><div class="actions"><button class="btn" id="heroMyBtn">查看我的報名</button><a class="btn outline" href="about.html">認識 DOING →</a><a id="lineBtn" class="btn outline hidden" target="_blank" rel="noopener">聯繫主辦</a></div></div><div id="heroArt" class="hero-art"><div class="hero-mark"></div></div></div>
+  <div id="announcements"></div>
+  <div id="portalSection" class="hidden"><div class="section-title"><div><h2>報名分類</h2><p>依主辦設定快速找到活動。</p></div></div><div id="portalRow" class="portal-row"></div></div>
+  <div id="eventSection" class="hidden"><div class="section-title"><div><h2>主題活動</h2><p>查看活動系列與目前開放場次。</p></div></div><div id="eventStrip" class="event-strip"></div></div>
+  <div class="section-title"><div><h2>開放報名</h2><p>依最近日期排序，只顯示目前開放中的場次。</p></div></div>
+  <div id="sessionGrid" class="grid"><div class="empty">載入中…</div></div>
 </section>
-<section class="product-section" id="workflow"><div class="product-kicker">ONE FLOW</div><h2>一條完整營運流程，不是幾個彼此分離的功能。</h2><p class="product-lead">從開放報名開始一路做到活動結束，報名者與主辦都沿著同一條資料流程前進。</p><div class="flow-line"><div class="flow-step"><b>報</b><span>報名</span><small>會員帶入</small></div><div class="flow-step"><b>審</b><span>審核</span><small>錄取／備取</small></div><div class="flow-step"><b>收</b><span>付款</span><small>確認／提醒</small></div><div class="flow-step"><b>備</b><span>設備</span><small>內含／加租</small></div><div class="flow-step"><b>位</b><span>選位</span><small>加價／配位</small></div><div class="flow-step"><b>通</b><span>通知</span><small>行前／異動</small></div><div class="flow-step"><b>到</b><span>報到</span><small>現場手機</small></div><div class="flow-step"><b>財</b><span>財務</span><small>退款／結算</small></div></div></section>
-<section class="product-section" id="features"><div class="product-kicker">PRODUCT CAPABILITIES</div><h2>每天真的會用到的，不只是「有功能」。</h2><div class="story-grid"><article class="story-row"><div class="story-copy"><h3>打開後台，先知道今天要處理什麼。</h3><p>跨場次待審核、未付款、付款待確認、退款與現場工作直接變成可執行的營運清單。</p><div class="chips"><span>跨場次待辦</span><span>單場狀態</span><span>快速篩選</span><span>手機處理</span></div></div><div class="ui-panel"><div class="ui-row"><div><b>城市生活日</b><small>08/02 · 開放報名</small></div><div class="progress"><i style="width:86%"></i></div><div class="ui-state">7 待審核</div></div><div class="ui-row"><div><b>週末手作企劃</b><small>08/09 · 付款中</small></div><div class="progress"><i style="width:64%"></i></div><div class="ui-state">4 待確認</div></div><div class="ui-row"><div><b>戶外體驗日</b><small>08/16 · 準備中</small></div><div class="progress"><i style="width:42%"></i></div><div class="ui-state">12 未繳費</div></div><div class="ui-row"><div><b>生活講座</b><small>08/23 · 已完成</small></div><div class="progress"><i style="width:100%"></i></div><div class="ui-state">已結算</div></div></div></article><article class="story-row"><div class="story-copy"><h3>設備與選位是正式營運資料，不是備註。</h3><p>每攤內含、加租單價、數量上限、加價選位與主辦配位都接在同一筆報名與付款狀態上。</p><div class="chips"><span>設備內含</span><span>加租</span><span>加價選位</span><span>7 天內持續配位</span></div></div><div class="ui-panel seat-show"><div class="seat-map-mini"><i>A1</i><i>A2</i><i>A3</i><i>A4</i><i>A5</i><i>B1</i><i>B2</i><i>B3</i><i>B4</i><i>B5</i><i>C1</i><i>C2</i><i>C3</i><i>C4</i><i>C5</i></div><div class="seat-side-mini"><div><small>加價可選</small><b>8</b></div><div><small>主辦配位</small><b>21</b></div><div><small>已鎖定</small><b>19</b></div></div></div></article><article class="story-row"><div class="story-copy"><h3>財務不是只看一個總額。</h3><p>應收、實收、未收、退款、押金、選位費與發票分開處理；正式數字由 Worker 與資料庫回傳。</p><div class="chips"><span>應收／已收</span><span>押金分離</span><span>退款</span><span>發票</span></div></div><div class="ui-panel finance-show"><div class="finance-big"><small>本場實際已收</small><strong>NT$ 96,200</strong><div class="spark"><i style="height:32%"></i><i style="height:52%"></i><i style="height:44%"></i><i style="height:76%"></i><i style="height:64%"></i><i style="height:91%"></i><i style="height:74%"></i></div></div><div class="finance-box"><span>待收</span><b>NT$ 18,400</b></div><div class="finance-box"><span>退款待處理</span><b>2 筆</b></div></div></article></div><div class="mobile-block" id="mobile"><div><div class="product-kicker" style="color:#8ee0da">MOBILE FIRST</div><h2>到了活動現場，電腦可以收起來。</h2><p>查名單、看付款、看設備、看位置、完成報到。手機不是桌機縮小版，而是把現場真正要按的動作放到手指碰得到的位置。</p><div class="mobile-points"><span>查今天名單</span><span>確認付款</span><span>看位置／設備</span><span>一鍵完成報到</span></div></div><div class="phone-pair"><div class="mini-phone2"><div class="m-title">今日場次</div><div class="m-kpi">已報到 31 / 48</div><div class="m-row"><span>A12 · 品牌 A</span><b>已付款</b></div><div class="m-row"><span>A13 · 品牌 B</span><b>未到</b></div><div class="m-row"><span>B05 · 品牌 C</span><b>已報到</b></div><div class="m-cta">搜尋／完成報到</div></div><div class="mini-phone2"><div class="m-title">報名者資料</div><div class="m-kpi">位置 A12 · 桌 1 · 椅 2</div><div class="m-row"><span>付款</span><b>已確認</b></div><div class="m-row"><span>設備</span><b>已備妥</b></div><div class="m-row"><span>報到</span><b>待處理</b></div><div class="m-cta">完成報到</div></div></div></div></section>
-<section class="product-section"><div class="product-kicker">FLEXIBLE SETUP</div><h2>不同活動，用同一套營運核心。</h2><p class="product-lead">依活動類型開啟需要的欄位與模組，不是為每一個主辦重新做一套系統。</p><div class="usecases"><article class="usecase"><span>01</span><h3>市集報名</h3><p>攤商會員、審核、攤位費、設備、加價選位、主辦配位、報到與單場財務。</p></article><article class="usecase"><span>02</span><h3>手作體驗</h3><p>體驗時段、名額、參加人數、付款、通知與報到，依活動節奏管理。</p></article><article class="usecase"><span>03</span><h3>一般活動</h3><p>講座、展演、課程與社群活動，以名單、付款、通知與現場流程為核心。</p></article></div></section>
-<section class="final-cta"><h2>把下一場活動，放進同一個工作台。</h2><p>不是多一套表單，而是少掉主辦每天反覆核對、複製與追資料的工作。</p><a class="btn btn-primary" href="#login">登入 DOING</a><button class="btn btn-outline" type="button" id="openApplyBottom">申請使用</button></section>
-  </main>
+<section id="pageMy" class="page">
+  <div class="section-title"><div><h2>我的報名</h2><p>使用報名時的 Email＋手機查詢，保護你的個人資料。</p></div><span class="pill" title="回報問題時請附上此版本號">DOING-R0726-CLOSE1</span></div>
+  <div id="myLogin" class="card"><div class="card-body"><div class="form-grid"><div class="field"><label>Email</label><input id="myEmail" type="email" autocomplete="email"></div><div class="field"><label>手機</label><input id="myPhone" inputmode="tel" autocomplete="tel"></div></div><div class="actions"><button class="btn" id="loadMyBtn">登入我的報名</button></div></div></div>
+  <div id="myRecords" class="record-list" style="margin-top:14px"></div>
+</section>
+<section id="pageSupport" class="page">
+  <div class="section-title"><div><h2>客服與常見問題</h2><p>規則以你所報名的場次與主辦公告為準。</p></div></div>
+  <div class="support-flow">
+    <article class="card"><div class="card-body"><h3>報名／審核／付款</h3><div class="desc" style="-webkit-line-clamp:unset">報名送出後可在「我的報名」查看審核結果。錄取後若有費用，依該場正式收款設定完成付款與回報。</div></div></article>
+    <article class="card"><div class="card-body"><h3>設備／攤位／選位</h3><div class="desc" style="-webkit-line-clamp:unset">設備、內含數量與加租依單場設定。加價選位於錄取後、付款前進行；未加價選位者進入活動前 7 天後由系統持續自動配位。</div></div></article>
+    <article class="card"><div class="card-body"><h3>取消／退款／活動異動</h3><div class="desc" style="-webkit-line-clamp:unset">未付款可依系統條件直接取消；已有實收金額則進入退款流程。不可抗力延期或退款選擇會直接出現在「我的報名」。</div></div></article>
+  </div>
+  <div class="actions" style="margin-top:16px"><a id="supportLineBtn" class="btn hidden" target="_blank" rel="noopener">聯絡本場主辦</a></div>
+</section>
 
-  <script>
+<footer class="site-footer" aria-label="DOING 系統資訊">
+  <nav class="footer-links">
+    <a href="about.html#about">關於 DOING</a>
+    <a href="about.html#features">功能說明</a>
+    <a href="about.html#pricing">收費方式</a>
+    <a href="about.html#organizer">主辦申請</a>
+    <a href="about.html#terms">使用條款</a>
+    <a href="about.html#privacy">隱私權政策</a>
+    <a href="about.html#support">客服</a>
+  </nav>
+  <p class="footer-note">DOING｜活動營運管理系統</p>
+</footer>
+
+</main>
+<nav class="bottom-nav" style="grid-template-columns:repeat(3,1fr)"><button data-page="sessions" class="active">活動報名</button><button data-page="my">我的報名</button><button data-page="support">客服</button></nav>
+
+
+<div id="sessionModal" class="modal-bg"><div class="modal"><div class="modal-head"><div><h2 id="regTitle">場次報名</h2><p id="regSub"></p></div><button class="close" data-close>×</button></div><div class="modal-body"><div class="reg-wizard"><button type="button" class="reg-step active" data-step="1"><b>01 基本資料</b>會員與場次</button><button type="button" class="reg-step" data-step="2"><b>02 報名內容</b>日期、設備、選位</button><button type="button" class="reg-step" data-step="3"><b>03 帳務資料</b>發票與其他</button><button type="button" class="reg-step" data-step="4"><b>04 確認送出</b>合約與摘要</button></div>
+<form id="regForm">
+<div class="form-section reg-step-panel active" data-reg-step="1"><h3>場次內容</h3><div id="sessionDetail"></div></div>
+<div class="form-section reg-step-panel active" data-reg-step="1"><h3>聯絡與會員資料</h3><div class="form-grid"><div class="field"><label>Email *</label><input id="regEmail" type="email" required></div><div class="field"><label>手機 *</label><input id="regPhone" inputmode="tel" required></div></div><div class="actions"><button type="button" class="btn outline small" id="loadMemberBtn">帶入既有會員資料</button></div><label class="choice" style="margin-top:10px"><input id="syncMemberProfile" type="checkbox"><span><b>同步更新我的會員資料</b><small>未勾選時，本次報名可修改資料，但不會覆蓋原會員主檔。</small></span></label><div class="form-grid" style="margin-top:10px"><div class="field"><label>姓名 *</label><input id="regName" required></div><div class="field"><label>品牌／單位名稱</label><input id="regBrand"></div><div class="field full"><label>參加內容／單位介紹</label><textarea id="regIntro"></textarea></div><div class="field market-only"><label>販售／參加類型</label><input id="regSellCat"></div><div class="field market-only"><label>品項說明</label><input id="regSellItem"></div><div class="field market-only"><label>Facebook</label><input id="regFb" type="url"></div><div class="field market-only"><label>Instagram</label><input id="regIg" type="url"></div><div class="field full market-only"><label>作品／照片網址</label><input id="regPhoto" type="url"></div></div></div>
+<div id="dateSection" class="form-section reg-step-panel" data-reg-step="2"><h3 id="dateSectionTitle">日期與名額</h3><div id="dateChoices" class="choice-grid"></div><div class="field" style="margin-top:10px"><label>攤位／報名數量</label><select id="regStalls"></select></div></div>
+<div id="bundleSection" class="form-section reg-step-panel hidden" data-reg-step="2"><h3>加報其他場次</h3><div class="help">組合優惠會在同一份報名中建立各場獨立紀錄；設備、押金、報到仍按場管理，正式金額由 Worker 依各場資料庫設定重新計算。</div><div id="bundleChoices" class="choice-grid" style="margin-top:10px"></div></div>
+<div id="participantSection" class="form-section reg-step-panel hidden" data-reg-step="2"><h3>參加人數</h3><div class="form-grid"><div class="field"><label>成人</label><input id="adultCount" type="number" min="0" value="1"></div><div class="field"><label>兒童</label><input id="childCount" type="number" min="0" value="0"></div></div></div>
+<div id="equipSection" class="form-section reg-step-panel hidden" data-reg-step="2"><h3>設備</h3><div id="equipChoices" class="choice-grid"></div><div id="equipNote" class="help"></div></div>
+<div id="addonSection" class="form-section reg-step-panel hidden" data-reg-step="2"><h3>加購項目</h3><div id="addonChoices" class="choice-grid"></div></div>
+<div id="customSection" class="form-section reg-step-panel hidden" data-reg-step="3"><h3>其他資料</h3><div id="customFields" class="form-grid"></div></div>
+<div id="businessModuleSection" class="form-section reg-step-panel hidden" data-reg-step="2"><h3 id="businessModuleTitle">預約／報名內容</h3><div id="businessModuleFields" class="form-grid"></div></div>
+<div id="seatIntentSection" class="form-section reg-step-panel hidden" data-reg-step="2"><h3>位置安排</h3><div class="choice-grid"><label class="choice"><input type="radio" name="seatIntent" value="auto" checked><span><b>主辦配位</b><small>付款確認後，進入活動前 7 天內由系統持續自動補位。</small></span></label><label class="choice"><input type="radio" name="seatIntent" value="paid"><span><b>加價選位</b><small>錄取後、付款前到「我的報名」挑選有加價的位置。</small></span></label></div></div>
+<div id="invoiceSection" class="form-section reg-step-panel" data-reg-step="3"><h3>發票資料</h3><div class="form-grid"><div class="field"><label>發票需求</label><select id="invoiceType"><option value="不需要">不需要</option><option value="個人">個人</option><option value="公司／機關">公司／機關</option></select></div><div class="field"><label>發票 Email</label><input id="invoiceEmail" type="email"></div><div class="field"><label>統一編號</label><input id="taxId"></div><div class="field"><label>抬頭</label><input id="invoiceTitle"></div><div class="field full"><label>載具</label><input id="invoiceCarrier"></div></div></div>
+<div id="agreementSection" class="form-section reg-step-panel" data-reg-step="4"><h3>合約與規範</h3><div class="choice"><input id="agreementCheck" type="checkbox"><span><b>我已閱讀並同意報名合約／活動規範</b><small><button type="button" class="btn outline small" id="readAgreementBtn" style="margin-top:7px">閱讀完整內容</button></small></span></div><div id="refundRuleBox" class="summary" style="margin-top:10px"></div></div>
+<div class="form-section reg-step-panel" data-reg-step="4"><h3>送出前確認</h3><div class="help">請確認資料無誤。正式金額、名額與狀態會在送出當下由系統再次驗證。</div></div><div id="regSummary" class="summary reg-step-panel" data-reg-step="4"></div>
+</form></div><div class="modal-foot"><button class="btn outline" data-close>取消</button><button class="btn wizard-back hidden" type="button" id="regPrevBtn">上一步</button><button class="btn wizard-next" type="button" id="regNextBtn">下一步</button><button class="btn hidden" id="submitRegBtn">確認送出報名</button></div></div></div>
+
+<div id="agreementModal" class="modal-bg"><div class="modal" style="max-width:760px"><div class="modal-head"><div><h2 id="agreementTitle">報名合約</h2><p id="agreementVersion"></p></div><button class="close" data-close>×</button></div><div class="modal-body"><div id="agreementContent" class="agreement"></div></div><div class="modal-foot"><button class="btn" id="agreementDoneBtn">我已閱讀</button></div></div></div>
+
+<div id="seatModal" class="modal-bg"><div class="modal"><div class="modal-head"><div><h2>加價選位</h2><p id="seatHint"></p></div><button class="close" data-close>×</button></div><div class="modal-body"><img id="seatMapImg" class="hidden" style="width:100%;max-height:360px;object-fit:contain;border:1px solid var(--line);border-radius:16px;margin-bottom:14px"><div id="seatGrid" class="seat-grid"></div></div><div class="modal-foot"><button class="btn outline" data-close>取消</button><button class="btn" id="confirmSeatBtn">確認選位</button></div></div></div>
+
+<div id="paymentModal" class="modal-bg"><div class="modal" style="max-width:620px"><div class="modal-head"><div><h2>付款與回報</h2><p id="paySub"></p></div><button class="close" data-close>×</button></div><div class="modal-body"><div id="payAccount" class="summary"></div><div id="payExternal" class="actions" style="margin-top:12px"></div><div id="payExternalNote" class="ann hidden">使用 LINE Pay／信用卡前，請先確認本次應付金額；付款完成後回到這裡送出付款回報，方便主辦確認入帳。</div><div class="form-grid" style="margin-top:12px"><div class="field"><label>付款方式</label><select id="payMethod"></select></div><div class="field"><label>本次應付金額</label><input id="payAmount" type="number" min="0" readonly></div><div class="field full"><label>帳號末五碼（銀行轉帳／ATM 才需填）</label><input id="payLast5" inputmode="numeric" maxlength="5"></div></div></div><div class="modal-foot"><button class="btn outline" data-close>取消</button><button class="btn" id="submitPayBtn">送出付款回報</button></div></div></div>
+<div id="adminEntryModal" class="modal-bg"><div class="modal" style="max-width:470px"><div class="modal-head"><div><h2 data-i18n="workspace">DOING 工作台</h2><p>主辦與工作人員請使用已授權的 Google 帳號。</p></div><button class="close" data-close>×</button></div><div class="modal-body"><button class="btn" style="width:100%" id="adminGoogleBtn">使用 Google 登入</button><div class="help" style="margin-top:10px">系統會依帳號自動辨識你可管理的工作空間。</div></div></div></div>
+<div id="paymentSuccessModal" class="modal-bg"><div class="modal" style="max-width:650px"><div class="modal-head"><div><h2>付款回報已送出</h2><p>目前狀態為「付款待確認」，請等待主辦核帳。</p></div><button class="close" data-close>×</button></div><div class="modal-body"><div class="ann">請先截圖保存本頁，再視需要傳給主辦客服。</div><div id="paymentSuccessCard" class="summary" style="white-space:pre-wrap"></div></div><div class="modal-foot"><button class="btn outline" id="copyPaymentCardBtn">① 複製付款卡</button><button class="btn" id="openPaymentLineBtn">② 傳 LINE 客服</button><button class="btn outline" data-close>完成</button></div></div></div>
+<div id="preNoticeModal" class="modal-bg"><div class="modal" style="max-width:760px"><div class="modal-head"><div><h2>行前通知</h2><p>活動前請再次確認最新公告</p></div><button class="close" data-close>×</button></div><div class="modal-body"><div class="pre-notice"><div class="notice-main"><small style="font-weight:900;color:#3e9292">PRE-EVENT</small><h3 id="preNoticeName">場次</h3><div id="preNoticeDate" style="color:var(--muted);font-size:13px"></div><div id="preNoticeVenue" style="margin-top:7px;font-weight:900"></div><div class="ann" style="margin-top:14px">報到時間依主辦公告；最新異動以「我的報名」與主辦通知為準。</div></div><div class="notice-side"><div><span>位置</span><b id="preNoticeSeat">—</b></div><div><span>設備</span><b id="preNoticeEquip">設備自備</b></div><div><span>付款</span><b id="preNoticePay">—</b></div></div></div></div><div class="modal-foot"><button class="btn" data-close>知道了</button></div></div></div>
+<div id="toast" class="toast"></div>
+<script>
 const API='https://tobeloved-api.ndiangrace.workers.dev';
-const googleLogin=document.getElementById('googleLogin'),loginStatus=document.getElementById('loginStatus'),workspacePicker=document.getElementById('workspacePicker'),applyBackdrop=document.getElementById('applyBackdrop'),openApply=document.getElementById('openApply'),openApplyCard=document.getElementById('openApplyCard'),closeApply=document.getElementById('closeApply'),submitApply=document.getElementById('submitApply');
-function showApply(){applyBackdrop.style.display='flex';document.body.style.overflow='hidden'}
-function hideApply(){applyBackdrop.style.display='none';document.body.style.overflow=''}
-openApply?.addEventListener('click',showApply);openApplyCard?.addEventListener('click',showApply);closeApply?.addEventListener('click',hideApply);applyBackdrop?.addEventListener('click',e=>{if(e.target===applyBackdrop)hideApply()});
-function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function loginErrorText(code){return ({not_authorized:'這個 Google 帳號目前沒有可管理的主辦空間。',google_cancelled:'已取消 Google 登入。',missing_params:'Google 登入資料不完整，請重新登入。',invalid_state:'登入驗證已失效，請重新登入。',token_exchange_failed:'Google 登入交換失敗，請重新登入。',no_id_token:'Google 登入未取得有效憑證。',id_token_verify_failed:'Google 帳號驗證失敗，請重新登入。',staff_inactive:'這個管理帳號目前已停用。'})[code]||code}
-function cleanLoginQuery(){const u=new URL(location.href);['workspace_token','login_error','error'].forEach(k=>u.searchParams.delete(k));history.replaceState({},'',u.pathname+(u.searchParams.toString()?('?'+u.searchParams.toString()):''));}
-async function loadWorkspacePicker(token){
-  loginStatus.textContent='正在載入你可管理的主辦空間…';googleLogin.disabled=true;
-  try{
-    const r=await fetch(API+'?action=listLoginWorkspaces&workspace_token='+encodeURIComponent(token));
-    const j=await r.json().catch(()=>({error:'回傳格式錯誤'}));
-    if(!r.ok||j.error||j.ok===false)throw new Error(j.error||j.message||('HTTP '+r.status));
-    const rows=Array.isArray(j.workspaces)?j.workspaces:[];
-    if(!rows.length)throw new Error('目前沒有可管理的主辦空間');
-    workspacePicker.innerHTML='<strong style="display:block;font-size:13px;margin-bottom:8px">選擇主辦空間</strong>'+rows.map(w=>`<button type="button" data-workspace-id="${esc(w.tenant_id)}" style="width:100%;text-align:left;border:1px solid #e8e8ef;background:#fafbfc;border-radius:11px;padding:12px;margin-top:7px;cursor:pointer"><b style="display:block;font-size:13px;color:#2f3140">${esc(w.name)}</b><span style="font-size:10px;color:#9698a6">${esc(w.role||'管理員')}${w.is_locked?' · 唯讀鎖定':''}</span></button>`).join('');
-    workspacePicker.style.display='block';loginStatus.textContent='這個帳號可管理多個主辦空間，請選擇要進入哪一個。';
-    workspacePicker.querySelectorAll('[data-workspace-id]').forEach(btn=>btn.addEventListener('click',()=>selectWorkspace(token,btn.dataset.workspaceId,btn)));
-    cleanLoginQuery();
-  }catch(e){loginStatus.style.color='#ca7772';loginStatus.textContent=e.message;googleLogin.disabled=false;cleanLoginQuery();}
-}
-async function selectWorkspace(token,workspaceId,btn){
-  btn.disabled=true;loginStatus.style.color='#8f91a0';loginStatus.textContent='正在進入主辦後台…';
-  try{
-    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'selectLoginWorkspace',workspace_token:token,target_workspace_id:workspaceId})});
-    const j=await r.json().catch(()=>({error:'回傳格式錯誤'}));
-    if(!r.ok||j.error||j.ok===false)throw new Error(j.error||j.message||('HTTP '+r.status));
-    const adminBase=j.admin_url||new URL('admin.html',location.href).toString();
-    const u=new URL(adminBase);u.searchParams.set('admin_token',j.admin_token);location.href=u.toString();
-  }catch(e){btn.disabled=false;loginStatus.style.color='#ca7772';loginStatus.textContent=e.message;}
-}
-googleLogin.addEventListener('click',()=>{location.href=API.replace(/\/+$/,'')+'/auth/google/start';});
-const initialParams=new URLSearchParams(location.search),workspaceToken=initialParams.get('workspace_token'),loginError=initialParams.get('login_error')||initialParams.get('error');
-if(loginError){loginStatus.style.color='#ca7772';loginStatus.textContent=loginErrorText(loginError);cleanLoginQuery();}
-if(workspaceToken)loadWorkspacePicker(workspaceToken);
+const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const money=n=>'NT$'+Number(n||0).toLocaleString('zh-TW');
+const state={tenant:'',tenantData:null,events:[],sessions:[],bundles:[],bundlesLoaded:false,selectedBundleId:'',portal:'',eventId:'',session:null,agreement:null,agreementViewed:false,myEmail:'',myPhone:'',myRows:[],currentReg:null,bundlePaymentRegs:[],lastPaymentCard:'',regSubmitKey:'',paymentSubmitKey:''};
+state.lang='zh-TW';
 
-// 產品官網：登入固定由右上角／CTA 開啟，不在首頁佔一整塊版面。
-const loginZone=document.getElementById('login');
-function showLoginZone(){ if(loginZone){loginZone.classList.add('show');document.body.style.overflow='hidden';} }
-function hideLoginZone(){ if(loginZone){loginZone.classList.remove('show');document.body.style.overflow='';} }
-document.querySelectorAll('a[href="#login"]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();showLoginZone();}));
-loginZone?.addEventListener('click',e=>{if(e.target===loginZone)hideLoginZone();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')hideLoginZone();});
-document.getElementById('openApplyBottom')?.addEventListener('click',showApply);
+const I18N={
+ 'zh-TW':{login:'登入',home:'活動報名',my:'我的報名',support:'客服',open:'開放報名',view:'查看並報名',date:'日期',venue:'地點',free:'免費活動',register:'報名',book:'預約',next:'下一步',prev:'上一步',submit:'確認送出',service:'服務項目',resource:'指定人員／資源',participants:'參加人數',quantity:'數量',workspace:'DOING 工作台'},
+ en:{login:'Sign in',home:'Activities',my:'My bookings',support:'Support',open:'Open',view:'View / Book',date:'Date',venue:'Venue',free:'Free',register:'Register',book:'Book',next:'Next',prev:'Back',submit:'Confirm',service:'Service',resource:'Staff / Resource',participants:'Participants',quantity:'Quantity',workspace:'DOING Workspace'},
+ ja:{login:'ログイン',home:'申込・予約',my:'マイ予約',support:'サポート',open:'受付中',view:'詳細・予約',date:'日程',venue:'場所',free:'無料',register:'申込',book:'予約',next:'次へ',prev:'戻る',submit:'送信確認',service:'サービス',resource:'担当者／リソース',participants:'参加人数',quantity:'数量',workspace:'DOING ワークスペース'},
+ ko:{login:'로그인',home:'신청·예약',my:'내 예약',support:'고객지원',open:'접수 중',view:'상세·예약',date:'일정',venue:'장소',free:'무료',register:'신청',book:'예약',next:'다음',prev:'이전',submit:'확인 제출',service:'서비스',resource:'담당자／리소스',participants:'참가 인원',quantity:'수량',workspace:'DOING 워크스페이스'}
+};
+function moduleCfg(s){const m=(s&&s.modules&&typeof s.modules==='object')?s.modules:{};return {profile:m.profile||'general',quantityMode:m.quantityMode||'booking',review:m.review!==false,timeslot:!!m.timeslot,service:!!m.service,resource:!!m.resource,participants:!!m.participants,equipment:!!m.equipment,seats:!!m.seats,addons:!!m.addons,agreement:m.agreement!==false,invoice:!!m.invoice,payment:m.payment!==false,checkin:m.checkin!==false,services:Array.isArray(m.services)?m.services:[],resources:Array.isArray(m.resources)?m.resources:[],participantTypes:Array.isArray(m.participantTypes)?m.participantTypes:[],depositKind:m.depositKind||'none',i18n:m.i18n||{}}}
+function lang(){return state.lang||'zh-TW'}
+function tr(key){return (I18N[lang()]&&I18N[lang()][key])||I18N['zh-TW'][key]||key}
+function translatedSession(s,key,fallback=''){const m=moduleCfg(s),p=m.i18n&&m.i18n.translations&&m.i18n.translations[lang()];return p&&String(p[key]||'').trim()?String(p[key]).trim():fallback}
+function sessionDisplay(s){return {...s,name:translatedSession(s,'name',s.name||''),venue:translatedSession(s,'venue',s.venue||''),desc:translatedSession(s,'desc',s.desc||'')}}
+function applyStaticI18n(){
+  $('memberLoginBtn').textContent=tr('login');
+  document.querySelector('[data-page="sessions"]').textContent=tr('home');
+  document.querySelector('[data-page="my"]').textContent=tr('my');
+  document.querySelector('[data-page="support"]').textContent=tr('support');
+  if($('regNextBtn'))$('regNextBtn').textContent=tr('next');
+  if($('regPrevBtn'))$('regPrevBtn').textContent=tr('prev');
+  if($('submitRegBtn'))$('submitRegBtn').textContent=tr('submit');
+}
+function setupLanguages(){
+  const cfg=(state.tenantData&&state.tenantData.i18n)||{enabled:false,defaultLanguage:'zh-TW',languages:['zh-TW']};
+  const langs=Array.isArray(cfg.languages)?cfg.languages:['zh-TW'];
+  state.lang=langs.includes(localStorage.getItem('doing_lang'))?localStorage.getItem('doing_lang'):(langs.includes(cfg.defaultLanguage)?cfg.defaultLanguage:'zh-TW');
+  const sel=$('languageSelect');sel.innerHTML=langs.map(x=>'<option value="'+esc(x)+'">'+({'zh-TW':'繁中',en:'English',ja:'日本語',ko:'한국어'}[x]||x)+'</option>').join('');sel.value=state.lang;sel.classList.toggle('hidden',!cfg.enabled||langs.length<2);
+  sel.onchange=()=>{state.lang=sel.value;localStorage.setItem('doing_lang',state.lang);applyStaticI18n();renderTenant();renderPortals();renderEvents();renderSessions();if(state.session)renderBusinessModuleFields(state.session)};
+  applyStaticI18n();
+}
+function renderBusinessModuleFields(s){
+  const m=moduleCfg(s),box=$('businessModuleFields'),sec=$('businessModuleSection');if(!box||!sec)return;
+  let h='';
+  if(m.service){
+    h+='<div class="field"><label>'+tr('service')+'</label><select id="moduleService"><option value="">— '+tr('service')+' —</option>'+m.services.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.label||x.name||x.id)+(Number(x.price||0)?' · '+money(x.price):'')+'</option>').join('')+'</select></div>';
+  }
+  if(m.resource){
+    h+='<div class="field"><label>'+tr('resource')+'</label><select id="moduleResource"><option value="">— '+tr('resource')+' —</option>'+m.resources.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.label||x.name||x.id)+(Number(x.price||0)?' · '+money(x.price):'')+'</option>').join('')+'</select></div>';
+  }
+  if(m.participants){
+    h+='<div class="field full"><label>'+tr('participants')+'</label><div class="choice-grid">'+m.participantTypes.map(x=>'<label class="choice"><span><b>'+esc(x.label||x.name||x.id)+'</b><small>'+money(x.price||0)+'</small></span><input data-participant="'+esc(x.id)+'" type="number" min="0" value="0" style="max-width:86px;margin-left:auto"></label>').join('')+'</div></div>';
+  }
+  sec.classList.toggle('hidden',!h);box.innerHTML=h;
+  if($('regStalls')){
+    const q=$('regStalls').closest('.field');
+    if(q)q.classList.toggle('hidden',m.quantityMode!=='stall');
+    const lab=q&&q.querySelector('label');if(lab)lab.textContent=m.quantityMode==='stall'?'攤位／單位數':tr('quantity');
+  }
+  if($('dateSectionTitle'))$('dateSectionTitle').textContent=m.timeslot?'選擇日期／時段':'活動日期';
+  const explicitProfile=!!(s.modules&&s.modules.profile);
+  if(explicitProfile)$('participantSection')?.classList.add('hidden');
+  $('seatIntentSection').classList.toggle('hidden',!(m.seats&&s.seatPricingEnabled));
+  $('equipSection')?.classList.toggle('hidden',!m.equipment);
+  $('addonSection')?.classList.toggle('hidden',!m.addons);
+  $('invoiceSection')?.classList.toggle('hidden',!m.invoice);
+  $('agreementSection')?.classList.toggle('hidden',!m.agreement);
+  document.querySelectorAll('.market-only').forEach(x=>x.classList.toggle('hidden',!(m.profile==='market'||!s.modules?.profile)));
+  syncRegWizardSteps();
+}
+function collectModuleSelections(){
+  const qty={};document.querySelectorAll('[data-participant]').forEach(x=>qty[x.dataset.participant]=Number(x.value)||0);
+  return {moduleSelections:{serviceId:$('moduleService')?.value||'',resourceId:$('moduleResource')?.value||''},participantQty:qty};
+}
 
-submitApply.addEventListener('click',async()=>{const payload={action:'applyTrial',brand_name:document.getElementById('applyBrand').value.trim(),contact_name:document.getElementById('applyName').value.trim(),contact_email:document.getElementById('applyEmail').value.trim(),contact_phone:document.getElementById('applyPhone').value.trim(),event_type:'event_registration',note:document.getElementById('applyNote').value.trim()},status=document.getElementById('applyStatus');status.textContent='';if(!payload.brand_name||!payload.contact_email){status.textContent='請填寫主辦／品牌名稱與 Email。';return}submitApply.disabled=true;submitApply.textContent='送出中…';try{const r=await fetch(API+'?action=applyTrial',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}),j=await r.json().catch(()=>({error:'回傳格式錯誤'}));if(!r.ok||j.error||j.ok===false)throw new Error(j.error||j.message||('HTTP '+r.status));status.style.color='#4f9f87';status.textContent=j.message||'申請已送出。';submitApply.textContent='已送出'}catch(e){status.style.color='#ca7772';status.textContent='送出失敗：'+e.message;submitApply.disabled=false;submitApply.textContent='送出申請'}});
+function newActionKey(prefix='act'){try{return prefix+':'+crypto.randomUUID()}catch(e){return prefix+':'+Date.now()+':'+Math.random().toString(36).slice(2)}}
+function toast(t){const x=$('toast');x.textContent=t;x.classList.add('show');clearTimeout(x._t);x._t=setTimeout(()=>x.classList.remove('show'),2800)}
+function openModal(id){$(id).classList.add('show');document.body.style.overflow='hidden'}
+function closeModals(){document.querySelectorAll('.modal-bg.show').forEach(x=>x.classList.remove('show'));document.body.style.overflow=''}
+document.addEventListener('click',e=>{if(e.target.matches('[data-close]'))closeModals()});
+function entrySessionId(){const u=new URL(location.href);return (u.searchParams.get('session')||u.searchParams.get('ses')||'').trim()}
+async function apiGet(action,p={}){
+  const u=new URL(API);u.searchParams.set('action',action);if(state.tenant)u.searchParams.set('tenant',state.tenant);
+  Object.entries(p).forEach(([k,v])=>{if(v!==undefined&&v!==null&&v!=='')u.searchParams.set(k,v)});
+  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),30000);
+  try{const resp=await fetch(u,{cache:'no-store',signal:ctl.signal});const d=await resp.json().catch(()=>({error:'伺服器回應格式錯誤'}));if(!resp.ok||d.error)throw new Error(d.error||'讀取失敗');return d}
+  catch(e){if(e&&e.name==='AbortError')throw new Error('連線逾時（30 秒），請確認網路後重新操作。');throw e}finally{clearTimeout(timer)}
+}
+async function apiPost(action,b={}){
+  const body={action,...b};if(state.tenant)body.tenant=state.tenant;
+  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),30000);
+  try{const resp=await fetch(API+'?action='+encodeURIComponent(action),{method:'POST',headers:{'Content-Type':'application/json;charset=UTF-8'},body:JSON.stringify(body),signal:ctl.signal});const d=await resp.json().catch(()=>({error:'伺服器回應格式錯誤'}));if(!resp.ok||d.error)throw new Error(d.error||'操作失敗');return d}
+  catch(e){if(e&&e.name==='AbortError')throw new Error('操作逾時（30 秒）。請先重新整理確認狀態，不要連續重複送出。');throw e}finally{clearTimeout(timer)}
+}
+function dateText(rows=[]){return rows.map(d=>[d.label||d.date,d.start&&d.end?d.start+'–'+d.end:''].filter(Boolean).join(' ')).join('、')||'日期待公告'}
+async function bootstrap(){
+  try{
+    const sessionId=entrySessionId();
+    const u=new URL(API);
+    u.searchParams.set('action','frontBootstrap');
+    if(sessionId) u.searchParams.set('sessionId',sessionId);
+    const r=await fetch(u,{cache:'no-store'});
+    const d=await r.json().catch(()=>({error:'伺服器回應格式錯誤'}));
+    if(!r.ok||d.error) throw new Error(d.error||'讀取失敗');
+    state.tenantData=d.tenant||{};
+    state.tenant=String(state.tenantData.id||'').trim();
+    state.events=Array.isArray(d.events)?d.events:[];
+    state.sessions=Array.isArray(d.sessions)?d.sessions:[];
+    setupLanguages();
+    renderTenant();
+    renderAnnouncements(d.announcements||[]);
+    renderPortals();
+    renderEvents();
+    renderSessions();
+    if(sessionId){
+      const hit=state.sessions.find(x=>String(x.id)===sessionId);
+      if(hit)setTimeout(()=>openSession(hit),50);
+    }
+  }catch(e){
+    $('sessionGrid').innerHTML='<div class="empty">'+esc(e.message)+'</div>';
+    toast(e.message);
+  }
+}
+function renderTenant(){
+  const t=state.tenantData||{};
+  $('tenantName').textContent=t.name||'DOING';
+  $('heroTitle').textContent=(t.name||'活動主辦')+'｜'+tr('open');
+  $('heroText').textContent=t.infoText||'選擇服務／場次完成報名或預約，後續可在「我的報名」查看狀態。';
+  if(t.logoUrl){$('tenantLogo').src=t.logoUrl;$('tenantLogo').classList.remove('hidden')}else{$('tenantLogo').classList.add('hidden');$('tenantLogo').removeAttribute('src')}
+  if(t.heroImg){$('heroArt').innerHTML='<img src="'+esc(t.heroImg)+'" alt="">'}
+  if(t.lineUrl){$('lineBtn').href=t.lineUrl;$('lineBtn').classList.remove('hidden');if($('supportLineBtn')){$('supportLineBtn').href=t.lineUrl;$('supportLineBtn').classList.remove('hidden')}}
+}
+function renderAnnouncements(a){$('announcements').innerHTML=a.map(x=>'<div class="ann"><b>'+esc(x.title||'公告')+'</b><div>'+esc(x.content||'')+'</div></div>').join('')}
+function sessionStartTs(s){
+  const rows=Array.isArray(s&&s.dates)?s.dates:[];
+  const vals=rows.map(d=>new Date((d&&d.date)||d).getTime()).filter(Number.isFinite);
+  return vals.length?Math.min(...vals):Number.MAX_SAFE_INTEGER;
+}
+function renderPortals(){
+  const raw=state.tenantData&&state.tenantData.portals;
+  const portals=Array.isArray(raw)?raw.map(String).map(x=>x.trim()).filter(Boolean):[];
+  const used=[...new Set(state.sessions.flatMap(s=>Array.isArray(s.portals)?s.portals:[]).map(String).filter(Boolean))];
+  const list=[...new Set([...portals,...used])];
+  $('portalSection').classList.toggle('hidden',!list.length);
+  if(!list.length)return;
+  $('portalRow').innerHTML=['全部'].concat(list).map(x=>'<button class="portal-chip '+((!state.portal&&x==='全部')||state.portal===x?'active':'')+'" onclick="setPortalFilter(\''+esc(x==='全部'?'':x)+'\')">'+esc(x)+'</button>').join('');
+}
+function setPortalFilter(v){state.portal=v||'';state.eventId='';renderPortals();renderEvents();renderSessions()}
+function renderEvents(){
+  const list=state.events||[];
+  $('eventSection').classList.toggle('hidden',!list.length);
+  if(!list.length)return;
+  $('eventStrip').innerHTML=list.map(e=>'<button type="button" class="event-card" onclick="setEventFilter(\''+esc(e.id)+'\')" style="text-align:left;padding:0"><div class="event-cover">'+(e.cover?'<img src="'+esc(e.cover)+'" alt="">':'')+'</div><div class="event-copy"><h3>'+esc(e.title||'主題活動')+'</h3><p>'+esc(e.desc||e.location||'查看開放場次')+'</p><span class="pill '+(state.eventId===String(e.id)?'green':'')+'" style="margin-top:9px">'+(state.eventId===String(e.id)?'目前篩選':'查看場次')+'</span></div></button>').join('');
+}
+function setEventFilter(id){state.eventId=state.eventId===String(id)?'':String(id);state.portal='';renderPortals();renderEvents();renderSessions()}
+function renderSessions(){
+  let arr=(state.sessions||[]).slice();
+  if(state.portal)arr=arr.filter(s=>(s.portals||[]).includes(state.portal));
+  if(state.eventId)arr=arr.filter(s=>String(s.eventId||'')===state.eventId);
+  arr.sort((a,b)=>sessionStartTs(a)-sessionStartTs(b));
+  $('sessionGrid').innerHTML=arr.length?arr.map(raw=>{const s=sessionDisplay(raw),m=moduleCfg(raw),verb=m.profile==='appointment'?'book':'register';return `<article class="card"><div class="cover">${s.cover?`<img src="${esc(s.cover)}" alt="${esc(s.name)}">`:'DOING'}</div><div class="card-body"><h3>${esc(s.name)}</h3><div class="meta"><span class="pill green">${esc(s.type||'')}</span><span class="pill">${esc(s.status||'')}</span>${m.timeslot?'<span class="pill blue">TIME SLOT</span>':''}</div><div class="desc">${esc(s.desc||'')}</div><div><b>${tr('date')}：</b>${esc(dateText(s.dates))}</div><div><b>${tr('venue')}：</b>${esc(s.venue||'—')}</div><div class="money">${Number(s.fee||0)>0?money(s.fee)+' 起':tr('free')}${Number(s.deposit||0)>0?'＋ '+money(s.deposit):''}</div><div class="actions"><button class="btn" onclick="openRegistration('${esc(s.id)}')">${tr('view')}</button></div></div></article>`}).join(''):'<div class="empty">目前沒有符合條件的開放項目。</div>';
+}
+
+async function ensurePublicBundles(){
+  if(state.bundlesLoaded)return state.bundles;
+  try{const d=await apiGet('getBundlesPublic');state.bundles=Array.isArray(d)?d:[]}catch(e){state.bundles=[]}
+  state.bundlesLoaded=true;return state.bundles;
+}
+async function renderBundleOptions(s){
+  const sec=$('bundleSection'),box=$('bundleChoices');if(!sec||!box)return;
+  state.selectedBundleId='';
+  const all=await ensurePublicBundles();
+  const matches=all.filter(b=>Array.isArray(b.sessions)&&b.sessions.some(x=>String(x.id)===String(s.id)));
+  if(!matches.length){sec.classList.add('hidden');box.innerHTML='';return}
+  sec.classList.remove('hidden');
+  box.innerHTML='<label class="choice"><input type="radio" name="regBundle" value="" checked><span><b>只報本場</b><small>依本場原價與設定報名</small></span></label>'
+    +matches.map(b=>{const others=(b.sessions||[]).filter(x=>String(x.id)!==String(s.id)).map(x=>x.name).join('、');return '<label class="choice"><input type="radio" name="regBundle" value="'+esc(b.id)+'"><span><b>＋ 加報 '+esc(others||b.name||'其他場次')+'</b><small>'+esc(b.name||'組合優惠')+'｜組合場地／報名費 '+money(b.bundlePrice||0)+'；各場押金、設備、加購另依資料庫計算</small></span></label>'}).join('');
+  box.querySelectorAll('[name=regBundle]').forEach(x=>x.onchange=()=>{state.selectedBundleId=x.value||'';updateSummary()});
+}
+
+async function openRegistration(id){try{const s=await apiGet('getSession',{id});state.session=s;state.agreement=null;state.agreementViewed=false;state.regSubmitKey=newActionKey('register');state.selectedBundleId='';buildForm(s);await renderBundleOptions(s);if($('syncMemberProfile'))$('syncMemberProfile').checked=false;setRegStep(1);openModal('sessionModal')}catch(e){toast(e.message)}}
+function buildForm(s){const ds=sessionDisplay(s),m=moduleCfg(s);$('regTitle').textContent=ds.name||'場次報名';$('regSub').textContent=dateText(s.dates)+'｜'+(ds.venue||'地點待公告');$('sessionDetail').innerHTML=`<div class="summary"><div class="summary-line"><span>日期</span><b>${esc(dateText(s.dates))}</b></div><div class="summary-line"><span>${tr('venue')}</span><b>${esc(ds.venue||'待公告')}</b></div><div class="summary-line"><span>基本費用</span><b>${money(s.fee)}</b></div><div class="summary-line"><span>押金</span><b>${money(s.deposit)}</b></div>${ds.desc?`<div style="margin-top:8px;white-space:pre-wrap">${esc(ds.desc)}</div>`:''}</div>`;
+$('dateChoices').innerHTML=(s.dates||[]).map((d,i)=>`<label class="choice"><input type="${m.timeslot?'radio':'checkbox'}" name="regDate" value="${esc(d.date)}" data-timeslot-id="${esc(d.timeslotId||'')}" ${s.dates.length===1?'checked':''} ${Number(d.remaining)===0&&Number(d.limit)>0?'disabled':''}><span><b>${esc(d.label||d.date)}</b><small>${esc([d.start,d.end].filter(Boolean).join('–'))}${Number(d.fee)>0?'｜'+money(d.fee):''}${Number(d.limit)>0?'｜'+(Number.isFinite(Number(d.remaining))?'剩 '+Math.max(0,Number(d.remaining))+' / ':'名額 ')+d.limit:''}${Number(d.remaining)===0&&Number(d.limit)>0?'｜已額滿':''}</small></span></label>`).join('')||'<div class="empty">日期待公告</div>';
+const max=Math.max(1,Number(s.maxStalls)||((s.type==='市集場次')?3:10));$('regStalls').innerHTML=Array.from({length:max},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('');
+$('participantSection').classList.toggle('hidden',s.type==='市集場次');
+const eq=Object.entries(s.equip||{});$('equipSection').classList.toggle('hidden',!eq.length);$('equipChoices').innerHTML=eq.map(([name,v],i)=>{v=v||{};const open=v.open!==false;const incl=Number(v.incl||0),price=Number(v.price||v.fee||0),maxq=Number(v.max||v.limit||10);return `<div class="choice"><span style="flex:1"><b>${esc(name)}</b><small>${incl>0?'每攤內含 '+incl:'不內含'}${open&&price>0?'｜加租 '+money(price):''}</small></span>${open&&price>0?`<select data-equip="${esc(name)}">${Array.from({length:maxq+1},(_,q)=>`<option value="${q}">加租 ${q}</option>`).join('')}</select>`:''}</div>`}).join('');$('equipNote').textContent=s.basicEquip||'';
+const ads=(s.addons||[]).filter(a=>a&&a.open===true);$('addonSection').classList.toggle('hidden',!ads.length);$('addonChoices').innerHTML=ads.map((a,i)=>`<div class="choice"><span style="flex:1"><b>${esc(a.name||a.label||'加購')}</b><small>${money(a.price||0)}</small></span><select data-addon="${i}">${Array.from({length:Number(a.limit||a.max||10)+1},(_,q)=>`<option value="${q}">${q}</option>`).join('')}</select></div>`).join('');
+const cf=s.customFields||[];$('customSection').classList.toggle('hidden',!cf.length);$('customFields').innerHTML=cf.map((f,i)=>`<div class="field ${f.full?'full':''}"><label>${esc(f.label||f.name||'欄位')}${f.required?' *':''}</label>${f.type==='textarea'?`<textarea data-custom="${i}" ${f.required?'required':''}></textarea>`:`<input data-custom="${i}" type="${esc(f.type||'text')}" ${f.required?'required':''}>`}</div>`).join('');
+$('seatIntentSection').classList.toggle('hidden',!s.seatPricingEnabled);$('agreementCheck').checked=false;$('refundRuleBox').innerHTML='<b>退款規則</b><div style="margin-top:6px">'+esc(refundText(s.refundRules)||'依主辦公告與單場規則辦理。')+'</div>';renderBusinessModuleFields(s);updateSummary()}
+function refundText(r){if(!r)return'';if(typeof r==='string')return r;return r.text||r.description||r.label||JSON.stringify(r)}
+function collectEquip(){const o={};document.querySelectorAll('[data-equip]').forEach(x=>o[x.dataset.equip]=Number(x.value)||0);return o}
+function collectAddons(){const o={};document.querySelectorAll('[data-addon]').forEach(x=>o[x.dataset.addon]=Number(x.value)||0);return o}
+function collectCustom(){return [...document.querySelectorAll('[data-custom]')].map((x,i)=>({index:i,value:x.value}))}
+function updateSummary(){const s=state.session;if(!s)return;const m=moduleCfg(s),dates=[...document.querySelectorAll('[name=regDate]:checked')].map(x=>x.closest('label')?.querySelector('b')?.textContent||x.value),svc=$('moduleService')?.selectedOptions?.[0]?.textContent||'',res=$('moduleResource')?.selectedOptions?.[0]?.textContent||'',parts=[...document.querySelectorAll('[data-participant]')].filter(x=>Number(x.value)>0).map(x=>(x.closest('label')?.querySelector('b')?.textContent||'參加者')+' × '+x.value);let rows=`<div class="summary-line"><span>日期／場次</span><b>${dates.length?dates.join('、'):'尚未選擇'}</b></div>`;if(m.quantityMode==='stall')rows+=`<div class="summary-line"><span>攤位／單位數</span><b>${$('regStalls').value||1}</b></div>`;if(svc&&!svc.startsWith('—'))rows+=`<div class="summary-line"><span>${tr('service')}</span><b>${esc(svc)}</b></div>`;if(res&&!res.startsWith('—'))rows+=`<div class="summary-line"><span>${tr('resource')}</span><b>${esc(res)}</b></div>`;if(parts.length)rows+=`<div class="summary-line"><span>${tr('participants')}</span><b>${esc(parts.join('、'))}</b></div>`;if(state.selectedBundleId){const b=(state.bundles||[]).find(x=>String(x.id)===String(state.selectedBundleId));rows+=`<div class="summary-line"><span>組合加報</span><b>${esc(b?.name||'組合優惠')}｜組合報名費 ${money(b?.bundlePrice||0)}</b></div>`}rows+=`<div class="summary-line"><span>正式應收</span><b>送出時由系統依資料庫設定重新計算</b></div>`;$('regSummary').innerHTML=rows}
+document.addEventListener('change',e=>{if(e.target.matches('[name=regDate],[name=regBundle],#regStalls,[data-equip],[data-addon],#moduleService,#moduleResource,[data-participant]'))updateSummary()});
+
+let regStep=1;
+function activeRegSteps(){const has3=!![...document.querySelectorAll('[data-reg-step="3"]')].find(x=>!x.classList.contains('hidden'));return has3?[1,2,3,4]:[1,2,4]}
+function syncRegWizardSteps(){const active=activeRegSteps();document.querySelectorAll('.reg-step').forEach(x=>x.classList.toggle('hidden',!active.includes(Number(x.dataset.step))));if(!active.includes(regStep))regStep=active.find(x=>x>regStep)||active[active.length-1]}
+function setRegStep(step){
+  const active=activeRegSteps();let wanted=Number(step)||1;if(!active.includes(wanted)){wanted=active.find(x=>x>wanted)||[...active].reverse().find(x=>x<wanted)||active[0]}
+  regStep=wanted;const pos=active.indexOf(regStep);
+  document.querySelectorAll('[data-reg-step]').forEach(x=>x.classList.toggle('active',Number(x.dataset.regStep)===regStep));
+  document.querySelectorAll('.reg-step').forEach(x=>{const n=Number(x.dataset.step);x.classList.toggle('active',n===regStep);x.classList.toggle('done',active.indexOf(n)>=0&&active.indexOf(n)<pos)});
+  $('regPrevBtn').classList.toggle('hidden',pos<=0);
+  $('regNextBtn').classList.toggle('hidden',pos===active.length-1);
+  $('submitRegBtn').classList.toggle('hidden',regStep!==4);
+  if(regStep===4)updateSummary();
+  const body=$('sessionModal')?.querySelector('.modal-body'); if(body) body.scrollTop=0;
+}
+function validateRegStep(step){
+  if(step===1){if(!$('regEmail').value.trim()||!$('regPhone').value.trim()||!$('regName').value.trim()){toast('請先完成 Email、手機與姓名');return false}}
+  if(step===2){const s=state.session,m=moduleCfg(s);if((s?.dates||[]).length&&![...document.querySelectorAll('[name=regDate]:checked')].length){toast(m.timeslot?'請先選擇日期／時段':'請先選擇報名日期');return false}if(m.service&&!$('moduleService')?.value){toast('請選擇服務項目');return false}if(m.resource&&!$('moduleResource')?.value){toast('請選擇服務人員／資源');return false}if(m.participants){const n=[...document.querySelectorAll('[data-participant]')].reduce((a,x)=>a+(Number(x.value)||0),0);if(n<1){toast('請選擇參加人數');return false}}}
+  return true;
+}
+$('regNextBtn').onclick=()=>{if(!validateRegStep(regStep))return;const a=activeRegSteps(),i=a.indexOf(regStep);setRegStep(a[Math.min(i+1,a.length-1)])};
+$('regPrevBtn').onclick=()=>{const a=activeRegSteps(),i=a.indexOf(regStep);setRegStep(a[Math.max(0,i-1)])};
+document.querySelectorAll('.reg-step').forEach(x=>x.onclick=()=>{const target=Number(x.dataset.step),a=activeRegSteps();if(!a.includes(target))return;if(a.indexOf(target)<=a.indexOf(regStep)||validateRegStep(regStep))setRegStep(target)});
+
+$('loadMemberBtn').onclick=async()=>{const email=$('regEmail').value.trim(),phone=$('regPhone').value.trim();if(!email||!phone)return toast('請先填 Email 與手機');try{const m=await apiGet('getMember',{email,phone});if(!m)return toast('查無既有會員資料，可直接建立新資料');$('regName').value=m.name||'';$('regBrand').value=m.brandName||m.brand_name||m.brand||'';$('regIntro').value=m.brandIntro||m.brand_intro||'';$('regSellCat').value=m.sellCat||m.sell_category||'';$('regSellItem').value=m.sellItem||m.sell_items||'';$('regPhoto').value=m.photo||m.photo_url||'';$('regFb').value=m.fb||m.fb_url||'';$('regIg').value=m.ig||m.ig_url||'';$('invoiceType').value=m.invoiceType||m.invoice_type||'不需要';$('invoiceEmail').value=m.invoiceEmail||m.invoice_email||email;$('taxId').value=m.taxId||m.tax_id||'';$('invoiceTitle').value=m.invoiceTitle||m.invoice_title||m.company||'';$('invoiceCarrier').value=m.invoiceCarrier||m.invoice_carrier||'';$('syncMemberProfile').checked=false;toast('已完整帶入會員資料')}catch(e){toast(e.message)}};
+$('readAgreementBtn').onclick=async()=>{try{if(!state.agreement)state.agreement=await apiGet('getSessionAgreement',{sessionId:state.session.id,lang:lang()});$('agreementTitle').textContent=state.agreement.title||'報名合約';$('agreementVersion').textContent=state.agreement.version?'版本：'+state.agreement.version:'';$('agreementContent').textContent=state.agreement.content||'主辦尚未提供合約內容。';openModal('agreementModal')}catch(e){toast(e.message)}};
+$('agreementDoneBtn').onclick=()=>{state.agreementViewed=true;$('agreementCheck').checked=true;closeModals();openModal('sessionModal');setRegStep(4);toast('已記錄閱讀合約')};
+$('submitRegBtn').onclick=async()=>{const s=state.session;if(!s)return;const m=moduleCfg(s),btn=$('submitRegBtn');const selectedDateInputs=[...document.querySelectorAll('[name=regDate]:checked')];const selectedDates=selectedDateInputs.map(x=>x.value);const timeslotIds=selectedDateInputs.map(x=>x.dataset.timeslotId||'').filter(Boolean);if((s.dates||[]).length&&!selectedDates.length)return toast('請選擇日期');if(m.agreement&&s.agreementRequired!==false&&(!state.agreementViewed||!$('agreementCheck').checked))return toast('請先閱讀並同意合約');const modSel=collectModuleSelections();const payload={sessionId:s.id,email:$('regEmail').value.trim(),phone:$('regPhone').value.trim(),name:$('regName').value.trim(),brand:$('regBrand').value.trim(),brandIntro:$('regIntro').value.trim(),sellCat:$('regSellCat').value.trim(),sellItem:$('regSellItem').value.trim(),fb:$('regFb').value.trim(),ig:$('regIg').value.trim(),photo:$('regPhoto').value.trim(),selectedDates,stallCount:Number($('regStalls').value)||1,equip:collectEquip(),addonQty:collectAddons(),customFields:collectCustom(),adultCount:Number($('adultCount').value)||0,childCount:Number($('childCount').value)||0,seatChoiceIntent:(document.querySelector('[name=seatIntent]:checked')||{}).value||'auto',invoiceType:$('invoiceType').value,needInvoice:$('invoiceType').value!=='不需要',invoiceEmail:$('invoiceEmail').value.trim()||$('regEmail').value.trim(),taxId:$('taxId').value.trim(),invoiceTitle:$('invoiceTitle').value.trim(),invoiceCarrier:$('invoiceCarrier').value.trim(),agreementViewed:state.agreementViewed,agreementAccepted:$('agreementCheck').checked,moduleSelections:modSel.moduleSelections,participantQty:modSel.participantQty,timeslotIds,syncMemberProfile:!!$('syncMemberProfile')?.checked,idempotencyKey:state.regSubmitKey||newActionKey('register')};if(!payload.email||!payload.phone||!payload.name)return toast('請填寫 Email、手機與姓名');if(m.invoice&&payload.invoiceType!=='不需要'){if(!payload.invoiceEmail)return toast('請填寫發票 Email');if(payload.invoiceType==='公司／機關'&&(!payload.taxId||!payload.invoiceTitle))return toast('公司／機關發票請填統一編號與抬頭')}if(state.selectedBundleId)payload.bundleId=state.selectedBundleId;btn.disabled=true;try{const action=state.selectedBundleId?'registerBundle':'register';const d=await apiPost(action,payload);state.regSubmitKey='';state.selectedBundleId='';closeModals();toast(action==='registerBundle'?'組合報名成功':'報名成功');$('myEmail').value=payload.email;$('myPhone').value=payload.phone;setPage('my');await loadMy()}catch(e){toast(e.message)}finally{btn.disabled=false}};
+function setPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  const id=p==='my'?'pageMy':(p==='support'?'pageSupport':'pageSessions');
+  $(id).classList.add('active');
+  document.querySelectorAll('.bottom-nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===p));
+}
+document.querySelectorAll('.bottom-nav button').forEach(x=>x.onclick=()=>setPage(x.dataset.page));$('heroMyBtn').onclick=()=>setPage('my');$('memberLoginBtn').onclick=()=>setPage('my');
+$('payMethod').onchange=()=>{const bank=/ATM|銀行|轉帳|匯款/.test($('payMethod').value);$('payLast5').closest('.field').classList.toggle('hidden',!bank);};
+$('loadMyBtn').onclick=loadMy;async function loadMy(){const email=$('myEmail').value.trim(),phone=$('myPhone').value.trim();if(!email||!phone)return toast('請填 Email 與手機');state.myEmail=email;state.myPhone=phone;localStorage.setItem('doing_my_email',email);try{const rows=await apiGet('getMyRegs',{email,phone});state.myRows=Array.isArray(rows)?rows:[];renderMy(state.myRows)}catch(e){$('myRecords').innerHTML='<div class="empty">'+esc(e.message)+'</div>';toast(e.message)}}
+function bundleGroupRows(r,rows=state.myRows){
+  const gid=String(r&&r.bundleGroupId||'');return gid?(rows||[]).filter(x=>String(x.bundleGroupId||'')===gid):[r];
+}
+function bundleCanPay(group){
+  if(!Array.isArray(group)||group.length!==2)return false;
+  return group.every(r=>r.status==='已錄取'&&!['待確認','付款待確認','已取消','不錄取'].includes(r.payStatus||'') &&
+    !(r.seatChoiceIntent==='paid'&&!['reserved','locked'].includes(r.seatChoiceStatus||''))) &&
+    group.some(r=>Number(r.due)>0);
+}
+function renderMy(rows){
+  $('myRecords').innerHTML=rows.length?rows.map((r,idx)=>{
+    const group=bundleGroupRows(r,rows),isBundle=!!r.bundleGroupId&&group.length===2;
+    const primary=!isBundle||String(group[0]?.id)===String(r.id);
+    const groupDue=group.reduce((n,x)=>n+Number(x.due||0),0);
+    const groupPaid=group.some(x=>Number(x.paid)>0||x.payStatus==='已繳費');
+    const canSeat=r.status==='已錄取'&&r.seatChoiceIntent==='paid'&&r.seatPricingEnabled&&!['reserved','locked'].includes(r.seatChoiceStatus||'')&&!['待確認','付款待確認','已繳費'].includes(r.payStatus);
+    const canPay=!isBundle&&r.status==='已錄取'&&Number(r.due)>0&&!['待確認','付款待確認'].includes(r.payStatus)&&!(r.seatChoiceIntent==='paid'&&!['reserved','locked'].includes(r.seatChoiceStatus||''));
+    const paid=Number(r.paid)>0||r.payStatus==='已繳費';
+    const bundleBadge=isBundle?`<div class="ann"><b>兩場組合</b>｜一起報名、一起繳費、取消／退款整組處理；本卡仍保留本場獨立資料與費用。</div>`:'';
+    const bundlePayBtn=isBundle&&primary&&bundleCanPay(group)?`<button class="btn small" onclick='openBundlePayment(${JSON.stringify(group)})'>兩場一起付款 ${money(groupDue)}</button>`:'';
+    const bundleWait=isBundle&&!primary&&bundleCanPay(group)?`<span class="sub">付款請由同組另一張卡的「兩場一起付款」操作</span>`:'';
+    const cancelBtn=!groupPaid&&!['已取消','不錄取'].includes(r.status)
+      ?`<button class="btn outline small" onclick='cancelReg(${JSON.stringify(r)})'>${isBundle?'整組取消':'取消報名'}</button>`:'';
+    const refundBtn=groupPaid&&!['退費中','已退費'].includes(r.transferStatus)&&r.forceStatus!=='pending_force_choice'
+      ?`<button class="btn outline small" onclick='refundReg(${JSON.stringify(r)})'>${isBundle?'整組申請退款':'申請退款'}</button>`:'';
+    return `<article class="record">${bundleBadge}<div class="record-top"><div><h3>${esc(r.sessionName)}</h3><div class="meta"><span class="pill blue">${esc(r.status||'')}</span><span class="pill ${r.payStatus==='已繳費'?'green':'pink'}">${esc(r.payStatus||'')}</span></div></div><b>${money(r.total)}</b></div><div class="record-info"><div class="info"><span>日期</span><b>${esc((r.selectedDates||[]).join('、')||'—')}</b></div><div class="info"><span>位置</span><b>${esc(r.stallNumber||((r.seatChoiceIntent==='auto')?'活動前 7 天內由系統持續自動配位':'尚未選位'))}</b></div><div class="info"><span>設備</span><b>${esc(r.totalEquipmentText||'設備自備')}</b></div><div class="info"><span>本場待繳</span><b>${money(r.due)}</b></div></div>${r.paymentDueAt&&Number(r.due)>0?`<div class="ann">繳費期限：${esc(new Date(r.paymentDueAt).toLocaleString('zh-TW'))}</div>`:''}${r.seatHoldExpiresAt?`<div class="ann">位置保留至：${esc(new Date(r.seatHoldExpiresAt).toLocaleString('zh-TW'))}</div>`:''}${Number(r.transferCreditAmount||0)>0||Number(r.transferBalanceDue||0)>0||Number(r.transferRefundDue||0)>0?`<div class="ann">場次轉移結算：已抵用 ${money(r.transferCreditAmount||0)}${Number(r.transferBalanceDue||0)>0?'｜待補 '+money(r.transferBalanceDue):''}${Number(r.transferRefundDue||0)>0?'｜應退差額 '+money(r.transferRefundDue):''}</div>`:''}<div class="actions">${canSeat?`<button class="btn small" onclick='openSeat(${JSON.stringify(r)})'>加價選位</button>`:''}${canPay?`<button class="btn small" onclick='openPayment(${JSON.stringify(r)})'>回報付款</button>`:''}${bundlePayBtn}${bundleWait}${cancelBtn}${paid?`<button class="btn outline small" onclick='showPreNotice(${JSON.stringify(r)})'>行前通知</button>`:''}${r.forceStatus==='pending_force_choice'&&r.forceTransferTargetSessionId?`<button class="btn small" onclick='forceTransfer(${JSON.stringify(r)})'>選擇延期</button>`:''}${r.forceStatus==='pending_force_choice'?`<button class="btn outline small" onclick='forceRefund(${JSON.stringify(r)})'>不可抗力退費</button>`:''}${refundBtn}</div></article>`;
+  }).join(''):'<div class="empty">目前沒有報名紀錄。</div>'
+}
+function showPreNotice(r){
+  $('preNoticeName').textContent=r.sessionName||'場次';
+  $('preNoticeDate').textContent=dateText(r.sessionDates||[]);
+  $('preNoticeVenue').textContent=r.venue||'地點待公告';
+  $('preNoticeSeat').textContent=r.stallNumber||'尚未公布';
+  $('preNoticeEquip').textContent=r.totalEquipmentText||'設備自備';
+  $('preNoticePay').textContent=r.payStatus||'—';
+  openModal('preNoticeModal');
+}
+async function forceTransfer(r){
+  if(!confirm('確定將這筆報名延期至主辦指定的新場次？'))return;
+  try{await apiPost('agreeForceTransfer',{regId:r.id,email:state.myEmail,phone:state.myPhone,idempotencyKey:newActionKey('force-transfer')});toast('已完成延期選擇');await loadMy()}catch(e){toast(e.message)}
+}
+async function forceRefund(r){
+  if(!confirm('確定選擇不可抗力退費？'))return;
+  try{await apiPost('applyForceRefundFM',{regId:r.id,email:state.myEmail,phone:state.myPhone,idempotencyKey:newActionKey('force-refund')});toast('已送出不可抗力退費申請');await loadMy()}catch(e){toast(e.message)}
+}
+async function openSeat(r){
+  state.currentReg=r;
+  try{
+    const d=await apiGet('getSeatMap',{sessionId:r.sessionId,regId:r.id,email:state.myEmail,phone:state.myPhone});
+    const seats=(d.seats||[]).filter(s=>s.type==='paid'&&s.active!==false);
+    const isAvailable=s=>!!s.mine||(!s.occupied&&String(s.status||'空閒')!=='停用');
+    const remaining=seats.filter(isAvailable).length;
+    $('seatHint').textContent=`需選 ${r.stallCount||1} 個位置；位置保留 ${d.holdHours||24} 小時。${remaining===0?' 本場加價選位已額滿。':''}`;
+    $('seatGrid').innerHTML=seats.length?seats.map(s=>{
+      const ok=isAvailable(s);
+      return `<label class="seat ${ok?'available':'used'}"><input type="checkbox" name="seatPick" value="${esc(s.code)}" ${s.mine?'checked':''} ${ok?'':'disabled'}><b>${esc(s.code)}</b><small>${money(s.price)}</small></label>`;
+    }).join(''):'<div class="empty">本場加價選位已額滿。</div>';
+    if(d.mapUrl){$('seatMapImg').src=d.mapUrl;$('seatMapImg').classList.remove('hidden')}else $('seatMapImg').classList.add('hidden');
+    openModal('seatModal');
+  }catch(e){toast(e.message)}
+}
+$('confirmSeatBtn').onclick=async()=>{const r=state.currentReg,codes=[...document.querySelectorAll('[name=seatPick]:checked')].map(x=>x.value);if(codes.length!==Number(r.stallCount||1))return toast('請選滿 '+(r.stallCount||1)+' 個位置');try{const d=await apiPost('claimPaidSeat',{regId:r.id,sessionId:r.sessionId,email:state.myEmail,phone:state.myPhone,seats:codes,idempotencyKey:'seat:'+r.id+':'+codes.slice().sort().join(',')});closeModals();toast(d.message||'選位成功');await loadMy()}catch(e){toast(e.message)}};
+function openPayment(r){
+  state.currentReg=r;state.bundlePaymentRegs=[];state.paymentSubmitKey=newActionKey('payment:'+r.id);
+  $('paySub').textContent=(r.sessionName||'場次')+'｜待繳 '+money(r.due);
+  $('payAmount').value=Number(r.due||r.total||0);
+
+  const p=r.paymentProfile||{};
+  const bank=(r.bankAccount&&typeof r.bankAccount==='object')?r.bankAccount:(p.bankAccount||{});
+  const bankLines=[
+    bank.bankName?('銀行：'+bank.bankName):'',
+    bank.branchName?('分行：'+bank.branchName):'',
+    bank.accountName?('戶名：'+bank.accountName):'',
+    bank.accountNumber?('帳號：'+bank.accountNumber):''
+  ].filter(Boolean);
+  $('payAccount').innerHTML='<b>'+esc(r.paymentProfileName||'主辦收款資訊')+'</b>'
+    +(bankLines.length?'<div style="white-space:pre-wrap;margin-top:7px">'+esc(bankLines.join('\n'))+'</div>':'')
+    +(p.note?'<div style="white-space:pre-wrap;margin-top:7px">'+esc(p.note)+'</div>':'');
+
+  const allowed=(r.allowedPaymentMethods&&typeof r.allowedPaymentMethods==='object')?r.allowedPaymentMethods:{bank:true,linepay:false,card:false};
+  const options=[];
+  if(allowed.bank!==false){ options.push('銀行轉帳','ATM'); }
+  if(allowed.linepay){ options.push('LINE Pay'); }
+  if(allowed.card){ options.push('信用卡'); }
+  $('payMethod').innerHTML=(options.length?options:['銀行轉帳']).map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+
+  const links=[];
+  const lp=r.linepay||p.linepay||{}, card=r.card||p.card||{};
+  if(allowed.linepay&&lp.url) links.push('<a class="btn" href="'+esc(lp.url)+'" target="_blank" rel="noopener">'+esc(lp.displayName||'前往 LINE Pay')+'</a>');
+  if(allowed.card&&card.url) links.push('<a class="btn" href="'+esc(card.url)+'" target="_blank" rel="noopener">'+esc(card.displayName||'前往信用卡付款')+'</a>');
+  $('payExternal').innerHTML=links.join('');
+  $('payExternalNote').classList.toggle('hidden',!links.length);
+  $('payLast5').value='';
+  const bankMethod=/ATM|銀行|轉帳|匯款/.test($('payMethod').value); $('payLast5').closest('.field').classList.toggle('hidden',!bankMethod);
+  openModal('paymentModal');
+}
+
+
+function openBundlePayment(group){
+  if(!Array.isArray(group)||group.length!==2)return toast('兩場組合資料不完整，請重新載入');
+  if(!bundleCanPay(group))return toast('兩場必須都完成錄取與必要選位後，才能一起付款');
+  state.bundlePaymentRegs=group;state.currentReg=group[0];state.paymentSubmitKey=newActionKey('bundle-payment:'+group[0].bundleGroupId);
+  const total=group.reduce((n,x)=>n+Number(x.due||0),0),r=group[0];
+  $('paySub').textContent='兩場組合一起付款｜'+group.map(x=>x.sessionName).join(' ＋ ')+'｜合計 '+money(total);
+  $('payAmount').value=total;$('payAmount').readOnly=true;
+  const p=r.paymentProfile||{},bank=(r.bankAccount&&typeof r.bankAccount==='object')?r.bankAccount:(p.bankAccount||{});
+  const bankLines=[bank.bankName?('銀行：'+bank.bankName):'',bank.branchName?('分行：'+bank.branchName):'',bank.accountName?('戶名：'+bank.accountName):'',bank.accountNumber?('帳號：'+bank.accountNumber):''].filter(Boolean);
+  $('payAccount').innerHTML='<b>'+esc(r.paymentProfileName||'主辦收款資訊')+'</b>'+(bankLines.length?'<div style="white-space:pre-wrap;margin-top:7px">'+esc(bankLines.join('\n'))+'</div>':'')+(p.note?'<div style="white-space:pre-wrap;margin-top:7px">'+esc(p.note)+'</div>':'');
+  const allowed=(r.allowedPaymentMethods&&typeof r.allowedPaymentMethods==='object')?r.allowedPaymentMethods:{bank:true,linepay:false,card:false},options=[];
+  if(allowed.bank!==false)options.push('銀行轉帳','ATM');if(allowed.linepay)options.push('LINE Pay');if(allowed.card)options.push('信用卡');
+  $('payMethod').innerHTML=(options.length?options:['銀行轉帳']).map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+  $('payExternal').innerHTML='';$('payExternalNote').classList.add('hidden');$('payLast5').value='';
+  $('payLast5').closest('.field').classList.toggle('hidden',!/ATM|銀行|轉帳|匯款/.test($('payMethod').value));
+  openModal('paymentModal');
+}
+function buildBundlePaymentCard(group,method,total,lastFive){
+  return ['【DOING 兩場組合付款回報】','場次：'+group.map(x=>x.sessionName+' '+money(x.due)).join(' ＋ '),'合計：'+money(total),'付款方式：'+method,lastFive?('帳號末五碼：'+lastFive):'','狀態：兩場付款待確認'].filter(Boolean).join('\n')
+}
+
+function buildPaymentCard(reg,method,amount,lastFive){
+  return ['【DOING 付款回報】','場次：'+(reg.sessionName||''),reg.brand?('品牌／單位：'+reg.brand):'',reg.name?('報名人：'+reg.name):'','付款方式：'+method,'設備：'+(reg.totalEquipmentText||'設備自備'),'位置：'+(reg.stallNumber||((reg.seatChoiceIntent==='paid')?'加價位置保留中／待確認':'等待主辦配位')),Number(reg.deposit||0)>0?('押金：'+money(reg.deposit)):'',Number(reg.seatFeeTotal||0)>0?('選位加價：'+money(reg.seatFeeTotal)):'','本次回報金額：'+money(amount),lastFive?('帳號末五碼：'+lastFive):'','狀態：付款待確認'].filter(Boolean).join('\n')
+}
+function showPaymentSuccess(reg,method,amount,lastFive){state.lastPaymentCard=buildPaymentCard(reg,method,amount,lastFive);$('paymentSuccessCard').textContent=state.lastPaymentCard;const hasLine=!!(state.tenantData&&state.tenantData.lineUrl);$('openPaymentLineBtn').classList.toggle('hidden',!hasLine);openModal('paymentSuccessModal')}
+async function copyPaymentCard(){if(!state.lastPaymentCard)return toast('目前沒有可複製的付款卡');try{await navigator.clipboard.writeText(state.lastPaymentCard);toast('已複製付款卡')}catch(e){const ta=document.createElement('textarea');ta.value=state.lastPaymentCard;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('已複製付款卡')}}
+function openPaymentLine(){const url=state.tenantData&&state.tenantData.lineUrl;if(!url)return toast('本主辦尚未設定 LINE 客服');window.open(url,'_blank','noopener')}
+$('copyPaymentCardBtn').onclick=copyPaymentCard;$('openPaymentLineBtn').onclick=openPaymentLine;
+
+$('submitPayBtn').onclick=async()=>{
+  const reg=state.currentReg,group=state.bundlePaymentRegs||[],method=$('payMethod').value,
+        amount=Number($('payAmount').value)||0,lastFive=$('payLast5').value.trim(),btn=$('submitPayBtn');
+  btn.disabled=true;
+  try{
+    if(group.length===2){
+      const d=await apiPost('submitPaymentBatch',{regIds:group.map(x=>x.id),email:state.myEmail,phone:state.myPhone,method,lastFive,idempotencyKey:state.paymentSubmitKey||newActionKey('bundle-payment')});
+      state.lastPaymentCard=d.paymentLineCardText||buildBundlePaymentCard(group,method,amount,lastFive);
+      state.bundlePaymentRegs=[];state.paymentSubmitKey='';$('payAmount').readOnly=false;closeModals();$('paymentSuccessCard').textContent=state.lastPaymentCard;const hasLine=!!(state.tenantData&&state.tenantData.lineUrl);$('openPaymentLineBtn').classList.toggle('hidden',!hasLine);openModal('paymentSuccessModal');await loadMy();
+    }else{
+      await apiPost('submitPayment',{regId:reg.id,email:state.myEmail,phone:state.myPhone,method,amount,lastFive,idempotencyKey:state.paymentSubmitKey||newActionKey('payment:'+reg.id)});
+      state.paymentSubmitKey='';$('payAmount').readOnly=false;closeModals();showPaymentSuccess(reg,method,amount,lastFive);await loadMy();
+    }
+  }catch(e){toast(e.message)}finally{btn.disabled=false}
+};
+async function cancelReg(r){const g=bundleGroupRows(r);if(!confirm(r.bundleGroupId?'確定取消這個兩場組合？兩場報名會一起取消並釋放兩場名額。':'確定取消這筆未付款報名？'))return;try{await apiPost('cancelReg',{regId:r.id,email:state.myEmail,phone:state.myPhone,idempotencyKey:'cancel:'+(r.bundleGroupId||r.id)});toast(r.bundleGroupId?'兩場組合已一起取消':'報名已取消');await loadMy()}catch(e){toast(e.message)}}
+async function refundReg(r){if(!confirm(r.bundleGroupId?'此為兩場組合，退款會兩場一起申請、兩場一起釋放名額與位置，確定繼續？':'送出退款申請後，位置與名額會釋放，確定繼續？'))return;try{await apiPost('applyRefund',{regId:r.id,email:state.myEmail,phone:state.myPhone,idempotencyKey:'refund:'+(r.bundleGroupId||r.id)});toast(r.bundleGroupId?'兩場組合退款申請已一起送出':'退款申請已送出');await loadMy()}catch(e){toast(e.message)}}
+$('myEmail').value=localStorage.getItem('doing_my_email')||'';
+let holdTimer=null,holdStart=0;
+function cancelAdminHold(){if(holdTimer){clearTimeout(holdTimer);holdTimer=null}holdStart=0;$('brandHoldTarget')?.classList.remove('holding')}
+function startAdminHold(e){if(e&&e.type==='mousedown'&&e.button!==0)return;holdStart=Date.now();$('brandHoldTarget')?.classList.add('holding');holdTimer=setTimeout(()=>{cancelAdminHold();openModal('adminEntryModal')},3000)}
+['mousedown','touchstart'].forEach(ev=>$('brandHoldTarget')?.addEventListener(ev,startAdminHold,{passive:true}));
+['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=>$('brandHoldTarget')?.addEventListener(ev,cancelAdminHold,{passive:true}));
+$('adminGoogleBtn').onclick=()=>{location.href=API+'/auth/google/start'};
+
+bootstrap();
 </script>
-<div id="applyBackdrop" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(36,37,54,.38);padding:16px;align-items:center;justify-content:center"><div style="width:min(520px,100%);max-height:88vh;overflow:auto;background:#fff;border:1px solid #e9e9ef;border-radius:26px;box-shadow:0 28px 80px rgba(43,47,65,.18);padding:24px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><div><strong style="font-size:21px">申請使用 DOING</strong><div style="margin-top:5px;color:#8d8f9e;font-size:11px">留下主辦資料，送出使用申請。</div></div><button type="button" id="closeApply" style="width:34px;height:34px;border:0;border-radius:10px;background:#f4f5f8;color:#6e7080;font-weight:900">×</button></div>
-<div class="field" style="margin-top:18px"><label for="applyBrand">主辦／品牌名稱 *</label><div class="input-wrap"><input id="applyBrand" type="text" maxlength="80" placeholder="請輸入名稱"></div></div><div class="field"><label for="applyName">聯絡人</label><div class="input-wrap"><input id="applyName" type="text" maxlength="60" placeholder="請輸入聯絡人"></div></div><div class="field"><label for="applyEmail">Email *</label><div class="input-wrap"><input id="applyEmail" type="email" maxlength="120" placeholder="name@example.com"></div></div><div class="field"><label for="applyPhone">電話</label><div class="input-wrap"><input id="applyPhone" type="text" maxlength="30" placeholder="請輸入聯絡電話"></div></div><div class="field"><label for="applyNote">補充說明</label><div class="input-wrap"><input id="applyNote" type="text" maxlength="300" placeholder="主要活動類型或需求"></div></div><button class="btn btn-primary login-submit" type="button" id="submitApply" style="margin-top:8px">送出申請</button><div id="applyStatus" style="min-height:20px;margin-top:10px;text-align:center;font-size:11px;color:#8d8f9e"></div></div></div>
 </body>
 </html>
