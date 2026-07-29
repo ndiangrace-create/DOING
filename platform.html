@@ -57,6 +57,19 @@ background:linear-gradient(145deg,var(--accent),#9b7ceb);box-shadow:0 12px 24px 
 :root{--ink:#202332!important;--muted:#74798a!important;--line:#e5ebee!important;--paper:#f6f9fa!important;--card:rgba(255,255,255,.92)!important;--accent:#58bfc1!important;--accent2:#319da0!important;--mint:#dff5ef;--cream:#fff0d7;--coral:#ffd9d3;--shadow:0 24px 70px rgba(42,70,84,.12)!important}
 html,body{background:radial-gradient(circle at 10% 12%,rgba(100,199,198,.16),transparent 28%),radial-gradient(circle at 86% 18%,rgba(255,240,215,.55),transparent 30%),linear-gradient(145deg,#fbfdfd,#f4f8f9 55%,#eef5f6)!important}.logo{background:linear-gradient(145deg,var(--accent2),var(--accent))!important;box-shadow:0 12px 24px rgba(49,157,160,.25)!important}.avatar{background:var(--mint)!important;color:#2e8587!important}.hero{background:linear-gradient(125deg,rgba(239,250,247,.96),rgba(255,255,255,.96) 58%,rgba(255,247,232,.92))!important;border-color:var(--line)!important}.hero:after{background:linear-gradient(145deg,rgba(100,199,198,.18),rgba(255,217,211,.22))!important}.kicker{background:#eaf8f5!important;color:#398d8f!important}.btn-primary{background:linear-gradient(135deg,var(--accent2),var(--accent))!important;box-shadow:0 12px 24px rgba(49,157,160,.22)!important}.tenant{border-color:var(--line)!important}.tenant .tag{background:var(--mint)!important;color:#337f80!important}.active{color:#24795f!important;background:#e7f8f1!important}.locked{background:#fff0ef!important;color:#a55252!important}.enter{background:linear-gradient(135deg,var(--accent2),var(--accent))!important}.platform-overview{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}.pstat{padding:14px;border:1px solid var(--line);border-radius:17px;background:rgba(255,255,255,.78)}.pstat small{display:block;color:var(--muted);font-size:9px}.pstat b{display:block;font-size:22px;margin-top:5px}.pstat em{display:block;font-style:normal;color:#3d8e81;font-size:8px;margin-top:2px}.section-head{margin-top:30px!important}.tool{border-color:var(--line)!important;background:linear-gradient(145deg,#fff,#f9fcfc)!important}.tool:nth-child(2){background:linear-gradient(145deg,#fff9ef,#fff)!important}.tool:nth-child(3){background:linear-gradient(145deg,#f5f3fc,#fff)!important}@media(max-width:700px){.platform-overview{grid-template-columns:1fr 1fr}.hero{padding:24px!important;border-radius:26px!important}.hero h2{font-size:36px!important}.shell{width:min(100% - 18px,1160px)!important}}
 
+
+.owner-panel{margin-top:18px;background:rgba(255,255,255,.86);border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:0 16px 44px rgba(40,45,68,.08)}
+.owner-panel h3{margin:0 0 5px;font-size:19px}.owner-panel p{margin:0 0 16px;color:var(--muted);font-size:13px}
+.owner-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.owner-form label{display:grid;gap:6px;font-size:12px;font-weight:900}
+.owner-form input,.owner-form select{width:100%;min-height:46px;border:1px solid var(--line);border-radius:13px;padding:10px 12px;background:#fff;color:var(--ink)}
+.owner-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.owner-result{margin-top:12px;padding:12px;border-radius:13px;background:#f4faf9;border:1px solid var(--line);font-size:13px;white-space:pre-wrap}
+.tenant .owner-line{font-size:12px;color:var(--muted);margin-top:8px}
+.tenant .card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tenant .ghost-enter{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:9px 12px;font-weight:900;cursor:pointer}
+@media(max-width:700px){.owner-form{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -89,6 +102,31 @@ html,body{background:radial-gradient(circle at 10% 12%,rgba(100,199,198,.16),tra
       <button class="btn btn-ghost" id="refreshBtn">重新整理</button>
     </div>
     <div class="grid" id="tenantGrid"></div>
+
+    <section class="owner-panel" id="ownerPanel">
+      <h3>租戶擁有者開通</h3>
+      <p>平台管理者可直接綁定或更新租戶擁有者。開通後，該 Google Email 可從該租戶專屬入口登入。</p>
+      <div class="owner-form">
+        <label>租戶
+          <select id="ownerTenant"><option value="">請先載入租戶</option></select>
+        </label>
+        <label>擁有者 Email
+          <input id="ownerEmail" type="email" value="ndiangrace@gmail.com" placeholder="name@example.com">
+        </label>
+        <label>擁有者姓名
+          <input id="ownerName" value="曾信慧" placeholder="擁有者姓名">
+        </label>
+        <label>帳號狀態
+          <select id="ownerActive"><option value="true">啟用</option><option value="false">停用</option></select>
+        </label>
+      </div>
+      <div class="owner-actions">
+        <button class="btn btn-primary" id="saveOwnerBtn">開通／更新擁有者</button>
+        <button class="btn btn-ghost" id="verifyOwnerBtn">檢查綁定狀態</button>
+      </div>
+      <div class="owner-result hidden" id="ownerResult"></div>
+    </section>
+
 
     <div class="platform-tools">
       <div class="tool"><b>租戶空間</b><span>查看目前已建立的主辦空間與使用狀態</span></div>
@@ -136,6 +174,66 @@ async function apiGet(action, params={}){
   if(!r.ok || j.error) throw new Error(j.error||('HTTP '+r.status));
   return j;
 }
+
+async function apiPost(action, body={}){
+  const token=getToken();
+  const r=await fetch(API,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action,token,...body})
+  });
+  const j=await r.json().catch(()=>({error:'回傳格式錯誤'}));
+  if(!r.ok || j.error || j.ok===false) throw new Error(j.error||j.message||('HTTP '+r.status));
+  return j;
+}
+function showOwnerResult(text,ok=true){
+  const box=$('ownerResult');
+  box.textContent=text;
+  box.classList.remove('hidden');
+  box.style.background=ok?'#f0faf7':'#fff0ef';
+}
+async function saveTenantOwner(){
+  const tenantId=$('ownerTenant').value.trim();
+  const ownerEmail=$('ownerEmail').value.trim().toLowerCase();
+  const ownerName=$('ownerName').value.trim();
+  const active=$('ownerActive').value==='true';
+  if(!tenantId){showOwnerResult('請選擇租戶',false);return}
+  if(!ownerEmail){showOwnerResult('請輸入擁有者 Email',false);return}
+  const btn=$('saveOwnerBtn');btn.disabled=true;
+  try{
+    const r=await apiPost('platformUpsertTenantOwner',{
+      target_tenant_id:tenantId,
+      owner_email:ownerEmail,
+      owner_name:ownerName,
+      active
+    });
+    showOwnerResult(
+      '已完成租戶擁有者綁定\n租戶：'+r.tenant_id+
+      '\nEmail：'+r.owner_email+
+      '\n角色：'+r.role+
+      '\n狀態：'+(r.active?'啟用':'停用')+
+      '\n專屬後台：'+r.admin_url
+    );
+    await loadTenants();
+  }catch(e){showOwnerResult('開通失敗：'+e.message,false)}
+  finally{btn.disabled=false}
+}
+async function verifyTenantOwner(){
+  const tenantId=$('ownerTenant').value.trim();
+  const ownerEmail=$('ownerEmail').value.trim().toLowerCase();
+  if(!tenantId||!ownerEmail){showOwnerResult('請先選擇租戶並輸入 Email',false);return}
+  try{
+    const r=await apiGet('platformTenantOwnerStatus',{token:getToken(),target_tenant_id:tenantId,owner_email:ownerEmail});
+    showOwnerResult(
+      r.exists
+      ? '已綁定\n租戶：'+r.tenant_id+'\nEmail：'+r.owner_email+'\n角色：'+r.role+'\n狀態：'+(r.active?'啟用':'停用')
+      : '尚未綁定此租戶'
+    );
+  }catch(e){showOwnerResult('檢查失敗：'+e.message,false)}
+}
+$('saveOwnerBtn').addEventListener('click',saveTenantOwner);
+$('verifyOwnerBtn').addEventListener('click',verifyTenantOwner);
+
 async function verifyPlatform(token){
   const me = await apiGet('adminMe',{token,email:'__jwt__'}).catch(async()=>{
     return apiGet('admin/me',{token,email:'__jwt__'});
@@ -150,7 +248,13 @@ async function loadTenants(){
   setStatus('正在載入租戶…');
   try{
     const rows = await apiGet('getTenantsAdmin',{token});
-    renderTenants(Array.isArray(rows)?rows:(rows.data||[]),token);
+    const list=Array.isArray(rows)?rows:(rows.data||[]);
+    renderTenants(list,token);
+    const sel=$('ownerTenant');
+    const old=sel.value;
+    sel.innerHTML='<option value="">請選擇租戶</option>'+list.map(t=>'<option value="'+escapeHtml(t.id)+'">'+escapeHtml(t.name||t.id)+'（'+escapeHtml(t.id)+'）</option>').join('');
+    if(list.some(t=>t.id===old))sel.value=old;
+    else if(list.some(t=>t.id==='thecorner'))sel.value='thecorner';
     setStatus('已載入 '+(Array.isArray(rows)?rows.length:(rows.data||[]).length)+' 個租戶');
   }catch(e){ setStatus('租戶載入失敗：'+e.message); }
 }
@@ -165,13 +269,25 @@ function renderTenants(rows,token){
       <span class="tag">${escapeHtml(type)}</span>
       <h4>${escapeHtml(t.name||t.id)}</h4>
       <div class="meta">方案：${escapeHtml(t.plan_type||'未設定')}<br>${escapeHtml(t.contact_name||t.legal_name||'')}</div>
+      <div class="owner-line">擁有者：${escapeHtml(t.owner_email||'尚未設定')}</div>
       <div class="foot">
         <span class="state ${locked?'locked':'active'}">${locked?'已鎖定':'使用中'}</span>
+      </div>
+      <div class="card-actions">
+        <button class="ghost-enter" onclick="prefillOwner('${encodeURIComponent(t.id)}','${encodeURIComponent(t.owner_email||'')}','${encodeURIComponent(t.owner_name||'')}')">設定擁有者</button>
         <button class="enter" onclick="enterTenant('${encodeURIComponent(t.id)}',this)">進入後台 →</button>
       </div>
     </article>`;
   }).join('');
 }
+
+function prefillOwner(tid,email,name){
+  $('ownerTenant').value=decodeURIComponent(tid);
+  $('ownerEmail').value=decodeURIComponent(email)||'';
+  $('ownerName').value=decodeURIComponent(name)||'';
+  $('ownerPanel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 async function enterTenant(encoded,btn){
   const workspaceId=decodeURIComponent(encoded);
   const token=getToken();
