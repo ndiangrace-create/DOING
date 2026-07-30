@@ -62,7 +62,6 @@ body{background:linear-gradient(180deg,#f9fcfc,#f5f9fa 55%,#fff)!important}.top{
 <section id="pageSessions" class="page active">
   <div id="hero" class="hero"><div class="hero-copy"><h2 id="heroTitle">活動報名，從這裡開始</h2><p id="heroText">選擇場次、完成報名；登入我的報名即可查看審核、付款、設備、選位與行前資訊。</p><div class="actions"><button class="btn" id="heroMyBtn">查看我的報名</button><a class="btn outline" href="about.html">認識 DOING →</a><a id="lineBtn" class="btn outline hidden" target="_blank" rel="noopener">聯繫主辦</a></div></div><div id="heroArt" class="hero-art"><div class="hero-mark"></div></div></div>
   <div id="announcements"></div>
-  <div id="portalSection" class="hidden"><div class="section-title"><div><h2>報名分類</h2><p>依主辦設定快速找到活動。</p></div></div><div id="portalRow" class="portal-row"></div></div>
   <div id="eventSection" class="hidden"><div class="section-title"><div><h2>主題活動</h2><p>查看活動系列與目前開放場次。</p></div></div><div id="eventStrip" class="event-strip"></div></div>
   <div class="section-title"><div><h2>開放報名</h2><p>依最近日期排序，只顯示目前開放中的場次。</p></div></div>
   <div id="sessionGrid" class="grid"><div class="empty">載入中…</div></div>
@@ -129,7 +128,7 @@ body{background:linear-gradient(180deg,#f9fcfc,#f5f9fa 55%,#fff)!important}.top{
 const API='https://tobeloved-api.ndiangrace.workers.dev';
 const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const money=n=>'NT$'+Number(n||0).toLocaleString('zh-TW');
-const state={tenant:'',tenantData:null,events:[],sessions:[],bundles:[],bundlesLoaded:false,selectedBundleId:'',portal:'',eventId:'',session:null,agreement:null,agreementViewed:false,myEmail:'',myPhone:'',myRows:[],currentReg:null,bundlePaymentRegs:[],lastPaymentCard:'',regSubmitKey:'',paymentSubmitKey:''};
+const state={tenant:'',tenantData:null,events:[],sessions:[],bundles:[],bundlesLoaded:false,selectedBundleId:'',eventId:'',session:null,agreement:null,agreementViewed:false,myEmail:'',myPhone:'',myRows:[],currentReg:null,bundlePaymentRegs:[],lastPaymentCard:'',regSubmitKey:'',paymentSubmitKey:''};
 state.lang='zh-TW';
 
 const I18N={
@@ -138,7 +137,7 @@ const I18N={
  ja:{login:'ログイン',home:'申込・予約',my:'マイ予約',support:'サポート',open:'受付中',view:'詳細・予約',date:'日程',venue:'場所',free:'無料',register:'申込',book:'予約',next:'次へ',prev:'戻る',submit:'送信確認',service:'サービス',resource:'担当者／リソース',participants:'参加人数',quantity:'数量',workspace:'DOING ワークスペース'},
  ko:{login:'로그인',home:'신청·예약',my:'내 예약',support:'고객지원',open:'접수 중',view:'상세·예약',date:'일정',venue:'장소',free:'무료',register:'신청',book:'예약',next:'다음',prev:'이전',submit:'확인 제출',service:'서비스',resource:'담당자／리소스',participants:'참가 인원',quantity:'수량',workspace:'DOING 워크스페이스'}
 };
-function moduleCfg(s){const m=(s&&s.modules&&typeof s.modules==='object')?s.modules:{};const legacy={general:'capacity',market:'recruitment',appointment:'timeslot',tour:'timeslot',class:'capacity',custom:'custom'};const workflowMode=m.workflowMode||legacy[m.profile]||'capacity';return {workflowMode,profile:workflowMode,activityCategory:m.activityCategory||((s&&String(s.type||'').includes('市集'))?'市集／攤商':'一般活動'),quantityMode:m.quantityMode||'booking',review:!!m.review,timeslot:!!m.timeslot,service:!!m.service,resource:!!m.resource,participants:!!m.participants,equipment:!!m.equipment,seats:!!m.seats,addons:!!m.addons,agreement:!!m.agreement,invoice:!!m.invoice,payment:m.payment!==false,checkin:m.checkin!==false,services:Array.isArray(m.services)?m.services:[],resources:Array.isArray(m.resources)?m.resources:[],participantTypes:Array.isArray(m.participantTypes)?m.participantTypes:[],depositKind:m.depositKind||'none',i18n:m.i18n||{}}}
+function moduleCfg(s){const m=(s&&s.modules&&typeof s.modules==='object')?s.modules:{};return {registration:true,quantityMode:['stall','booking','participant'].includes(String(m.quantityMode||''))?String(m.quantityMode):'booking',review:!!m.review,workshopSlots:Object.prototype.hasOwnProperty.call(m,'workshopSlots')?!!m.workshopSlots:!!m.workshopSlots,service:!!m.service,resource:!!m.resource,participants:!!m.participants,equipment:!!m.equipment,seatSelection:Object.prototype.hasOwnProperty.call(m,'seatSelection')?!!m.seatSelection:!!m.seatSelection,addons:!!m.addons,agreement:!!m.agreement,invoice:!!m.invoice,payment:!!m.payment,checkin:!!m.checkin,services:Array.isArray(m.services)?m.services:[],resources:Array.isArray(m.resources)?m.resources:[],participantTypes:Array.isArray(m.participantTypes)?m.participantTypes:[],depositKind:m.depositKind||'none',i18n:m.i18n||{}}}
 function lang(){return state.lang||'zh-TW'}
 function tr(key){return (I18N[lang()]&&I18N[lang()][key])||I18N['zh-TW'][key]||key}
 function translatedSession(s,key,fallback=''){const m=moduleCfg(s),p=m.i18n&&m.i18n.translations&&m.i18n.translations[lang()];return p&&String(p[key]||'').trim()?String(p[key]).trim():fallback}
@@ -157,7 +156,7 @@ function setupLanguages(){
   const langs=Array.isArray(cfg.languages)?cfg.languages:['zh-TW'];
   state.lang=langs.includes(localStorage.getItem('doing_lang'))?localStorage.getItem('doing_lang'):(langs.includes(cfg.defaultLanguage)?cfg.defaultLanguage:'zh-TW');
   const sel=$('languageSelect');sel.innerHTML=langs.map(x=>'<option value="'+esc(x)+'">'+({'zh-TW':'繁中',en:'English',ja:'日本語',ko:'한국어'}[x]||x)+'</option>').join('');sel.value=state.lang;sel.classList.toggle('hidden',!cfg.enabled||langs.length<2);
-  sel.onchange=()=>{state.lang=sel.value;localStorage.setItem('doing_lang',state.lang);applyStaticI18n();renderTenant();renderPortals();renderEvents();renderSessions();if(state.session)renderBusinessModuleFields(state.session)};
+  sel.onchange=()=>{state.lang=sel.value;localStorage.setItem('doing_lang',state.lang);applyStaticI18n();renderTenant();renderEvents();renderSessions();if(state.session)renderBusinessModuleFields(state.session)};
   applyStaticI18n();
 }
 function renderBusinessModuleFields(s){
@@ -178,15 +177,13 @@ function renderBusinessModuleFields(s){
     if(q)q.classList.toggle('hidden',m.quantityMode!=='stall');
     const lab=q&&q.querySelector('label');if(lab)lab.textContent=m.quantityMode==='stall'?'攤位／單位數':tr('quantity');
   }
-  if($('dateSectionTitle'))$('dateSectionTitle').textContent=m.timeslot?'選擇日期／時段':'活動日期';
-  const explicitProfile=!!(s.modules&&s.modules.profile);
-  if(explicitProfile)$('participantSection')?.classList.add('hidden');
-  $('seatIntentSection').classList.toggle('hidden',!(m.seats&&s.seatPricingEnabled));
+  if($('dateSectionTitle'))$('dateSectionTitle').textContent=m.workshopSlots?'選擇日期／時段':'活動日期';
+  $('seatIntentSection').classList.toggle('hidden',!(m.seatSelection&&s.seatPricingEnabled));
   $('equipSection')?.classList.toggle('hidden',!m.equipment);
   $('addonSection')?.classList.toggle('hidden',!m.addons);
   $('invoiceSection')?.classList.toggle('hidden',!m.invoice);
   $('agreementSection')?.classList.toggle('hidden',!m.agreement);
-  document.querySelectorAll('.market-only').forEach(x=>x.classList.toggle('hidden',!(m.activityCategory==='市集／攤商'||m.quantityMode==='stall'||m.equipment||m.seats)));
+  document.querySelectorAll('.market-only').forEach(x=>x.classList.toggle('hidden',!(m.quantityMode==='stall'||m.equipment||m.seatSelection)));
   syncRegWizardSteps();
 }
 function collectModuleSelections(){
@@ -230,7 +227,7 @@ async function bootstrap(){
     setupLanguages();
     renderTenant();
     renderAnnouncements(d.announcements||[]);
-    renderPortals();
+    
     renderEvents();
     renderSessions();
     if(sessionId){
@@ -257,29 +254,18 @@ function sessionStartTs(s){
   const vals=rows.map(d=>new Date((d&&d.date)||d).getTime()).filter(Number.isFinite);
   return vals.length?Math.min(...vals):Number.MAX_SAFE_INTEGER;
 }
-function renderPortals(){
-  const raw=state.tenantData&&state.tenantData.portals;
-  const portals=Array.isArray(raw)?raw.map(String).map(x=>x.trim()).filter(Boolean):[];
-  const used=[...new Set(state.sessions.flatMap(s=>Array.isArray(s.portals)?s.portals:[]).map(String).filter(Boolean))];
-  const list=[...new Set([...portals,...used])];
-  $('portalSection').classList.toggle('hidden',!list.length);
-  if(!list.length)return;
-  $('portalRow').innerHTML=['全部'].concat(list).map(x=>'<button class="portal-chip '+((!state.portal&&x==='全部')||state.portal===x?'active':'')+'" onclick="setPortalFilter(\''+esc(x==='全部'?'':x)+'\')">'+esc(x)+'</button>').join('');
-}
-function setPortalFilter(v){state.portal=v||'';state.eventId='';renderPortals();renderEvents();renderSessions()}
 function renderEvents(){
   const list=state.events||[];
   $('eventSection').classList.toggle('hidden',!list.length);
   if(!list.length)return;
   $('eventStrip').innerHTML=list.map(e=>'<button type="button" class="event-card" onclick="setEventFilter(\''+esc(e.id)+'\')" style="text-align:left;padding:0"><div class="event-cover">'+(e.cover?'<img src="'+esc(e.cover)+'" alt="">':'')+'</div><div class="event-copy"><h3>'+esc(e.title||'主題活動')+'</h3><p>'+esc(e.desc||e.location||'查看開放場次')+'</p><span class="pill '+(state.eventId===String(e.id)?'green':'')+'" style="margin-top:9px">'+(state.eventId===String(e.id)?'目前篩選':'查看場次')+'</span></div></button>').join('');
 }
-function setEventFilter(id){state.eventId=state.eventId===String(id)?'':String(id);state.portal='';renderPortals();renderEvents();renderSessions()}
+function setEventFilter(id){state.eventId=state.eventId===String(id)?'':String(id);renderEvents();renderSessions()}
 function renderSessions(){
   let arr=(state.sessions||[]).slice();
-  if(state.portal)arr=arr.filter(s=>(s.portals||[]).includes(state.portal));
   if(state.eventId)arr=arr.filter(s=>String(s.eventId||'')===state.eventId);
   arr.sort((a,b)=>sessionStartTs(a)-sessionStartTs(b));
-  $('sessionGrid').innerHTML=arr.length?arr.map(raw=>{const s=sessionDisplay(raw),m=moduleCfg(raw),verb=m.profile==='appointment'?'book':'register';return `<article class="card"><div class="cover">${s.cover?`<img src="${esc(s.cover)}" alt="${esc(s.name)}">`:'DOING'}</div><div class="card-body"><h3>${esc(s.name)}</h3><div class="meta"><span class="pill green">${esc(s.type||'')}</span><span class="pill">${esc(s.status||'')}</span>${m.timeslot?'<span class="pill blue">TIME SLOT</span>':''}</div><div class="desc">${esc(s.desc||'')}</div><div><b>${tr('date')}：</b>${esc(dateText(s.dates))}</div><div><b>${tr('venue')}：</b>${esc(s.venue||'—')}</div><div class="money">${Number(s.fee||0)>0?money(s.fee)+' 起':tr('free')}${Number(s.deposit||0)>0?'＋ '+money(s.deposit):''}</div><div class="actions"><button class="btn" onclick="openRegistration('${esc(s.id)}')">${tr('view')}</button></div></div></article>`}).join(''):'<div class="empty">目前沒有符合條件的開放項目。</div>';
+  $('sessionGrid').innerHTML=arr.length?arr.map(raw=>{const s=sessionDisplay(raw),m=moduleCfg(raw);return `<article class="card"><div class="cover">${s.cover?`<img src="${esc(s.cover)}" alt="${esc(s.name)}">`:'DOING'}</div><div class="card-body"><h3>${esc(s.name)}</h3><div class="meta"><span class="pill">${esc(s.status||'')}</span>${m.workshopSlots?'<span class="pill blue">TIME SLOT</span>':''}</div><div class="desc">${esc(s.desc||'')}</div><div><b>${tr('date')}：</b>${esc(dateText(s.dates))}</div><div><b>${tr('venue')}：</b>${esc(s.venue||'—')}</div><div class="money">${Number(s.fee||0)>0?money(s.fee)+' 起':tr('free')}${Number(s.deposit||0)>0?'＋ '+money(s.deposit):''}</div><div class="actions"><button class="btn" onclick="openRegistration('${esc(s.id)}')">${tr('view')}</button></div></div></article>`}).join(''):'<div class="empty">目前沒有符合條件的開放項目。</div>';
 }
 
 async function ensurePublicBundles(){
@@ -301,9 +287,9 @@ async function renderBundleOptions(s){
 
 async function openRegistration(id){try{const s=await apiGet('getSession',{id});state.session=s;state.agreement=null;state.agreementViewed=false;state.regSubmitKey=newActionKey('register');state.selectedBundleId='';buildForm(s);await renderBundleOptions(s);if($('syncMemberProfile'))$('syncMemberProfile').checked=false;setRegStep(1);openModal('sessionModal')}catch(e){toast(e.message)}}
 function buildForm(s){const ds=sessionDisplay(s),m=moduleCfg(s);$('regTitle').textContent=ds.name||'場次報名';$('regSub').textContent=dateText(s.dates)+'｜'+(ds.venue||'地點待公告');$('sessionDetail').innerHTML=`<div class="summary"><div class="summary-line"><span>日期</span><b>${esc(dateText(s.dates))}</b></div><div class="summary-line"><span>${tr('venue')}</span><b>${esc(ds.venue||'待公告')}</b></div><div class="summary-line"><span>基本費用</span><b>${money(s.fee)}</b></div><div class="summary-line"><span>押金</span><b>${money(s.deposit)}</b></div>${ds.desc?`<div style="margin-top:8px;white-space:pre-wrap">${esc(ds.desc)}</div>`:''}</div>`;
-$('dateChoices').innerHTML=(s.dates||[]).map((d,i)=>`<label class="choice"><input type="${m.timeslot?'radio':'checkbox'}" name="regDate" value="${esc(d.date)}" data-timeslot-id="${esc(d.timeslotId||'')}" ${s.dates.length===1?'checked':''} ${Number(d.remaining)===0&&Number(d.limit)>0?'disabled':''}><span><b>${esc(d.label||d.date)}</b><small>${esc([d.start,d.end].filter(Boolean).join('–'))}${Number(d.fee)>0?'｜'+money(d.fee):''}${Number(d.limit)>0?'｜'+(Number.isFinite(Number(d.remaining))?'剩 '+Math.max(0,Number(d.remaining))+' / ':'名額 ')+d.limit:''}${Number(d.remaining)===0&&Number(d.limit)>0?'｜已額滿':''}</small></span></label>`).join('')||'<div class="empty">日期待公告</div>';
-const max=Math.max(1,Number(s.maxStalls)||((s.type==='市集場次')?3:10));$('regStalls').innerHTML=Array.from({length:max},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('');
-$('participantSection').classList.toggle('hidden',s.type==='市集場次');
+$('dateChoices').innerHTML=(s.dates||[]).map((d,i)=>`<label class="choice"><input type="${m.workshopSlots?'radio':'checkbox'}" name="regDate" value="${esc(d.date)}" data-timeslot-id="${esc(d.timeslotId||'')}" ${s.dates.length===1?'checked':''} ${Number(d.remaining)===0&&Number(d.limit)>0?'disabled':''}><span><b>${esc(d.label||d.date)}</b><small>${esc([d.start,d.end].filter(Boolean).join('–'))}${Number(d.fee)>0?'｜'+money(d.fee):''}${Number(d.limit)>0?'｜'+(Number.isFinite(Number(d.remaining))?'剩 '+Math.max(0,Number(d.remaining))+' / ':'名額 ')+d.limit:''}${Number(d.remaining)===0&&Number(d.limit)>0?'｜已額滿':''}</small></span></label>`).join('')||'<div class="empty">日期待公告</div>';
+const max=Math.max(1,Number(s.maxStalls)||(m.quantityMode==='stall'?3:10));$('regStalls').innerHTML=Array.from({length:max},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('');
+$('participantSection').classList.toggle('hidden',m.quantityMode==='stall');
 const eq=Object.entries(s.equip||{});$('equipSection').classList.toggle('hidden',!eq.length);$('equipChoices').innerHTML=eq.map(([name,v],i)=>{v=v||{};const open=v.open!==false;const incl=Number(v.incl||0),price=Number(v.price||v.fee||0),maxq=Number(v.max||v.limit||10);return `<div class="choice"><span style="flex:1"><b>${esc(name)}</b><small>${incl>0?'每攤內含 '+incl:'不內含'}${open&&price>0?'｜加租 '+money(price):''}</small></span>${open&&price>0?`<select data-equip="${esc(name)}">${Array.from({length:maxq+1},(_,q)=>`<option value="${q}">加租 ${q}</option>`).join('')}</select>`:''}</div>`}).join('');$('equipNote').textContent=s.basicEquip||'';
 const ads=(s.addons||[]).filter(a=>a&&a.open===true);$('addonSection').classList.toggle('hidden',!ads.length);$('addonChoices').innerHTML=ads.map((a,i)=>`<div class="choice"><span style="flex:1"><b>${esc(a.name||a.label||'加購')}</b><small>${money(a.price||0)}</small></span><select data-addon="${i}">${Array.from({length:Number(a.limit||a.max||10)+1},(_,q)=>`<option value="${q}">${q}</option>`).join('')}</select></div>`).join('');
 const cf=s.customFields||[];$('customSection').classList.toggle('hidden',!cf.length);$('customFields').innerHTML=cf.map((f,i)=>`<div class="field ${f.full?'full':''}"><label>${esc(f.label||f.name||'欄位')}${f.required?' *':''}</label>${f.type==='textarea'?`<textarea data-custom="${i}" ${f.required?'required':''}></textarea>`:`<input data-custom="${i}" type="${esc(f.type||'text')}" ${f.required?'required':''}>`}</div>`).join('');
@@ -331,7 +317,7 @@ function setRegStep(step){
 }
 function validateRegStep(step){
   if(step===1){if(!$('regEmail').value.trim()||!$('regPhone').value.trim()||!$('regName').value.trim()){toast('請先完成 Email、手機與姓名');return false}}
-  if(step===2){const s=state.session,m=moduleCfg(s);if((s?.dates||[]).length&&![...document.querySelectorAll('[name=regDate]:checked')].length){toast(m.timeslot?'請先選擇日期／時段':'請先選擇報名日期');return false}if(m.service&&!$('moduleService')?.value){toast('請選擇服務項目');return false}if(m.resource&&!$('moduleResource')?.value){toast('請選擇服務人員／資源');return false}if(m.participants){const n=[...document.querySelectorAll('[data-participant]')].reduce((a,x)=>a+(Number(x.value)||0),0);if(n<1){toast('請選擇參加人數');return false}}}
+  if(step===2){const s=state.session,m=moduleCfg(s);if((s?.dates||[]).length&&![...document.querySelectorAll('[name=regDate]:checked')].length){toast(m.workshopSlots?'請先選擇日期／時段':'請先選擇報名日期');return false}if(m.service&&!$('moduleService')?.value){toast('請選擇服務項目');return false}if(m.resource&&!$('moduleResource')?.value){toast('請選擇服務人員／資源');return false}if(m.participants){const n=[...document.querySelectorAll('[data-participant]')].reduce((a,x)=>a+(Number(x.value)||0),0);if(n<1){toast('請選擇參加人數');return false}}}
   return true;
 }
 $('regNextBtn').onclick=()=>{if(!validateRegStep(regStep))return;const a=activeRegSteps(),i=a.indexOf(regStep);setRegStep(a[Math.min(i+1,a.length-1)])};
