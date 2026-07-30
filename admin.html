@@ -1168,6 +1168,8 @@ body{background:linear-gradient(180deg,#f9fcfc,#f4f8f9 58%,#f8fafb)!important}.t
 .finance-section{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:16px}.finance-section-head{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:12px}.finance-section h3{margin:0}.finance-section p{margin:4px 0 0;color:var(--muted);font-size:13px}.finance-table-wrap{overflow:auto}.finance-company-table{width:100%;border-collapse:collapse;font-size:13px}.finance-company-table th,.finance-company-table td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}.finance-company-table th.num,.finance-company-table td.num{text-align:right;font-variant-numeric:tabular-nums}.finance-company-table tr.loss td{background:#fff6f3}.finance-company-table .source-badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef8f8;font-size:12px}.finance-empty{padding:28px;text-align:center;color:var(--muted)}.finance-ledger-launch{margin-top:24px}.finance-ledger-launch h3{margin:0 0 4px}.finance-ledger-launch p{margin:0 0 10px;color:var(--muted)}.finance-mini-note{font-size:12px;color:var(--muted);margin-top:10px}
 @media(max-width:980px){.finance-period-bar{grid-template-columns:repeat(2,1fr)}.finance-summary-grid,.finance-panel-grid{grid-template-columns:1fr}}@media(max-width:620px){.finance-category-details{margin-left:0}.finance-category-details .info-line{display:grid}.finance-center-head{display:block}.finance-head-actions{margin-top:12px}.finance-period-bar{grid-template-columns:1fr}.finance-summary-grid{grid-template-columns:1fr}}
 
+
+.finance-check-details,.finance-detail-section{background:#fff;border:1px solid var(--line);border-radius:18px;margin-top:12px;padding:0;overflow:hidden}.finance-check-details summary,.finance-detail-section summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:center;padding:15px 16px}.finance-check-details summary::-webkit-details-marker,.finance-detail-section summary::-webkit-details-marker{display:none}.finance-check-details summary:after,.finance-detail-section summary:after{content:"＋";font-size:20px}.finance-check-details[open] summary:after,.finance-detail-section[open] summary:after{content:"－"}.finance-info-list,.finance-section-body{padding:0 16px 16px}.finance-info-item{padding:10px 12px;border-radius:12px;background:#f5fbfa;margin-top:8px;line-height:1.6}.finance-check-details .help,.finance-detail-section summary span{color:var(--muted);font-weight:700;font-size:13px}@media(max-width:900px){.finance-check-details summary,.finance-detail-section summary{align-items:flex-start;flex-direction:column;padding-right:46px;position:relative}.finance-check-details summary:after,.finance-detail-section summary:after{position:absolute;right:16px;top:12px}}
 </style>
 
 
@@ -1407,6 +1409,7 @@ body{letter-spacing:.005em}
 #financeReportRoot>.loading,#financeHub>.loading{background:var(--bg)!important;border:0!important;box-shadow:none!important;min-height:180px;display:grid;place-items:center;position:relative;z-index:5}
 #financeReportRoot:empty,#financeHub:empty{min-height:0!important}
 </style>
+<!-- DOING consolidated modular build 2026-07-31 -->
 </head>
 <body>
 <section id="loginPage" class="login-wrap">
@@ -2754,35 +2757,38 @@ async function quickSessionStatus(sid,status,el){
   if(!confirm('確定將場次改為「'+label+'」？')){el.value='';return;}
   try{await apiPost({action:'toggleSessionStatus',sessionId:sid,status});toast('場次狀態已更新');await refreshSessionsOverview()}catch(e){toast('狀態更新失敗：'+e.message,6000)}finally{el.value=''}
 }
+
 async function openSessionSettings(sid){
-  AdminState.currentSessionId=sid; AdminState.currentLayer='sessionSettings'; const s=sessionById(sid);
-  openPanel(sessionName(s)+'｜場次設定','','<div class="loading">設定載入中…</div>');
+  AdminState.currentSessionId=sid; AdminState.currentLayer='sessionSettings';
+  const cached=sessionById(sid)||{id:sid,name:'未命名活動'};
+  openPanel(sessionName(cached)+'｜場次設定','','<div id="sessionSettingsLive"></div>');
+  const paint=(data,agreements=[],message='')=>{
+    if(AdminState.currentSessionId!==sid||AdminState.currentLayer!=='sessionSettings')return;
+    const body=$('panelBody'); if(!body)return;
+    body.innerHTML=sessionSettingsForm(data||cached,Array.isArray(agreements)?agreements:[])+(message?'<div class="notice">'+safe(message)+'</div>':'');
+    renderSessionDateRows(sessionDates(data||cached)); renderSessionAddonRows(sessionAddons(data||cached)); toggleSessionFeatureSections();
+    loadSessionSeatSettings(sid,data||cached).catch(()=>{renderSessionSeatRows([]);toggleSessionSeatSettings();});
+    loadSessionBundleInfo(sid).catch(()=>{}); loadSessionVisualAssets(sid).catch(()=>{});
+  };
+  paint(cached,[],'基本設定已顯示；其他資料正在背景同步。');
+  const timeout=(p,ms,label)=>Promise.race([p,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label+'逾時')),ms))]);
   try{
-    const settled=await Promise.allSettled([api({action:'getSession',sessionId:sid}),api({action:'getAgreementTemplate'}),api({action:'getEventsAdmin'}),api({action:'getPaymentProfiles'})]);
-    if(settled[0].status!=='fulfilled')throw new Error('場次資料載入失敗：'+settled[0].reason.message);
-    const rows=settled[0].value;
-    const d=(Array.isArray(rows)?rows[0]:rows)||s;
-    const ag=settled[1].status==='fulfilled'?settled[1].value:[];
-    const evs=settled[2].status==='fulfilled'?settled[2].value:(AdminState.events||[]);
-    const profiles=settled[3].status==='fulfilled'?settled[3].value:(AdminState.paymentProfiles||[]);
-    const partialErrors=settled.slice(1).filter(x=>x.status==='rejected').map(x=>x.reason.message);
-    AdminState.events=Array.isArray(evs)?evs:[];
-    AdminState.paymentProfiles=Array.isArray(profiles)?profiles:[];
-    $('panelBody').innerHTML=sessionSettingsForm(d, Array.isArray(ag)?ag:[])+(partialErrors.length?'<div class="notice warn">部分設定暫時無法載入：'+safe(partialErrors.join('｜'))+'</div>':'');
-    renderSessionDateRows(sessionDates(d));
-    renderSessionAddonRows(sessionAddons(d));
-    toggleSessionFeatureSections();
-    await loadSessionSeatSettings(sid,d); try{ await loadSessionBundleInfo(sid); }catch(_e){}
-    await loadSessionVisualAssets(sid).catch(()=>{});
+    const rows=await timeout(api({action:'getSession',sessionId:sid}),12000,'場次資料');
+    const d=(Array.isArray(rows)?rows[0]:rows)||cached;
+    const results=await Promise.allSettled([
+      timeout(api({action:'getAgreementTemplate'}),9000,'合約資料'),
+      timeout(api({action:'getEventsAdmin'}),9000,'活動主題'),
+      timeout(api({action:'getPaymentProfiles'}),9000,'收款設定')
+    ]);
+    const ag=results[0].status==='fulfilled'?results[0].value:[];
+    const evs=results[1].status==='fulfilled'?results[1].value:(AdminState.events||[]);
+    const pays=results[2].status==='fulfilled'?results[2].value:(AdminState.paymentProfiles||[]);
+    AdminState.events=Array.isArray(evs)?evs:[]; AdminState.paymentProfiles=Array.isArray(pays)?pays:[];
+    const ix=(AdminState.sessions||[]).findIndex(x=>sessionId(x)===sid); if(ix>=0)AdminState.sessions[ix]=d; else AdminState.sessions.push(d);
+    paint(d,ag,'');
   }catch(e){
-    AdminState.events=Array.isArray(AdminState.events)?AdminState.events:[];
-    AdminState.paymentProfiles=Array.isArray(AdminState.paymentProfiles)?AdminState.paymentProfiles:[];
-    $('panelBody').innerHTML=sessionSettingsForm(s, [])+'<div class="notice warn">完整設定載入失敗：'+safe(e.message)+'</div>';
-    renderSessionDateRows(sessionDates(s));
-    renderSessionAddonRows(sessionAddons(s));
-    toggleSessionFeatureSections();
-    await loadSessionSeatSettings(sid,s).catch(()=>{ renderSessionSeatRows([]); toggleSessionSeatSettings(); });
-    await loadSessionVisualAssets(sid).catch(()=>{});
+    paint(cached,[],'最新資料暫時未同步，仍可操作目前內容；儲存時系統會再次驗證。');
+    toast('場次資料同步未完成：'+e.message,6500);
   }
 }
 function featureSectionHtml(key,label,mods,bodyHtml,extraTitle=''){
@@ -3036,6 +3042,7 @@ function applyBusinessProfile(){
 }
 function syncBusinessModuleUi(){
   const on=id=>!!$(id)?.checked;
+  if($('set_reviewMode'))$('set_reviewMode').value=on('mod_review')?'review':'instant';
   ['serviceCfg','resourceCfg','participantCfg','i18nCfg'].forEach(id=>{const e=$(id);if(e)e.classList.add('hidden')});
   if(on('mod_service'))$('serviceCfg')?.classList.remove('hidden');
   if(on('mod_resource'))$('resourceCfg')?.classList.remove('hidden');
@@ -3159,14 +3166,7 @@ function sessionSettingsForm(s, agreementTemplates=[]){
   +'<div class="form-field readonly-field"><label>場次 ID</label><input id="set_sessionId" value="'+attr(sid)+'" readonly><div class="sub">自動產生，不可手動修改。</div></div>'
   +'<div class="form-field choice-field"><label>所屬主題活動</label><select id="set_eventId">'+sessionEventOptionsHtml(AdminState.events||[],s.eventId||s.event_id||'')+'</select></div>'
   +'<div class="form-field choice-field"><label>入口分類</label><select id="set_entry">'+entryOptionsHtml(entryFromSession(s))+'</select></div>'
-  +'<div class="form-field choice-field"><label>審核制</label><div class="review-toggle-box"><input type="checkbox" id="set_needReviewCheck" '+(sessionBool(needReview,true)?'checked':'')+' onchange="document.getElementById(\'set_reviewMode\').value=this.checked?\'review\':\'instant\'"><span>審核</span><small>未勾＝免審核</small><input type="hidden" id="set_reviewMode" value="'+(sessionBool(needReview,true)?'review':'instant')+'"></div></div>'
-  +'<div class="form-field choice-field"><label>報名狀態</label><select id="set_status"><option value="關閉" '+(['關閉','已關閉'].includes(String(s.status||'關閉'))?'selected':'')+'>關閉</option><option value="報名中" '+(String(s.status||'')==='報名中'?'selected':'')+'>開放</option><option value="封存" '+(['封存','已封存'].includes(String(s.status||''))?'selected':'')+'>封存</option></select><div class="sub">新場次預設關閉；按開放時 Worker 會檢查必要資料。</div></div>'
-  +'<div class="form-field full"><button type="button" class="btn secondary" style="width:100%" onclick="openSessionBundleModal(\''+attr(sid)+'\')">🎫 組合報名設定（連動場次）</button></div>'
-  +'<div class="form-field full"><label>本場收款設定</label><select id="set_paymentProfileId" onchange="updatePaymentProfilePreview()">'+paymentProfileOptionsHtml(paymentProfiles,currentPaymentProfileId)+'</select><div id="set_paymentProfilePreview">'+paymentProfilePreviewHtml(currentPaymentProfileId)+'</div><div class="sub">付款帳戶、LINE Pay、信用卡都以主辦空間既有付款設定為準；前台只讀取付款快照。</div></div>'
-  +'<div class="form-field full"><label>場次說明</label><textarea id="set_desc" style="min-height:128px">'+safe(s.desc||s.description||'')+'</textarea></div>'
-  +'<div class="form-field full"><label>主視覺圖片</label><input type="hidden" id="set_cover" value="'+attr(s.cover||s.coverUrl||s.cover_url||'')+'"><div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap"><button type="button" class="btn secondary" style="padding:8px 14px" onclick="document.getElementById(\'coverFileInput\').click()">📤 上傳圖片</button><input type="file" id="coverFileInput" accept="image/*" style="display:none" onchange="uploadCoverFile(this)"><span style="font-size:12px;color:#888">自動裁成 1:1（四周補白、不裁切）並壓縮，永久有效</span></div><img id="coverPreview" src="'+attr(s.cover||s.coverUrl||s.cover_url||'')+'" style="'+((s.cover||s.coverUrl||s.cover_url)?'':'display:none;')+'width:180px;height:180px;object-fit:contain;background:#fff;border:1px solid #EADFC8;border-radius:10px;margin-top:8px" onerror="this.style.display=\'none\'"></div>'
-  +'<div class="form-field full"><div class="org-row"><div class="form-field"><label>主辦單位</label><input id="set_organizer" value="'+attr(s.organizer||'')+'"></div><div class="form-field"><label>合作單位</label>'+coorgInputsHtml(s)+'</div></div></div>'
-  +'</div></div>'
+  +'<input type="hidden" id="set_reviewMode" value="'+(mods.review?'review':'instant')+'">'
   +businessModuleEditorHtml(mods,s.type)
   +sessionAiVisualSectionHtml(s)
   +'<div class="report-card"><div class="report-title">活動日期 & 時段</div><div class="compact-actions"><button type="button" class="btn small" onclick="addSessionDateRow()">＋ 新增日期</button><button type="button" class="btn secondary small" onclick="copySessionDateRow()">複製上一個</button></div><div class="date-head-row"><span>日期</span><span>顯示名</span><span>開始</span><span>結束</span><span>費用</span><span>名額</span><span></span></div><div id="set_datesRows"></div><div class="sub">顯示名可空白；欄位已縮短，避免壓住開始/結束時間。</div></div>'
@@ -3211,7 +3211,7 @@ async function saveSessionSettings(sid,btn){
     renderSessions();
   }catch(e){toast('儲存失敗：'+e.message,8000)}finally{btn.disabled=false;btn.textContent=old;}
 }
-async function createSession(btn){ const old=btn.textContent; btn.disabled=true; btn.textContent='建立中…'; try{ const entry=($('new_entry')?.value||'市集報名').trim(); await apiPost({action:'createSession',eventId:($('new_eventId')?.value||'').trim(),name:$('new_name').value.trim(),type:entryTypeMap(entry),portals:[entry],venue:$('new_venue').value.trim(),fee:$('new_fee').value,deposit:$('new_deposit').value,desc:$('new_desc').value}); toast('已建立場次'); closeAllPanels(); await refreshSessionsOverview(); }catch(e){toast('建立失敗：'+e.message,6000)}finally{btn.disabled=false;btn.textContent=old;} }
+async function createSession(btn){ const old=btn.textContent;btn.disabled=true;btn.textContent='建立中…';try{const entry=($('new_entry')?.value||'活動報名').trim();const profile=entry.includes('市集')?'recruitment':(entry.includes('體驗')||entry.includes('預約')?'timeslot':'capacity');const p=DOING_WORKFLOW_PROFILES[profile]||DOING_WORKFLOW_PROFILES.capacity;const modules={...p,workflowMode:profile,profile,activityCategory:entry.includes('市集')?'市集／攤商':entry.includes('體驗')?'手作體驗':'一般活動',services:[],resources:[],participantTypes:[],depositKind:'none',i18n:{enabled:false,languages:['zh-TW'],translations:{}}};const res=await apiPost({action:'createSession',eventId:($('new_eventId')?.value||'').trim(),name:$('new_name').value.trim()||'未命名活動',type:entryTypeMap(entry),portals:[entry],venue:$('new_venue').value.trim(),fee:$('new_fee').value,deposit:$('new_deposit').value,desc:$('new_desc').value,needReview:!!p.review,modules});const id=res&&res.id;toast('已建立場次');closeAllPanels();await refreshSessionsOverview();if(id)openSessionSettings(id)}catch(e){toast('建立失敗：'+e.message,6000)}finally{btn.disabled=false;btn.textContent=old}}
 
 async function downloadSessionExcel(sid){
   try{
@@ -3304,7 +3304,7 @@ async function loadFinanceReports(opts={}){
     const ev=$('financeReportEvent'),sel=ev.value;if(ev&&ev.options.length<=1){(d.events||[]).forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=x.title;ev.appendChild(o)});ev.value=sel||''}
     const st=d.statements||{},t=d.totals||{};
     root.innerHTML='<div class="finance-report-banner"><h3>'+financeEsc(d.reportTitle||'財務報表')+'</h3><p>統計期間：'+financeEsc((d.bounds&&d.bounds.startDate)||'最早紀錄')+' ～ '+financeEsc((d.bounds&&d.bounds.endDate)||'目前')+'。'+financeEsc(d.accountingBasis||'')+'</p></div>'
-      +((d.alerts||[]).length?'<div class="finance-alerts">'+d.alerts.map(x=>'<div class="finance-alert">'+financeEsc(x.label)+'</div>').join('')+'</div>':'')
+      +((d.alerts||[]).length?'<details class="finance-section finance-check-details"><summary><b>資料提醒（'+(d.alerts||[]).length+'）</b><span class="help">需要時展開查看，不影響報表使用</span></summary><div class="finance-info-list">'+d.alerts.map(x=>'<div class="finance-info-item">'+financeEsc(String(x.label||'').replace('損益為負數','目前支出高於收入').replace('發現同名場次；報表以場次 ID 分開，不會自行合併。','同名活動已依場次分開計算。'))+'</div>').join('')+'</div></details>':'')
       +'<div class="finance-summary-grid finance-accounting-grid">'
         +financeStatement('現金流量',st.cashFlow,'回答實際有多少錢進出；押金收退也列入現金流。')
         +financeStatement('活動損益',st.profitLoss,'回答活動實際賺賠；押金不列收入或支出。')
@@ -3313,8 +3313,8 @@ async function loadFinanceReports(opts={}){
       +'</div>'
       +'<div class="finance-panel-grid"><div class="finance-panel"><h3>現金流入與流出變化</h3><div class="help">依實際收付日期顯示，包含押金收取與退還；不是活動損益圖。</div>'+financeTrendChart(d.timeline||[])+'</div><div class="finance-panel"><h3>每筆支出歸屬</h3><div class="help">按支出分類展開到場次與日期，點場次即可核對帳本。</div>'+financeCategoryBars(d.expenseCategories||[])+'</div></div>'
       +'<div class="finance-section"><div class="finance-section-head"><div><h3>每場活動的損益、現金與未收款</h3><p>營業收入、活動損益、現金變動與押金分開顯示，避免把押金誤認為獲利。</p></div></div>'+financeSessionComparison(d.bySession||[])+'</div>'
-      +'<div class="finance-section"><div class="finance-section-head"><div><h3>完整收付款流水</h3><p>每一筆都附場次、正式來源與紀錄 ID，可回查付款、手動收支或財務帳本。</p></div></div>'+financeTransactions(d.transactions||[])+'</div>'
-      +'<div class="finance-section"><div class="finance-section-head"><div><h3>帳務資料稽核</h3><p>主動找出孤兒付款、溢收、押金超額、找不到應收金額等問題，不再等使用者人工發現。</p></div></div>'+financeAnomalyTable(d.anomalies||[])+'</div>'
+      +'<details class="finance-section finance-detail-section"><summary><b>收支紀錄（'+((d.transactions||[]).length)+' 筆）</b><span>展開查看每一筆收款、支出、退款與押金</span></summary><div class="finance-section-body">'+financeTransactions(d.transactions||[])+'</div></details>'
+      +'<details class="finance-section finance-detail-section"><summary><b>需要確認的帳目（'+((d.anomalies||[]).length)+' 筆）</b><span>只有需要核對時再展開</span></summary><div class="finance-section-body">'+financeAnomalyTable(d.anomalies||[])+'</div></details>'
       +'<div class="finance-mini-note">最後更新：'+financeEsc(new Date(d.generatedAt||Date.now()).toLocaleString('zh-TW'))+'｜'+financeEsc((d.counts&&d.counts.sessions)||0)+' 個場次｜'+financeEsc((d.counts&&d.counts.transactions)||0)+' 筆流水｜'+financeEsc((d.counts&&d.counts.anomalies)||0)+' 筆待核對。</div>';
   }catch(e){if(e&&e.name==='AbortError')return;if(seq===FinanceRefreshSeq)root.innerHTML='<div class="empty">財務中心載入失敗：'+safe(e.message)+'</div>'}
 }

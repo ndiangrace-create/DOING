@@ -26,6 +26,7 @@ body{background:linear-gradient(180deg,#f9fcfc,#f5f9fa 55%,#fff)!important}.top{
 .market-only.hidden{display:none!important}
 .reg-step.hidden{display:none!important}
 </style>
+<!-- DOING consolidated modular build 2026-07-31 -->
 </head>
 <body>
 <header class="top"><div class="top-in"><div class="brand" id="brandHoldTarget" title="主辦品牌"><img id="tenantLogo" class="logo hidden" alt="主辦 LOGO"><div><h1 id="tenantName">DOING</h1><p id="brandSub">一次建立資料，之後報名快速帶入</p></div><span id="holdRing" class="hold-ring"></span></div><div class="nav"><select id="languageSelect" class="lang-select hidden" aria-label="Language"></select><button id="memberLoginBtn" class="btn outline small" type="button">登入</button></div></div></header>
@@ -136,7 +137,7 @@ function renderBusinessModuleFields(s){
     const lab=q&&q.querySelector('label');if(lab)lab.textContent=m.quantityMode==='stall'?'攤位／單位數':tr('quantity');
   }
   if($('dateSectionTitle'))$('dateSectionTitle').textContent=m.timeslot?'選擇日期／時段':'活動日期';
-  const explicitProfile=!!(s.modules&&s.modules.profile);
+  const explicitProfile=!!(s.modules&&(s.modules.workflowMode||s.modules.profile));
   if(explicitProfile)$('participantSection')?.classList.add('hidden');
   $('seatIntentSection').classList.toggle('hidden',!(m.seats&&s.seatPricingEnabled));
   $('equipSection')?.classList.toggle('hidden',!m.equipment);
@@ -236,7 +237,7 @@ function renderSessions(){
   if(state.portal)arr=arr.filter(s=>(s.portals||[]).includes(state.portal));
   if(state.eventId)arr=arr.filter(s=>String(s.eventId||'')===state.eventId);
   arr.sort((a,b)=>sessionStartTs(a)-sessionStartTs(b));
-  $('sessionGrid').innerHTML=arr.length?arr.map(raw=>{const s=sessionDisplay(raw),m=moduleCfg(raw),verb=m.profile==='appointment'?'book':'register';return `<article class="card"><div class="cover">${s.cover?`<img src="${esc(s.cover)}" alt="${esc(s.name)}">`:'DOING'}</div><div class="card-body"><h3>${esc(s.name)}</h3><div class="meta"><span class="pill green">${esc(s.type||'')}</span><span class="pill">${esc(s.status||'')}</span>${m.timeslot?'<span class="pill blue">TIME SLOT</span>':''}</div><div class="desc">${esc(s.desc||'')}</div><div><b>${tr('date')}：</b>${esc(dateText(s.dates))}</div><div><b>${tr('venue')}：</b>${esc(s.venue||'—')}</div><div class="money">${Number(s.fee||0)>0?money(s.fee)+' 起':tr('free')}${Number(s.deposit||0)>0?'＋ '+money(s.deposit):''}</div><div class="actions"><button class="btn" onclick="openRegistration('${esc(s.id)}')">${tr('view')}</button></div></div></article>`}).join(''):'<div class="empty">目前沒有符合條件的開放項目。</div>';
+  $('sessionGrid').innerHTML=arr.length?arr.map(raw=>{const s=sessionDisplay(raw),m=moduleCfg(raw),verb=m.workflowMode==='timeslot'?'book':'register';return `<article class="card"><div class="cover">${s.cover?`<img src="${esc(s.cover)}" alt="${esc(s.name)}">`:'DOING'}</div><div class="card-body"><h3>${esc(s.name)}</h3><div class="meta"><span class="pill green">${esc(s.type||'')}</span><span class="pill">${esc(s.status||'')}</span>${m.timeslot?'<span class="pill blue">TIME SLOT</span>':''}</div><div class="desc">${esc(s.desc||'')}</div><div><b>${tr('date')}：</b>${esc(dateText(s.dates))}</div><div><b>${tr('venue')}：</b>${esc(s.venue||'—')}</div><div class="money">${Number(s.fee||0)>0?money(s.fee)+' 起':tr('free')}${Number(s.deposit||0)>0?'＋ '+money(s.deposit):''}</div><div class="actions"><button class="btn" onclick="openRegistration('${esc(s.id)}')">${tr('view')}</button></div></div></article>`}).join(''):'<div class="empty">目前沒有符合條件的開放項目。</div>';
 }
 
 async function ensurePublicBundles(){
