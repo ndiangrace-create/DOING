@@ -1143,6 +1143,16 @@ body{background:linear-gradient(180deg,#f9fcfc,#f4f8f9 58%,#f8fafb)!important}.t
 .finance-report-note{margin-top:10px;color:var(--muted);font-size:12px}
 @media(max-width:900px){.finance-statement-grid,.finance-two{grid-template-columns:1fr}}
 
+
+.finance-center-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:16px}.finance-center-head h2{margin:2px 0 6px;font-size:28px}.finance-center-head p{margin:0;color:var(--muted);max-width:620px}.finance-eyebrow{font-size:12px;letter-spacing:.16em;font-weight:900;color:var(--teal)}.finance-head-actions{display:flex;gap:9px;flex-wrap:wrap}
+.finance-period-bar{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:10px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:16px}.finance-period-bar label{display:grid;gap:6px;font-size:12px;font-weight:900;color:var(--muted)}.finance-period-bar select,.finance-period-bar input{min-height:44px;border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:#fff;color:var(--ink)}
+.finance-report-banner{background:linear-gradient(135deg,#f0fbfa,#fffaf3);border:1px solid var(--line);border-radius:22px;padding:20px;margin-bottom:16px}.finance-report-banner h3{margin:0 0 5px;font-size:22px}.finance-report-banner p{margin:0;color:var(--muted)}
+.finance-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}.finance-summary-block{background:#fff;border:1px solid var(--line);border-radius:20px;padding:17px}.finance-summary-block h3{margin:0 0 12px;font-size:15px}.finance-summary-list{display:grid;gap:9px}.finance-summary-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}.finance-summary-row:last-child{border-bottom:0}.finance-summary-row strong{font-size:19px;font-variant-numeric:tabular-nums}.finance-summary-row.total{margin-top:4px;padding-top:12px;border-top:2px solid var(--ink);border-bottom:0}
+.finance-alerts{display:grid;gap:8px;margin-bottom:16px}.finance-alert{padding:12px 14px;border-radius:14px;background:#fff7e8;border:1px solid #f0d8aa;font-weight:800}.finance-panel-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:16px;margin-bottom:16px}.finance-panel{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px}.finance-panel h3{margin:0 0 5px}.finance-panel .help{color:var(--muted);font-size:13px;margin-bottom:12px}.finance-chart svg{width:100%;height:auto;display:block}
+.finance-category-list{display:grid;gap:10px}.finance-category-row{display:grid;grid-template-columns:110px 1fr auto;gap:10px;align-items:center}.finance-category-track{height:10px;border-radius:999px;background:#edf3f4;overflow:hidden}.finance-category-fill{height:100%;border-radius:999px;background:var(--teal)}
+.finance-section{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:16px}.finance-section-head{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:12px}.finance-section h3{margin:0}.finance-section p{margin:4px 0 0;color:var(--muted);font-size:13px}.finance-table-wrap{overflow:auto}.finance-company-table{width:100%;border-collapse:collapse;font-size:13px}.finance-company-table th,.finance-company-table td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}.finance-company-table th.num,.finance-company-table td.num{text-align:right;font-variant-numeric:tabular-nums}.finance-company-table tr.loss td{background:#fff6f3}.finance-company-table .source-badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef8f8;font-size:12px}.finance-empty{padding:28px;text-align:center;color:var(--muted)}.finance-ledger-launch{margin-top:24px}.finance-ledger-launch h3{margin:0 0 4px}.finance-ledger-launch p{margin:0 0 10px;color:var(--muted)}.finance-mini-note{font-size:12px;color:var(--muted);margin-top:10px}
+@media(max-width:980px){.finance-period-bar{grid-template-columns:repeat(2,1fr)}.finance-summary-grid,.finance-panel-grid{grid-template-columns:1fr}}@media(max-width:620px){.finance-center-head{display:block}.finance-head-actions{margin-top:12px}.finance-period-bar{grid-template-columns:1fr}.finance-summary-grid{grid-template-columns:1fr}}
+
 </style>
 
 
@@ -1363,31 +1373,24 @@ body{letter-spacing:.005em}
     </nav>
     <section id="page-sessions"><div class="page-title"><div><h2>我的場次</h2><div class="sub">點進場次後，直接處理報名、付款、設備、選位、報到與本場金流。</div></div><div class="page-actions"><button class="btn secondary" onclick="refreshSessionsOverview()">重新整理</button><button class="btn" onclick="newSessionFull()">＋ 新增場次</button></div></div><div class="filter-row"><input id="sessionSearch" placeholder="搜尋場次、系列、合作單位、地點" oninput="renderSessions()"><select id="sessionStatusFilter" onchange="renderSessions()"><option value="current">進行中</option><option value="all">全部</option><option value="archived">封存</option></select></div><div id="themeFilterRow" class="filter-row" style="margin-top:0"></div><div id="sessionList" class="session-list"><div class="loading">載入場次中…</div></div></section>
     <section id="page-finance" class="hidden">
-      <div class="page-title">
-        <div>
-          <h2>財務報表</h2>
-          <div class="sub">正式依付款、付款分配、手動收支、退款及押金紀錄產生跨場次財務報表。</div>
-        </div>
-        <div class="page-actions">
-          <button class="btn secondary" onclick="loadFinanceReports()">重新整理</button>
-          <button class="btn" onclick="downloadFinanceReportCsv()">下載完整報表</button>
+      <div class="finance-center-head">
+        <div><div class="finance-eyebrow">FINANCE CENTER</div><h2>財務中心</h2><p>先看這段期間實際收到多少、支出多少、剩多少，再追到每一筆明細。</p></div>
+        <div class="finance-head-actions">
+          <button class="btn secondary" onclick="openFinanceEntryForm('收入')">＋ 新增收入</button>
+          <button class="btn" onclick="openFinanceEntryForm('支出')">＋ 新增支出</button>
+          <button class="btn secondary" onclick="downloadFinanceWorkbook()">下載 Excel</button>
         </div>
       </div>
-      <div class="finance-report-controls">
-        <select id="financeReportPeriod" onchange="loadFinanceReports()">
-          <option value="month">月報</option>
-          <option value="quarter">季報</option>
-          <option value="year">年報</option>
-          <option value="all">全期間</option>
-        </select>
-        <input id="financeReportDate" type="month" onchange="loadFinanceReports()">
-        <select id="financeReportEvent" onchange="loadFinanceReports()"><option value="">全部系列</option></select>
+      <div class="finance-period-bar">
+        <label>報表期間<select id="financeReportPeriod" onchange="financePeriodChanged()"><option value="week">本週</option><option value="month" selected>本月</option><option value="quarter">本季</option><option value="year">本年</option><option value="all">全部期間</option><option value="custom">自訂期間</option></select></label>
+        <label id="financeAnchorWrap">選擇月份<input id="financeReportDate" type="month" onchange="loadFinanceReports()"></label>
+        <label id="financeStartWrap" class="hidden">開始日期<input id="financeReportStart" type="date" onchange="loadFinanceReports()"></label>
+        <label id="financeEndWrap" class="hidden">結束日期<input id="financeReportEnd" type="date" onchange="loadFinanceReports()"></label>
+        <label>活動範圍<select id="financeReportEvent" onchange="loadFinanceReports()"><option value="">全部活動</option></select></label>
+        <button class="btn secondary" onclick="loadFinanceReports()">重新整理</button>
       </div>
-      <div id="financeReportRoot"><div class="loading">財務報表載入中…</div></div>
-      <div class="page-title" style="margin-top:26px">
-        <div><h2>各場次帳本</h2><div class="sub">逐場查看正式收支明細與可編輯的手動帳目。</div></div>
-      </div>
-      <div id="financeHub"><div class="loading">場次帳本載入中…</div></div>
+      <div id="financeReportRoot"><div class="loading">財務中心載入中…</div></div>
+      <section class="finance-ledger-launch"><div><h3>各場次帳本</h3><p>需要核對單一場次時，再進入該場次查看、編輯或刪除手動收支。</p></div><div id="financeHub"><div class="loading">場次帳本載入中…</div></div></section>
     </section>
     <section id="page-people" class="hidden"><div class="page-title"><div><h2>人員</h2><div class="sub">把「誰能做什麼」與「主辦累積了哪些會員關係」分開管理；權限仍由 Worker 驗證。</div></div></div><div class="settings-grid"><button class="settings-tile" onclick="openStaffSettings()"><div class="ico">🔐</div><b>管理人員</b><span>主辦 / 財務 / 單場 / 現場授權</span></button><button class="settings-tile" onclick="switchPage('members')"><div class="ico">👥</div><b>會員 / 品牌</b><span>會員資料、備註、歷史報名</span></button><button class="settings-tile" onclick="switchPage('leads')"><div class="ico">📣</div><b>活動名單</b><span>接觸名單、篩選與匯出</span></button><button class="settings-tile" onclick="window.open('onsite.html','_blank')"><div class="ico">🎟️</div><b>現場工作台</b><span>授權場次與報到操作</span></button></div></section>
     <section id="page-todos" class="hidden"><div class="page-title"><div><h2>目前待辦</h2><div class="sub">顯示所有尚未完成事項；今天截止或今天應處理的項目會標示「今日到期」。</div></div><div class="page-actions"><button class="btn secondary" onclick="loadTodos()">重新整理</button></div></div><section id="doingCommand" class="doing-command"><div class="doing-command-top"><div class="doing-command-copy"><small>OPERATIONS NOW</small><h3>今天先處理最重要的營運工作</h3><p id="doingCommandText">正在整理跨場次狀態…</p></div><div class="doing-command-action"><button class="btn secondary small" onclick="switchPage('todos')">查看全部待辦</button><button class="btn small" onclick="newSessionFull()">＋ 建立新場次</button></div></div><div id="doingKpis" class="doing-kpis"></div><div id="doingNext" class="doing-next"></div></section><div id="todoFilterBar"></div><div id="todoList" class="cards"><div class="loading">載入待辦中…</div></div></section>
@@ -2393,13 +2396,13 @@ async function saveCashItem(sid,id,btn){
   const old=btn.textContent;btn.disabled=true;btn.textContent='儲存中…';
   try{
     await apiPost({action:'saveSessionCashItem',id:id||undefined,sessionId:sid,kind:$('cash_kind').value,date:$('cash_date').value,category:$('cash_category').value.trim(),amount:$('cash_amount').value,note:$('cash_note').value.trim()});
-    toast('已儲存');await openFinancePanel(sid);
+    toast('已儲存');await openFinancePanel(sid);if(AdminState.currentPage==='finance')await loadFinanceReports();
   }catch(e){toast('儲存失敗：'+e.message,6000)}
   finally{btn.disabled=false;btn.textContent=old}
 }
 async function deleteCashItem(sid,id){
   if(!confirm('確定刪除這筆手動帳？'))return;
-  try{await apiPost({action:'deleteSessionCashItem',id,sessionId:sid});toast('已刪除');await openFinancePanel(sid)}
+  try{await apiPost({action:'deleteSessionCashItem',id,sessionId:sid});toast('已刪除');await openFinancePanel(sid);if(AdminState.currentPage==='finance')await loadFinanceReports()}
   catch(e){toast('刪除失敗：'+e.message,6000)}
 }
 
@@ -3210,81 +3213,21 @@ async function openBusinessOverviewPanel(){
 
 let FinanceReportData=null;
 function financeDateDefault(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+function financeToday(){return new Date().toISOString().slice(0,10)}
 function financeEsc(v){return safe(v==null?'':v)}
-function financeStatementTable(rows){
-  return '<table><tbody>'+(rows||[]).map(r=>'<tr class="'+(r.total?'total ':'')+(r.net?'net':'')+'"><td>'+financeEsc(r.label)+'</td><td class="'+(r.net&&Number(r.amount)<0?'finance-negative':'')+'">'+money(r.amount||0)+'</td></tr>').join('')+'</tbody></table>';
-}
-function financeSvgLine(rows){
-  const data=Array.isArray(rows)?rows:[];if(!data.length)return '<div class="empty">此期間沒有正式收支紀錄</div>';
-  const W=760,H=270,P=44,max=Math.max(1,...data.flatMap(x=>[Number(x.income||0),Number(x.expense||0)]));
-  const x=i=>P+(W-P*2)*(data.length===1?.5:i/(data.length-1));const y=v=>H-P-(H-P*2)*(Number(v||0)/max);
-  const points=k=>data.map((d,i)=>x(i)+','+y(d[k])).join(' ');
-  let grid='';for(let i=0;i<=4;i++){const yy=P+(H-P*2)*i/4;grid+='<line x1="'+P+'" y1="'+yy+'" x2="'+(W-P)+'" y2="'+yy+'" stroke="#e6ecee"/><text x="4" y="'+(yy+4)+'" font-size="11">'+Math.round(max*(4-i)/4).toLocaleString()+'</text>'}
-  return '<svg class="finance-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="正式收入支出趨勢圖">'+grid
-    +'<polyline fill="none" stroke="#169DA3" stroke-width="4" points="'+points('income')+'"/>'
-    +'<polyline fill="none" stroke="#D97A73" stroke-width="4" points="'+points('expense')+'"/>'
-    +data.map((d,i)=>'<circle cx="'+x(i)+'" cy="'+y(d.income)+'" r="4" fill="#169DA3"/><circle cx="'+x(i)+'" cy="'+y(d.expense)+'" r="4" fill="#D97A73"/><text x="'+x(i)+'" y="'+(H-8)+'" text-anchor="middle" font-size="11">'+financeEsc(d.label)+'</text>').join('')
-    +'</svg><div class="finance-legend"><span><i style="background:#169DA3"></i>收入</span><span><i style="background:#D97A73"></i>支出</span></div>';
-}
-function financeCategoryTable(title,rows){
-  return '<div class="finance-statement"><h3>'+title+'</h3><table><tbody>'+(rows||[]).map(x=>'<tr><td>'+financeEsc(x.name)+'</td><td>'+money(x.amount||0)+'</td></tr>').join('')+'</tbody></table></div>';
-}
-function financeSessionTable(rows){
-  return '<div class="finance-statement"><h3>場次損益表</h3><div class="finance-scroll"><table class="finance-detail-table"><thead><tr><th>場次</th><th>日期</th><th class="num">報名收入</th><th class="num">其他收入</th><th class="num">支出</th><th class="num">退款</th><th class="num">損益</th><th class="num">應收</th><th class="num">實收</th><th class="num">未收</th><th class="num">期末押金</th></tr></thead><tbody>'
-    +(rows||[]).map(x=>'<tr><td>'+financeEsc(x.name)+'</td><td>'+financeEsc(x.date)+'</td><td class="num">'+money(x.registrationRevenue)+'</td><td class="num">'+money(x.otherIncome)+'</td><td class="num">'+money(x.operatingExpense)+'</td><td class="num">'+money(x.refundExpense)+'</td><td class="num '+(Number(x.netProfit)<0?'finance-negative':'finance-positive')+'">'+money(x.netProfit)+'</td><td class="num">'+money(x.receivable)+'</td><td class="num">'+money(x.received)+'</td><td class="num">'+money(x.outstanding)+'</td><td class="num">'+money(x.depositHeld)+'</td></tr>').join('')
-    +'</tbody></table></div></div>';
-}
-function financeTransactionsTable(rows){
-  return '<div class="finance-statement"><h3>本期正式收支明細</h3><div class="finance-scroll"><table class="finance-detail-table"><thead><tr><th>日期</th><th>場次</th><th>類型</th><th>科目</th><th>備註</th><th class="num">金額</th><th>來源</th></tr></thead><tbody>'
-    +(rows||[]).map(x=>'<tr><td>'+financeEsc(String(x.date||'').slice(0,10))+'</td><td>'+financeEsc(x.sessionName)+'</td><td>'+financeEsc(x.side==='income'?'收入':'支出')+'</td><td>'+financeEsc(x.category)+'</td><td>'+financeEsc(x.note||'')+'</td><td class="num">'+money(x.amount)+'</td><td>'+financeEsc(x.source)+'</td></tr>').join('')
-    +'</tbody></table></div></div>';
-}
-async function loadFinanceReports(){
-  const root=$('financeReportRoot');if(!root||AdminState.currentPage!=='finance')return;
-  if(!$('financeReportDate').value)$('financeReportDate').value=financeDateDefault();
-  root.innerHTML='<div class="loading">財務報表載入中…</div>';
-  try{
-    const period=$('financeReportPeriod').value,date=$('financeReportDate').value,eventId=$('financeReportEvent').value;
-    const d=await api({action:'financeReport',period,date,eventId});FinanceReportData=d;
-    const ev=$('financeReportEvent');
-    if(ev&&ev.options.length<=1){(d.events||[]).forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=x.title;ev.appendChild(o)});ev.value=eventId||''}
-    const t=d.totals||{},s=d.statements||{};
-    root.innerHTML=
-      '<div class="finance-kpis">'
-      +[['營業收入',t.totalIncome],['營業支出',t.totalExpense],['本期損益',t.netProfit],['應收',t.receivable],['實收',t.received],['未收',t.outstanding],['退款',t.refundExpense],['期末保管押金',t.depositHeld]]
-        .map(x=>'<div class="finance-kpi"><span>'+x[0]+'</span><b class="'+(x[0]==='本期損益'&&Number(x[1])<0?'finance-negative':'')+'">'+money(x[1]||0)+'</b></div>').join('')
-      +'</div>'
-      +'<div class="finance-statement-grid"><div class="finance-statement"><h3>損益表</h3>'+financeStatementTable(s.profitLoss||[])+'</div><div class="finance-two"><div class="finance-statement"><h3>應收帳款</h3>'+financeStatementTable(s.receivables||[])+'</div><div class="finance-statement"><h3>押金負債</h3>'+financeStatementTable(s.deposits||[])+'</div></div></div>'
-      +'<div class="finance-statement" style="margin-top:16px"><h3>收入與支出趨勢</h3>'+financeSvgLine(d.timeline||[])+'</div>'
-      +'<div class="finance-two" style="margin-top:16px">'+financeCategoryTable('收入科目',d.incomeCategories||[])+financeCategoryTable('支出科目',d.expenseCategories||[])+'</div>'
-      +'<div style="margin-top:16px">'+financeSessionTable(d.bySession||[])+'</div>'
-      +'<div style="margin-top:16px">'+financeTransactionsTable(d.transactions||[])+'</div>'
-      +'<div class="finance-report-note">報表資料來源：正式付款／付款分配、手動收支、退款及押金帳本。付款分配優先，避免與付款紀錄重複計算。</div>';
-  }catch(e){root.innerHTML='<div class="empty">財務報表載入失敗：'+safe(e.message)+'</div>'}
-}
-function downloadFinanceReportCsv(){
-  const d=FinanceReportData;if(!d){toast('請先載入報表');return}
-  const rows=[
-    ['DOING 財務報表',d.bounds&&d.bounds.label||''],
-    [],
-    ['損益表','金額'],
-    ...((d.statements&&d.statements.profitLoss)||[]).map(x=>[x.label,x.amount]),
-    [],
-    ['應收帳款','金額'],
-    ...((d.statements&&d.statements.receivables)||[]).map(x=>[x.label,x.amount]),
-    [],
-    ['押金負債','金額'],
-    ...((d.statements&&d.statements.deposits)||[]).map(x=>[x.label,x.amount]),
-    [],
-    ['場次','日期','報名收入','其他收入','營業支出','退款','損益','應收','實收','未收','期末押金'],
-    ...(d.bySession||[]).map(x=>[x.name,x.date,x.registrationRevenue,x.otherIncome,x.operatingExpense,x.refundExpense,x.netProfit,x.receivable,x.received,x.outstanding,x.depositHeld]),
-    [],
-    ['日期','場次','類型','科目','備註','金額','來源'],
-    ...(d.transactions||[]).map(x=>[String(x.date||'').slice(0,10),x.sessionName,x.side==='income'?'收入':'支出',x.category,x.note||'',x.amount,x.source])
-  ];
-  const csv='\uFEFF'+rows.map(r=>r.map(financeCsvCell).join(',')).join('\r\n');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='DOING財務報表.csv';a.click();URL.revokeObjectURL(a.href);
-}
+function financePeriodChanged(){const p=$('financeReportPeriod').value;$('financeStartWrap').classList.toggle('hidden',p!=='custom');$('financeEndWrap').classList.toggle('hidden',p!=='custom');$('financeAnchorWrap').classList.toggle('hidden',p==='custom'||p==='all');const i=$('financeReportDate');i.type=p==='week'?'date':'month';if(!i.value)i.value=p==='week'?financeToday():financeDateDefault();loadFinanceReports()}
+function financeSourceLabel(v){const m={'報名款分配紀錄':'系統確認收款','系統確認收款':'系統確認收款','主辦手動登錄':'主辦手動登錄','退款／押金／延期帳本':'退款／押金／延期紀錄','payment_allocation':'系統確認收款','payment':'系統確認收款','finance_item':'主辦手動登錄','finance_ledger':'退款／押金／延期紀錄'};return m[String(v||'')]||String(v||'系統紀錄')}
+function financeSummaryBlock(title,rows,totalLabel,totalValue){return '<div class="finance-summary-block"><h3>'+title+'</h3><div class="finance-summary-list">'+rows.map(x=>'<div class="finance-summary-row"><span>'+financeEsc(x[0])+'</span><strong>'+money(x[1]||0)+'</strong></div>').join('')+'<div class="finance-summary-row total"><span>'+financeEsc(totalLabel)+'</span><strong class="'+(Number(totalValue)<0?'finance-negative':'')+'">'+money(totalValue||0)+'</strong></div></div></div>'}
+function financeTrendChart(rows){const d=Array.isArray(rows)?rows:[];if(!d.length)return '<div class="finance-empty">這段期間還沒有收入或支出紀錄</div>';const W=820,H=280,P=48,max=Math.max(1,...d.flatMap(x=>[Number(x.income||0),Number(x.expense||0)])),g=(W-P*2)/d.length,b=Math.max(7,Math.min(22,g*.28));let o='<svg viewBox="0 0 '+W+' '+H+'">';for(let i=0;i<=4;i++){const y=P+(H-P*2)*i/4;o+='<line x1="'+P+'" y1="'+y+'" x2="'+(W-P)+'" y2="'+y+'" stroke="#e7eef0"/><text x="4" y="'+(y+4)+'" font-size="11">'+Math.round(max*(4-i)/4).toLocaleString('zh-TW')+'</text>'}d.forEach((x,i)=>{const c=P+g*i+g/2,ih=(H-P*2)*Number(x.income||0)/max,eh=(H-P*2)*Number(x.expense||0)/max;o+='<rect x="'+(c-b-2)+'" y="'+(H-P-ih)+'" width="'+b+'" height="'+ih+'" rx="4" fill="#1aa1a6"/><rect x="'+(c+2)+'" y="'+(H-P-eh)+'" width="'+b+'" height="'+eh+'" rx="4" fill="#d9867e"/><text x="'+c+'" y="'+(H-10)+'" text-anchor="middle" font-size="11">'+financeEsc(x.label)+'</text>'});return o+'</svg><div class="finance-legend"><span><i style="background:#1aa1a6"></i>實際收入</span><span><i style="background:#d9867e"></i>實際支出</span></div>'}
+function financeCategoryBars(rows){const d=Array.isArray(rows)?rows:[];if(!d.length)return '<div class="finance-empty">這段期間尚未登錄支出</div>';const max=Math.max(1,...d.map(x=>Number(x.amount||0)));return '<div class="finance-category-list">'+d.map(x=>'<div class="finance-category-row"><span>'+financeEsc(x.name)+'</span><div class="finance-category-track"><div class="finance-category-fill" style="width:'+Math.max(2,Number(x.amount||0)/max*100)+'%"></div></div><b>'+money(x.amount||0)+'</b></div>').join('')+'</div>'}
+function financeSessionComparison(rows){const d=Array.isArray(rows)?rows:[];if(!d.length)return '<div class="finance-empty">沒有可比較的場次</div>';const c={};d.forEach(x=>c[String(x.name||'')]=(c[String(x.name||'')]||0)+1);return '<div class="finance-table-wrap"><table class="finance-company-table"><thead><tr><th>活動／場次</th><th>活動日期</th><th class="num">實際收入</th><th class="num">活動支出</th><th class="num">退款</th><th class="num">最後結餘</th><th class="num">尚未收到</th><th class="num">代管押金</th><th></th></tr></thead><tbody>'+d.map(x=>{const n=c[String(x.name||'')]>1?(x.name+'｜'+(x.date||'未設定日期')+'｜'+String(x.id||'').slice(-6)):x.name;return '<tr class="'+(Number(x.netProfit)<0?'loss':'')+'"><td>'+financeEsc(n)+'</td><td>'+financeEsc(x.date||'—')+'</td><td class="num">'+money(x.totalIncome||0)+'</td><td class="num">'+money(x.operatingExpense||0)+'</td><td class="num">'+money(x.refundExpense||0)+'</td><td class="num"><b>'+money(x.netProfit||0)+'</b></td><td class="num">'+money(x.outstanding||0)+'</td><td class="num">'+money(x.depositHeld||0)+'</td><td><button class="btn secondary small" onclick="openFinancePanel(\''+attr(x.id)+'\')">查看帳本</button></td></tr>'}).join('')+'</tbody></table></div>'}
+function financeTransactions(rows){const d=Array.isArray(rows)?rows:[];if(!d.length)return '<div class="finance-empty">這段期間沒有收支明細</div>';return '<div class="finance-table-wrap"><table class="finance-company-table"><thead><tr><th>登錄日期</th><th>活動／場次</th><th>收入或支出</th><th>分類</th><th>說明</th><th class="num">金額</th><th>建立方式</th></tr></thead><tbody>'+d.map(x=>'<tr><td>'+financeEsc(String(x.date||'').slice(0,10).replaceAll('-','/'))+'</td><td>'+financeEsc(x.sessionName||'—')+'</td><td>'+financeEsc(x.side==='income'?'收入':'支出')+'</td><td>'+financeEsc(x.category||'其他')+'</td><td>'+financeEsc(x.note||'—')+'</td><td class="num">'+money(x.amount||0)+'</td><td><span class="source-badge">'+financeEsc(financeSourceLabel(x.source))+'</span></td></tr>').join('')+'</tbody></table></div>'}
+async function loadFinanceReports(){const root=$('financeReportRoot');if(!root||AdminState.currentPage!=='finance')return;const p=$('financeReportPeriod').value;if(!$('financeReportDate').value)$('financeReportDate').value=p==='week'?financeToday():financeDateDefault();root.innerHTML='<div class="loading">財務中心載入中…</div>';try{const d=await api({action:'financeReport',period:p,date:$('financeReportDate').value,startDate:$('financeReportStart').value,endDate:$('financeReportEnd').value,eventId:$('financeReportEvent').value});FinanceReportData=d;const ev=$('financeReportEvent'),sel=ev.value;if(ev&&ev.options.length<=1){(d.events||[]).forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=x.title;ev.appendChild(o)});ev.value=sel||''}const t=d.totals||{};root.innerHTML='<div class="finance-report-banner"><h3>'+financeEsc(d.reportTitle||'財務報表')+'</h3><p>統計期間：'+financeEsc((d.bounds&&d.bounds.startDate)||'最早紀錄')+' ～ '+financeEsc((d.bounds&&d.bounds.endDate)||'目前')+'。'+financeEsc(d.accountingBasis||'')+'</p></div>'+((d.alerts||[]).length?'<div class="finance-alerts">'+d.alerts.map(x=>'<div class="finance-alert">'+financeEsc(x.label)+'</div>').join('')+'</div>':'')+'<div class="finance-summary-grid">'+financeSummaryBlock('這段期間賺多少',[['實際收到',t.totalIncome],['實際支出',t.totalExpense]],'最後結餘',t.netProfit)+financeSummaryBlock('款項收到了嗎',[['本期新增應收',t.receivable],['本期實際收到',t.received]],'截至期末尚未收到',t.outstanding)+financeSummaryBlock('押金現在在哪裡',[['本期收取押金',t.depositCollected],['本期退還押金',t.depositRefunded],['本期扣除押金',t.depositDeducted]],'期末代管押金',t.depositHeld)+'</div><div class="finance-panel-grid"><div class="finance-panel"><h3>收入與支出變化</h3><div class="help">月報按每天顯示；季報與年報按月份顯示。</div>'+financeTrendChart(d.timeline||[])+'</div><div class="finance-panel"><h3>支出花到哪裡</h3><div class="help">依主辦登錄的支出分類與退款紀錄統計。</div>'+financeCategoryBars(d.expenseCategories||[])+'</div></div><div class="finance-section"><div class="finance-section-head"><div><h3>每場活動收入、支出與結餘比較</h3><p>用來比較各場實際收到多少、花掉多少，以及最後剩多少。</p></div></div>'+financeSessionComparison(d.bySession||[])+'</div><div class="finance-section"><div class="finance-section-head"><div><h3>這段期間的完整收支明細</h3><p>每筆數字都可追到正式收款、主辦手動登錄、退款或押金紀錄。</p></div></div>'+financeTransactions(d.transactions||[])+'</div><div class="finance-mini-note">最後更新：'+financeEsc(new Date(d.generatedAt||Date.now()).toLocaleString('zh-TW'))+'｜共 '+financeEsc((d.counts&&d.counts.transactions)||0)+' 筆收支紀錄。</div>'}catch(e){root.innerHTML='<div class="empty">財務中心載入失敗：'+safe(e.message)+'</div>'}}
+function openFinanceEntryForm(kind){const ss=(AdminState.sessions||[]).filter(Boolean),opts=ss.map(s=>'<option value="'+attr(s.id)+'">'+safe(sessionName(s))+'｜'+safe(sessionDate(s)||'日期未設定')+'</option>').join('');openPanel('新增'+kind,'儲存後會立即重新讀取資料庫，並同步更新本期報表、圖表與明細。','<div class="form-grid"><div class="form-field full"><label>活動／場次</label><select id="fc_session"><option value="">請選擇場次</option>'+opts+'</select></div><div class="form-field"><label>日期</label><input id="fc_date" type="date" value="'+financeToday()+'"></div><div class="form-field"><label>收入或支出</label><select id="fc_kind"><option value="收入">收入</option><option value="支出">支出</option></select></div><div class="form-field"><label>分類</label><select id="fc_category"></select></div><div class="form-field"><label>金額</label><input id="fc_amount" type="number" min="1" step="1" placeholder="例如 8200"></div><div class="form-field full"><label>說明</label><textarea id="fc_note" rows="3" placeholder="例如：7 月場地租借費"></textarea></div></div><div class="card-actions"><button class="btn" onclick="saveFinanceEntry(this)">儲存並更新財報</button><button class="btn secondary" onclick="closePanel()">取消</button></div>');$('fc_kind').value=kind;financeEntryCategories();$('fc_kind').addEventListener('change',financeEntryCategories)}
+function financeEntryCategories(){const rows=$('fc_kind').value==='支出'?['場地費','設備費','人事費','行銷費','交通費','餐費','保險費','退款','其他支出']:['其他收入','贊助收入','現場收入','設備加購','延期轉入'];$('fc_category').innerHTML=rows.map(x=>'<option>'+x+'</option>').join('')}
+async function saveFinanceEntry(btn){const sid=$('fc_session').value,kind=$('fc_kind').value,date=$('fc_date').value,category=$('fc_category').value,amount=Number($('fc_amount').value||0),note=$('fc_note').value.trim();if(!sid){toast('請選擇活動／場次');return}if(!date){toast('請選擇日期');return}if(amount<=0){toast('請輸入正確金額');return}const old=btn.textContent;btn.disabled=true;btn.textContent='儲存並確認中…';try{const r=await apiPost({action:'saveSessionCashItem',sessionId:sid,kind,date,category,amount,note});const verify=await api({action:'getSessionCashbook',sessionId:sid});if(!(verify.rows||[]).find(x=>String(x.id)===String(r.id)))throw new Error('資料送出後重新讀取不到，請勿重複新增');closePanel();await loadFinanceReports();await renderFinanceHub();toast('已新增'+kind+'：'+category+' '+money(amount)+'，並已更新財務中心',7000)}catch(e){toast('儲存失敗：'+e.message,7000)}finally{btn.disabled=false;btn.textContent=old}}
+function downloadFinanceWorkbook(){const d=FinanceReportData;if(!d){toast('請先載入報表');return}if(typeof XLSX==='undefined'){downloadFinanceReportCsv();return}const wb=XLSX.utils.book_new(),summary=[['DOING 財務報表'],['報表名稱',d.reportTitle||''],['統計期間',(d.bounds&&d.bounds.startDate||'')+'～'+(d.bounds&&d.bounds.endDate||'')],['計算方式',d.accountingBasis||''],[],['營運結果','金額'],['實際收入',d.totals.totalIncome],['實際支出',d.totals.totalExpense],['最後結餘',d.totals.netProfit],[],['收款狀況','金額'],['本期應收',d.totals.receivable],['本期實收',d.totals.received],['尚未收到',d.totals.outstanding],[],['押金狀況','金額'],['本期收取',d.totals.depositCollected],['本期退還',d.totals.depositRefunded],['本期扣除',d.totals.depositDeducted],['期末代管',d.totals.depositHeld]];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summary),'財務摘要');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet((d.bySession||[]).map(x=>({'活動／場次':x.name,'活動日期':x.date,'實際收入':x.totalIncome,'活動支出':x.operatingExpense,'退款':x.refundExpense,'最後結餘':x.netProfit,'尚未收到':x.outstanding,'代管押金':x.depositHeld,'場次ID':x.id}))),'活動比較');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet((d.transactions||[]).map(x=>({'登錄日期':String(x.date||'').slice(0,10),'活動／場次':x.sessionName,'收入或支出':x.side==='income'?'收入':'支出','分類':x.category,'說明':x.note||'','金額':x.amount,'建立方式':financeSourceLabel(x.source),'紀錄ID':x.referenceId||''}))),'收支明細');XLSX.writeFile(wb,'DOING_'+(d.reportTitle||'財務報表').replaceAll(' ','_')+'.xlsx')}
+function downloadFinanceReportCsv(){const d=FinanceReportData;if(!d){toast('請先載入報表');return}const rows=[['報表名稱',d.reportTitle||''],['統計期間',(d.bounds&&d.bounds.startDate||'')+'～'+(d.bounds&&d.bounds.endDate||'')],[],['日期','活動／場次','收入或支出','分類','說明','金額','建立方式'],...(d.transactions||[]).map(x=>[String(x.date||'').slice(0,10),x.sessionName,x.side==='income'?'收入':'支出',x.category,x.note||'',x.amount,financeSourceLabel(x.source)])];const csv='\uFEFF'+rows.map(r=>r.map(financeCsvCell).join(',')).join('\r\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='DOING財務報表.csv';a.click();URL.revokeObjectURL(a.href)}
 
 async function loadTodos(){
   if(AdminState.currentPage!=='todos') return;
