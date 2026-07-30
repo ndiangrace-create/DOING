@@ -138,7 +138,7 @@ const I18N={
  ja:{login:'ログイン',home:'申込・予約',my:'マイ予約',support:'サポート',open:'受付中',view:'詳細・予約',date:'日程',venue:'場所',free:'無料',register:'申込',book:'予約',next:'次へ',prev:'戻る',submit:'送信確認',service:'サービス',resource:'担当者／リソース',participants:'参加人数',quantity:'数量',workspace:'DOING ワークスペース'},
  ko:{login:'로그인',home:'신청·예약',my:'내 예약',support:'고객지원',open:'접수 중',view:'상세·예약',date:'일정',venue:'장소',free:'무료',register:'신청',book:'예약',next:'다음',prev:'이전',submit:'확인 제출',service:'서비스',resource:'담당자／리소스',participants:'참가 인원',quantity:'수량',workspace:'DOING 워크스페이스'}
 };
-function moduleCfg(s){const m=(s&&s.modules&&typeof s.modules==='object')?s.modules:{};return {profile:m.profile||'general',quantityMode:m.quantityMode||'booking',review:m.review!==false,timeslot:!!m.timeslot,service:!!m.service,resource:!!m.resource,participants:!!m.participants,equipment:!!m.equipment,seats:!!m.seats,addons:!!m.addons,agreement:m.agreement!==false,invoice:!!m.invoice,payment:m.payment!==false,checkin:m.checkin!==false,services:Array.isArray(m.services)?m.services:[],resources:Array.isArray(m.resources)?m.resources:[],participantTypes:Array.isArray(m.participantTypes)?m.participantTypes:[],depositKind:m.depositKind||'none',i18n:m.i18n||{}}}
+function moduleCfg(s){const m=(s&&s.modules&&typeof s.modules==='object')?s.modules:{};const legacy={general:'capacity',market:'recruitment',appointment:'timeslot',tour:'timeslot',class:'capacity',custom:'custom'};const workflowMode=m.workflowMode||legacy[m.profile]||'capacity';return {workflowMode,profile:workflowMode,activityCategory:m.activityCategory||((s&&String(s.type||'').includes('市集'))?'市集／攤商':'一般活動'),quantityMode:m.quantityMode||'booking',review:!!m.review,timeslot:!!m.timeslot,service:!!m.service,resource:!!m.resource,participants:!!m.participants,equipment:!!m.equipment,seats:!!m.seats,addons:!!m.addons,agreement:!!m.agreement,invoice:!!m.invoice,payment:m.payment!==false,checkin:m.checkin!==false,services:Array.isArray(m.services)?m.services:[],resources:Array.isArray(m.resources)?m.resources:[],participantTypes:Array.isArray(m.participantTypes)?m.participantTypes:[],depositKind:m.depositKind||'none',i18n:m.i18n||{}}}
 function lang(){return state.lang||'zh-TW'}
 function tr(key){return (I18N[lang()]&&I18N[lang()][key])||I18N['zh-TW'][key]||key}
 function translatedSession(s,key,fallback=''){const m=moduleCfg(s),p=m.i18n&&m.i18n.translations&&m.i18n.translations[lang()];return p&&String(p[key]||'').trim()?String(p[key]).trim():fallback}
@@ -186,7 +186,7 @@ function renderBusinessModuleFields(s){
   $('addonSection')?.classList.toggle('hidden',!m.addons);
   $('invoiceSection')?.classList.toggle('hidden',!m.invoice);
   $('agreementSection')?.classList.toggle('hidden',!m.agreement);
-  document.querySelectorAll('.market-only').forEach(x=>x.classList.toggle('hidden',!(m.profile==='market'||!s.modules?.profile)));
+  document.querySelectorAll('.market-only').forEach(x=>x.classList.toggle('hidden',!(m.activityCategory==='市集／攤商'||m.quantityMode==='stall'||m.equipment||m.seats)));
   syncRegWizardSteps();
 }
 function collectModuleSelections(){

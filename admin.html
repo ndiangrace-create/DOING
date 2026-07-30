@@ -22,8 +22,8 @@
 .tabs .tab{background:#fff;border:1px solid #cfe0c4;border-radius:16px;min-height:44px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:800}
 .tabs .tab.active{background:#2C2C2C;color:#fff;border-color:#2C2C2C}
 
-/* ── 電腦版（≥1025px）：導覽移到左側直排，內容區加寬，減少左右留白 ── */
-@media(min-width:1025px){
+/* ── 桌機版（≥901px）：內容寬度依瀏覽器自動延展；手機版完全不變 ── */
+@media(min-width:901px){
   .tabs{
     position:fixed; left:14px; bottom:auto; top:96px; transform:none;
     width:150px; grid-template-columns:1fr; gap:8px;
@@ -31,14 +31,29 @@
   }
   .tabs .tab{min-height:46px; font-size:16px; text-align:center}
   .app{
+    width:calc(100% - 178px);
     max-width:none;
     margin:0 0 0 178px;
     padding:14px 20px 40px 6px;
   }
-  .topbar-in{max-width:none;margin:0;padding-left:178px;padding-right:20px}
+  .topbar-in{
+    width:100%;
+    max-width:none;
+    margin:0;
+    padding-left:178px;
+    padding-right:20px;
+  }
+  .panel-head-in,.panel-body{
+    width:100%;
+    max-width:none;
+    margin:0;
+  }
+  .panel-head-in{padding-left:20px;padding-right:20px}
+  .panel-body{padding-left:20px;padding-right:20px}
 }
 @media(min-width:1600px){
-  .app{ margin-left:178px; padding-right:28px }
+  .app{padding-right:28px}
+  .topbar-in,.panel-head-in,.panel-body{padding-right:28px}
 }.tab{border:1px solid var(--line);background:#fff;border-radius:18px;padding:9px 4px;font-weight:950;min-height:46px}.tab.active{background:var(--ink);color:#fff;border-color:var(--ink)}.login-wrap{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,#fff 0%,#F8F6F0 42%,#D9E5EE 100%)}.login-card{width:min(460px,100%);background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow2);padding:24px;text-align:center}.login-mark{width:96px;height:96px;margin:0 auto 16px;border-radius:26px;background:#fff;border:1px solid var(--line);box-shadow:0 8px 22px rgba(45,39,32,.10);padding:10px;object-fit:contain}.login-card h1{font-size:28px;margin:0 0 8px}.sub{color:var(--muted);font-size:14px}.login-info{margin:16px 0 18px;padding:12px 14px;border-radius:18px;background:var(--mint);border:1px solid var(--line);text-align:left;color:#334;font-size:14px}.page-title{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:16px 0 10px}.page-title h2{margin:0;font-size:26px}.page-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.notice{background:#fff;border:1px solid var(--line);border-left:7px solid var(--main);border-radius:18px;padding:14px;margin:12px 0;box-shadow:var(--shadow)}.warn{border-left-color:#D97A73;background:#fff8f7}.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}.filter-row input,.filter-row select{border:1px solid var(--line);background:#fff;border-radius:999px;padding:11px 14px;min-height:42px}.filter-row input{flex:1;min-width:210px}.session-list,.cards,.member-list{display:grid;gap:14px}.session-card,.card{background:var(--paper);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:hidden}.session-head{padding:16px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:12px;background:linear-gradient(90deg,#fff 0%,#fff 55%,rgba(217,229,238,.45) 100%)}.session-name{font-size:22px;font-weight:950;line-height:1.25}.meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.pill{display:inline-flex;align-items:center;border-radius:999px;padding:5px 9px;background:#F4F0EA;border:1px solid var(--line);font-size:13px;font-weight:850}.pill.blue{background:var(--blue)}.pill.green{background:var(--green)}.pill.yellow{background:var(--yellow)}.pill.pink{background:var(--pink)}.pill.purple{background:var(--purple)}.session-body{padding:14px 16px 16px}.section-label{font-size:14px;font-weight:950;color:#333;margin:6px 0 8px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.stat{border:1px solid var(--line);border-radius:17px;padding:10px;background:#fff;min-height:78px;text-align:center;display:flex;flex-direction:column;justify-content:center}.stat.click:hover{border-color:#9EB9B4;box-shadow:0 8px 20px rgba(0,0,0,.08);transform:translateY(-1px)}.stat b{font-size:24px;line-height:1;font-weight:950}.stat span{font-size:13px;color:var(--muted);font-weight:850;margin-top:5px}.stat.blue{background:rgba(217,229,238,.55)}.stat.green{background:rgba(221,234,209,.7)}.stat.yellow{background:rgba(250,238,199,.75)}.stat.pink{background:rgba(250,225,221,.75)}.stat.purple{background:rgba(220,215,237,.70)}.compact-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.info-box{border:1px solid var(--line);background:#fff;border-radius:17px;padding:12px;min-height:86px}.info-line{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px dashed #EEE4D8;padding:7px 0}.info-line:last-child{border-bottom:0}.info-line span:first-child{color:var(--muted);font-weight:850}.info-line span:last-child{font-weight:950;text-align:right}.card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.panel{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;flex-direction:column}.panel.show{display:flex}.panel-head{position:sticky;top:0;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);z-index:2;border-bottom:1px solid var(--line);padding:10px 12px}.panel-head-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px}.panel-title{font-size:20px;font-weight:950}.panel-sub{font-size:12px;color:var(--muted)}.xbtn{width:44px;height:44px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:20px;font-weight:950}.panel-body{flex:1;overflow:auto;padding:14px 14px calc(92px + var(--safe-bottom));max-width:1180px;width:100%;margin:0 auto}.panel-bottom{position:sticky;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:10px 14px calc(10px + var(--safe-bottom));display:flex;gap:8px;justify-content:center}.reg-card{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:14px;display:grid;grid-template-columns:1fr auto;gap:12px}.reg-title{font-size:20px;font-weight:950}.reg-sub{font-size:13px;color:var(--muted);margin-top:2px}.kv{display:grid;grid-template-columns:92px 1fr;gap:4px 10px;margin-top:10px;font-size:14px}.kv .k{color:var(--muted);font-weight:850}.tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.tag{border-radius:999px;background:#F4F0EA;border:1px solid var(--line);padding:4px 8px;font-size:12px;font-weight:900;text-decoration:none}.tag.ok{background:var(--green)}.tag.warn{background:var(--yellow)}.tag.bad{background:var(--pink)}.tag.info{background:var(--blue)}.tag.purple{background:var(--purple)}.tag.green{background:var(--green)}.social-icon{min-width:34px;text-align:center;font-size:16px;line-height:1.1}.todo-main-title{font-size:20px!important;font-weight:950;line-height:1.35;color:#1f1f1f}.todo-sub{font-size:15.5px;line-height:1.55;color:#555;font-weight:750;margin-top:5px}.todo-card{align-items:start}.todo-direct-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.todo-direct-actions .btn{min-width:86px}.todo-one-layer-note{font-size:13px;color:var(--muted);font-weight:850;margin-top:6px}@media(max-width:860px){.todo-main-title{font-size:18px!important}.todo-sub{font-size:15px}.todo-direct-actions{justify-content:flex-start}}.reg-actions{display:flex;flex-direction:column;gap:7px;min-width:112px}.empty,.loading{background:#fff;border:1px dashed var(--line);border-radius:20px;padding:24px;text-align:center;color:var(--muted);font-weight:850}.settings-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}.settings-tile{background:#fff;border:1px solid var(--line);border-radius:20px;padding:14px;text-align:center;box-shadow:var(--shadow);min-height:110px}.settings-tile .ico{font-size:28px}.settings-tile b{display:block;margin-top:6px}.settings-tile span{display:block;margin-top:2px;color:var(--muted);font-size:12px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.form-field{display:flex;flex-direction:column;gap:5px}.form-field.full{grid-column:1/-1}.form-field label{font-size:13px;color:var(--muted);font-weight:900}.form-field input,.form-field select,.form-field textarea{width:100%;border:1px solid var(--line);border-radius:14px;background:#fff;padding:10px 12px}.form-field textarea{min-height:110px;resize:vertical}.toast{position:fixed;left:50%;bottom:calc(92px + var(--safe-bottom));transform:translateX(-50%) translateY(20px);background:#1f1f1f;color:#fff;padding:11px 15px;border-radius:999px;font-weight:850;box-shadow:var(--shadow2);opacity:0;pointer-events:none;transition:.22s;z-index:300;max-width:92vw;text-align:center}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.table-wrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:18px}.mini-table{border-collapse:collapse;width:100%;min-width:720px}.mini-table th,.mini-table td{border-bottom:1px solid #EFE6DC;padding:9px 10px;text-align:left;font-size:14px}.mini-table th{background:#FBF8F1;font-weight:950}.email-tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-top:12px}
 .email-tpl-card{display:flex;flex-direction:column;gap:6px;text-align:left;background:#fff;border:1.5px solid #EADFC8;border-radius:14px;padding:13px;cursor:pointer;font-family:inherit}
 .email-tpl-card:hover{box-shadow:0 6px 16px rgba(0,0,0,.08);transform:translateY(-1px)}
@@ -1165,7 +1180,7 @@ body{background:linear-gradient(180deg,#f9fcfc,#f4f8f9 58%,#f8fafb)!important}.t
   padding:8px!important;box-shadow:var(--shadow2)!important;
 }
 .tabs .tab{min-height:46px!important;border-radius:16px!important}
-.app{max-width:1320px!important;margin:0 auto!important;padding:14px 20px calc(112px + var(--safe-bottom))!important}
+@media(min-width:1025px){.app,.topbar-in,.panel-head-in,.panel-body{width:100%!important;max-width:none!important}.app{margin:0!important;padding:14px 24px calc(112px + var(--safe-bottom))!important}.topbar-in,.panel-head-in,.panel-body{padding-left:24px!important;padding-right:24px!important}}
 .topbar-in{max-width:1320px!important;margin:0 auto!important;padding:11px 20px!important}
 @media(max-width:860px){
   .app{padding:10px 10px calc(104px + var(--safe-bottom))!important}
@@ -2730,9 +2745,8 @@ async function openSessionSettings(sid){
   }
 }
 function featureSectionHtml(key,label,mods,bodyHtml,extraTitle=''){
-  const OFF_BY_DEFAULT = ['equipment','addons','seats','invoice'];
-  const on = OFF_BY_DEFAULT.includes(key) ? !!(mods && mods[key]===true) : !(mods && mods[key]===false);
-  return '<div class="report-card feature-card"><div class="feature-head"><label class="feature-title"><input type="checkbox" id="mod_'+key+'" onchange="toggleSessionFeatureSections()" '+(on?'checked':'')+'> '+safe(label)+'</label>'+extraTitle+'</div><div id="sec_'+key+'_body" class="feature-body '+(on?'':'off')+'">'+bodyHtml+'</div></div>';
+  const on=!!(mods&&mods[key]);
+  return '<div class="report-card feature-card"><div class="feature-head"><div class="feature-title">'+safe(label)+'</div>'+extraTitle+'</div><div id="sec_'+key+'_body" class="feature-body '+(on?'':'off')+'">'+bodyHtml+'</div></div>';
 }
 
 let AdminSessionAddonItems=[];
@@ -2919,19 +2933,38 @@ async function deleteSessionVisualAsset(sid,assetId,btn){ if(!isPlatformSuperAdm
 }
 
 
-const DOING_BUSINESS_PROFILES={
-  general:{label:'一般活動報名',review:false,timeslot:false,service:false,resource:false,participants:false,equipment:false,seats:false,addons:false,agreement:false,invoice:false,payment:true,checkin:true,quantityMode:'booking'},
-  market:{label:'市集活動',review:true,timeslot:false,service:false,resource:false,participants:false,equipment:true,seats:true,addons:true,agreement:true,invoice:true,payment:true,checkin:true,quantityMode:'stall'},
-  appointment:{label:'預約服務',review:false,timeslot:true,service:true,resource:true,participants:false,equipment:false,seats:false,addons:true,agreement:true,invoice:false,payment:true,checkin:false,quantityMode:'booking'},
-  tour:{label:'體驗／導覽',review:false,timeslot:true,service:true,resource:false,participants:true,equipment:false,seats:false,addons:true,agreement:true,invoice:true,payment:true,checkin:true,quantityMode:'participant'},
-  class:{label:'講座／課程',review:false,timeslot:true,service:true,resource:false,participants:true,equipment:false,seats:false,addons:true,agreement:true,invoice:true,payment:true,checkin:true,quantityMode:'participant'},
-  custom:{label:'自訂',review:true,timeslot:false,service:false,resource:false,participants:false,equipment:false,seats:false,addons:false,agreement:true,invoice:false,payment:true,checkin:true,quantityMode:'booking'}
+const DOING_WORKFLOW_PROFILES={
+  recruitment:{label:'招募／審核制',description:'適合攤商、表演者、志工、合作單位招募；先報名，再由主辦審核。',review:true,timeslot:false,service:false,resource:false,participants:false,equipment:false,seats:false,addons:false,agreement:true,invoice:false,payment:true,checkin:true,quantityMode:'booking'},
+  capacity:{label:'名額報名制',description:'適合講座、課程、展演及一般活動；依票種或人數控管名額。',review:false,timeslot:false,service:false,resource:false,participants:true,equipment:false,seats:false,addons:false,agreement:false,invoice:false,payment:true,checkin:true,quantityMode:'participant'},
+  timeslot:{label:'日期／時段預約制',description:'適合手作體驗、導覽、分梯次活動與預約服務。',review:false,timeslot:true,service:true,resource:false,participants:true,equipment:false,seats:false,addons:false,agreement:false,invoice:false,payment:true,checkin:true,quantityMode:'participant'},
+  custom:{label:'自訂流程',description:'從共用核心開始，自由開啟需要的功能模組。',review:false,timeslot:false,service:false,resource:false,participants:false,equipment:false,seats:false,addons:false,agreement:false,invoice:false,payment:true,checkin:true,quantityMode:'booking'}
 };
+const DOING_ACTIVITY_CATEGORIES=['市集／攤商','手作體驗','講座／課程','展演／舞台','親子活動','運動／賽事','公益／志工','預約服務','一般活動','其他'];
+const LEGACY_PROFILE_MAP={general:'capacity',market:'recruitment',appointment:'timeslot',tour:'timeslot',class:'capacity',custom:'custom'};
+function inferWorkflowProfile(src,type=''){
+  const requested=String(src.workflowMode||src.profile||'').trim();
+  if(DOING_WORKFLOW_PROFILES[requested])return requested;
+  if(LEGACY_PROFILE_MAP[requested])return LEGACY_PROFILE_MAP[requested];
+  const t=String(type||'');
+  if(t.includes('市集')||t.includes('招募'))return 'recruitment';
+  if(t.includes('體驗')||t.includes('預約')||t.includes('時段'))return 'timeslot';
+  return 'capacity';
+}
+function inferActivityCategory(src,type=''){
+  if(String(src.activityCategory||'').trim())return String(src.activityCategory).trim();
+  const t=String(type||'');
+  if(t.includes('市集'))return '市集／攤商';
+  if(t.includes('體驗'))return '手作體驗';
+  if(t.includes('講座')||t.includes('課程'))return '講座／課程';
+  if(t.includes('預約'))return '預約服務';
+  return '一般活動';
+}
 function normalizeBusinessModules(raw,type=''){
   const src=(raw&&typeof raw==='object'&&!Array.isArray(raw))?raw:{};
-  let profile=src.profile||((String(type).includes('市集'))?'market':'general');
-  if(!DOING_BUSINESS_PROFILES[profile])profile='general';
-  const out={...DOING_BUSINESS_PROFILES[profile],...src,profile};
+  const workflowMode=inferWorkflowProfile(src,type);
+  const base=DOING_WORKFLOW_PROFILES[workflowMode]||DOING_WORKFLOW_PROFILES.custom;
+  const out={...base,...src,workflowMode,profile:workflowMode,activityCategory:inferActivityCategory(src,type)};
+  ['review','timeslot','service','resource','participants','equipment','seats','addons','agreement','invoice','payment','checkin'].forEach(k=>{out[k]=Object.prototype.hasOwnProperty.call(src,k)?!!src[k]:!!base[k]});
   out.services=Array.isArray(out.services)?out.services:[];
   out.resources=Array.isArray(out.resources)?out.resources:[];
   out.participantTypes=Array.isArray(out.participantTypes)?out.participantTypes:[];
@@ -2950,10 +2983,10 @@ function parseModuleLines(text,prefix){
   });
 }
 function profileOptions(cur){
-  return Object.entries(DOING_BUSINESS_PROFILES).map(([k,v])=>'<option value="'+k+'" '+(k===cur?'selected':'')+'>'+safe(v.label)+'</option>').join('');
+  return Object.entries(DOING_WORKFLOW_PROFILES).map(([k,v])=>'<option value="'+k+'" '+(k===cur?'selected':'')+'>'+safe(v.label)+'</option>').join('');
 }
 function applyBusinessProfile(){
-  const p=DOING_BUSINESS_PROFILES[$('set_moduleProfile').value]||DOING_BUSINESS_PROFILES.custom;
+  const p=DOING_WORKFLOW_PROFILES[$('set_moduleProfile').value]||DOING_WORKFLOW_PROFILES.custom;
   const set=(id,v)=>{const e=$(id);if(e)e.checked=!!v};
   set('mod_review',p.review);set('mod_timeslot',p.timeslot);set('mod_service',p.service);set('mod_resource',p.resource);set('mod_participants',p.participants);
   set('mod_equipment',p.equipment);set('mod_seats',p.seats);set('mod_addons',p.addons);set('mod_agreement',p.agreement);set('mod_invoice',p.invoice);set('mod_payment',p.payment);set('mod_checkin',p.checkin);
@@ -2967,18 +3000,20 @@ function syncBusinessModuleUi(){
   if(on('mod_resource'))$('resourceCfg')?.classList.remove('hidden');
   if(on('mod_participants'))$('participantCfg')?.classList.remove('hidden');
   if(on('mod_i18n'))$('i18nCfg')?.classList.remove('hidden');
+  toggleSessionFeatureSections();
 }
 function businessModuleEditorHtml(mods,type){
   const m=normalizeBusinessModules(mods,type);
   const ck=k=>m[k]?'checked':'';
+  const categoryOptions=DOING_ACTIVITY_CATEGORIES.map(x=>'<option value="'+attr(x)+'" '+(x===m.activityCategory?'selected':'')+'>'+safe(x)+'</option>').join('');
   const tr=m.i18n.translations||{};
   const en=tr.en||{},ja=tr.ja||{},ko=tr.ko||{};
   return '<div class="report-card module-config-card"><div class="report-title">報名模式與功能模組</div>'
    +'<div class="notice">DOING 以通用報名流程為核心；不同主辦只開啟需要的模組，不建立客製分支。</div>'
-   +'<div class="form-grid"><div class="form-field"><label>報名範本</label><select id="set_moduleProfile" onchange="applyBusinessProfile()">'+profileOptions(m.profile)+'</select></div>'
+   +'<div class="form-grid"><div class="form-field"><label>報名流程</label><select id="set_moduleProfile" onchange="applyBusinessProfile()">'+profileOptions(m.workflowMode)+'</select><div class="sub">只決定預設開啟哪些模組，建立後仍可自由調整。</div></div><div class="form-field"><label>活動分類</label><select id="set_activityCategory">'+categoryOptions+'</select><div class="sub">僅用於顯示、搜尋與範本，不綁死功能。</div></div>'
    +'<div class="form-field"><label>數量模式</label><select id="set_quantityMode"><option value="stall" '+(m.quantityMode==='stall'?'selected':'')+'>攤位／單位數</option><option value="booking" '+(m.quantityMode==='booking'?'selected':'')+'>單筆預約</option><option value="participant" '+(m.quantityMode==='participant'?'selected':'')+'>參加人數</option></select></div></div>'
    +'<div class="module-toggle-grid">'
-   +[['review','審核'],['timeslot','日期／時段'],['service','服務項目'],['resource','指定人員／資源'],['participants','票種／人數'],['payment','付款'],['checkin','報到'],['i18n','多語言']].map(([k,l])=>'<label class="module-toggle"><input type="checkbox" id="mod_'+k+'" '+ck(k)+' onchange="syncBusinessModuleUi()"> <span>'+l+'</span></label>').join('')
+   +[['review','審核'],['timeslot','日期／時段'],['service','服務項目'],['resource','指定人員／資源'],['participants','票種／人數'],['equipment','設備'],['seats','選位／位置'],['addons','加購'],['agreement','合約'],['invoice','發票'],['payment','付款'],['checkin','報到'],['i18n','多語言']].map(([k,l])=>'<label class="module-toggle"><input type="checkbox" id="mod_'+k+'" '+ck(k)+' onchange="syncBusinessModuleUi()"> <span>'+l+'</span></label>').join('')
    +'</div>'
    +'<div id="serviceCfg" class="'+(m.service?'':'hidden')+'"><h4>服務項目</h4><div class="sub">每行：代碼｜名稱｜加價。例如 nail01｜單色凝膠｜1200</div><textarea id="set_services" style="min-height:110px">'+safe(moduleLines(m.services))+'</textarea></div>'
    +'<div id="resourceCfg" class="'+(m.resource?'':'hidden')+'"><h4>指定人員／資源</h4><div class="sub">每行：代碼｜名稱｜加價。例如 staff01｜A 美甲師｜0</div><textarea id="set_resources" style="min-height:100px">'+safe(moduleLines(m.resources))+'</textarea></div>'
@@ -3014,7 +3049,9 @@ function collectBusinessModules(existing={}){
   if(on('mod_i18n')){translations.en=pack('en');translations.ja=pack('ja');translations.ko=pack('ko');}
   return {
     ...m,
-    profile:$('set_moduleProfile')?.value||m.profile,
+    workflowMode:$('set_moduleProfile')?.value||m.workflowMode,
+    profile:$('set_moduleProfile')?.value||m.workflowMode,
+    activityCategory:$('set_activityCategory')?.value||m.activityCategory,
     quantityMode:$('set_quantityMode')?.value||m.quantityMode,
     review:on('mod_review'),timeslot:on('mod_timeslot'),service:on('mod_service'),resource:on('mod_resource'),
     participants:on('mod_participants'),equipment:on('mod_equipment'),seats:on('mod_seats'),addons:on('mod_addons'),
@@ -4183,31 +4220,20 @@ async function uploadCoverFile(input){
   finally{ input.value=''; }
 }
 function newSessionFull(){
-  openPanel('建立新的報名／活動','先選最接近的報名模式；建立後仍可自由開關需要的模組。',
+  openPanel('建立新的報名／活動','先選報名流程。活動分類與功能模組可在建立後調整，不會產生另一套系統。',
     '<div class="business-template-grid">'
-    +Object.entries(DOING_BUSINESS_PROFILES).map(([k,v])=>{
-      const desc={general:'一般活動、展演、社群活動等標準報名',market:'市集／攤商報名、設備、選位、審核',tour:'體驗／導覽、梯次與參加人數',class:'講座、課程、工作坊',appointment:'時段型報名／一對一服務（選配模式）',custom:'從空白模組開始'}[k]||'';
-      return '<button class="business-template" onclick="createSessionFromProfile(\''+k+'\',this)"><b>'+safe(v.label)+'</b><span>'+safe(desc)+'</span></button>';
-    }).join('')
+    +Object.entries(DOING_WORKFLOW_PROFILES).map(([k,v])=>'<button class="business-template" onclick="createSessionFromProfile(\''+k+'\',this)"><b>'+safe(v.label)+'</b><span>'+safe(v.description||'')+'</span></button>').join('')
     +'</div>');
 }
-async function createSessionFromProfile(profile,btn){
-  const p=DOING_BUSINESS_PROFILES[profile]||DOING_BUSINESS_PROFILES.general;
-  const map={
-    general:{entry:'活動報名',type:'活動報名'},
-    market:{entry:'市集報名',type:'市集場次'},
-    appointment:{entry:'預約服務',type:'預約服務'},
-    tour:{entry:'體驗活動',type:'體驗活動'},
-    class:{entry:'講座／課程',type:'講座／課程'},
-    custom:{entry:'合作洽詢',type:'活動報名'}
-  }[profile]||{entry:'活動報名',type:'活動報名'};
+async function createSessionFromProfile(workflowMode,btn){
+  const p=DOING_WORKFLOW_PROFILES[workflowMode]||DOING_WORKFLOW_PROFILES.custom;
   const old=btn?.textContent||'';if(btn){btn.disabled=true;btn.textContent='建立中…'}
   try{
-    const modules={...p,profile,services:[],resources:[],participantTypes:[],depositKind:'none',i18n:{enabled:false,languages:['zh-TW'],translations:{}}};
-    const res=await apiPost({action:'createSession',name:'未命名'+p.label,type:map.type,portals:[map.entry],fee:0,deposit:0,needReview:!!p.review,modules});
+    const modules={...p,workflowMode,profile:workflowMode,activityCategory:'一般活動',services:[],resources:[],participantTypes:[],depositKind:'none',i18n:{enabled:false,languages:['zh-TW'],translations:{}}};
+    const res=await apiPost({action:'createSession',name:'未命名活動',type:'一般活動',portals:['活動報名'],fee:0,deposit:0,needReview:!!p.review,modules});
     const id=res&&res.id;if(!id)throw new Error('建立失敗');
     try{await apiPost({action:'toggleSessionStatus',sessionId:id,status:'關閉'})}catch(_e){}
-    await refreshSessionsOverview();openSessionSettings(id);toast('已建立「'+p.label+'」，請完成設定',2600);
+    await refreshSessionsOverview();openSessionSettings(id);toast('已建立「'+p.label+'」，請設定活動分類與模組',3000);
   }catch(e){toast('建立失敗：'+e.message,6000)}
   finally{if(btn){btn.disabled=false;btn.textContent=old}}
 }
