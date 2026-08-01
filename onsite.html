@@ -1,186 +1,32 @@
-<!-- FULL_FLOW_FIX_20260721：現場報到／撤場／押金／通行碼統一入口 -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>2BL 現場管理｜20260721全流程修復版 v2</title>
-  <style>
-    :root{
-      --bg:#f7f4ee; --card:#fffdf8; --text:#222; --muted:#6b6b6b;
-      --line:#e8dfd0; --main:#82ABA3; --soft:#D4E3DD; --warn:#FAE1DD; --yellow:#FAEEC7;
-      --ok:#DDEAD1; --blue:#D9E5EE; --shadow:0 8px 24px rgba(0,0,0,.08);
-      --radius:18px;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","Segoe UI",sans-serif;font-size:17px;line-height:1.55}
-    header{position:sticky;top:0;z-index:5;background:rgba(247,244,238,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-    .bar{max-width:980px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;gap:12px;justify-content:space-between}
-    .brand{font-weight:900;font-size:20px}.sub{font-size:13px;color:var(--muted)}
-    main{max-width:980px;margin:0 auto;padding:16px 14px 90px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin:12px 0}
-    .login{min-height:55vh;display:grid;place-items:center}.login .card{max-width:440px;width:100%;text-align:center}
-    button,.btn{border:0;border-radius:999px;padding:10px 15px;background:var(--main);color:#fff;font-weight:800;font-size:15px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
-    button.secondary{background:#fff;color:#333;border:1px solid var(--line)}
-    button.danger{background:#d36b60} button.warn{background:#b9823b} button:disabled{opacity:.45;cursor:not-allowed}
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}.stat b{display:block;font-size:22px}.stat span{color:var(--muted);font-size:13px}
-    .session{display:grid;gap:10px}.session-title{font-weight:900;font-size:18px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.tag{display:inline-flex;align-items:center;border-radius:999px;padding:4px 9px;font-size:13px;font-weight:800;background:var(--blue)}.tag.ok{background:var(--ok)}.tag.warn{background:var(--yellow)}.tag.bad{background:var(--warn)}
-    /* 場次小卡：電腦版並排，手機自動單欄 */
-    .session-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;align-items:start}
-    .session-grid .card{margin:0;padding:14px}
-    .session-grid .session-title{font-size:17px}
-    .session-grid .stat{padding:9px;border-radius:12px}
-    .session-grid .stat b{font-size:17px}
-    .session-grid .stat span{font-size:12px}
-    .session-grid .tag{font-size:12px;padding:3px 8px}
-    @media(min-width:1100px){ main{max-width:1200px} .bar{max-width:1200px} }
-    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.toolbar input,.toolbar select,textarea{width:100%;border:1px solid var(--line);border-radius:14px;padding:11px 12px;font-size:16px;background:#fff}.toolbar input{flex:1;min-width:180px}.toolbar select{width:auto;min-width:150px}
-    .reg{border:1px solid var(--line);border-radius:16px;background:#fff;padding:14px;margin:10px 0;display:grid;grid-template-columns:1fr 110px;gap:0 14px;align-items:start}.reg h3{margin:0 0 8px;font-size:20px}.reg-left{grid-column:1}.reg-actions{grid-column:2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;min-width:0}
-.reg-actions button{width:100%;min-width:0;white-space:nowrap;font-size:16px;padding:10px 6px}.kv{display:grid;grid-template-columns:88px 1fr;gap:4px 10px;font-size:16px}.kv .k{color:var(--muted)}.noteBox{display:none;margin-top:10px}.empty{text-align:center;color:var(--muted);padding:30px 10px}.err{background:var(--warn);border:1px solid #efb8ad;color:#8b2d24;border-radius:14px;padding:12px;margin:12px 0}.okmsg{background:var(--ok);border:1px solid #b7d1aa;color:#315225;border-radius:14px;padding:12px;margin:12px 0}.hidden{display:none!important}
-    @media(max-width:680px){.grid{grid-template-columns:repeat(2,1fr)}.bar{align-items:flex-start}.kv{grid-template-columns:80px 1fr}.reg{grid-template-columns:1fr 100px;gap:0 10px}.reg-actions{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.toolbar select{width:100%}}
-  </style>
-<link rel="icon" type="image/jpeg" href="https://raw.githubusercontent.com/ndiangrace-create/2bL/main/logo.jpg"><link rel="apple-touch-icon" href="https://raw.githubusercontent.com/ndiangrace-create/2bL/main/logo.jpg"></head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DOING｜現場工作台</title>
+<style>
+:root{--ink:#17313A;--muted:#5D747C;--line:#D9E7EA;--main:#169DA3;--bg:#F4F8FA;--ok:#238B67;--bad:#C85C50}
+*{box-sizing:border-box}html,body{margin:0;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Noto Sans TC","Segoe UI",sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden}
+button,input{font:inherit}button{min-height:46px;border:0;border-radius:14px;padding:10px 14px;font-weight:900;background:var(--main);color:#fff}button.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}button.danger{background:var(--bad)}
+.login{min-height:100vh;display:grid;place-items:center;padding:16px}.loginbox{width:min(440px,100%);background:#fff;border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:0 18px 50px rgba(23,49,58,.12)}.loginbox h1{margin:0 0 6px;font-size:25px}.sub{color:var(--muted)}.field{display:grid;gap:6px;margin-top:13px}.field label{font-weight:900}.field input{width:100%;min-height:48px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:17px}.hidden{display:none!important}
+header{position:sticky;top:0;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);z-index:5}.head{max-width:980px;margin:auto;padding:10px 12px;display:flex;justify-content:space-between;gap:10px;align-items:center}main{max-width:980px;margin:auto;padding:12px 12px 100px}.hero,.summary,.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 24px rgba(23,49,58,.06)}.hero{padding:14px}.hero h2{margin:0;font-size:22px}.workbar{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px}.workbar input{min-width:0;border:1px solid var(--line);border-radius:14px;padding:11px;font-size:17px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:9px;margin:10px 0}.sum{padding:9px;border-radius:13px;background:#F6FAFB}.sum span{display:block;color:var(--muted)}.sum b{font-size:22px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px}.card{padding:13px}.card h3{margin:0;font-size:19px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.meta div{background:#F7FAFB;border-radius:12px;padding:8px;word-break:break-word}.meta small{display:block;color:var(--muted)}.actions{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:10px}.empty{padding:24px;text-align:center;background:#fff;border:1px dashed var(--line);border-radius:16px;color:var(--muted)}.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:grid;place-items:center;padding:14px;z-index:20}.modalbox{width:min(430px,100%);background:#fff;border-radius:20px;padding:16px}.checks{display:grid;gap:9px;margin:12px 0}.checks label{font-size:17px}.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#17313A;color:#fff;padding:10px 14px;border-radius:999px;display:none;z-index:30}@media(max-width:600px){.grid{grid-template-columns:1fr}.head{align-items:flex-start}.workbar{grid-template-columns:1fr}.actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style></head>
 <body>
-<header>
-  <div class="bar">
-    <div><div class="brand">2BL 現場管理</div><div class="sub" id="who">Google 登入或 4 位通行碼｜20260721全流程修復版 v2</div></div>
-    <button class="secondary" id="logoutBtn" onclick="logout()" style="display:none">登出</button>
-  </div>
-</header>
-<main>
-  <section id="loginView" class="login">
-    <div class="card">
-      <h1>現場管理入口</h1>
-      <p class="sub">此頁只顯示授權場次與該場名單，不進入完整後台。</p>
-      <a class="btn" id="googleLogin" href="#">使用 Google 登入</a><div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line)"><p class="sub" style="margin:0 0 8px">現場人員：輸入 4 位通行碼（免登入）</p><input id="pcInput" inputmode="numeric" maxlength="4" placeholder="4 位數字" style="text-align:center;font-size:26px;letter-spacing:10px;width:100%;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff" onkeydown="if(event.key===&quot;Enter&quot;)enterByPasscode()" /><button class="btn" style="margin-top:10px;width:100%" onclick="enterByPasscode()">進入現場</button></div>
-      <div id="loginErr" class="err hidden"></div>
-    </div>
-  </section>
-
-  <section id="appView" class="hidden">
-    <div id="msg"></div>
-    <section id="sessionsView">
-      <div class="card">
-        <div class="row" style="justify-content:space-between">
-          <div><h2 style="margin:0">我的場次</h2><div class="sub">只列出此帳號被授權的場次</div></div>
-          <button class="secondary" onclick="loadSessions()">重新整理</button>
-        </div>
-      </div>
-      <div id="sessionsList" class="session-grid"></div>
-    </section>
-
-    <section id="regsView" class="hidden">
-      <div class="card">
-        <button class="secondary" id="backBtn" onclick="backToSessions()">← 回我的場次</button>
-        <h2 id="sessionTitle" style="margin-bottom:0"></h2>
-        <div class="sub" id="sessionSub"></div>
-        <div class="toolbar">
-          <input id="kw" placeholder="搜尋品牌、姓名、手機、Email" oninput="renderRegs()" />
-          <select id="filter" onchange="renderRegs()">
-            <option value="all">全部名單</option>
-            <option value="canCheckin">可報到</option>
-            <option value="checked">已報到</option>
-            <option value="notChecked">未報到</option>
-            <option value="issue">特殊／退費標記</option>
-          </select>
-        </div>
-      </div>
-      <div id="regsList"></div>
-    </section>
-  </section>
-</main>
+<section id="login" class="login"><div class="loginbox"><h1>DOING 現場工作台</h1><div class="sub">輸入場次通行碼，系統會自動判斷場次。</div><div class="field"><label>場次通行碼</label><input id="code" inputmode="numeric" maxlength="4" placeholder="4 位數字"></div><div class="field"><label>操作人員姓名</label><input id="operator" placeholder="請輸入真實姓名"></div><button style="width:100%;margin-top:14px" onclick="startWork()">開始工作</button><div id="loginErr" class="sub" style="margin-top:10px"></div></div></section>
+<section id="app" class="hidden"><header><div class="head"><div><b>DOING｜現場工作台</b><div id="who" class="sub"></div></div><button class="danger" onclick="endWork()">結束工作</button></div></header><main><section class="hero"><h2 id="sessionName">場次</h2><div class="sub">只顯示本場已繳費、今天應出席的名單。</div><div class="workbar"><input id="search" placeholder="搜尋品牌／姓名／電話" oninput="render()"><button class="secondary" onclick="loadRows()">重新整理</button></div></section><div id="summary" class="summary"></div><div id="list" class="grid"><div class="empty">載入中…</div></div></main></section>
+<div id="modal" class="modal hidden"><div class="modalbox"><h3 id="modalTitle">現場操作</h3><div id="modalBody"></div><div class="actions"><button onclick="submitModal()">儲存</button><button class="secondary" onclick="closeModal()">取消</button></div></div></div><div id="toast" class="toast"></div>
 <script>
-const API='https://2bl-v7.ndiangrace.workers.dev';
-const TENANT='tuibile';
-const LS_TOKEN='2bl_onsite_admin_token';
-const LS_EMAIL='2bl_onsite_email';
-const LS_OPERATOR='2bl_onsite_operator';
-let token='', email='', me=null, sessions=[], regs=[], currentSession=null;
-let passcode='', operatorName='';
-function $(id){return document.getElementById(id)}
-function money(n){return 'NT$ '+(Number(n)||0).toLocaleString('zh-TW')}
-function dt(v){if(!v)return '—'; try{return new Date(v).toLocaleString('zh-TW',{hour12:false})}catch(e){return v}}
-function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-function equipText(v){let o=v; if(typeof o==='string'){try{o=JSON.parse(o||'{}')}catch(e){o={}}} const arr=[]; Object.keys(o||{}).forEach(k=>{const n=Number(o[k]); if(n>0) arr.push(`${k} × ${n}`)}); return arr.length?arr.join('、'):'—'}
-function showMsg(t,type='ok'){ $('msg').innerHTML=t?`<div class="${type==='err'?'err':'okmsg'}">${esc(t)}</div>`:''; if(t) setTimeout(()=>$('msg').innerHTML='',2600)}
-async function apiGet(action, extra={}){const u=new URL(API); u.searchParams.set('action',action); u.searchParams.set('tenant',TENANT); u.searchParams.set('token',token); u.searchParams.set('email',email||'_'); if(passcode) u.searchParams.set('passcode',passcode); Object.entries(extra).forEach(([k,v])=>u.searchParams.set(k,v)); const r=await fetch(u); const j=await r.json().catch(()=>null); if(!r.ok||j?.ok===false) throw new Error(j?.error||j?.message||'API 錯誤'); return j.data!==undefined?j.data:j}
-async function apiPost(action, body={}){const r=await fetch(API+'?action='+encodeURIComponent(action),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,tenant:TENANT,token,email:email||'_',passcode})}); const j=await r.json().catch(()=>null); if(!r.ok||j?.ok===false) throw new Error(j?.error||j?.message||'API 錯誤'); return j.data!==undefined?j.data:j}
-function logout(){localStorage.removeItem(LS_TOKEN);localStorage.removeItem(LS_EMAIL);localStorage.removeItem(LS_OPERATOR);location.href='onsite.html'}
-function ensureOperatorName(){ let n=(localStorage.getItem(LS_OPERATOR)||'').trim(); while(!n){ n=(prompt('請輸入你的名字（現場報到記錄用，只需填一次）：')||'').trim(); } localStorage.setItem(LS_OPERATOR,n); operatorName=n; return n; }
-function changeOperatorName(){ const n=(prompt('換人操作？輸入新的名字：',operatorName||'')||'').trim(); if(!n) return; localStorage.setItem(LS_OPERATOR,n); operatorName=n; if(passcode){ $('who').textContent='現場碼｜操作人：'+n+(currentSession&&currentSession.name?'｜'+currentSession.name:''); } showMsg('已切換操作人：'+n); }
-async function enterByPasscode(){ const code=($('pcInput').value||'').trim(); if(!/^\d{4}$/.test(code)){ $('loginErr').textContent='請輸入 4 位數字通行碼'; $('loginErr').classList.remove('hidden'); return; } try{ const r=await apiGet('onsitePasscodeVerify',{code}); passcode=code; email='_'; const who=ensureOperatorName(); $('who').innerHTML=esc('現場碼｜操作人：'+who+(r.sessionName?'｜'+r.sessionName:''))+' <a href="javascript:void(0)" onclick="changeOperatorName()" style="text-decoration:underline">換人</a>'; $('logoutBtn').style.display='inline-flex'; $('loginView').classList.add('hidden'); $('appView').classList.remove('hidden'); $('sessionsView').classList.add('hidden'); const bb=$('backBtn'); if(bb) bb.style.display='none'; currentSession={id:r.sessionId,name:r.sessionName}; await openSession(r.sessionId); }catch(e){ $('loginErr').textContent=e.message; $('loginErr').classList.remove('hidden'); } }
-function handleCallback(){const u=new URL(location.href); const t=u.searchParams.get('admin_token'); const tenant=u.searchParams.get('tenant'); const err=u.searchParams.get('login_error'); if(err){$('loginErr').textContent='登入失敗：'+err; $('loginErr').classList.remove('hidden')} if(t){localStorage.setItem(LS_TOKEN,t); if(tenant)localStorage.setItem('2bl_onsite_tenant',tenant); history.replaceState({},'',location.pathname);}}
-async function boot(){handleCallback(); token=localStorage.getItem(LS_TOKEN)||''; $('googleLogin').href=API+'/auth/google/unified/start?tenant='+encodeURIComponent(TENANT)+'&next=onsite'; if(!token){$('loginView').classList.remove('hidden');return} try{me=await apiGet('adminMe',{email:'_'}); email=me.email; localStorage.setItem(LS_EMAIL,email); $('who').textContent=`${me.display_name||me.email}｜${me.role||''}`; $('logoutBtn').style.display='inline-flex'; $('loginView').classList.add('hidden'); $('appView').classList.remove('hidden'); await loadSessions();}catch(e){localStorage.removeItem(LS_TOKEN); $('loginView').classList.remove('hidden'); $('loginErr').textContent=e.message; $('loginErr').classList.remove('hidden')}}
-async function loadSessions(){try{sessions=await apiGet('onsiteSessions'); renderSessions()}catch(e){showMsg(e.message,'err')}}
-function renderSessions(){const box=$('sessionsList'); if(!sessions.length){box.innerHTML='<div class="card empty" style="grid-column:1/-1">目前沒有可報到的場次<br><span style="font-size:14px;color:var(--muted)">（僅顯示有已繳費名單、且未封存的場次）</span></div>';return} box.innerHTML=sessions.map(s=>`<div class="card session" onclick="openSession('${esc(s.id)}')"><div class="session-title">${esc(s.name)}</div><div class="row"><span class="tag">全部 ${s.total||0}</span><span class="tag ok">可報到 ${s.payable||0}</span><span class="tag">已報到 ${s.checkedIn||0}</span><span class="tag warn">攤位 ${s.stallCount||0}</span>${s.refundFlag?`<span class="tag bad">退費 ${s.refundFlag}</span>`:''}</div><div class="grid"><div class="stat"><b>${money(s.paidAmount||0)}</b><span>已繳金額</span></div><div class="stat"><b>${money(s.depositTotal||0)}</b><span>押金</span></div><div class="stat"><b>${s.approved||0}</b><span>已錄取</span></div></div><button>查看名單</button></div>`).join('')}
-async function openSession(id){const found=sessions.find(s=>String(s.id)===String(id)); currentSession=found||currentSession||{id,name:''}; $('sessionsView').classList.add('hidden'); $('regsView').classList.remove('hidden'); $('sessionTitle').textContent=currentSession.name; $('sessionSub').textContent='載入名單中…'; try{regs=await apiGet('onsiteRegs',{sessionId:id}); $('sessionSub').textContent=`全部 ${regs.length} 筆｜可報到 ${regs.filter(canCheckin).length} 筆`; renderRegs()}catch(e){showMsg(e.message,'err')}}
-function backToSessions(){ if(passcode) return; currentSession=null; regs=[]; $('regsView').classList.add('hidden'); $('sessionsView').classList.remove('hidden')}
-function canCheckin(r){return r.status==='已錄取' && (String(r.payStatus).includes('已繳費') || r.payStatus==='免費') && !String(r.transferStatus||'').includes('退費')}
-function filteredRegs(){const kw=$('kw').value.trim().toLowerCase(); const f=$('filter').value; return regs.filter(r=>{const hay=[r.brand,r.name,r.phone,r.email].join(' ').toLowerCase(); if(kw&&!hay.includes(kw))return false; if(f==='canCheckin')return canCheckin(r); if(f==='checked')return r.checkin==='已報到'; if(f==='notChecked')return r.checkin!=='已報到'; if(f==='issue')return String(r.adminNote||'').includes('特殊')||String(r.transferStatus||'').includes('退費'); return true})}
-function renderRegs(){
-  const box=$('regsList');
-  const list=filteredRegs();
-  // 退費總計（整場待退：未退押金 + 退部分天待退）——資料全部來自資料庫的 regs
-  let totDeposit=0, totPartial=0;
-  regs.forEach(r=>{ const dr=String(r.depositRefunded||''); if(Number(r.deposit||0)>0 && dr!=='已退押金' && dr!=='押金沒收') totDeposit+=Number(r.deposit||0); if(dr!=='已退押金') totPartial+=Number(r.pendingPartialRefund||0); });
-  const totalHtml=`<div class="card" style="background:#fff8ed;border:1.5px solid #f5d7a1"><b style="font-size:18px">💰 退費總計：${money(totDeposit+totPartial)}</b><div class="sub" style="font-size:14px">要帶的現金＝待退押金 ${money(totDeposit)}＋退部分天 ${money(totPartial)}</div></div>`;
-  if(!list.length){box.innerHTML=totalHtml+'<div class="card empty">沒有符合條件的名單</div>';return}
-  box.innerHTML=totalHtml+list.map(r=>{
-    const hasDeposit = Number(r.deposit||0) > 0;
-    const depositDone = r.depositRefunded==='已退押金'||r.depositRefunded==='押金沒收';
-    const depositTag = hasDeposit
-      ? `<span class="tag ${r.depositRefunded==='已退押金'?'ok':r.depositRefunded==='押金沒收'?'bad':'warn'}">${esc(r.depositRefunded||'未退押金')}</span>`
-      : '';
-    return `<div class="reg">
-      <div class="reg-left">
-        <h3>${esc(r.brand||'未填品牌')}</h3>
-        <div class="row" style="margin-bottom:8px">
-          <span class="tag ${canCheckin(r)?'ok':'bad'}">${esc(r.status||'')}</span>
-          <span class="tag ${String(r.payStatus).includes('已繳費')||r.payStatus==='免費'?'ok':'warn'}">${esc(r.payStatus)}</span>
-          <span class="tag ${r.checkin==='已報到'?'ok':''}">${esc(r.checkin||'未報到')}</span>
-          <span class="tag ${r.teardown==='已撤場'?'ok':''}">${esc(r.teardown||'未撤場')}</span>
-          ${r.violation?`<span class="tag bad">違規：${esc(r.violation)}</span>`:''}
-          ${depositTag}
-          ${r.transferStatus?`<span class="tag bad">${esc(r.transferStatus)}</span>`:''}
-        </div>
-        <div class="kv">
-          <div class="k">聯絡人</div><div>${esc(r.name)}｜${esc(r.phone)}</div>
-          <div class="k">已繳金額</div><div>${money(r.amount||r.totalAmount||0)}</div>
-          <div class="k">付款時間</div><div>${dt(r.paidAt)}</div>
-          <div class="k">攤位數</div><div>${r.stallCount||1}</div>
-          <div class="k">加租設備</div><div>${esc(equipText(r.equip))}</div>
-          <div class="k">押金</div><div>${money(r.deposit||0)}　${esc(r.depositRefunded||'未退押金')}</div>
-          ${Number(r.pendingPartialRefund||0)>0?`<div class="k">退部分天（待退）</div><div>${money(r.pendingPartialRefund)}${r.pendingPartialNote?`　<span style="font-size:13px;color:#8a6d3b">${esc(r.pendingPartialNote)}</span>`:''}</div><div class="k">現場共退</div><div><b>${money((String(r.depositRefunded||'')!=='已退押金'&&String(r.depositRefunded||'')!=='押金沒收'?Number(r.deposit||0):0)+(String(r.depositRefunded||'')!=='已退押金'?Number(r.pendingPartialRefund||0):0))}</b></div>`:''}
-          <div class="k">備註</div><div>${esc(r.adminNote||'—')}</div>
-        </div>
-      </div>
-      <div class="reg-actions">
-        <button onclick="mark('${esc(r.id)}','checkin')" ${canCheckin(r)&&r.checkin!=='已報到'?'':'disabled'}>報到</button>
-        <button class="secondary" onclick="mark('${esc(r.id)}','undoCheckin')" ${r.checkin==='已報到'?'':'disabled'}>取消報到</button>
-        <button class="secondary" onclick="mark('${esc(r.id)}','noShow')">未到</button>
-        <button class="warn" onclick="mark('${esc(r.id)}','lateFlag')">遲到</button>
-        <button class="warn" onclick="mark('${esc(r.id)}','ruleFlag')">不遵守規定</button>
-        <button class="warn" onclick="mark('${esc(r.id)}','earlyFlag')">早退</button>
-        <button onclick="mark('${esc(r.id)}','teardownDone')" ${r.teardown==='已撤場'?'disabled':''}>已撤場</button>
-        <button class="secondary" onclick="mark('${esc(r.id)}','teardownUndo')" ${r.teardown==='已撤場'?'':'disabled'}>未撤場</button>
-        ${!hasDeposit?`<button disabled title="本場未收押金">退押金（無押金）</button>`:''}
-        ${hasDeposit?`<button onclick="mark('${esc(r.id)}','depositRefund')" ${r.depositRefunded==='已退押金'?'disabled':''}>退押金</button><button class="secondary" onclick="mark('${esc(r.id)}','depositUnrefund')" ${r.depositRefunded==='已退押金'?'':'disabled'}>未退</button>${passcode?'':`<button class="danger" onclick="mark('${esc(r.id)}','depositForfeited')">沒收押金</button>`}`:''}
-        <button class="secondary" onclick="mark('${esc(r.id)}','note')">特殊備註</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-async function mark(id,mode){
-  const needNote=['refundFlag','noShow','depositForfeited','note'];
-  const confirmMsgs={
-    depositRefund:'確認退還押金給攤商？',
-    depositForfeited:'確認沒收押金（違約）？押金將轉為收入。'
-  };
-  if(confirmMsgs[mode] && !confirm(confirmMsgs[mode])) return;
-  const note=needNote.includes(mode)?prompt('可輸入現場備註（可留空）',''):'';
-  try{await apiPost('onsiteMark',{regId:id,mode,note,operatorName}); showMsg('已更新'); if(currentSession) await openSession(currentSession.id)}catch(e){showMsg(e.message,'err')}
-}
-boot();
-</script>
-</body>
-</html>
+const API='https://tobeloved-api.ndiangrace.workers.dev',$=id=>document.getElementById(id);const S={tenant:new URL(location.href).searchParams.get('tenant')||'',code:'',operator:'',sessionId:'',sessionName:'',shiftId:'',rows:[],modal:null};
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+async function post(action,p={}){const body={action,tenant:S.tenant||undefined,passcode:S.code,code:S.code,operatorName:S.operator,...p};const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json();if(!r.ok||j.error)throw Error(j.error||'操作失敗');return j}
+async function get(action,p={}){const q=new URLSearchParams({action,tenant:S.tenant,passcode:S.code,email:'_',token:'_',...p});const r=await fetch(API+'?'+q);const j=await r.json();if(!r.ok||j.error)throw Error(j.error||'讀取失敗');return j}
+function toast(t){const x=$('toast');x.textContent=t;x.style.display='block';setTimeout(()=>x.style.display='none',2200)}
+async function startWork(){S.code=$('code').value.trim();S.operator=$('operator').value.trim();if(!/^\d{4}$/.test(S.code)){loginErr.textContent='請輸入 4 位數字通行碼';return}if(!S.operator){loginErr.textContent='請輸入操作人員姓名';return}try{const v=await post('onsitePasscodeVerify',{code:S.code});S.sessionId=v.sessionId;S.sessionName=v.sessionName;const sh=await post('onsiteShiftStart',{code:S.code,operatorName:S.operator});S.shiftId=sh.shiftId;$('sessionName').textContent=S.sessionName;$('who').textContent=S.operator+'｜開始 '+new Date(sh.startedAt).toLocaleString('zh-TW');$('login').classList.add('hidden');$('app').classList.remove('hidden');await loadRows()}catch(e){$('loginErr').textContent=e.message}}
+async function loadRows(){try{const r=await get('onsiteRegs',{sessionId:S.sessionId});S.rows=Array.isArray(r)?r:(r.rows||[]);render()}catch(e){$('list').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}}
+function render(){const kw=$('search').value.trim().toLowerCase();let rows=S.rows.filter(r=>((r.brand||'')+(r.name||'')+(r.phone||'')).toLowerCase().includes(kw));const checked=S.rows.filter(r=>String(r.checkinStatus||'').includes('已報到')).length;$('summary').innerHTML='<div class="sum"><span>應出席</span><b>'+S.rows.length+'</b></div><div class="sum"><span>已報到</span><b>'+checked+'</b></div><div class="sum"><span>未完成</span><b>'+(S.rows.length-checked)+'</b></div>';$('list').innerHTML=rows.length?rows.map(r=>`<article class="card"><h3>${esc(r.brand||r.name)}</h3><div class="sub">${esc(r.name)}｜${esc(r.phone)}</div><div class="meta"><div><small>位置</small>${esc(r.stallNo||'—')}</div><div><small>設備</small>${esc(r.equipmentText||'設備自備')}</div><div><small>報到</small>${esc(r.checkinStatus||'未報到')}</div><div><small>押金</small>${esc(r.depositStatus||'未退押金')}</div></div><div class="actions"><button onclick="mark('${r.id}','checkin')">報到</button><button class="secondary" onclick="openAttendance('${r.id}','lateFlag')">遲到</button><button class="secondary" onclick="openAttendance('${r.id}','noShow')">未到</button><button class="secondary" onclick="mark('${r.id}','teardownDone')">撤場</button><button class="secondary" onclick="mark('${r.id}','depositRefund','退押金 NT$500')">退押金</button><button class="secondary" onclick="openDeduct('${r.id}')">扣押金</button></div></article>`).join(''):'<div class="empty">沒有符合條件的名單</div>'}
+async function mark(id,mode,note=''){try{await post('onsiteMark',{regId:id,mode,note});toast('已更新');await loadRows()}catch(e){toast(e.message)}}
+function openAttendance(id,mode){S.modal={id,mode};$('modalTitle').textContent=mode==='lateFlag'?'標記遲到':'標記未到';$('modalBody').innerHTML=(mode==='lateFlag'?'<div class="field"><label>遲到幾分鐘</label><input id="m_minutes" type="number" min="1" value="10"></div>':'')+'<div class="checks"><label><input id="m_line" type="checkbox"> LINE 已通知</label><label><input id="m_phone" type="checkbox"> 電話已聯絡</label></div>';$('modal').classList.remove('hidden')}
+function openDeduct(id){S.modal={id,mode:'depositForfeited'};$('modalTitle').textContent='扣押金';$('modalBody').innerHTML='<div class="field"><label>原因</label><input id="m_reason"></div><div class="field"><label>扣除金額</label><input id="m_amount" type="number" min="1" max="500" value="500"></div>';$('modal').classList.remove('hidden')}
+function closeModal(){$('modal').classList.add('hidden');S.modal=null}
+async function submitModal(){const m=S.modal;if(!m)return;let payload={regId:m.id,mode:m.mode};if(m.mode==='lateFlag'||m.mode==='noShow'){const mins=Number($('m_minutes')?.value||0),line=!!$('m_line').checked,phone=!!$('m_phone').checked;payload.lateMinutes=mins;payload.lineNotified=line;payload.phoneContacted=phone;payload.note=(m.mode==='lateFlag'?'遲到 '+mins+' 分鐘':'未到')+(line?'｜LINE 已通知':'')+(phone?'｜電話已聯絡':'')}else{payload.deductReason=$('m_reason').value.trim();payload.deductAmount=Number($('m_amount').value||0);payload.note='扣押金 NT$'+payload.deductAmount+'｜原因：'+payload.deductReason}try{await post('onsiteMark',payload);closeModal();toast('已更新');await loadRows()}catch(e){toast(e.message)}}
+async function endWork(){if(!confirm('確定結束工作？'))return;try{await post('onsiteShiftEnd',{shiftId:S.shiftId,operatorName:S.operator});alert('工作已結束');location.reload()}catch(e){toast(e.message)}}
+</script></body></html>
