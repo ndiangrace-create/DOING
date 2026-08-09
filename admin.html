@@ -2981,6 +2981,19 @@ async function deleteSessionVisualAsset(sid,assetId,btn){ if(!isPlatformSuperAdm
 
 
 const DOING_MODULE_KEYS=['review','workshopSlots','service','resource','participants','equipment','seatSelection','addons','agreement','invoice','payment','checkin'];
+// sessions.modules_json 是場次模組唯一正式來源；只做欄位相容解析，不建立預設業務資料。
+function sessionModules(session){
+  const s=(session&&typeof session==='object')?session:{};
+  const raw=Object.prototype.hasOwnProperty.call(s,'modules_json')?s.modules_json:
+    (Object.prototype.hasOwnProperty.call(s,'modulesJson')?s.modulesJson:
+    (Object.prototype.hasOwnProperty.call(s,'modules')?s.modules:null));
+  if(raw&&typeof raw==='object'&&!Array.isArray(raw)) return raw;
+  if(typeof raw==='string'&&raw.trim()){
+    try{const parsed=JSON.parse(raw);return parsed&&typeof parsed==='object'&&!Array.isArray(parsed)?parsed:{};}
+    catch(e){console.error('sessions.modules_json 格式錯誤',e);return {};}
+  }
+  return {};
+}
 function normalizeBusinessModules(raw){
   const src=(raw&&typeof raw==='object'&&!Array.isArray(raw))?raw:{};
   const out={
@@ -3002,6 +3015,7 @@ function normalizeBusinessModules(raw){
     resources:Array.isArray(src.resources)?src.resources:[],
     participantTypes:Array.isArray(src.participantTypes)?src.participantTypes:[],
     depositKind:['none','booking','refundable'].includes(String(src.depositKind||''))?String(src.depositKind):'none',
+    paymentTerms:(src.paymentTerms&&typeof src.paymentTerms==='object')?src.paymentTerms:{deadlineHours:48,reminderHours:36},
     i18n:(src.i18n&&typeof src.i18n==='object')?src.i18n:{enabled:false,languages:['zh-TW'],translations:{}}
   };
   out.i18n.enabled=!!out.i18n.enabled;
@@ -3997,8 +4011,8 @@ async function saveLanguageSettings(btn){
   }catch(e){toast('儲存失敗：'+e.message,6000)}finally{btn.disabled=false;btn.textContent=old}
 }
 
-function openHomepageSettings(){ openPanel('公告 / 首頁顯示','首頁封面、公告與小圖（主題活動圖片已移至「場次」頁上方）','<div class="form-grid"><div class="form-field full"><label>登入頁 / 品牌 Logo 網址</label><input id="home_logo"></div><div class="form-field full"><label>首頁封面圖 URL</label><input id="home_hero"></div><div class="form-field full"><label>首頁歡迎詞 / 公告</label><textarea id="home_info"></textarea></div><div class="form-field full" style="border-top:1px dashed var(--line);padding-top:12px"><b>前台小圖 / IP 圖片網址</b><div class="sub">這些會存進資料庫 tenant config，不寫死在 index.html；之後換檔小圖不會消失。</div></div><div class="form-field"><label>首頁歡迎小圖 URL</label><input id="home_mascotHome" placeholder="IP歡迎.png 或圖片網址"></div><div class="form-field"><label>市集/指引小圖 URL</label><input id="home_mascotPortal" placeholder="IP指引.png 或圖片網址"></div><div class="form-field"><label>會員資料小圖 URL</label><input id="home_mascotMember" placeholder="IP資料.png 或圖片網址"></div><div class="form-field"><label>客服小圖 URL</label><input id="home_mascotSupport" placeholder="IP客服.png 或圖片網址"></div><div class="form-field"><label>我的紀錄小圖 URL</label><input id="home_mascotProfile" placeholder="IP會員.png 或圖片網址"></div><div class="form-field"><label>報名彈窗小圖 URL</label><input id="home_mascotModal" placeholder="IP報名.png 或圖片網址"></div></div><div class="card-actions"><button class="btn" onclick="saveHomepageSettings(this)">儲存首頁顯示</button></div>'); loadHomepageSettings(); }
-async function loadHomepageSettings(){ try{ const c=await api({action:'getSiteConfig'}); $('home_hero').value=c.heroImg||''; $('home_info').value=c.infoText||''; $('home_logo').value=c.logoUrl||''; const set=(id,v)=>{ const el=$(id); if(el) el.value=v||''; }; set('home_mascotHome',c.mascotHome); set('home_mascotPortal',c.mascotPortal); set('home_mascotMember',c.mascotMember); set('home_mascotSupport',c.mascotSupport); set('home_mascotProfile',c.mascotProfile); set('home_mascotModal',c.mascotModal); }catch(e){toast('首頁設定載入失敗：'+e.message,6000)} }
+function openHomepageSettings(){ openPanel('品牌 / 首頁顯示','設定主辦自己的品牌 Logo、首頁封面與公告。DOING 平台識別只保留在前台頁尾。','<div class="form-grid"><div class="form-field full"><label>主辦品牌 Logo</label><div class="session-upload-line"><input type="file" id="home_logo_file" accept="image/png,image/jpeg,image/webp" onchange="uploadTenantLogo(this)"><input type="hidden" id="home_logo"></div><div class="sub">建議使用正方形或橫式透明背景 PNG／JPG／WebP，系統會儲存到你的主辦空間，前台左上角自動顯示。</div><img id="home_logo_preview" alt="品牌 Logo 預覽" style="display:none;margin-top:10px;max-width:220px;max-height:100px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px"></div><div class="form-field full"><label>首頁封面圖 URL</label><input id="home_hero"></div><div class="form-field full"><label>首頁歡迎詞 / 公告</label><textarea id="home_info"></textarea></div><div class="form-field full" style="border-top:1px dashed var(--line);padding-top:12px"><b>前台小圖 / IP 圖片網址</b><div class="sub">這些會存進資料庫 tenant config，不寫死在 index.html；之後換檔小圖不會消失。</div></div><div class="form-field"><label>首頁歡迎小圖 URL</label><input id="home_mascotHome" placeholder="IP歡迎.png 或圖片網址"></div><div class="form-field"><label>市集/指引小圖 URL</label><input id="home_mascotPortal" placeholder="IP指引.png 或圖片網址"></div><div class="form-field"><label>會員資料小圖 URL</label><input id="home_mascotMember" placeholder="IP資料.png 或圖片網址"></div><div class="form-field"><label>客服小圖 URL</label><input id="home_mascotSupport" placeholder="IP客服.png 或圖片網址"></div><div class="form-field"><label>我的紀錄小圖 URL</label><input id="home_mascotProfile" placeholder="IP會員.png 或圖片網址"></div><div class="form-field"><label>報名彈窗小圖 URL</label><input id="home_mascotModal" placeholder="IP報名.png 或圖片網址"></div></div><div class="card-actions"><button class="btn" onclick="saveHomepageSettings(this)">儲存首頁顯示</button></div>'); loadHomepageSettings(); }
+async function loadHomepageSettings(){ try{ const c=await api({action:'getSiteConfig'}); $('home_hero').value=c.heroImg||''; $('home_info').value=c.infoText||''; $('home_logo').value=c.logoUrl||''; const pv=$('home_logo_preview'); if(pv){ if(c.logoUrl){pv.src=c.logoUrl;pv.style.display='block'}else{pv.removeAttribute('src');pv.style.display='none'} } const set=(id,v)=>{ const el=$(id); if(el) el.value=v||''; }; set('home_mascotHome',c.mascotHome); set('home_mascotPortal',c.mascotPortal); set('home_mascotMember',c.mascotMember); set('home_mascotSupport',c.mascotSupport); set('home_mascotProfile',c.mascotProfile); set('home_mascotModal',c.mascotModal); }catch(e){toast('首頁設定載入失敗：'+e.message,6000)} }
 async function deleteSessionUI(sid){
   if(!canDeleteEmptySession()){ toast('只有主辦擁有者可以刪除空白場次',5000); return; }
   const ses=(AdminState.sessions||[]).find(x=>String(sessionId(x))===String(sid));
@@ -4273,6 +4287,22 @@ async function deleteFeatEvent(id, btn){
 }
 async function applyTenantLogo(){ try{ const c=await api({action:'getSiteConfig'}); if(c && c.logoUrl){ document.querySelectorAll('.login-mark, .logo').forEach(img=>{ img.src=c.logoUrl; }); } }catch(e){} }
 document.addEventListener('DOMContentLoaded', applyTenantLogo);
+async function uploadTenantLogo(input){
+  const f=input&&input.files&&input.files[0];
+  if(!f)return;
+  if(!/^image\/(png|jpeg|webp)$/.test(f.type||'')){toast('Logo 請使用 PNG、JPG 或 WebP');input.value='';return;}
+  if(f.size>6*1024*1024){toast('Logo 圖片請小於 6MB');input.value='';return;}
+  try{
+    toast('Logo 上傳中…');
+    const dataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error('讀取圖片失敗'));r.readAsDataURL(f)});
+    const res=await apiPost({action:'uploadCover',image:dataUrl});
+    if(!res||!res.url)throw new Error((res&&res.error)||'上傳失敗');
+    $('home_logo').value=res.url;
+    const pv=$('home_logo_preview');if(pv){pv.src=res.url;pv.style.display='block'}
+    await apiPost({action:'saveSiteConfig',logoUrl:res.url});
+    toast('品牌 Logo 已上傳並套用');
+  }catch(e){toast('Logo 上傳失敗：'+(e&&e.message?e.message:e),6000)}finally{input.value=''}
+}
 async function saveHomepageSettings(btn){ const old=btn.textContent; btn.disabled=true; btn.textContent='儲存中…'; const val=id=>($(id)?$(id).value:''); try{ await apiPost({action:'saveSiteConfig',heroImg:val('home_hero'),infoText:val('home_info'),logoUrl:val('home_logo'),mascotHome:val('home_mascotHome'),mascotPortal:val('home_mascotPortal'),mascotMember:val('home_mascotMember'),mascotSupport:val('home_mascotSupport'),mascotProfile:val('home_mascotProfile'),mascotModal:val('home_mascotModal')}); toast('首頁顯示已儲存'); }catch(e){toast('儲存失敗：'+e.message,6000)}finally{btn.disabled=false;btn.textContent=old;} }
 (async function boot(){
   const oauth=await handleOAuthCallback();

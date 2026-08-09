@@ -26,20 +26,17 @@ body{background:linear-gradient(180deg,#f9fcfc,#f5f9fa 55%,#fff)!important}.top{
 .market-only.hidden{display:none!important}
 .reg-step.hidden{display:none!important}
 
-.doing-logo{width:122px;height:40px;display:block;flex:0 0 auto;object-fit:contain}
-.tenant-logo{width:36px;height:36px;border-radius:12px;background:#fff;border:1px solid var(--line);object-fit:contain;padding:4px;flex:0 0 auto}
+.tenant-logo{width:46px;height:46px;border-radius:14px;background:#fff;border:1px solid var(--line);object-fit:contain;padding:4px;flex:0 0 auto}
 .brand-copy{min-width:0}
 @media(max-width:640px){
   .top-in{padding:9px 12px}
   .brand{gap:8px}
-  .doing-logo{width:104px;height:36px}
-  .tenant-logo{width:32px;height:32px;border-radius:10px}
+  .tenant-logo{width:40px;height:40px;border-radius:11px}
   .brand-copy h1{font-size:15px}
   .brand-copy p{font-size:10px;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 }
 @media(max-width:430px){
   .brand-copy{display:none}
-  .doing-logo{width:108px}
 }
 
 
@@ -57,7 +54,7 @@ body{background:linear-gradient(180deg,#f9fcfc,#f5f9fa 55%,#fff)!important}.top{
 </style>
 </head>
 <body>
-<header class="top"><div class="top-in"><div class="brand" id="brandHoldTarget" title="長按 3 秒進入 DOING 工作台"><img id="doingLogo" class="doing-logo" src="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20160%2052%22%20role=%22img%22%20aria-label=%22DOING%22%3E%0A%20%20%3Crect%20x=%221%22%20y=%221%22%20width=%22158%22%20height=%2250%22%20rx=%2217%22%20fill=%22%23ffffff%22/%3E%0A%20%20%3Ccircle%20cx=%2227%22%20cy=%2226%22%20r=%2219%22%20fill=%22%23dff5ef%22/%3E%0A%20%20%3Cpath%20d=%22M16%2028.2c5.2-1.1%2010-3.8%2014.2-7.8v15.2c-4.2-4-9-6.7-14.2-7.8v.4z%22%20fill=%22none%22%20stroke=%22%23178f91%22%20stroke-width=%223.2%22%20stroke-linejoin=%22round%22/%3E%0A%20%20%3Cpath%20d=%22M30.3%2020.4c3.1%201.7%205.2%203.5%207.2%205.6-2%202.1-4.1%203.9-7.2%205.6%22%20fill=%22none%22%20stroke=%22%23178f91%22%20stroke-width=%223.2%22%20stroke-linecap=%22round%22/%3E%0A%20%20%3Cpath%20d=%22M19.4%2031.6l2.9%206.2%22%20fill=%22none%22%20stroke=%22%23178f91%22%20stroke-width=%223.2%22%20stroke-linecap=%22round%22/%3E%0A%20%20%3Ctext%20x=%2253%22%20y=%2233.5%22%20font-family=%22Arial,%20Helvetica,%20sans-serif%22%20font-size=%2223%22%20font-weight=%22800%22%20letter-spacing=%221.2%22%20fill=%22%23173b3b%22%3EDOING%3C/text%3E%0A%3C/svg%3E" alt="DOING LOGO"><img id="tenantLogo" class="tenant-logo hidden" alt="主辦品牌 LOGO"><div class="brand-copy"><h1 id="tenantName">DOING</h1><p id="brandSub">一次建立資料，之後報名快速帶入</p></div><span id="holdRing" class="hold-ring"></span></div><div class="nav"><select id="languageSelect" class="lang-select hidden" aria-label="Language"></select><button id="memberLoginBtn" class="btn outline small" type="button">登入</button></div></div></header>
+<header class="top"><div class="top-in"><div class="brand" id="brandHoldTarget" title="長按 3 秒進入主辦工作台"><img id="tenantLogo" class="tenant-logo hidden" alt="主辦品牌 LOGO"><div class="brand-copy"><h1 id="tenantName">活動主辦</h1><p id="brandSub">活動報名與資訊</p></div><span id="holdRing" class="hold-ring"></span></div><div class="nav"><select id="languageSelect" class="lang-select hidden" aria-label="Language"></select><button id="memberLoginBtn" class="btn outline small" type="button">登入</button></div></div></header>
 <main class="shell">
 <section id="pageSessions" class="page active">
   <div id="hero" class="hero"><div class="hero-copy"><h2 id="heroTitle">活動報名，從這裡開始</h2><p id="heroText">選擇場次、完成報名；登入我的報名即可查看審核、付款、設備、選位與行前資訊。</p><div class="actions"><button class="btn" id="heroMyBtn">查看我的報名</button><a class="btn outline" href="about.html">認識 DOING →</a><a id="lineBtn" class="btn outline hidden" target="_blank" rel="noopener">聯繫主辦</a></div></div><div id="heroArt" class="hero-art"><div class="hero-mark"></div></div></div>
