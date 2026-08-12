@@ -1614,7 +1614,7 @@ async function handleOAuthCallback(){
   sessionStorage.removeItem('doing_admin_token_pending');
   sessionStorage.removeItem('doing_login_error_pending');
   if(loginError){
-    showLoginError({not_authorized:'您的 Google 帳號目前沒有可管理的主辦空間',staff_inactive:'此管理員帳號已停用',id_token_verify_failed:'Google 身份驗證失敗',google_cancelled:'Google 登入已取消',token_exchange_failed:'Google 登入流程錯誤'}[loginError]||('登入失敗：'+loginError));
+    showLoginError({not_authorized:'您的 Google 帳號目前沒有可管理的主辦空間',staff_inactive:'此管理員帳號已停用',id_token_verify_failed:'Google 身份驗證失敗',google_cancelled:'Google 登入已取消',token_exchange_failed:'Google 登入流程錯誤',invalid_or_expired_state:'登入驗證已逾時，請重新登入',signup_missing_profile:'主辦基本資料不完整，請重新建立主辦帳號',signup_failed:'主辦帳號建立失敗，請重新操作'}[loginError]||('登入失敗：'+loginError));
     return false;
   }
   if(!token) return false;

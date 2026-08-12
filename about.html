@@ -116,15 +116,16 @@ a{color:inherit}.top{position:sticky;top:0;z-index:20;background:rgba(255,255,25
   <section id="organizer">
     <div class="cta">
       <h2>免費開通 DOING 主辦帳號</h2>
-      <p>填寫主辦基本資料後，以 Google 驗證你的 Email；驗證成功會自動建立主辦空間與 Owner 權限，不需等待人工審核。</p>
+      <p>填寫主辦基本資料後，以 Google 驗證本人；驗證成功會自動建立獨立主辦空間與 Owner 權限，可立即進入後台自行設定，不需等待人工審核。</p>
       <div class="signup-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px;text-align:left">
-        <label style="display:grid;gap:6px;font-weight:800">主辦／品牌名稱<input id="signupBrand" style="min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px" placeholder="例如：小角落"></label>
+        <label style="display:grid;gap:6px;font-weight:800">主辦／品牌名稱<input id="signupBrand" style="min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px" placeholder="例如：你的品牌／主辦名稱"></label>
         <label style="display:grid;gap:6px;font-weight:800">聯絡人<input id="signupName" style="min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px" placeholder="姓名"></label>
         <label style="display:grid;gap:6px;font-weight:800">聯絡電話<input id="signupPhone" style="min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px" inputmode="tel" placeholder="手機或電話"></label>
         <label style="display:grid;gap:6px;font-weight:800">主要活動類型<select id="signupType" style="min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff"><option value="市集報名">市集報名</option><option value="手作體驗">手作體驗</option><option value="活動報名">活動報名</option></select></label>
       </div>
+      <label style="display:flex;gap:9px;align-items:flex-start;margin-top:14px;text-align:left;font-weight:800"><input id="signupOrganizerConfirm" type="checkbox" style="margin-top:5px"><span>我確認要建立的是「活動主辦／承辦單位」管理帳號，不是一般報名者／攤商會員帳號。</span></label>
       <div class="hero-actions">
-        <button class="btn" type="button" id="signupGoogleBtn">使用 Google 免費開通</button>
+        <button class="btn" type="button" id="signupGoogleBtn">使用 Google 建立主辦帳號</button>
         <a class="btn outline" href="index.html">先查看報名者入口</a>
       </div>
       <p id="signupErr" style="display:none;margin-top:10px;color:#b04b45;font-weight:800"></p>
@@ -148,7 +149,7 @@ a{color:inherit}.top{position:sticky;top:0;z-index:20;background:rgba(255,255,25
   <section id="support">
     <div class="legal">
       <h3>客服與聯絡</h3>
-      <p>單一活動的審核、付款、位置、設備或退款問題，請優先聯絡該場主辦。DOING 系統合作與主辦申請可寄信至 Ndiangrace@gmail.com。</p>
+      <p>單一活動的審核、付款、位置、設備或退款問題，請優先聯絡該場主辦。DOING 系統合作與客服可寄信至 Ndiangrace@gmail.com；主辦帳號請直接使用本頁的「建立主辦帳號」自助開通。</p>
     </div>
   </section>
 </main>
@@ -161,17 +162,31 @@ a{color:inherit}.top{position:sticky;top:0;z-index:20;background:rgba(255,255,25
   if(!btn)return;
   btn.addEventListener('click',()=>{
     const brand=(document.getElementById('signupBrand').value||'').trim();
+    const name=(document.getElementById('signupName').value||'').trim();
+    const phone=(document.getElementById('signupPhone').value||'').trim();
+    const confirmed=!!document.getElementById('signupOrganizerConfirm')?.checked;
     const err=document.getElementById('signupErr');
     if(!brand){err.textContent='請先填寫主辦／品牌名稱';err.style.display='block';return;}
+    if(!name){err.textContent='請先填寫聯絡人';err.style.display='block';return;}
+    if(!phone){err.textContent='請先填寫聯絡電話';err.style.display='block';return;}
+    if(!confirmed){err.textContent='請確認這是要建立活動主辦／承辦單位帳號';err.style.display='block';return;}
     err.style.display='none';
     const u=new URL(API+'/auth/google/start');
     u.searchParams.set('mode','organizer_signup');
     u.searchParams.set('brand_name',brand);
-    u.searchParams.set('contact_name',(document.getElementById('signupName').value||'').trim());
-    u.searchParams.set('contact_phone',(document.getElementById('signupPhone').value||'').trim());
+    u.searchParams.set('contact_name',name);
+    u.searchParams.set('contact_phone',phone);
     u.searchParams.set('event_type',(document.getElementById('signupType').value||'').trim());
     location.href=u.toString();
   });
+  const oauthErr=new URL(location.href).searchParams.get('login_error')||'';
+  if(oauthErr){
+    const messages={signup_missing_profile:'主辦基本資料不完整，請重新填寫。',signup_failed:'主辦帳號建立失敗，資料尚未完成建立，請重新操作。',google_cancelled:'Google 驗證已取消。',id_token_verify_failed:'Google 身分驗證失敗，請重新操作。',token_exchange_failed:'Google 登入流程失敗，請稍後再試。',invalid_or_expired_state:'開通驗證已逾時，請重新填寫並驗證。'};
+    const err=document.getElementById('signupErr');
+    err.textContent=messages[oauthErr]||('開通失敗：'+oauthErr);err.style.display='block';
+    document.getElementById('organizer')?.scrollIntoView({block:'start'});
+    const clean=new URL(location.href);clean.searchParams.delete('login_error');history.replaceState({},'',clean.pathname+clean.search+clean.hash);
+  }
 })();
 </script>
 </body>
