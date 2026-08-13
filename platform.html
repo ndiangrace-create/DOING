@@ -20,9 +20,99 @@ button:not(.secondary){background:#715A96!important}
 .platform-step b{display:block}.platform-step span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
 </style>
 
+
+<style id="doing-platform-layout-20260813">
+:root{
+  --main:#8E78B3!important;
+  --main2:#756198!important;
+  --bg:#FAF9FC!important;
+  --line:#E8E2EF!important;
+}
+body{border-top:4px solid #B6A7CC!important;background:linear-gradient(180deg,#FCFBFE,#FFFFFF 48%)!important}
+header{background:rgba(255,255,255,.96)!important}
+.head,.wrap{max-width:none!important;width:min(1680px,calc(100vw - 36px))!important}
+.head{padding:10px 0!important}
+.wrap{padding:14px 0 54px!important}
+
+/* Desktop：真正使用寬度 */
+.grid{
+  grid-template-columns:minmax(260px,330px) minmax(0,1fr)!important;
+  gap:12px!important;
+}
+.card{
+  border-radius:15px!important;
+  padding:13px!important;
+  box-shadow:0 5px 18px rgba(73,58,94,.04)!important;
+}
+#platformMetrics{
+  display:grid!important;
+  grid-template-columns:repeat(7,minmax(105px,1fr))!important;
+  gap:8px!important;
+  align-items:stretch!important;
+}
+#platformMetrics b,#platformMetrics span{
+  display:block!important;
+  padding:9px 10px!important;
+  border-radius:11px!important;
+}
+#platformMetrics b{
+  background:#F6F3FA!important;
+  color:#756885!important;
+  font-size:11px!important;
+}
+#platformMetrics span{
+  background:#fff!important;
+  font-weight:900!important;
+  font-size:15px!important;
+  border:1px solid #EEE9F3!important;
+}
+.tenant-list{gap:6px!important;max-height:calc(100vh - 290px)!important}
+.tenant{
+  padding:10px 12px!important;
+  border-radius:12px!important;
+  background:#FBFAFD!important;
+  color:#39414A!important;
+  border:1px solid #E9E4EF!important;
+}
+.tenant:hover{background:#F5F1F9!important;border-color:#D7CDE4!important}
+.tenant.active{
+  outline:none!important;
+  background:#EEE8F5!important;
+  color:#4E4260!important;
+  border-color:#CABBDD!important;
+  box-shadow:inset 3px 0 0 #9A86BA!important;
+}
+button:not(.secondary){background:#8E78B3!important}
+button:not(.secondary):hover{background:#806BA5!important}
+.notice{background:#F8F5FB!important;border-color:#E8E0F0!important}
+.kv{grid-template-columns:145px 1fr!important}
+.field{margin:7px 0!important}
+.field input,.field select,.field textarea{padding:9px 10px!important}
+.actions{margin-top:8px!important}
+.platform-step{padding:6px 0!important}
+.platform-step i{background:#A18DBD!important}
+#startupCreditCard{margin-top:12px!important}
+
+/* 詳情內容分區寬版 */
+#detail{padding:15px!important}
+#detail hr{margin:12px 0!important}
+#detail h3{font-size:16px!important;margin-bottom:7px!important}
+
+/* Mobile 自動改成單欄 */
+@media(max-width:900px){
+  .head,.wrap{width:100%!important}
+  .head{padding:9px 12px!important}
+  .wrap{padding:12px!important}
+  .grid{grid-template-columns:1fr!important}
+  .tenant-list{max-height:240px!important}
+  #platformMetrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .kv{grid-template-columns:1fr!important}
+}
+</style>
+
 </head>
 <body>
-<header><div class="head"><div><b>DOING｜平台管理</b><div class="muted">主辦帳號・平台收費・贈送額度</div></div><button class="secondary" id="logoutBtn">登出</button></div></header>
+<header><div class="head"><div><b>DOING｜平台營運管理</b><div class="muted">主辦帳號・平台收費・贈送額度</div></div><button class="secondary" id="logoutBtn">登出</button></div></header>
 <div class="wrap">
 <section id="loginCard" class="card hidden"><h2>平台管理登入</h2><p class="muted">僅限 platform_super_admin。</p><button id="loginBtn">使用 Google 登入</button><div id="loginErr" class="error" style="margin-top:10px"></div></section>
 <section id="app" class="hidden"><section class="card" style="margin-bottom:14px"><h2>DOING 平台營運總覽</h2><div id="platformMetrics" class="kv"><b>主辦帳號</b><span>—</span><b>近 30 日活躍</b><span>—</span><b>活動場次</b><span>—</span><b>營運項目</b><span>—</span><b>全平台報名／預約</b><span>—</span><b>已確認平台收入</b><span>—</span><b>已發創業金</b><span>—</span></div></section><div class="grid">
@@ -54,20 +144,20 @@ async function get(action,p={}){const q=new URLSearchParams({action,token,email:
 async function post(action,p={}){const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,token,email:'_',...p})});const j=await r.json();if(!r.ok||j.error)throw Error(j.error||'操作失敗');return j}
 function setMsg(t,ok=true){$('msg').className=ok?'ok':'error';$('msg').textContent=t}
 function normalizeRows(v){return Array.isArray(v)?v:(Array.isArray(v?.rows)?v.rows:(Array.isArray(v?.data)?v.data:[]))}
-async function init(){const u=new URL(location.href),q=u.searchParams.get('admin_token');if(q){localStorage.setItem('doing_platform_token',q);u.searchParams.delete('admin_token');history.replaceState({},'',u.pathname+u.search+u.hash)}token=localStorage.getItem('doing_platform_token')||'';if(!token){$('loginCard').classList.remove('hidden');return}try{const me=await get('adminMe');if(String(me.normalized_role||me.role||'')!=='platform_super_admin')throw Error('此帳號不是平台管理員');$('app').classList.remove('hidden');await Promise.all([loadTenants(),loadPlatformDashboard()])}catch(e){localStorage.removeItem('doing_platform_token');token='';$('loginCard').classList.remove('hidden');$('loginErr').textContent=e.message}}
-async function loadPlatformDashboard(){try{const d=await get('getPlatformDashboard'),box=$('platformMetrics');if(!box)return;box.innerHTML='<b>主辦帳號</b><span>'+Number(d.tenantCount||0).toLocaleString()+'</span><b>近 30 日活躍</b><span>'+Number(d.activeTenant30d||0).toLocaleString()+'</span><b>活動場次</b><span>'+Number(d.sessionCount||0).toLocaleString()+'</span><b>營運項目</b><span>'+Number(d.operationUnitCount||0).toLocaleString()+'（開放 '+Number(d.openUnitCount||0).toLocaleString()+'）</span><b>全平台報名／預約</b><span>'+Number(d.registrationCount||0).toLocaleString()+'</span><b>已確認平台收入</b><span>NT$ '+Math.round(Number(d.platformRevenue||0)).toLocaleString('zh-TW')+'</span><b>已發創業金</b><span>NT$ '+Math.round(Number(d.startupCreditGranted||0)).toLocaleString('zh-TW')+'</span>'}catch(e){}}
-async function loadTenants(){tenants=normalizeRows(await get('getTenantsAdmin'));renderTenants()}
-function renderTenants(){const kw=$('search').value.trim().toLowerCase(),rows=tenants.filter(t=>((t.name||'')+(t.id||'')+(t.owner_email||'')).toLowerCase().includes(kw));$('tenantList').innerHTML=rows.length?rows.map(t=>'<button class="tenant '+(selected?.id===t.id?'active':'')+'" onclick="selectTenant(\''+esc(t.id)+'\')"><b>'+esc(t.name||t.id)+'</b><br><span class="muted">'+esc(t.owner_email||'尚未建立主辦管理者')+'</span></button>').join(''):'<div class="muted">沒有符合的主辦</div>'}
-async function selectTenant(id){selected=tenants.find(x=>String(x.id)===String(id));if(!selected)return;renderTenants();$('empty').classList.add('hidden');$('detail').classList.remove('hidden');$('tenantName').textContent=selected.name||selected.id;$('tenantId').textContent=selected.id;$('owner').textContent=selected.owner_email||'—';await Promise.all([loadCredit(),loadSessions(),loadOperationUnits()])}
+async function init(){const u=new URL(location.href),q=u.searchParams.get('admin_token');if(q){localStorage.setItem('doing_platform_token',q);u.searchParams.delete('admin_token');history.replaceState({},'',u.pathname+u.search+u.hash)}token=localStorage.getItem('doing_platform_token')||'';if(!token){$('loginCard').classList.remove('hidden');return}try{const me=await get('adminMe');if(String(me.normalized_role||me.role||'')!=='platform_super_admin')throw Error('此帳號不是平台管理員');$('app').classList.remove('hidden');await Promise.all([load主辦代碼s(),loadPlatformDashboard()])}catch(e){localStorage.removeItem('doing_platform_token');token='';$('loginCard').classList.remove('hidden');$('loginErr').textContent=e.message}}
+async function loadPlatformDashboard(){try{const d=await get('getPlatformDashboard'),box=$('platformMetrics');if(!box)return;box.innerHTML='<b>主辦帳號</b><span>'+Number(d.tenantCount||0).toLocaleString()+'</span><b>近 30 日活躍</b><span>'+Number(d.active主辦代碼30d||0).toLocaleString()+'</span><b>活動場次</b><span>'+Number(d.sessionCount||0).toLocaleString()+'</span><b>營運項目</b><span>'+Number(d.operationUnitCount||0).toLocaleString()+'（開放 '+Number(d.openUnitCount||0).toLocaleString()+'）</span><b>全平台報名／預約</b><span>'+Number(d.registrationCount||0).toLocaleString()+'</span><b>已確認平台收入</b><span>NT$ '+Math.round(Number(d.platformRevenue||0)).toLocaleString('zh-TW')+'</span><b>已發創業金</b><span>NT$ '+Math.round(Number(d.startupCreditGranted||0)).toLocaleString('zh-TW')+'</span>'}catch(e){}}
+async function load主辦代碼s(){tenants=normalizeRows(await get('get主辦代碼sAdmin'));render主辦代碼s()}
+function render主辦代碼s(){const kw=$('search').value.trim().toLowerCase(),rows=tenants.filter(t=>((t.name||'')+(t.id||'')+(t.owner_email||'')).toLowerCase().includes(kw));$('tenantList').innerHTML=rows.length?rows.map(t=>'<button class="tenant '+(selected?.id===t.id?'active':'')+'" onclick="select主辦代碼(\''+esc(t.id)+'\')"><b>'+esc(t.name||t.id)+'</b><br><span class="muted">'+esc(t.owner_email||'尚未建立主辦管理者')+'</span></button>').join(''):'<div class="muted">沒有符合的主辦</div>'}
+async function select主辦代碼(id){selected=tenants.find(x=>String(x.id)===String(id));if(!selected)return;render主辦代碼s();$('empty').classList.add('hidden');$('detail').classList.remove('hidden');$('tenantName').textContent=selected.name||selected.id;$('tenantId').textContent=selected.id;$('owner').textContent=selected.owner_email||'—';await Promise.all([loadCredit(),loadSessions(),loadOperationUnits()])}
 async function loadCredit(){const j=await get('getPlatformCreditBalance',{target_tenant_id:selected.id});$('credit').textContent='NT$ '+Math.round(Number(j.balance||0)).toLocaleString('zh-TW')}
-async function loadSessions(){sessions=normalizeRows(await get('platformTenantSessions',{target_tenant_id:selected.id}));$('sessionId').innerHTML=sessions.length?sessions.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name||s.id)+'｜'+esc(s.status||'')+'</option>').join(''):'<option value="">尚無場次</option>'}
-async function loadOperationUnits(){operationUnits=normalizeRows(await get('platformTenantOperationUnits',{target_tenant_id:selected.id}));$('operationUnitId').innerHTML=operationUnits.length?operationUnits.map(u=>'<option value="'+esc(u.id)+'">'+esc(u.name||u.id)+'｜'+esc(u.status||'')+'</option>').join(''):'<option value="">尚無營運項目</option>'}
-$('search').addEventListener('input',renderTenants);$('payMode').addEventListener('change',()=>{const m=$('payMode').value;$('sessionField').classList.toggle('hidden',m!=='activity');$('operationUnitField').classList.toggle('hidden',m!=='operation_unit')});
+async function loadSessions(){sessions=normalizeRows(await get('platform主辦代碼Sessions',{target_tenant_id:selected.id}));$('sessionId').innerHTML=sessions.length?sessions.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name||s.id)+'｜'+esc(s.status||'')+'</option>').join(''):'<option value="">尚無場次</option>'}
+async function loadOperationUnits(){operationUnits=normalizeRows(await get('platform主辦代碼OperationUnits',{target_tenant_id:selected.id}));$('operationUnitId').innerHTML=operationUnits.length?operationUnits.map(u=>'<option value="'+esc(u.id)+'">'+esc(u.name||u.id)+'｜'+esc(u.status||'')+'</option>').join(''):'<option value="">尚無營運項目</option>'}
+$('search').addEventListener('input',render主辦代碼s);$('payMode').addEventListener('change',()=>{const m=$('payMode').value;$('sessionField').classList.toggle('hidden',m!=='activity');$('operationUnitField').classList.toggle('hidden',m!=='operation_unit')});
 $('loginBtn').onclick=()=>{location.href=API+'/auth/google/start?tenant=platform'};$('logoutBtn').onclick=()=>{localStorage.removeItem('doing_platform_token');location.reload()};
 $('reloadBtn').onclick=async()=>{if(!selected)return;await Promise.all([loadCredit(),loadSessions(),loadOperationUnits()]);setMsg('已重新整理')};
 $('grantBtn').onclick=async()=>{if(!selected)return;const amount=Number($('creditAmount').value||0);if(!amount)return setMsg('請輸入非 0 金額',false);try{const j=await post('grantPartnerCredit',{target_tenant_id:selected.id,amount,note:$('creditNote').value.trim()});$('creditAmount').value='';$('creditNote').value='';$('credit').textContent='NT$ '+Math.round(Number(j.balance||0)).toLocaleString('zh-TW');setMsg('額度異動完成')}catch(e){setMsg(e.message,false)}};
 $('confirmPayBtn').onclick=async()=>{if(!selected)return;const mode=$('payMode').value,sessionId=$('sessionId').value,operationUnitId=$('operationUnitId').value;if(mode==='activity'&&!sessionId)return setMsg('請選擇活動場次',false);if(mode==='operation_unit'&&!operationUnitId)return setMsg('請選擇營運項目',false);if(!confirm(mode==='booking'?'確認已收到 NT$888 並開通一個月預約營運權？':'確認已收到 NT$200 並開通？'))return;try{const j=await post('confirmOperatingPayment',{target_tenant_id:selected.id,mode,sessionId,operationUnitId,note:$('payNote').value.trim()});setMsg(j.alreadyActive?'此營運權原本就已有效':'收款確認與營運權開通完成')}catch(e){setMsg(e.message,false)}};
-$('enterBtn').onclick=async()=>{if(!selected)return;try{const j=await post('platformEnterTenant',{target_workspace_id:selected.id});const u=new URL(j.admin_url||'admin.html',location.href);u.searchParams.set('tenant',selected.id);u.searchParams.set('admin_token',j.admin_token);location.href=u.toString()}catch(e){setMsg(e.message,false)}};
+$('enterBtn').onclick=async()=>{if(!selected)return;try{const j=await post('platformEnter主辦代碼',{target_workspace_id:selected.id});const u=new URL(j.admin_url||'admin.html',location.href);u.searchParams.set('tenant',selected.id);u.searchParams.set('admin_token',j.admin_token);location.href=u.toString()}catch(e){setMsg(e.message,false)}};
 init();
 
 async function loadStartupCreditPolicy(){try{const d=await get('getStartupCreditPolicy');document.getElementById('startupCreditEnabled').checked=d.enabled!==false;document.getElementById('startupCreditAmount').value=Number(d.amount||0);document.getElementById('startupCreditStatus').textContent='目前新戶贈送 NT$'+Number(d.amount||0).toLocaleString();}catch(e){}}

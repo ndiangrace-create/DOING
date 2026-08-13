@@ -22,6 +22,38 @@ header .btn,.hero .btn:not(.outline),.cta .btn:not(.outline){background:var(--ro
 .hero .eyebrow:after{content:"｜產品介紹・主辦申請";font-weight:800}
 </style>
 
+
+<style id="doing-about-layout-20260813">
+/* 產品／主辦申請：寬版 responsive，不再卡在中間窄框。 */
+.top-in,.shell{max-width:none!important;width:min(1580px,calc(100vw - 40px))!important}
+.top-in{padding-left:0!important;padding-right:0!important}
+.shell{padding-left:0!important;padding-right:0!important}
+.hero{padding:clamp(28px,4.6vw,68px)!important}
+.hero h1{max-width:1000px!important}
+.lead{max-width:1040px!important}
+.section-head{max-width:1000px!important}
+.grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.feature-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+.flow{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+.card,.step,.feature,.price-card{box-shadow:0 7px 20px rgba(44,75,77,.045)!important}
+.signup-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#organizer .card,#organizer form,.signup-card{max-width:none!important}
+@media(max-width:1100px){
+  .top-in,.shell{width:min(100%,calc(100vw - 28px))!important}
+  .feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .flow{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+@media(max-width:760px){
+  .top-in,.shell{width:100%!important}
+  .top-in{padding:8px 12px!important}
+  .shell{padding:0 12px calc(42px + var(--safe))!important}
+  .hero{margin-top:10px!important;padding:26px 18px!important;border-radius:22px!important}
+  .grid,.feature-grid,.pricing,.signup-grid{grid-template-columns:1fr!important}
+  .flow{grid-template-columns:1fr 1fr!important}
+}
+@media(max-width:460px){.flow{grid-template-columns:1fr!important}}
+</style>
+
 </head>
 <body>
 <header class="top">
@@ -38,7 +70,7 @@ header .btn,.hero .btn:not(.outline),.cta .btn:not(.outline){background:var(--ro
 <main class="shell">
   <section class="hero" id="about">
     <span class="eyebrow">DOING｜活動營運管理系統</span>
-    <h1>一支手機，掌握一場活動。</h1>
+    <h1>一個主辦，整合所有營運。</h1>
     <p class="lead">DOING 是一套複合式營運管理系統。市集招募、活動報名、課程、體驗與預約可以在同一個主辦帳號內管理，會員、付款、通知、日曆與財務不必分散在不同表單與系統。</p>
     <div class="hero-actions">
       <a class="btn" href="index.html">查看目前開放活動</a>
@@ -64,10 +96,10 @@ header .btn,.hero .btn:not(.outline),.cta .btn:not(.outline){background:var(--ro
     </div>
     <div class="flow">
       <div class="step"><b>STEP 01</b><strong>勾選你的營運情境</strong><span>可同時選市集、活動、課程、體驗、預約等，不會被限制成單一類型。</span></div>
-      <div class="step"><b>STEP 02</b><strong>建立主辦帳號</strong><span>設定主辦資料、工作人員與權限。</span></div>
+      <div class="step"><b>STEP 02</b><strong>建立主辦帳號</strong><span>填寫主辦資料並完成 Google 驗證。</span></div>
       <div class="step"><b>STEP 03</b><strong>建立活動與營運內容</strong><span>同一活動可分別設定攤商招募、民眾報名、體驗預約等不同流程。</span></div>
-      <div class="step"><b>STEP 04</b><strong>確認報名流程</strong><span>開放前完成必要資料檢查，避免缺漏。</span></div>
-      <div class="step"><b>STEP 05</b><strong>正式開放報名</strong><span>主辦從後台掌握名單、付款與現場進度。</span></div>
+      <div class="step"><b>STEP 04</b><strong>確認每個營運流程</strong><span>開放前完成必要資料檢查，避免缺漏。</span></div>
+      <div class="step"><b>STEP 05</b><strong>正式開始營運</strong><span>主辦在同一個後台管理報名、預約、付款、日曆、通知與現場。</span></div>
     </div>
   </section>
 

@@ -1439,6 +1439,118 @@ body{border-top:5px solid #4C78A8}
 @media(max-width:700px){.module-subgrid{grid-template-columns:1fr}.module-preset-grid{grid-template-columns:1fr 1fr}}
 </style>
 
+
+<style id="doing-admin-layout-20260813">
+/* 主辦工作台：Desktop 充分使用寬度；Mobile 自動響應。 */
+:root{
+  --main:#5F86B0!important;
+  --main2:#476F9A!important;
+  --mint:#EEF4FA!important;
+}
+body{border-top:4px solid #86A9C9!important}
+.topbar-in,.app,.panel-head-in,.panel-body{max-width:none!important;width:min(1680px,calc(100vw - 32px))!important}
+.topbar-in{padding:9px 6px!important}
+.app{padding:0 0 40px!important}
+.brand-title{font-size:17px!important}
+.brand-sub{font-size:12px!important;max-width:46vw!important}
+.logo{width:38px!important;height:38px!important}
+
+/* 主選單固定在內容最上方，不再佔左側或底部 */
+.tabs{
+  position:sticky!important;
+  top:61px!important;
+  left:auto!important;
+  bottom:auto!important;
+  transform:none!important;
+  z-index:28!important;
+  width:100%!important;
+  margin:0 0 12px!important;
+  display:flex!important;
+  gap:5px!important;
+  overflow-x:auto!important;
+  padding:7px!important;
+  border-radius:0 0 16px 16px!important;
+  background:rgba(247,250,253,.96)!important;
+  border:1px solid #D9E4EE!important;
+  border-top:0!important;
+  box-shadow:0 7px 18px rgba(63,90,113,.05)!important;
+  scrollbar-width:none!important;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:1 0 108px!important;
+  min-height:38px!important;
+  padding:7px 12px!important;
+  border-radius:10px!important;
+  font-size:13px!important;
+  white-space:nowrap!important;
+  background:#fff!important;
+  border:1px solid #DFE7EF!important;
+  color:#33485D!important;
+}
+.tab.active{background:#5F86B0!important;color:#fff!important;border-color:#5F86B0!important}
+
+.page-title{margin:10px 2px 9px!important}
+.page-title h2{font-size:24px!important}
+.page-title .sub{font-size:12px!important}
+
+/* 系統設定縮成真正的 compact settings hub */
+.settings-grid{
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr))!important;
+  gap:8px!important;
+}
+.settings-tile{
+  min-height:72px!important;
+  padding:10px 12px!important;
+  border-radius:14px!important;
+  box-shadow:none!important;
+  text-align:left!important;
+  display:grid!important;
+  grid-template-columns:32px 1fr!important;
+  grid-template-rows:auto auto!important;
+  column-gap:9px!important;
+  align-items:center!important;
+}
+.settings-tile .ico{
+  grid-row:1/3!important;
+  font-size:21px!important;
+  width:32px!important;
+  height:32px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:10px!important;
+  background:#F2F6FA!important;
+}
+.settings-tile b{margin:0!important;font-size:14px!important;line-height:1.2!important}
+.settings-tile span{margin:2px 0 0!important;font-size:11px!important;line-height:1.3!important}
+.settings-tile:hover{border-color:#B9CCDD!important;background:#FBFDFF!important}
+
+/* 大螢幕讓資料真正展開 */
+.session-list,.cards,.member-list{gap:10px!important}
+.report-card,.session-card,.card{box-shadow:0 5px 15px rgba(50,72,90,.035)!important}
+.panel-body{padding-left:0!important;padding-right:0!important}
+.panel-head-in{padding-left:0!important;padding-right:0!important}
+
+/* mobile */
+@media(max-width:760px){
+  .topbar-in,.app,.panel-head-in,.panel-body{width:100%!important}
+  .topbar-in{padding:8px 10px!important}
+  .app{padding:0 10px 28px!important}
+  .brand-title{font-size:15px!important}
+  .brand-sub{max-width:56vw!important}
+  .tabs{top:55px!important;margin-left:-10px!important;width:calc(100% + 20px)!important;border-radius:0!important;padding:6px 10px!important}
+  .tab{flex:0 0 auto!important;min-width:76px!important;font-size:12px!important}
+  .settings-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .settings-tile{min-height:68px!important;padding:9px!important}
+  .settings-tile .ico{font-size:18px!important}
+  .settings-tile b{font-size:13px!important}
+  .settings-tile span{font-size:10px!important}
+}
+@media(max-width:430px){
+  .settings-grid{grid-template-columns:1fr!important}
+}
+</style>
+
 </head>
 <body>
 <section id="loginPage" class="login-wrap">
@@ -1495,7 +1607,7 @@ body{border-top:5px solid #4C78A8}
     <section id="page-onsite" class="hidden"><div class="page-title"><div><h2>現場</h2><div class="sub">管理者直接操作；工讀生使用同場唯一通行碼進入獨立工作台，所有操作與工時都有紀錄。</div></div><div class="page-actions"><button class="btn secondary" onclick="loadOnsiteList()">重新整理</button><button class="btn secondary" onclick="openOnsitePasscodes()">場次通行碼</button><button class="btn secondary" onclick="openOnsiteShifts()">工讀生工時</button><button class="btn" onclick="openOnsiteWorkerPage()">開啟工讀生頁</button></div></div><div class="filter-row"><select id="onsiteSession" onchange="loadOnsiteList(this.value)" style="flex:1;min-width:220px"></select></div><div class="filter-row" style="margin-top:0"><input id="onsiteSearch" placeholder="搜尋品牌、姓名、手機、Email" oninput="renderOnsiteList()"></div><div class="filter-row" style="margin-top:0"><button class="btn secondary small onsite-fbtn active" onclick="onsiteSetFilter('unchecked',this)">未報到</button><button class="btn secondary small onsite-fbtn" onclick="onsiteSetFilter('checked',this)">已報到</button><button class="btn secondary small onsite-fbtn" onclick="onsiteSetFilter('all',this)">全部</button></div><div id="onsiteBody"><div class="empty">請先選擇場次</div></div></section>
     <section id="page-members" class="hidden"><div class="page-title"><div><h2>會員</h2><div class="sub">一張卡同時顯示會員個人與品牌資料；報名、付款、現場與管理備註累積在同一條軌跡。</div></div><div class="page-actions"><button class="btn secondary" onclick="loadMembers()">重新整理</button></div></div><div class="filter-row"><input id="memberSearch" placeholder="搜尋品牌、姓名、手機、Email、FB、IG" oninput="renderMembers()"></div><div id="memberList" class="member-list"><div class="loading">載入會員中…</div></div></section>
     <section id="page-leads" class="hidden"><div class="page-title"><div><h2>活動名單</h2><div class="sub">拍照框（民眾）與會員（攤商）以 Email 合併去重，可篩選、匯出，用於再行銷。</div></div><div class="page-actions"><button class="btn secondary" onclick="loadLeads()">重新整理</button></div></div><div class="filter-row"><input id="leadSearch" placeholder="搜尋姓名、Email、手機、品牌" oninput="renderLeads()"></div><div id="leadStats" class="sub" style="margin:6px 0 10px"></div><div id="leadFilters" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"></div><div id="leadList"><div class="loading">載入活動名單中…</div></div></section>
-    <section id="page-settings" class="hidden"><div class="page-title"><div><h2>系統設定</h2><div class="sub">設定以全螢幕彈窗開啟，不在主畫面堆內容。</div></div></div><div class="settings-grid"><button class="settings-tile" onclick="openModuleSettings()"><div class="ico">🧩</div><b>營運功能設定</b><span>市集、活動、體驗、預約的預設流程</span></button><button class="settings-tile" onclick="openEmailTemplates()"><div class="ico">✉️</div><b>信件模板</b><span>正式模板管理</span></button><button class="settings-tile" onclick="openPaymentSettings()"><div class="ico">💳</div><b>付款資訊</b><span>銀行 / LINE Pay / 刷卡</span></button><button class="settings-tile" onclick="openAgreementSettings()"><div class="ico">📋</div><b>合約管理</b><span>三個模板可存</span></button><button class="settings-tile" onclick="openStaffSettingsWithGuide()"><div class="ico">🔐</div><b>權限管理</b><span>系列 / 指定場次</span></button><button class="settings-tile" onclick="openCompanySettings()"><div class="ico">🏷️</div><b>公司資料</b><span>登入頁 / 服務資訊</span></button><button class="settings-tile" onclick="openHomepageSettings()"><div class="ico">🏠</div><b>首頁顯示</b><span>公告 / 封面 / LINE</span></button><button class="settings-tile" onclick="openLanguageSettings()"><div class="ico">🌐</div><b>多語言</b><span>繁中 / English / 日本語 / 한국어</span></button><button class="settings-tile" onclick="openThemeEvents()"><div class="ico">🎪</div><b>主題活動</b><span>首頁精選主題圖</span></button><button class="settings-tile" onclick="openVenueMaps()"><div class="ico">🗺️</div><b>常用場地圖</b><span>存放 / 重用場地圖</span></button><button class="settings-tile" onclick="openPhotoFrames()"><div class="ico">📸</div><b>拍照活動</b><span>活動頁 / 拍照框 / 名單</span></button><button class="settings-tile" onclick="openErrorLogs()"><div class="ico">🚨</div><b>系統異常</b><span>錯誤紀錄 / 查修依據</span></button></div></section>
+    <section id="page-settings" class="hidden"><div class="page-title"><div><h2>系統設定</h2></div></div><div class="settings-grid"><button class="settings-tile" onclick="openModuleSettings()"><div class="ico">🧩</div><b>營運功能設定</b><span>市集、活動、體驗、預約的預設流程</span></button><button class="settings-tile" onclick="openEmailTemplates()"><div class="ico">✉️</div><b>信件模板</b><span>正式模板管理</span></button><button class="settings-tile" onclick="openPaymentSettings()"><div class="ico">💳</div><b>付款資訊</b><span>銀行 / LINE Pay / 刷卡</span></button><button class="settings-tile" onclick="openAgreementSettings()"><div class="ico">📋</div><b>合約管理</b><span>三個模板可存</span></button><button class="settings-tile" onclick="openStaffSettingsWithGuide()"><div class="ico">🔐</div><b>權限管理</b><span>系列 / 指定場次</span></button><button class="settings-tile" onclick="openCompanySettings()"><div class="ico">🏷️</div><b>公司資料</b><span>登入頁 / 服務資訊</span></button><button class="settings-tile" onclick="openHomepageSettings()"><div class="ico">🏠</div><b>首頁顯示</b><span>公告 / 封面 / LINE</span></button><button class="settings-tile" onclick="openLanguageSettings()"><div class="ico">🌐</div><b>多語言</b><span>繁中 / English / 日本語 / 한국어</span></button><button class="settings-tile" onclick="openThemeEvents()"><div class="ico">🎪</div><b>主題活動</b><span>首頁精選主題圖</span></button><button class="settings-tile" onclick="openVenueMaps()"><div class="ico">🗺️</div><b>常用場地圖</b><span>存放 / 重用場地圖</span></button><button class="settings-tile" onclick="openPhotoFrames()"><div class="ico">📸</div><b>拍照活動</b><span>活動頁 / 拍照框 / 名單</span></button><button class="settings-tile" onclick="openErrorLogs()"><div class="ico">🚨</div><b>系統異常</b><span>錯誤紀錄 / 查修依據</span></button></div></section>
   </main>
 </section>
 
@@ -1636,7 +1748,7 @@ function currentTenantFromUrl(){
 }
 function startGoogleLogin(){
   const tenant=currentTenantFromUrl();
-  if(!tenant){ toast('缺少主辦空間識別，請從主辦前台 LOGO 長按三秒進入',6000); return; }
+  if(!tenant){ toast('找不到主辦帳號，請回到公開首頁後長按左上品牌圖示 3 秒進入主辦工作台',6000); return; }
   const u=new URL(endpoint()+'/auth/google/start');u.searchParams.set('tenant',tenant);location.href=u.toString();
 }
 async function handleOAuthCallback(){
@@ -1645,7 +1757,7 @@ async function handleOAuthCallback(){
   sessionStorage.removeItem('doing_admin_token_pending');
   sessionStorage.removeItem('doing_login_error_pending');
   if(loginError){
-    showLoginError({not_authorized:'您的 Google 帳號目前沒有可管理的主辦空間',staff_inactive:'此管理員帳號已停用',id_token_verify_failed:'Google 身份驗證失敗',google_cancelled:'Google 登入已取消',token_exchange_failed:'Google 登入流程錯誤',invalid_or_expired_state:'登入驗證已逾時，請重新登入',signup_missing_profile:'主辦基本資料不完整，請重新建立主辦帳號',signup_failed:'主辦帳號建立失敗，請重新操作'}[loginError]||('登入失敗：'+loginError));
+    showLoginError({not_authorized:'這個 Google 帳號目前沒有可管理的主辦帳號',staff_inactive:'此管理員帳號已停用',id_token_verify_failed:'Google 身份驗證失敗',google_cancelled:'Google 登入已取消',token_exchange_failed:'Google 登入流程錯誤',invalid_or_expired_state:'登入驗證已逾時，請重新登入',signup_missing_profile:'主辦基本資料不完整，請重新建立主辦帳號',signup_failed:'主辦帳號建立失敗，請重新操作'}[loginError]||('登入失敗：'+loginError));
     return false;
   }
   if(!token) return false;
@@ -1653,7 +1765,7 @@ async function handleOAuthCallback(){
     const j=await fetch(endpoint()+'?action=adminMe&email=_&token='+encodeURIComponent(token)+'&_t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
     if(j.error||!j.email) throw new Error(j.error||'無權限登入後台');
     AdminState.tenantId=String(j.tenant_id||j.tenant?.id||'').trim();
-    if(!AdminState.tenantId) throw new Error('登入資料缺少主辦空間');
+    if(!AdminState.tenantId) throw new Error('登入資料不完整，請重新登入');
     sessionStorage.setItem(TENANT_KEY,AdminState.tenantId);
     saveSession({email:j.email,token,role:j.normalized_role||j.role||'',name:j.display_name||j.name||j.email,tenantId:AdminState.tenantId});
     if((j.normalized_role||j.role)==='onsite_staff'){
@@ -1699,7 +1811,7 @@ function logout(){
 async function enterAdmin(){
   $('loginPage').classList.add('hidden');
   $('adminPage').classList.remove('hidden');
-  $('whoText').textContent=(AdminState.name||AdminState.email)+'｜'+(AdminState.role||'管理員');
+  $('whoText').textContent=(AdminState.name||AdminState.email||'主辦管理者');
   await refreshSessionsOverview();
   const saved=readAdminPageState();
   if(saved&&saved.page){
@@ -4602,7 +4714,7 @@ async function saveHomepageSettings(btn){ const old=btn.textContent; btn.disable
       const j=await fetch(endpoint()+'?action=adminMe&email=_&token='+encodeURIComponent(saved.token)+'&_t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
       if(j.error||!j.email) throw new Error(j.error||'登入已失效');
       AdminState.tenantId=String(j.tenant_id||j.tenant?.id||saved.tenantId||'').trim();
-      if(!AdminState.tenantId) throw new Error('登入資料缺少主辦空間');
+      if(!AdminState.tenantId) throw new Error('登入資料不完整，請重新登入');
       saveSession({email:j.email,token:saved.token,role:j.normalized_role||j.role||'',name:j.display_name||j.name||j.email,tenantId:AdminState.tenantId});
       enterAdmin();
     }catch(e){
