@@ -4,66 +4,108 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>DOING｜平台營運管理</title>
 <style>
-:root{--bg:#FAF9FC;--paper:#fff;--ink:#262A31;--muted:#6F7480;--line:#E6E1EA;--main:#8F7CAE;--main2:#766292;--ok:#2F7D68;--bad:#A94F4F}
-*{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}body{font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:linear-gradient(180deg,#FBFAFD,#fff);color:var(--ink);font-size:18px;line-height:1.65}
-header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(14px)}
-.head,.wrap{width:100%;padding-left:clamp(16px,3vw,44px);padding-right:clamp(16px,3vw,44px)}.head{min-height:66px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-h1,h2,h3{margin:0}.head h1{font-size:22px}.muted{color:var(--muted);font-size:16px}.wrap{padding-top:16px;padding-bottom:50px}
-button,input,select,textarea{font:inherit;font-size:17px}button{border:0;border-radius:12px;min-height:46px;padding:9px 15px;background:var(--main);color:#fff;font-weight:900;cursor:pointer}button.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}button.danger{background:#fff;color:var(--bad);border:1px solid #EACCCC}
-input,select,textarea{width:100%;min-height:48px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff}.field{display:grid;gap:5px;margin:8px 0}.field label{font-weight:850}
-.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:0 8px 28px rgba(64,51,82,.04);min-width:0}
-.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px;margin-bottom:14px}.metric{padding:13px;border:1px solid var(--line);border-radius:15px;background:#fff}.metric span{display:block;color:var(--muted);font-size:16px}.metric b{display:block;font-size:22px;margin-top:4px}
-.review-grid{display:grid;grid-template-columns:minmax(340px,.75fr) minmax(0,1.25fr);gap:14px;margin-bottom:14px}.application-list,.tenant-list{display:grid;gap:7px;max-height:520px;overflow:auto}.application,.tenant{width:100%;text-align:left;background:#FCFBFD;color:var(--ink);border:1px solid var(--line);padding:11px 12px}.application.active,.tenant.active{background:#F1EDF6;border-color:#CFC3DD;box-shadow:inset 3px 0 0 var(--main)}
-.application b,.tenant b{display:block}.application span,.tenant span{display:block;color:var(--muted);font-size:16px;margin-top:2px}
-.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.info{padding:11px 12px;border-radius:13px;background:#F8F7FA;border:1px solid #ECE8EF}.info span{display:block;color:var(--muted);font-size:16px}.info b{display:block;font-size:18px;margin-top:3px;overflow-wrap:anywhere}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.notice{padding:12px 14px;border-radius:13px;background:#F7F4FA;border:1px solid #E7E0EE;font-size:16px}
-.main-grid{display:grid;grid-template-columns:minmax(280px,350px) minmax(0,1fr);gap:14px}
-.hidden{display:none!important}.ok{color:var(--ok);font-weight:900}.error{color:var(--bad);font-weight:900}
-hr{border:0;border-top:1px solid var(--line);margin:15px 0}
-@media(max-width:980px){.review-grid,.main-grid{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr}.application-list,.tenant-list{max-height:300px}}
-@media(max-width:600px){body{font-size:17px}.head,.wrap{padding-left:12px;padding-right:12px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+:root{--ink:#202934;--muted:#6d7783;--line:#e2e8eb;--paper:#fff;--wash:#f7faf9;--brand:#2a8b86;--brand-dark:#1d615d;--gold:#e5c58d;--ok:#2f7d68;--bad:#ab514d}
+*{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}body{font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:linear-gradient(180deg,#fafcfc,#fff);color:var(--ink);font-size:18px;line-height:1.68}
+button,input,select,textarea{font:inherit;font-size:17px}button{border:0;border-radius:13px;min-height:46px;padding:10px 16px;background:var(--brand);color:#fff;font-weight:900;cursor:pointer}button.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}button.danger{background:#fff;color:var(--bad);border:1px solid #e7cbca}button.gold{background:linear-gradient(135deg,#d7b472,#ebcd96);color:#4d3c20}
+input,select,textarea{width:100%;min-height:48px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fff}.field{display:grid;gap:6px;margin:8px 0}.field label{font-weight:850}
+header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.95);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}.head,.wrap{width:min(1600px,calc(100vw - 36px));margin:auto}.head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:68px}.wrap{padding:16px 0 50px}
+h1,h2,h3,h4{margin:0}.muted{color:var(--muted);font-size:16px}.hidden{display:none!important}.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:0 8px 30px rgba(55,78,74,.045)}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px}.metric{padding:14px;border:1px solid var(--line);border-radius:16px;background:#fff}.metric span{display:block;font-size:16px;color:var(--muted)}.metric b{display:block;font-size:24px;margin-top:4px}
+.review-grid{display:grid;grid-template-columns:minmax(320px,.7fr) minmax(0,1.3fr);gap:14px;margin-bottom:14px}.list{display:grid;gap:8px;max-height:620px;overflow:auto}.item{width:100%;text-align:left;padding:12px;border-radius:16px;background:#fbfcfc;border:1px solid var(--line);color:var(--ink)}.item.active{background:#eef7f5;border-color:#cfe3de;box-shadow:inset 3px 0 0 var(--brand)}.item b{display:block}.item span{display:block;color:var(--muted);font-size:16px;margin-top:3px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:14px;font-weight:950}.badge.pending{background:#eef8f4;color:#26655f}.badge.supplement_required{background:#fbf3e4;color:#8a6831}.badge.approved{background:#edf7f1;color:#2f7d68}.badge.rejected{background:#fbefef;color:#a14c48}
+.info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.info{padding:12px;border-radius:14px;background:#f8fbfa;border:1px solid #e7eeeb}.info span{display:block;font-size:16px;color:var(--muted)}.info b{display:block;font-size:18px;margin-top:3px;overflow-wrap:anywhere}
+.notice{padding:13px 14px;border-radius:14px;background:#f4faf8;border:1px solid #dbe9e5;font-size:16px;line-height:1.63}.notice.gold{background:#fcf6ea;border-color:#ecdcbf;color:#68563c}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.section-title{font-size:22px;margin-bottom:10px}.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{display:inline-flex;padding:7px 10px;border-radius:999px;background:#f0f7f5;border:1px solid #dbe7e3;font-size:15px;font-weight:900;color:#305f5a}
+.main-grid{display:grid;grid-template-columns:minmax(280px,350px) minmax(0,1fr);gap:14px}.ok{color:var(--ok);font-weight:900}.error{color:var(--bad);font-weight:900}hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+@media(max-width:1000px){.review-grid,.main-grid,.detail-grid,.info-grid{grid-template-columns:1fr}.head,.wrap{width:min(100%,calc(100vw - 24px))}.list{max-height:320px}}
 </style>
 </head>
 <body>
-<header><div class="head"><div><h1>DOING 平台營運管理</h1><div class="muted">主辦審核・平台收費・創業金・營運總覽</div></div><div><button class="secondary hidden" id="logoutBtn">登出</button></div></div></header>
+<header><div class="head"><div><h1>DOING 平台營運管理</h1><div class="muted">營運帳號審核・補件・平台收費・創業金</div></div><button class="secondary hidden" id="logoutBtn">登出</button></div></header>
 <div class="wrap">
-<section class="card" id="loginCard"><h2>平台管理登入</h2><p class="muted">僅限 DOING 平台管理者。</p><button id="loginBtn">Google 登入</button><div id="loginErr" class="error"></div></section>
+  <section class="card" id="loginCard"><h2>平台管理登入</h2><p class="muted">僅限 DOING 平台管理者。</p><button id="loginBtn">Google 登入</button><div id="loginErr" class="error"></div></section>
 
-<div id="app" class="hidden">
-<section class="metrics" id="platformMetrics"></section>
+  <div id="app" class="hidden">
+    <section class="metrics" id="platformMetrics"></section>
 
-<section class="review-grid">
-  <div class="card"><h2>主辦申請審核</h2><p class="muted">Google 驗證完成後的申請會出現在這裡；通過後才建立主辦帳號。</p><div id="applicationList" class="application-list"></div></div>
-  <div class="card"><div id="applicationEmpty" class="muted">請選擇一筆申請。</div><div id="applicationDetail" class="hidden">
-    <h2 id="applicationBrand">主辦申請</h2>
-    <div class="detail-grid" style="margin-top:10px">
-      <div class="info"><span>聯絡人</span><b id="applicationName"></b></div>
-      <div class="info"><span>Google Email</span><b id="applicationEmail"></b></div>
-      <div class="info"><span>電話</span><b id="applicationPhone"></b></div>
-      <div class="info"><span>申請時間</span><b id="applicationCreated"></b></div>
-    </div>
-    <div class="notice" id="applicationUses" style="margin-top:10px"></div>
-    <div class="field"><label>未通過時的說明（只有按「不通過」才使用）</label><textarea id="rejectReason" rows="3" placeholder="例如：資料不足，請補充品牌／主辦資訊後重新申請"></textarea></div>
-    <div class="actions"><button id="approveBtn">審核通過並建立帳號</button><button class="danger" id="rejectBtn">不通過</button></div>
-    <div id="applicationMsg"></div>
-  </div></div>
-</section>
+    <section class="review-grid">
+      <div class="card">
+        <h2>DOING 營運帳號申請</h2>
+        <p class="muted">可看到待審核與待補件中的申請。通過後才建立正式帳號。</p>
+        <div id="applicationList" class="list"></div>
+      </div>
+      <div class="card">
+        <div id="applicationEmpty" class="muted">請先從左側選擇一筆申請。</div>
+        <div id="applicationDetail" class="hidden">
+          <div class="actions" style="justify-content:space-between;align-items:flex-start;margin-top:0"><div><h2 id="applicationBrand">申請資料</h2><div id="applicationStatusBadge" style="margin-top:8px"></div></div></div>
+          <div class="info-grid" style="margin-top:12px">
+            <div class="info"><span>營運單位名稱</span><b id="applicationUnit"></b></div>
+            <div class="info"><span>公司／商號名稱</span><b id="applicationCompany"></b></div>
+            <div class="info"><span>統一編號</span><b id="applicationTax"></b></div>
+            <div class="info"><span>所在地區</span><b id="applicationRegion"></b></div>
+            <div class="info"><span>負責人</span><b id="applicationOwner"></b></div>
+            <div class="info"><span>主要聯絡人</span><b id="applicationName"></b></div>
+            <div class="info"><span>Google Email</span><b id="applicationEmail"></b></div>
+            <div class="info"><span>聯絡電話</span><b id="applicationPhone"></b></div>
+            <div class="info"><span>帳務聯絡人</span><b id="applicationBilling"></b></div>
+            <div class="info"><span>申請時間</span><b id="applicationCreated"></b></div>
+            <div class="info"><span>目前營運狀態</span><b id="applicationStage"></b></div>
+            <div class="info"><span>預計開始使用</span><b id="applicationStartTime"></b></div>
+          </div>
 
-<section class="main-grid">
- <aside class="card"><h2>主辦帳號</h2><div class="field"><input id="search" placeholder="搜尋主辦／Email"></div><div id="tenantList" class="tenant-list"></div></aside>
- <main class="card"><div id="empty" class="muted">請先選擇左側主辦。</div><div id="detail" class="hidden">
-  <h2 id="tenantName">主辦</h2><div class="detail-grid" style="margin-top:10px"><div class="info"><span>主辦登入信箱</span><b id="owner"></b></div><div class="info"><span>目前可用贈送額度</span><b id="credit">—</b></div></div>
-  <div class="actions"><button class="secondary" id="enterBtn">進入主辦後台</button><button class="secondary" id="reloadBtn">重新整理</button></div>
-  <hr><h3>主辦贈送額度</h3><div class="notice">可折抵 DOING 活動開通費或預約方案；不是現金收入。</div>
-  <div class="detail-grid"><div class="field"><label>增加／扣回金額</label><input id="creditAmount" type="number" step="1"></div><div class="field"><label>原因／備註</label><input id="creditNote"></div></div><button id="grantBtn">確認調整額度</button>
-  <hr><h3>確認主辦付款並開通</h3><div class="field"><label>這次付款要開通什麼？</label><select id="payMode"><option value="activity">活動場次｜NT$200／場</option><option value="operation_unit">獨立報名項目｜NT$200／項</option><option value="booking">持續預約服務｜NT$888／月</option></select></div>
-  <div class="field" id="sessionField"><label>活動場次</label><select id="sessionId"></select></div><div class="field hidden" id="operationUnitField"><label>營運項目</label><select id="operationUnitId"></select></div>
-  <div class="field"><label>付款備註</label><input id="payNote"></div><button id="confirmPayBtn">確認已收款並開通</button><div id="msg"></div>
- </div>
- <section style="margin-top:18px"><h3>新主辦創業金</h3><p class="muted">審核通過建立帳號時，自動贈送設定中的創業金。</p><div class="detail-grid"><label class="info"><input type="checkbox" id="startupCreditEnabled" checked> 啟用新主辦創業金</label><div class="field"><label>贈送金額</label><input id="startupCreditAmount" type="number" min="0" step="1" value="1000"></div></div><button onclick="saveStartupCreditPolicy()">儲存創業金設定</button><div id="startupCreditStatus" class="muted"></div></section>
- </main>
-</section>
-</div>
+          <div class="detail-grid" style="margin-top:12px">
+            <div>
+              <div class="notice"><b>主要營運內容</b><div id="applicationIntro" style="margin-top:6px"></div></div>
+              <div class="notice" style="margin-top:10px"><b>預計怎麼使用 DOING</b><div id="applicationUsage" style="margin-top:6px"></div></div>
+              <div class="notice" style="margin-top:10px"><b>公開資訊</b><div id="applicationLinks" style="margin-top:6px"></div></div>
+            </div>
+            <div>
+              <div class="notice"><b>申請時勾選的營運情境</b><div id="applicationUseCases" class="chips" style="margin-top:8px"></div></div>
+              <div class="notice" style="margin-top:10px"><b>申請時勾選的功能需求</b><div id="applicationNeeds" class="chips" style="margin-top:8px"></div></div>
+              <div class="notice gold" id="applicationSupplementInfo" style="margin-top:10px;display:none"></div>
+            </div>
+          </div>
+
+          <hr>
+          <h3 class="section-title">審核操作</h3>
+          <div class="detail-grid">
+            <div class="card" style="padding:14px">
+              <h4>請補件</h4>
+              <div class="muted">資料不足但可補時使用。申請人補完後會重新回到待審核。</div>
+              <div class="field"><label>補件模板</label><select id="supplementTemplate"><option value="">請選擇</option><option value="目前提供的品牌／單位資訊不足，請補充品牌名稱、公開社群、網站或過往活動／服務資訊，以利完成營運身分審核。">品牌／單位資訊不完整</option><option value="目前提供的資料仍不足以確認你是實際營運活動、服務或預約的單位／個人品牌，請補充可辨識的營運資訊與公開頁面。">無法確認實際營運身分</option><option value="目前缺少可辨識的公開品牌資訊，請補充 Facebook、Instagram、官網、Google 商家或其他可公開查驗的頁面。">缺少公開資訊</option><option value="目前提供的聯絡與營運內容仍不夠完整，請補充主要服務內容、使用方式與聯絡資料。">聯絡／營運內容不足</option></select></div>
+              <div class="field"><label>補充說明</label><textarea id="supplementReason" rows="4" placeholder="可再補充需要申請人加上的資料"></textarea></div>
+              <button class="gold" id="supplementBtn">送出補件通知</button>
+            </div>
+            <div class="card" style="padding:14px">
+              <h4>不通過</h4>
+              <div class="muted">確認不適合開通時使用；會保留原因，但不建立帳號。</div>
+              <div class="field"><label>不通過模板</label><select id="rejectTemplate"><option value="">請選擇</option><option value="目前提供的資料仍無法確認此申請為實際活動、服務或預約營運單位，因此本次申請暫不予通過。">無法確認為實際營運單位</option><option value="本次申請用途與 DOING 營運帳號的使用情境不符，因此本次申請暫不予通過。">申請用途與系統不符</option><option value="目前提供的品牌／身分資訊無法完成驗證，因此本次申請暫不予通過。">品牌／身分資訊無法驗證</option><option value="此申請與既有帳號或既有申請重複，故本次申請暫不予通過。">重複申請或已有帳號</option><option value="經補件後，資料仍不足以完成營運帳號審核，因此本次申請暫不予通過。">補件後仍無法完成驗證</option></select></div>
+              <div class="field"><label>補充說明</label><textarea id="rejectReason" rows="4" placeholder="可補充更具體原因，申請人會看到這段文字"></textarea></div>
+              <button class="danger" id="rejectBtn">確認不通過並通知</button>
+            </div>
+          </div>
+          <div class="actions"><button id="approveBtn">審核通過並建立帳號</button></div>
+          <div id="applicationMsg"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="main-grid">
+      <aside class="card"><h2>既有主辦帳號</h2><div class="field"><input id="search" placeholder="搜尋主辦／Email"></div><div id="tenantList" class="list"></div></aside>
+      <main class="card"><div id="empty" class="muted">請先選擇左側主辦。</div><div id="detail" class="hidden">
+        <h2 id="tenantName">主辦</h2>
+        <div class="info-grid" style="margin-top:10px"><div class="info"><span>主辦登入信箱</span><b id="owner"></b></div><div class="info"><span>目前可用贈送額度</span><b id="credit">—</b></div></div>
+        <div class="actions"><button class="secondary" id="enterBtn">進入主辦後台</button><button class="secondary" id="reloadBtn">重新整理</button></div>
+        <hr><h3>主辦贈送額度</h3><div class="notice">可折抵 DOING 活動開通費或預約方案；不是現金收入。</div>
+        <div class="detail-grid"><div class="field"><label>增加／扣回金額</label><input id="creditAmount" type="number" step="1"></div><div class="field"><label>原因／備註</label><input id="creditNote"></div></div><button id="grantBtn">確認調整額度</button>
+        <hr><h3>確認主辦付款並開通</h3><div class="field"><label>這次付款要開通什麼？</label><select id="payMode"><option value="activity">活動場次｜NT$200／場</option><option value="operation_unit">獨立報名項目｜NT$200／項</option><option value="booking">持續預約服務｜NT$888／月</option></select></div>
+        <div class="field" id="sessionField"><label>活動場次</label><select id="sessionId"></select></div><div class="field hidden" id="operationUnitField"><label>營運項目</label><select id="operationUnitId"></select></div>
+        <div class="field"><label>付款備註</label><input id="payNote"></div><button id="confirmPayBtn">確認已收款並開通</button><div id="msg"></div>
+      </div>
+      <section style="margin-top:18px"><h3>新主辦創業金</h3><p class="muted">審核通過建立帳號時，自動贈送設定中的創業金。</p><div class="detail-grid"><label class="info"><input type="checkbox" id="startupCreditEnabled" checked> 啟用新主辦創業金</label><div class="field"><label>贈送金額</label><input id="startupCreditAmount" type="number" min="0" step="1" value="1000"></div></div><button onclick="saveStartupCreditPolicy()">儲存創業金設定</button><div id="startupCreditStatus" class="muted"></div></section>
+      </main>
+    </section>
+  </div>
 </div>
 <script>
 const API='https://tobeloved-api.ndiangrace.workers.dev', $=id=>document.getElementById(id);
@@ -73,15 +115,22 @@ async function get(action,p={}){const q=new URLSearchParams({action,token,...p})
 async function post(action,p={}){const r=await fetch(API+'?action='+encodeURIComponent(action),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,token,...p})});const j=await r.json();if(!r.ok||j.error)throw Error(j.error||'操作失敗');return j}
 const rows=v=>Array.isArray(v)?v:(Array.isArray(v?.rows)?v.rows:(Array.isArray(v?.data)?v.data:[]));
 function msg(id,text,ok=true){const e=$(id);e.className=ok?'ok':'error';e.textContent=text}
+const useCaseMap={market:'市集／攤商招募',event:'活動／講座／課程報名',workshop:'手作體驗／工作坊',beauty:'美業／工作室預約',service_booking:'一般服務預約',resource_booking:'場地／資源預約',guide:'導覽／戶外體驗',general:'其他通用報名'};
+const needMap={review:'報名需審核',payment:'收款／付款確認',deposit:'訂金／保證金',workshopSlots:'日期／時段預約',service:'服務／方案選擇',resource:'人員／場地／資源',seatSelection:'座位／攤位選位',equipment:'設備／租借',addons:'加購項目',customFields:'自訂問題',agreement:'條款／合約',checkin:'現場報到',invoice:'發票資料',calendar:'營運總日曆／Google Calendar',notifications:'自動通知',rewards:'早鳥／回饋優惠'};
+function badge(status){const map={pending:'待審核',supplement_required:'待補件',approved:'已通過',rejected:'未通過'};return `<span class="badge ${esc(status||'pending')}">${esc(map[status]||status||'待審核')}</span>`}
 async function init(){const u=new URL(location.href),q=u.searchParams.get('admin_token');if(q){localStorage.setItem('doing_platform_token',q);u.searchParams.delete('admin_token');history.replaceState({},'',u.pathname+u.search+u.hash)}token=localStorage.getItem('doing_platform_token')||'';if(!token)return;$('loginCard').classList.add('hidden');$('app').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');try{const me=await get('adminMe');if(String(me.normalized_role||me.role)!=='platform_super_admin')throw Error('此帳號不是平台管理員');await Promise.all([loadDashboard(),loadApplications(),loadTenants(),loadStartupCreditPolicy()])}catch(e){localStorage.removeItem('doing_platform_token');$('app').classList.add('hidden');$('loginCard').classList.remove('hidden');$('loginErr').textContent=e.message}}
 async function loadDashboard(){const d=await get('getPlatformDashboard');const data=[['主辦帳號',d.tenantCount],['近 30 日活躍',d.activeTenant30d],['活動場次',d.sessionCount],['營運項目',d.operationUnitCount],['全平台報名／預約',d.registrationCount],['平台收入','NT$ '+Math.round(Number(d.platformRevenue||0)).toLocaleString()],['已發創業金','NT$ '+Math.round(Number(d.startupCreditGranted||0)).toLocaleString()]];$('platformMetrics').innerHTML=data.map(x=>'<div class="metric"><span>'+esc(x[0])+'</span><b>'+esc(x[1]??0)+'</b></div>').join('')}
-async function loadApplications(){applications=rows(await get('applyList')).filter(x=>String(x.status)==='pending');renderApplications()}
-function renderApplications(){$('applicationList').innerHTML=applications.length?applications.map(a=>'<button class="application '+(selectedApplication?.id===a.id?'active':'')+'" onclick="selectApplication(\''+esc(a.id)+'\')"><b>'+esc(a.brand_name||'未命名主辦')+'</b><span>'+esc(a.contact_email||'')+'｜'+esc(new Date(a.created_at).toLocaleString('zh-TW'))+'</span></button>').join(''):'<div class="muted">目前沒有待審核申請。</div>'}
-function selectApplication(id){selectedApplication=applications.find(x=>String(x.id)===String(id));if(!selectedApplication)return;renderApplications();$('applicationEmpty').classList.add('hidden');$('applicationDetail').classList.remove('hidden');const a=selectedApplication,app=typeof a.application_json==='object'?a.application_json:{};$('applicationBrand').textContent=a.brand_name||'主辦申請';$('applicationName').textContent=a.contact_name||'—';$('applicationEmail').textContent=a.contact_email||'—';$('applicationPhone').textContent=a.contact_phone||'—';$('applicationCreated').textContent=new Date(a.created_at).toLocaleString('zh-TW');const mp=app.moduleProfile||{};$('applicationUses').innerHTML='<b>申請時勾選的營運情境</b><br>'+esc((mp.useCases||[]).join('、')||'未填寫');$('rejectReason').value='';$('applicationMsg').textContent=''}
-$('approveBtn').onclick=async()=>{if(!selectedApplication)return;if(!confirm('確認審核通過？系統會立即建立主辦帳號並依平台設定發放創業金。'))return;try{const d=await post('approveApply',{apply_id:selectedApplication.id});msg('applicationMsg','已通過並建立主辦帳號：'+(d.tenantId||''));selectedApplication=null;await Promise.all([loadApplications(),loadTenants(),loadDashboard()]);$('applicationDetail').classList.add('hidden');$('applicationEmpty').classList.remove('hidden')}catch(e){msg('applicationMsg',e.message,false)}}
-$('rejectBtn').onclick=async()=>{if(!selectedApplication)return;const reason=$('rejectReason').value.trim();if(!confirm('確認本次申請不通過？'))return;try{await post('rejectApply',{apply_id:selectedApplication.id,reason});selectedApplication=null;await loadApplications();$('applicationDetail').classList.add('hidden');$('applicationEmpty').classList.remove('hidden')}catch(e){msg('applicationMsg',e.message,false)}}
+async function loadApplications(){applications=rows(await get('applyList')).filter(x=>['pending','supplement_required'].includes(String(x.status||'')));renderApplications()}
+function renderApplications(){const html=applications.length?applications.map(a=>`<button class="item ${selectedApplication?.id===a.id?'active':''}" onclick="selectApplication('${esc(a.id)}')"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><b>${esc(a.brand_name||a.application_json?.unitName||'未命名申請')}</b>${badge(a.status)}</div><span>${esc(a.contact_email||'')}｜${esc(new Date(a.created_at).toLocaleString('zh-TW'))}</span></button>`).join(''):'<div class="muted">目前沒有待處理申請。</div>';$('applicationList').innerHTML=html}
+function renderChips(elId, arr){const el=$(elId);el.innerHTML=(arr&&arr.length?arr.map(x=>`<span class="chip">${esc(x)}</span>`).join(''):'<span class="muted">未填寫</span>')}
+function selectApplication(id){selectedApplication=applications.find(x=>String(x.id)===String(id));if(!selectedApplication)return;renderApplications();$('applicationEmpty').classList.add('hidden');$('applicationDetail').classList.remove('hidden');const a=selectedApplication;const app=(typeof a.application_json==='object'&&a.application_json)?a.application_json:{};const mp=app.moduleProfile||{};const needFlags=app.needFlags||{};$('applicationBrand').textContent=app.unitName||a.brand_name||'DOING 營運帳號申請';$('applicationStatusBadge').innerHTML=badge(a.status);$('applicationUnit').textContent=app.unitName||a.brand_name||'—';$('applicationCompany').textContent=app.companyName||'—';$('applicationTax').textContent=app.taxId||'—';$('applicationRegion').textContent=app.region||'—';$('applicationOwner').textContent=app.ownerName||'—';$('applicationName').textContent=app.contactName||a.contact_name||'—';$('applicationEmail').textContent=a.contact_email||'—';$('applicationPhone').textContent=app.phone||a.contact_phone||'—';$('applicationBilling').textContent=app.billingName||app.contactName||a.contact_name||'—';$('applicationCreated').textContent=new Date(a.created_at).toLocaleString('zh-TW');$('applicationStage').textContent=app.operationStage==='operating'?'已經開始營運':(app.operationStage==='preparing'?'正在籌備中':'—');$('applicationStartTime').textContent=app.startTime||'—';$('applicationIntro').textContent=app.businessIntro||'—';$('applicationUsage').textContent=app.usagePlan||'—';const links=(app.publicLinks||[]);$('applicationLinks').innerHTML=links.length?links.map(x=>`<div><a href="${esc(x)}" target="_blank" rel="noopener">${esc(x)}</a></div>`).join(''):(app.noPublicLink?'目前尚未建立公開頁面':'未提供');renderChips('applicationUseCases',(app.useCaseLabels||mp.useCases||[]).map(x=>useCaseMap[x]||x));renderChips('applicationNeeds',Object.keys(needFlags).filter(k=>needFlags[k]).map(k=>needMap[k]||k));const sup=$('applicationSupplementInfo');if(a.status==='supplement_required'){sup.style.display='block';sup.innerHTML='<b>目前狀態：待補件</b><br>'+(a.supplement_reason?esc(a.supplement_reason):'已要求申請人補充資料')+(a.supplement_requested_at?'<br><span class="muted">要求時間：'+esc(new Date(a.supplement_requested_at).toLocaleString('zh-TW'))+'</span>':'')}else{sup.style.display='none';sup.innerHTML=''};$('supplementTemplate').value='';$('supplementReason').value='';$('rejectTemplate').value='';$('rejectReason').value='';$('applicationMsg').textContent=''}
+$('supplementTemplate').onchange=()=>{$('supplementReason').value=$('supplementTemplate').value||$('supplementReason').value};
+$('rejectTemplate').onchange=()=>{$('rejectReason').value=$('rejectTemplate').value||$('rejectReason').value};
+$('approveBtn').onclick=async()=>{if(!selectedApplication)return;if(!confirm('確認審核通過？系統會立即建立正式營運帳號並依平台設定發放創業金。'))return;try{const d=await post('approveApply',{apply_id:selectedApplication.id});msg('applicationMsg','已通過並建立帳號：'+(d.tenantId||''));selectedApplication=null;await Promise.all([loadApplications(),loadTenants(),loadDashboard()]);$('applicationDetail').classList.add('hidden');$('applicationEmpty').classList.remove('hidden')}catch(e){msg('applicationMsg',e.message,false)}}
+$('supplementBtn').onclick=async()=>{if(!selectedApplication)return;const reason=($('supplementReason').value||'').trim();if(!reason)return msg('applicationMsg','請先填寫補件說明',false);if(!confirm('確認送出補件通知？申請人補件後可重新回到待審核。'))return;try{await post('requestApplySupplement',{apply_id:selectedApplication.id,reason});msg('applicationMsg','已送出補件通知');await loadApplications();selectApplication(selectedApplication.id)}catch(e){msg('applicationMsg',e.message,false)}}
+$('rejectBtn').onclick=async()=>{if(!selectedApplication)return;const reason=($('rejectReason').value||'').trim();if(!reason)return msg('applicationMsg','請先填寫不通過原因',false);if(!confirm('確認本次申請不通過？'))return;try{await post('rejectApply',{apply_id:selectedApplication.id,reason});selectedApplication=null;await loadApplications();$('applicationDetail').classList.add('hidden');$('applicationEmpty').classList.remove('hidden')}catch(e){msg('applicationMsg',e.message,false)}}
 async function loadTenants(){tenants=rows(await get('getTenantsAdmin'));renderTenants()}
-function renderTenants(){const kw=$('search').value.trim().toLowerCase(),r=tenants.filter(t=>((t.name||'')+(t.owner_email||'')).toLowerCase().includes(kw));$('tenantList').innerHTML=r.length?r.map(t=>'<button class="tenant '+(selected?.id===t.id?'active':'')+'" onclick="selectTenant(\''+esc(t.id)+'\')"><b>'+esc(t.name||t.id)+'</b><span>'+esc(t.owner_email||'尚未建立管理者')+'</span></button>').join(''):'<div class="muted">沒有符合的主辦</div>'}
+function renderTenants(){const kw=$('search').value.trim().toLowerCase(),r=tenants.filter(t=>((t.name||'')+(t.owner_email||'')).toLowerCase().includes(kw));$('tenantList').innerHTML=r.length?r.map(t=>'<button class="item '+(selected?.id===t.id?'active':'')+'" onclick="selectTenant(\''+esc(t.id)+'\')"><b>'+esc(t.name||t.id)+'</b><span>'+esc(t.owner_email||'尚未建立管理者')+'</span></button>').join(''):'<div class="muted">沒有符合的主辦</div>'}
 async function selectTenant(id){selected=tenants.find(x=>String(x.id)===String(id));if(!selected)return;renderTenants();$('empty').classList.add('hidden');$('detail').classList.remove('hidden');$('tenantName').textContent=selected.name||selected.id;$('owner').textContent=selected.owner_email||'—';await Promise.all([loadCredit(),loadSessions(),loadUnits()])}
 async function loadCredit(){const d=await get('getPlatformCreditBalance',{target_tenant_id:selected.id});$('credit').textContent='NT$ '+Math.round(Number(d.balance||0)).toLocaleString()}
 async function loadSessions(){sessions=rows(await get('platformTenantSessions',{target_tenant_id:selected.id}));$('sessionId').innerHTML=sessions.length?sessions.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name||s.id)+'｜'+esc(s.status||'')+'</option>').join(''):'<option value="">尚無場次</option>'}
