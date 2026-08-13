@@ -82,6 +82,137 @@ a{font-size:inherit}
 }
 </style>
 
+
+<style id="doing-global-polish-20260813">
+*{box-sizing:border-box!important}
+html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+body{margin:0!important;background:#F7F9FA!important;color:#1F2933!important}
+img,svg,video,canvas{max-width:100%!important;height:auto}
+main,section,header,footer,nav,div{min-width:0}
+:root{
+  --doing-ink:#1F2933;
+  --doing-muted:#687581;
+  --doing-line:#DFE6E8;
+  --doing-paper:#FFFFFF;
+  --doing-wash:#F7F9FA;
+  --doing-teal:#2F8F8B;
+  --doing-teal-dark:#216C69;
+  --doing-sand:#F4EEE4;
+  --doing-blue:#6F91B3;
+  --doing-purple:#9B8AB7;
+}
+body,button,input,select,textarea{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif!important}
+body{font-size:18px!important;line-height:1.72!important}
+p,li,td,th{font-size:18px!important;line-height:1.72!important}
+label,button,.btn,input,select,textarea{font-size:17px!important}
+small,.small,.sub,.muted,.hint,.help,.desc,.meta,.note{font-size:16px!important;line-height:1.58!important}
+button,.btn,[role="button"],a.button{min-height:46px!important;border-radius:12px!important}
+input,select,textarea{min-height:48px!important;border-radius:12px!important}
+a{color:inherit}
+@media(max-width:760px){
+  body,p,li,td,th{font-size:17px!important}
+  label,button,.btn,input,select,textarea{font-size:17px!important}
+  small,.small,.sub,.muted,.hint,.help,.desc,.meta,.note{font-size:16px!important}
+}
+</style>
+
+
+<style id="doing-about-redesign-20260813">
+body{background:
+ radial-gradient(circle at 3% 8%,rgba(218,240,235,.42),transparent 25%),
+ radial-gradient(circle at 96% 18%,rgba(246,231,205,.42),transparent 23%),
+ #FAFBFA!important}
+.top-in,.shell{width:min(1540px,calc(100vw - 40px))!important;max-width:none!important}
+.hero{
+  min-height:420px!important;
+  display:flex!important;flex-direction:column!important;justify-content:center!important;
+  padding:clamp(38px,5vw,82px)!important;
+  border-radius:30px!important;
+  background:linear-gradient(135deg,rgba(255,255,255,.97),rgba(246,252,249,.97) 55%,rgba(248,239,224,.92))!important;
+  border:1px solid #DEE8E4!important;
+  box-shadow:0 28px 70px rgba(56,78,72,.075)!important;
+}
+.hero h1{font-size:clamp(46px,5.3vw,76px)!important;line-height:1.08!important;letter-spacing:-.035em!important;max-width:1100px!important}
+.hero .lead{font-size:19px!important;line-height:1.8!important;max-width:1050px!important}
+.hero .eyebrow{font-size:16px!important}
+nav.section-nav{
+  position:sticky!important;top:0!important;z-index:20!important;
+  background:rgba(255,255,255,.95)!important;backdrop-filter:blur(14px)!important;
+  border:1px solid #E4E9E7!important;border-radius:16px!important
+}
+.section{padding-block:36px!important}
+.section h2{font-size:36px!important;letter-spacing:-.02em!important}
+.flow{
+  display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:12px!important
+}
+.step{
+  min-height:190px!important;padding:20px!important;border-radius:18px!important;
+  background:#fff!important;border:1px solid #E0E7E5!important;
+  box-shadow:0 10px 28px rgba(52,72,67,.035)!important
+}
+.step b{font-size:15px!important;letter-spacing:.05em!important;color:#2E807B!important}
+.step strong{display:block;font-size:20px!important;margin:8px 0!important}
+.step span{font-size:16px!important;line-height:1.65!important}
+
+#organizer{
+  background:transparent!important;
+}
+#organizer .card,#organizer .signup-card,#organizer form{
+  max-width:none!important;
+  border-radius:26px!important;
+}
+#organizer form{
+  background:linear-gradient(135deg,#225E5B,#2D7C77)!important;
+  padding:clamp(24px,3vw,42px)!important;
+}
+
+/* 問卷：不再 checkbox wall */
+#organizer .signup-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}
+#organizer label{font-size:17px!important}
+#organizer input[type="text"],#organizer input[type="tel"],#organizer input[type="email"]{
+  background:#fff!important;border:1px solid rgba(255,255,255,.3)!important
+}
+#organizer input[type="checkbox"]{
+  width:20px!important;height:20px!important;accent-color:#DCC28E!important;flex:0 0 auto!important
+}
+#organizer .checkbox-grid,#organizer .check-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:10px 12px!important
+}
+#organizer .checkbox-grid label,#organizer .check-grid label{
+  display:flex!important;gap:10px!important;align-items:flex-start!important;
+  padding:12px 14px!important;border-radius:14px!important;
+  background:rgba(255,255,255,.08)!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  min-height:58px!important;
+  line-height:1.45!important
+}
+#organizer .checkbox-grid label:has(input:checked),#organizer .check-grid label:has(input:checked){
+  background:rgba(255,255,255,.18)!important;border-color:#E9D3A4!important;
+  box-shadow:inset 0 0 0 1px rgba(233,211,164,.28)!important
+}
+#organizer h3,#organizer h4,#organizer legend{
+  color:#fff!important;font-size:22px!important;margin-top:22px!important
+}
+#organizer .sub,#organizer small{color:rgba(255,255,255,.82)!important}
+#organizer .btn{background:#F0D6A4!important;color:#254D4B!important;border:0!important;font-weight:950!important}
+
+@media(max-width:1050px){
+  .flow{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  #organizer .checkbox-grid,#organizer .check-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:760px){
+  .top-in,.shell{width:100%!important;padding-inline:12px!important}
+  .hero{min-height:auto!important;border-radius:22px!important}
+  .hero h1{font-size:44px!important}
+  .flow{grid-template-columns:1fr!important}
+  #organizer .signup-grid{grid-template-columns:1fr!important}
+  #organizer .checkbox-grid,#organizer .check-grid{grid-template-columns:1fr!important}
+}
+</style>
+
 </head>
 <body>
 <header class="top">
@@ -98,7 +229,7 @@ a{font-size:inherit}
 <main class="shell">
   <section class="hero" id="about">
     <span class="eyebrow">DOING｜活動營運管理系統</span>
-    <h1>一個主辦，整合所有營運。</h1>
+    <h1>活動很多、角色很多，也只需要一套 DOING。</h1>
     <p class="lead">DOING 是一套複合式營運管理系統。市集招募、活動報名、課程、體驗與預約可以在同一個主辦帳號內管理，會員、付款、通知、日曆與財務不必分散在不同表單與系統。</p>
     <div class="hero-actions">
       <a class="btn" href="index.html">查看目前開放活動</a>
@@ -124,7 +255,7 @@ a{font-size:inherit}
     </div>
     <div class="flow">
       <div class="step"><b>STEP 01</b><strong>勾選你的營運情境</strong><span>可同時選市集、活動、課程、體驗、預約等，不會被限制成單一類型。</span></div>
-      <div class="step"><b>STEP 02</b><strong>建立主辦帳號</strong><span>填寫主辦資料並完成 Google 驗證。</span></div>
+      <div class="step"><b>STEP 02</b><strong>提出主辦申請</strong><span>填寫主辦資料並完成 Google 驗證。</span></div>
       <div class="step"><b>STEP 03</b><strong>建立活動與營運內容</strong><span>同一活動可分別設定攤商招募、民眾報名、體驗預約等不同流程。</span></div>
       <div class="step"><b>STEP 04</b><strong>確認每個營運流程</strong><span>開放前完成必要資料檢查，避免缺漏。</span></div>
       <div class="step"><b>STEP 05</b><strong>正式開始營運</strong><span>主辦在同一個後台管理報名、預約、付款、日曆、通知與現場。</span></div>
@@ -184,25 +315,26 @@ a{font-size:inherit}
     <div class="note">帳號、問卷、模組設定、建立內容與預覽免費；真正對外開放報名／預約時才取得正式營運權。正式啟用後平台服務即已提供，主辦取消不退平台服務費；原活動延期可沿用原發布權。</div>
   </section>
 
-  <section id="organizer">
+  <div id="applicationPendingBanner" style="display:none;width:min(1180px,calc(100vw - 32px));margin:18px auto;padding:18px 20px;border-radius:18px;background:#F2F8F6;border:1px solid #D5E8E2;font-size:18px;line-height:1.65"><b>申請已送出，等待 DOING 審核</b><br>審核通過後才會建立主辦帳號；通過結果會寄到你的 Google Email。</div>
+<section id="organizer">
     <div class="cta">
       <h2>免費開通 DOING 主辦帳號</h2>
-      <p>填寫主辦基本資料並完成 Google 帳號驗證後，就能直接建立主辦帳號並進入管理後台開始設定，不需要等待人工審核。</p>
+      <p>填寫主辦資料並完成 Google 帳號驗證後，申請會送交 DOING 審核；審核通過後才會建立主辦帳號並開放使用。</p>
       <div class="signup-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px;text-align:left">
         <label style="display:grid;gap:6px;font-weight:800">主辦／品牌名稱<input id="signupBrand" style="min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px" placeholder="例如：你的品牌／主辦名稱"></label>
         <label style="display:grid;gap:6px;font-weight:800">聯絡人<input id="signupName" style="min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px" placeholder="姓名"></label>
         <label style="display:grid;gap:6px;font-weight:800">聯絡電話<input id="signupPhone" style="min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px" inputmode="tel" placeholder="手機或電話"></label>
-        <div style="grid-column:1/-1;display:grid;gap:8px"><b>主要用途（可複選）</b><div id="signupUseCases" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px">
+        <div style="grid-column:1/-1;display:grid;gap:8px"><b>你平常會經營哪些事情？（可複選）</b><div id="signupUseCases" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px">
           <label><input type="checkbox" value="market"> 市集／攤商招募</label><label><input type="checkbox" value="event"> 活動／講座／課程報名</label><label><input type="checkbox" value="workshop"> 手作體驗／工作坊</label><label><input type="checkbox" value="beauty"> 美業／工作室預約</label><label><input type="checkbox" value="service_booking"> 一般服務預約</label><label><input type="checkbox" value="resource_booking"> 場地／資源預約</label><label><input type="checkbox" value="guide"> 導覽／戶外體驗</label><label><input type="checkbox" value="general"> 其他通用報名</label>
         </div></div>
-        <div style="grid-column:1/-1;display:grid;gap:8px"><b>你會需要哪些功能？</b><div id="signupNeeds" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px">
+        <div style="grid-column:1/-1;display:grid;gap:8px"><b>你的營運通常需要哪些功能？</b><div id="signupNeeds" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px">
           <label><input type="checkbox" data-module="review"> 報名需審核</label><label><input type="checkbox" data-module="payment"> 收款／付款確認</label><label><input type="checkbox" data-module="deposit"> 訂金／可退押金</label><label><input type="checkbox" data-module="workshopSlots"> 日期／時段預約</label><label><input type="checkbox" data-module="service"> 服務／方案選擇</label><label><input type="checkbox" data-module="resource"> 人員／老師／場地資源</label><label><input type="checkbox" data-module="seatSelection"> 座位／攤位選位</label><label><input type="checkbox" data-module="equipment"> 設備／租借</label><label><input type="checkbox" data-module="addons"> 加購</label><label><input type="checkbox" data-module="customFields"> 自訂問題</label><label><input type="checkbox" data-module="agreement"> 條款／合約</label><label><input type="checkbox" data-module="checkin"> 現場報到</label><label><input type="checkbox" data-module="invoice"> 發票資料</label><label><input type="checkbox" data-module="i18n"> 多語言</label><label><input type="checkbox" data-module="calendar"> 營運總日曆／Google Calendar</label><label><input type="checkbox" data-module="notifications"> 自動通知</label><label><input type="checkbox" data-module="rewards"> 早鳥／回饋優惠</label>
         </div></div>
       </div>
-      <label style="display:flex;gap:9px;align-items:flex-start;margin-top:14px;text-align:left;font-weight:800"><input id="signupOrganizerConfirm" type="checkbox" style="margin-top:5px"><span>我確認要建立的是「活動主辦／承辦單位」管理帳號，不是一般報名者／攤商會員帳號。</span></label>
+      <label style="display:flex;gap:9px;align-items:flex-start;margin-top:14px;text-align:left;font-weight:800"><input id="signupOrganizerConfirm" type="checkbox" style="margin-top:5px"><span>我確認要建立的是主辦管理帳號。</span></label>
       <div class="hero-actions">
-        <button class="btn" type="button" id="signupGoogleBtn">使用 Google 建立主辦帳號</button>
-        <a class="btn outline" href="index.html">先查看報名者入口</a>
+        <button class="btn" type="button" id="signupGoogleBtn">使用 Google 驗證並送出申請</button>
+        <a class="btn outline" href="index.html">先看看一般報名入口</a>
       </div>
       <p id="signupErr" style="display:none;margin-top:10px;color:#b04b45;font-weight:800"></p>
     </div>
@@ -263,6 +395,13 @@ a{font-size:inherit}
     u.searchParams.set('module_profile',JSON.stringify(profile));
     location.href=u.toString();
   });
+  const pageUrl=new URL(location.href);
+  const applicationStatus=pageUrl.searchParams.get('application_status')||'';
+  if(applicationStatus==='pending'){
+    const b=document.getElementById('applicationPendingBanner');if(b)b.style.display='block';
+    document.getElementById('organizer')?.scrollIntoView({block:'start'});
+    const clean=new URL(location.href);clean.searchParams.delete('application_status');history.replaceState({},'',clean.pathname+clean.search+clean.hash);
+  }
   const oauthErr=new URL(location.href).searchParams.get('login_error')||'';
   if(oauthErr){
     const messages={signup_missing_profile:'主辦基本資料不完整，請重新填寫。',signup_failed:'主辦帳號建立失敗，資料尚未完成建立，請重新操作。',google_cancelled:'Google 驗證已取消。',id_token_verify_failed:'Google 身分驗證失敗，請重新操作。',token_exchange_failed:'Google 登入流程失敗，請稍後再試。',invalid_or_expired_state:'開通驗證已逾時，請重新填寫並驗證。'};

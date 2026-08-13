@@ -27,6 +27,48 @@ a{font-size:inherit}
 }
 </style>
 
+
+<style id="doing-global-polish-20260813">
+*{box-sizing:border-box!important}
+html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+body{margin:0!important;background:#F7F9FA!important;color:#1F2933!important}
+img,svg,video,canvas{max-width:100%!important;height:auto}
+main,section,header,footer,nav,div{min-width:0}
+:root{
+  --doing-ink:#1F2933;
+  --doing-muted:#687581;
+  --doing-line:#DFE6E8;
+  --doing-paper:#FFFFFF;
+  --doing-wash:#F7F9FA;
+  --doing-teal:#2F8F8B;
+  --doing-teal-dark:#216C69;
+  --doing-sand:#F4EEE4;
+  --doing-blue:#6F91B3;
+  --doing-purple:#9B8AB7;
+}
+body,button,input,select,textarea{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif!important}
+body{font-size:18px!important;line-height:1.72!important}
+p,li,td,th{font-size:18px!important;line-height:1.72!important}
+label,button,.btn,input,select,textarea{font-size:17px!important}
+small,.small,.sub,.muted,.hint,.help,.desc,.meta,.note{font-size:16px!important;line-height:1.58!important}
+button,.btn,[role="button"],a.button{min-height:46px!important;border-radius:12px!important}
+input,select,textarea{min-height:48px!important;border-radius:12px!important}
+a{color:inherit}
+@media(max-width:760px){
+  body,p,li,td,th{font-size:17px!important}
+  label,button,.btn,input,select,textarea{font-size:17px!important}
+  small,.small,.sub,.muted,.hint,.help,.desc,.meta,.note{font-size:16px!important}
+}
+</style>
+
+
+<style id="doing-responsive-overflow-fix">
+html,body{overflow-x:hidden!important}
+main,.wrap,.shell,.container,.app{max-width:100%!important}
+table{max-width:100%!important}
+.table-wrap{max-width:100%!important;overflow-x:auto!important}
+</style>
+
 </head><body><main class="wrap">
 <section class="card"><h1 class="title" id="pageTitle">活動拍照</h1><div class="content" id="pageContent">載入中…</div><div id="tags"></div><div class="notice hidden" id="reward"></div></section>
 <section class="card hidden" id="frameCard"><h2 style="margin-top:0">選擇拍照框</h2><div class="frame-grid" id="frameGrid"></div><div class="actions"><button class="btn" id="useFrameBtn">使用這個框</button></div></section>

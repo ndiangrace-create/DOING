@@ -1612,6 +1612,83 @@ a{font-size:inherit}
 }
 </style>
 
+
+<style id="doing-global-polish-20260813">
+*{box-sizing:border-box!important}
+html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+body{margin:0!important;background:#F7F9FA!important;color:#1F2933!important}
+img,svg,video,canvas{max-width:100%!important;height:auto}
+main,section,header,footer,nav,div{min-width:0}
+:root{
+  --doing-ink:#1F2933;
+  --doing-muted:#687581;
+  --doing-line:#DFE6E8;
+  --doing-paper:#FFFFFF;
+  --doing-wash:#F7F9FA;
+  --doing-teal:#2F8F8B;
+  --doing-teal-dark:#216C69;
+  --doing-sand:#F4EEE4;
+  --doing-blue:#6F91B3;
+  --doing-purple:#9B8AB7;
+}
+body,button,input,select,textarea{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif!important}
+body{font-size:18px!important;line-height:1.72!important}
+p,li,td,th{font-size:18px!important;line-height:1.72!important}
+label,button,.btn,input,select,textarea{font-size:17px!important}
+small,.small,.sub,.muted,.hint,.help,.desc,.meta,.note{font-size:16px!important;line-height:1.58!important}
+button,.btn,[role="button"],a.button{min-height:46px!important;border-radius:12px!important}
+input,select,textarea{min-height:48px!important;border-radius:12px!important}
+a{color:inherit}
+@media(max-width:760px){
+  body,p,li,td,th{font-size:17px!important}
+  label,button,.btn,input,select,textarea{font-size:17px!important}
+  small,.small,.sub,.muted,.hint,.help,.desc,.meta,.note{font-size:16px!important}
+}
+</style>
+
+
+<style id="doing-admin-framework-fix-20260813">
+html,body{overflow-x:hidden!important}
+.topbar{position:relative!important;z-index:1000!important;background:#fff!important}
+.topbar-in,.app,.panel-head-in,.panel-body{
+  width:100%!important;max-width:none!important;padding-left:clamp(14px,2vw,32px)!important;padding-right:clamp(14px,2vw,32px)!important
+}
+.app{overflow-x:hidden!important}
+.tabs{
+  position:sticky!important;top:0!important;z-index:999!important;
+  width:100%!important;max-width:100%!important;
+  display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;
+  overflow:visible!important;margin:0!important;padding:8px clamp(10px,2vw,28px)!important;
+  border-radius:0!important;background:rgba(247,250,253,.98)!important;
+  border-left:0!important;border-right:0!important
+}
+.tab{
+  min-width:0!important;width:auto!important;flex:none!important;
+  font-size:18px!important;min-height:48px!important;
+  padding:10px 8px!important;white-space:normal!important
+}
+.settings-grid{
+  width:100%!important;
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))!important;
+  gap:10px!important
+}
+.settings-tile{width:100%!important;min-width:0!important;overflow:hidden!important}
+.settings-tile span{overflow-wrap:anywhere!important}
+.session-list,.cards,.member-list,.report-grid,.grid{max-width:100%!important}
+table{width:100%!important}
+.table-wrap{overflow-x:auto!important;max-width:100%!important}
+@media(max-width:980px){
+  .tabs{display:flex!important;overflow-x:auto!important;scrollbar-width:none!important}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 104px!important;white-space:nowrap!important}
+}
+@media(max-width:760px){
+  .topbar-in,.app,.panel-head-in,.panel-body{padding-left:10px!important;padding-right:10px!important}
+  .settings-grid{grid-template-columns:1fr!important}
+}
+</style>
+
 </head>
 <body>
 <section id="loginPage" class="login-wrap">
