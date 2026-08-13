@@ -100,17 +100,17 @@ a{color:inherit}.top{position:sticky;top:0;z-index:20;background:rgba(255,255,25
     </div>
     <div class="pricing">
       <article class="price-card">
-        <h3>免費活動</h3>
-        <div class="price">NT$100 <small>／場</small></div>
-        <p>活動本身不向報名者收費時，依正式建立並使用的活動場次計費。</p>
+        <h3>活動發布</h3>
+        <div class="price">NT$200 <small>／獨立場次</small></div>
+        <p>一個可獨立報名的正式活動場次收一次。相同活動連續多日、且參加者一次報名整套日期，仍視為一場；可分開報名的日期則分別計費。</p>
       </article>
       <article class="price-card primary">
-        <h3>收費活動</h3>
-        <div class="price">實際已收金額 × 1%</div>
-        <p>依主辦實際確認收到的金額計算，不另外加收免費活動的單場 NT$100。</p>
+        <h3>預約營運</h3>
+        <div class="price">NT$888 <small>／月</small></div>
+        <p>適合美業、工作室、導覽、體驗、場地及持續時段預約。自啟用日起至次月相對應時間到期；活動發布仍依獨立場次計費。</p>
       </article>
     </div>
-    <div class="note">免費活動與收費活動的系統費用合計，正式牌價採單月最高 NT$3,800。退款回沖、延期歸屬及正式金流服務，仍依實際啟用規則與雙方約定處理。</div>
+    <div class="note">帳號、問卷、模組設定、建立內容與預覽免費；真正對外開放報名／預約時才取得正式營運權。正式啟用後平台服務即已提供，主辦取消不退平台服務費；原活動延期可沿用原發布權。</div>
   </section>
 
   <section id="organizer">
@@ -121,7 +121,12 @@ a{color:inherit}.top{position:sticky;top:0;z-index:20;background:rgba(255,255,25
         <label style="display:grid;gap:6px;font-weight:800">主辦／品牌名稱<input id="signupBrand" style="min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px" placeholder="例如：你的品牌／主辦名稱"></label>
         <label style="display:grid;gap:6px;font-weight:800">聯絡人<input id="signupName" style="min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px" placeholder="姓名"></label>
         <label style="display:grid;gap:6px;font-weight:800">聯絡電話<input id="signupPhone" style="min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px" inputmode="tel" placeholder="手機或電話"></label>
-        <label style="display:grid;gap:6px;font-weight:800">主要活動類型<select id="signupType" style="min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff"><option value="市集報名">市集報名</option><option value="手作體驗">手作體驗</option><option value="活動報名">活動報名</option></select></label>
+        <div style="grid-column:1/-1;display:grid;gap:8px"><b>主要用途（可複選）</b><div id="signupUseCases" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px">
+          <label><input type="checkbox" value="market"> 市集／攤商招募</label><label><input type="checkbox" value="event"> 活動／講座／課程報名</label><label><input type="checkbox" value="workshop"> 手作體驗／工作坊</label><label><input type="checkbox" value="beauty"> 美業／工作室預約</label><label><input type="checkbox" value="service_booking"> 一般服務預約</label><label><input type="checkbox" value="resource_booking"> 場地／資源預約</label><label><input type="checkbox" value="guide"> 導覽／戶外體驗</label><label><input type="checkbox" value="general"> 其他通用報名</label>
+        </div></div>
+        <div style="grid-column:1/-1;display:grid;gap:8px"><b>你會需要哪些功能？</b><div id="signupNeeds" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px">
+          <label><input type="checkbox" data-module="review"> 報名需審核</label><label><input type="checkbox" data-module="payment"> 收款／付款確認</label><label><input type="checkbox" data-module="deposit"> 訂金／可退押金</label><label><input type="checkbox" data-module="workshopSlots"> 日期／時段預約</label><label><input type="checkbox" data-module="service"> 服務／方案選擇</label><label><input type="checkbox" data-module="resource"> 人員／老師／場地資源</label><label><input type="checkbox" data-module="seatSelection"> 座位／攤位選位</label><label><input type="checkbox" data-module="equipment"> 設備／租借</label><label><input type="checkbox" data-module="addons"> 加購</label><label><input type="checkbox" data-module="customFields"> 自訂問題</label><label><input type="checkbox" data-module="agreement"> 條款／合約</label><label><input type="checkbox" data-module="checkin"> 現場報到</label><label><input type="checkbox" data-module="invoice"> 發票資料</label><label><input type="checkbox" data-module="i18n"> 多語言</label><label><input type="checkbox" data-module="calendar"> 營運總日曆／Google Calendar</label><label><input type="checkbox" data-module="notifications"> 自動通知</label><label><input type="checkbox" data-module="rewards"> 早鳥／回饋優惠</label>
+        </div></div>
       </div>
       <label style="display:flex;gap:9px;align-items:flex-start;margin-top:14px;text-align:left;font-weight:800"><input id="signupOrganizerConfirm" type="checkbox" style="margin-top:5px"><span>我確認要建立的是「活動主辦／承辦單位」管理帳號，不是一般報名者／攤商會員帳號。</span></label>
       <div class="hero-actions">
@@ -176,7 +181,15 @@ a{color:inherit}.top{position:sticky;top:0;z-index:20;background:rgba(255,255,25
     u.searchParams.set('brand_name',brand);
     u.searchParams.set('contact_name',name);
     u.searchParams.set('contact_phone',phone);
-    u.searchParams.set('event_type',(document.getElementById('signupType').value||'').trim());
+    const useCases=[...document.querySelectorAll('#signupUseCases input:checked')].map(x=>x.value);
+    if(!useCases.length){err.textContent='請至少選擇一個主要用途';err.style.display='block';return;}
+    const flags={};document.querySelectorAll('#signupNeeds input[data-module]').forEach(x=>flags[x.dataset.module]=!!x.checked);
+    const bookingUse=useCases.some(x=>['workshop','beauty','service_booking','resource_booking'].includes(x));
+    const marketUse=useCases.includes('market');
+    const defaults={registration:true,review:!!flags.review,workshopSlots:bookingUse||!!flags.workshopSlots,service:useCases.some(x=>['beauty','service_booking','workshop'].includes(x))||!!flags.service,resource:useCases.some(x=>['beauty','resource_booking'].includes(x))||!!flags.resource,participants:false,customFields:!!flags.customFields,equipment:marketUse||!!flags.equipment,seatSelection:marketUse&&!!flags.seatSelection,addons:!!flags.addons,agreement:!!flags.agreement,invoice:!!flags.invoice,payment:!!flags.payment,checkin:marketUse||!!flags.checkin,googleCalendar:bookingUse,quantityMode:marketUse?'stall':(bookingUse?'booking':'participant'),depositKind:flags.deposit?(bookingUse?'booking':'refundable'):'none',operatingMode:bookingUse?'booking':'activity',i18n:{enabled:!!flags.i18n,languages:flags.i18n?['zh-TW','en','ja','ko']:['zh-TW'],translations:{}}};
+    const profile={configured:true,useType:bookingUse?'booking':(marketUse?'market':'activity'),useCases,defaults};
+    u.searchParams.set('event_type',useCases.join(','));
+    u.searchParams.set('module_profile',JSON.stringify(profile));
     location.href=u.toString();
   });
   const oauthErr=new URL(location.href).searchParams.get('login_error')||'';
