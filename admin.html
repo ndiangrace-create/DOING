@@ -1412,6 +1412,33 @@ body{letter-spacing:.005em}
 .calendar-grid{overflow:auto}.cal-week,.cal-days{display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));gap:6px;min-width:780px}.cal-week{margin-bottom:6px}.cal-week b{text-align:center;padding:6px;color:var(--muted)}.cal-cell{min-height:118px;border:1px solid var(--line);border-radius:14px;background:#fff;padding:8px;text-align:left;display:flex;flex-direction:column;gap:5px;cursor:pointer}.cal-cell:hover{box-shadow:0 5px 18px rgba(0,0,0,.08)}.cal-cell.muted{background:transparent;border-color:transparent;cursor:default}.cal-cell.today{outline:2px solid rgba(30,110,90,.28)}.cal-cell.selected{border-color:#356f63;box-shadow:0 0 0 2px rgba(53,111,99,.12)}.cal-daynum{font-weight:800}.cal-item{font-size:12px;background:#f4f6f5;border-radius:8px;padding:4px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cal-more{font-size:12px;color:var(--muted)}
 </style>
 <!-- DOING consolidated modular build 2026-07-31 -->
+
+<style id="doing-role-admin-style">
+/* 主辦工作台：藍色系，與參加者入口（青綠）及平台管理（紫色）區分。 */
+:root{--main:#4C78A8;--main2:#345D8C;--mint:#EAF2FB;--role-soft:#EEF4FB;--role-border:#BED0E5}
+body{border-top:5px solid #4C78A8}
+.topbar{border-bottom-color:#D7E2EF!important}
+.tabs{background:rgba(232,240,250,.97)!important;border-color:#BDD0E4!important}
+.tabs .tab{border-color:#D2DEEA!important}
+.tabs .tab.active{background:#355D88!important;border-color:#355D88!important}
+.notice{border-left-color:#4C78A8!important}
+.module-preset-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin-top:12px}
+.module-preset-btn{border:1px solid #D5E0EC;background:#fff;color:#26384C;border-radius:15px;padding:11px 12px;font-weight:900;text-align:left;min-height:54px}
+.module-preset-btn.active{background:#355D88;color:#fff;border-color:#355D88;box-shadow:0 8px 20px rgba(53,93,136,.18)}
+.module-current{background:linear-gradient(135deg,#355D88,#527EAD);color:#fff;border-radius:18px;padding:15px 17px;margin:14px 0}
+.module-current small{display:block;opacity:.82;margin-bottom:3px}.module-current b{display:block;font-size:20px}.module-current span{display:block;margin-top:4px;font-size:13px;opacity:.92}
+.module-section{border:1px solid #DCE5EF;background:#fff;border-radius:18px;padding:14px;margin-top:12px}
+.module-section-title{font-size:16px;font-weight:950;margin-bottom:4px}.module-section-help{font-size:12px;color:var(--muted);margin-bottom:10px}
+.module-toggle-grid.detail{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.module-toggle.detail{align-items:flex-start;min-height:74px;padding:11px 12px}
+.module-toggle.detail span b{display:block;font-size:14px}.module-toggle.detail span small{display:block;color:var(--muted);font-size:11px;margin-top:3px;line-height:1.4}
+.module-core-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.module-core-item{background:#F5F8FC;border:1px solid #DDE6F0;border-radius:14px;padding:10px;font-size:12px;font-weight:850}
+.module-core-item b{display:block;font-size:13px;color:#345D8C}
+.module-subgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(max-width:700px){.module-subgrid{grid-template-columns:1fr}.module-preset-grid{grid-template-columns:1fr 1fr}}
+</style>
+
 </head>
 <body>
 <section id="loginPage" class="login-wrap">
@@ -1463,12 +1490,12 @@ body{letter-spacing:.005em}
       <div id="financeReportRoot"><div class="loading">財務中心載入中…</div></div>
       <section class="finance-ledger-launch"><div><h3>各場次帳本</h3><p>需要核對單一場次時，再進入該場次查看、編輯或刪除手動收支。</p></div><div id="financeHub"><div class="loading">場次帳本載入中…</div></div></section>
     </section>
-    <section id="page-people" class="hidden"><div class="page-title"><div><h2>人員</h2><div class="sub">把「誰能做什麼」與「主辦累積了哪些會員關係」分開管理；權限仍由 Worker 驗證。</div></div></div><div class="settings-grid"><button class="settings-tile" onclick="openStaffSettings()"><div class="ico">🔐</div><b>管理人員</b><span>主辦 / 財務 / 單場 / 現場授權</span></button><button class="settings-tile" onclick="switchPage('members')"><div class="ico">👥</div><b>會員 / 品牌</b><span>會員資料、備註、歷史報名</span></button><button class="settings-tile" onclick="switchPage('leads')"><div class="ico">📣</div><b>活動名單</b><span>接觸名單、篩選與匯出</span></button><button class="settings-tile" onclick="window.open('onsite.html','_blank')"><div class="ico">🎟️</div><b>現場工作台</b><span>授權場次與報到操作</span></button></div></section>
+    <section id="page-people" class="hidden"><div class="page-title"><div><h2>人員</h2><div class="sub">把「誰能做什麼」與「主辦累積了哪些會員關係」分開管理；權限會依你設定的管理範圍自動套用。</div></div></div><div class="settings-grid"><button class="settings-tile" onclick="openStaffSettings()"><div class="ico">🔐</div><b>管理人員</b><span>主辦 / 財務 / 單場 / 現場授權</span></button><button class="settings-tile" onclick="switchPage('members')"><div class="ico">👥</div><b>會員 / 品牌</b><span>會員資料、備註、歷史報名</span></button><button class="settings-tile" onclick="switchPage('leads')"><div class="ico">📣</div><b>活動名單</b><span>接觸名單、篩選與匯出</span></button><button class="settings-tile" onclick="window.open('onsite.html','_blank')"><div class="ico">🎟️</div><b>現場工作台</b><span>授權場次與報到操作</span></button></div></section>
     <section id="page-todos" class="hidden"><div class="page-title"><div><h2>目前待辦</h2><div class="sub">顯示所有尚未完成事項；今天截止或今天應處理的項目會標示「今日到期」。</div></div><div class="page-actions"><button class="btn secondary" onclick="loadTodos()">重新整理</button></div></div><section id="doingCommand" class="doing-command"><div class="doing-command-top"><div class="doing-command-copy"><small>OPERATIONS NOW</small><h3>今天先處理最重要的營運工作</h3><p id="doingCommandText">正在整理跨場次狀態…</p></div><div class="doing-command-action"><button class="btn secondary small" onclick="switchPage('todos')">查看全部待辦</button><button class="btn small" onclick="newSessionFull()">＋ 建立新場次</button></div></div><div id="doingKpis" class="doing-kpis"></div></section><div id="todoFilterBar"></div><div id="todoList" class="cards"><div class="loading">載入待辦中…</div></div></section>
     <section id="page-onsite" class="hidden"><div class="page-title"><div><h2>現場</h2><div class="sub">管理者直接操作；工讀生使用同場唯一通行碼進入獨立工作台，所有操作與工時都有紀錄。</div></div><div class="page-actions"><button class="btn secondary" onclick="loadOnsiteList()">重新整理</button><button class="btn secondary" onclick="openOnsitePasscodes()">場次通行碼</button><button class="btn secondary" onclick="openOnsiteShifts()">工讀生工時</button><button class="btn" onclick="openOnsiteWorkerPage()">開啟工讀生頁</button></div></div><div class="filter-row"><select id="onsiteSession" onchange="loadOnsiteList(this.value)" style="flex:1;min-width:220px"></select></div><div class="filter-row" style="margin-top:0"><input id="onsiteSearch" placeholder="搜尋品牌、姓名、手機、Email" oninput="renderOnsiteList()"></div><div class="filter-row" style="margin-top:0"><button class="btn secondary small onsite-fbtn active" onclick="onsiteSetFilter('unchecked',this)">未報到</button><button class="btn secondary small onsite-fbtn" onclick="onsiteSetFilter('checked',this)">已報到</button><button class="btn secondary small onsite-fbtn" onclick="onsiteSetFilter('all',this)">全部</button></div><div id="onsiteBody"><div class="empty">請先選擇場次</div></div></section>
     <section id="page-members" class="hidden"><div class="page-title"><div><h2>會員</h2><div class="sub">一張卡同時顯示會員個人與品牌資料；報名、付款、現場與管理備註累積在同一條軌跡。</div></div><div class="page-actions"><button class="btn secondary" onclick="loadMembers()">重新整理</button></div></div><div class="filter-row"><input id="memberSearch" placeholder="搜尋品牌、姓名、手機、Email、FB、IG" oninput="renderMembers()"></div><div id="memberList" class="member-list"><div class="loading">載入會員中…</div></div></section>
     <section id="page-leads" class="hidden"><div class="page-title"><div><h2>活動名單</h2><div class="sub">拍照框（民眾）與會員（攤商）以 Email 合併去重，可篩選、匯出，用於再行銷。</div></div><div class="page-actions"><button class="btn secondary" onclick="loadLeads()">重新整理</button></div></div><div class="filter-row"><input id="leadSearch" placeholder="搜尋姓名、Email、手機、品牌" oninput="renderLeads()"></div><div id="leadStats" class="sub" style="margin:6px 0 10px"></div><div id="leadFilters" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"></div><div id="leadList"><div class="loading">載入活動名單中…</div></div></section>
-    <section id="page-settings" class="hidden"><div class="page-title"><div><h2>系統設定</h2><div class="sub">設定以全螢幕彈窗開啟，不在主畫面堆內容。</div></div></div><div class="settings-grid"><button class="settings-tile" onclick="openModuleSettings()"><div class="ico">🧩</div><b>功能模組</b><span>問卷設定 / 新場次預設</span></button><button class="settings-tile" onclick="openEmailTemplates()"><div class="ico">✉️</div><b>信件模板</b><span>正式模板管理</span></button><button class="settings-tile" onclick="openPaymentSettings()"><div class="ico">💳</div><b>付款資訊</b><span>銀行 / LINE Pay / 刷卡</span></button><button class="settings-tile" onclick="openAgreementSettings()"><div class="ico">📋</div><b>合約管理</b><span>三個模板可存</span></button><button class="settings-tile" onclick="openStaffSettingsWithGuide()"><div class="ico">🔐</div><b>權限管理</b><span>系列 / 指定場次</span></button><button class="settings-tile" onclick="openCompanySettings()"><div class="ico">🏷️</div><b>公司資料</b><span>登入頁 / 服務資訊</span></button><button class="settings-tile" onclick="openHomepageSettings()"><div class="ico">🏠</div><b>首頁顯示</b><span>公告 / 封面 / LINE</span></button><button class="settings-tile" onclick="openLanguageSettings()"><div class="ico">🌐</div><b>多語言</b><span>繁中 / English / 日本語 / 한국어</span></button><button class="settings-tile" onclick="openThemeEvents()"><div class="ico">🎪</div><b>主題活動</b><span>首頁精選主題圖</span></button><button class="settings-tile" onclick="openVenueMaps()"><div class="ico">🗺️</div><b>常用場地圖</b><span>存放 / 重用場地圖</span></button><button class="settings-tile" onclick="openPhotoFrames()"><div class="ico">📸</div><b>拍照活動</b><span>活動頁 / 拍照框 / 名單</span></button><button class="settings-tile" onclick="openErrorLogs()"><div class="ico">🚨</div><b>系統異常</b><span>錯誤紀錄 / 查修依據</span></button></div></section>
+    <section id="page-settings" class="hidden"><div class="page-title"><div><h2>系統設定</h2><div class="sub">設定以全螢幕彈窗開啟，不在主畫面堆內容。</div></div></div><div class="settings-grid"><button class="settings-tile" onclick="openModuleSettings()"><div class="ico">🧩</div><b>營運功能設定</b><span>市集、活動、體驗、預約的預設流程</span></button><button class="settings-tile" onclick="openEmailTemplates()"><div class="ico">✉️</div><b>信件模板</b><span>正式模板管理</span></button><button class="settings-tile" onclick="openPaymentSettings()"><div class="ico">💳</div><b>付款資訊</b><span>銀行 / LINE Pay / 刷卡</span></button><button class="settings-tile" onclick="openAgreementSettings()"><div class="ico">📋</div><b>合約管理</b><span>三個模板可存</span></button><button class="settings-tile" onclick="openStaffSettingsWithGuide()"><div class="ico">🔐</div><b>權限管理</b><span>系列 / 指定場次</span></button><button class="settings-tile" onclick="openCompanySettings()"><div class="ico">🏷️</div><b>公司資料</b><span>登入頁 / 服務資訊</span></button><button class="settings-tile" onclick="openHomepageSettings()"><div class="ico">🏠</div><b>首頁顯示</b><span>公告 / 封面 / LINE</span></button><button class="settings-tile" onclick="openLanguageSettings()"><div class="ico">🌐</div><b>多語言</b><span>繁中 / English / 日本語 / 한국어</span></button><button class="settings-tile" onclick="openThemeEvents()"><div class="ico">🎪</div><b>主題活動</b><span>首頁精選主題圖</span></button><button class="settings-tile" onclick="openVenueMaps()"><div class="ico">🗺️</div><b>常用場地圖</b><span>存放 / 重用場地圖</span></button><button class="settings-tile" onclick="openPhotoFrames()"><div class="ico">📸</div><b>拍照活動</b><span>活動頁 / 拍照框 / 名單</span></button><button class="settings-tile" onclick="openErrorLogs()"><div class="ico">🚨</div><b>系統異常</b><span>錯誤紀錄 / 查修依據</span></button></div></section>
   </main>
 </section>
 
@@ -1911,7 +1938,7 @@ function renderDoingCommandCenter(){
   let total=0,pending=0,payPending=0,unpaid=0,refund=0,received=0;
   rows.forEach(s=>{const st=getStats(s),f=getFinance(s); total+=Number(st.total||0);pending+=Number(st.pending||0);payPending+=Number(st.paymentPending||0);unpaid+=Number(st.unpaid||0);refund+=Number(st.refund||0);received+=Number(f.received||0)});
   const k=(label,value,note,filter)=>'<button type="button" class="doing-kpi" '+(filter!==undefined?'onclick="setTodoFilter(\''+filter+'\')"':'')+'><span>'+safe(label)+'</span><b>'+safe(value)+'</b><em>'+safe(note||'')+'</em></button>';
-  box.innerHTML=k('進行中場次',rows.length,'跨場次')+k('全部待辦',pending+payPending+unpaid+refund,'點擊查看','all')+k('待審核',pending,pending?'點擊處理':'已清空','pending')+k('付款待確認',payPending,payPending?'點擊核帳':'已清空','paymentPending')+k('實際已收',money(received),'依 Worker / DB');
+  box.innerHTML=k('進行中場次',rows.length,'跨場次')+k('全部待辦',pending+payPending+unpaid+refund,'點擊查看','all')+k('待審核',pending,pending?'點擊處理':'已清空','pending')+k('付款待確認',payPending,payPending?'點擊核帳':'已清空','paymentPending')+k('實際已收',money(received),'依實際收款紀錄');
   if(txt)txt.textContent=rows.length?('目前 '+rows.length+' 個進行中場次；系統把需要審核、核帳與退款的工作集中在這裡。'):'目前沒有進行中的場次，可先建立新場次。';
 }
 function renderSessions(){ renderDoingCommandCenter(); const box=$('sessionList'); const kw=($('sessionSearch')?.value||'').trim().toLowerCase(); const mode=$('sessionStatusFilter')?.value||'current'; const list=[]; for(const s of AdminState.sessions){ if(mode==='current' && isArchived(s)) continue; if(mode==='archived' && !isArchived(s)) continue; if(kw && ![sessionName(s),s.eventName,s.organizer,s.coorg,s.venue,s.location].join(' ').toLowerCase().includes(kw)) continue; const tf=AdminState.themeFilter||''; if(tf && String(s.eventId||s.event_id||'')!==String(tf)) continue; list.push(s); } if(!list.length){box.innerHTML='<div class="empty">目前沒有符合條件的場次</div>';return;} const sorted=sortNearestFirst(list, sessionSortTs); let out=''; for(const s of sorted) out += renderSessionCard(s); box.innerHTML=out; }
@@ -2315,12 +2342,12 @@ async function openRefundPanel(regId, btn=null, sidOverride=''){
       +'<div class="form-field"><label>轉帳手續費</label><input id="refundTransferFeeInput" type="number" min="0" value="'+attr(transferFee)+'" oninput="calcRefundAmount()"></div>'
       +'<div class="form-field full"><label>退費備註</label><textarea id="refundNoteInput" placeholder="可填寫匯款帳號、處理備註或內部紀錄"></textarea></div>'
       +'</div>'
-      +'<div class="notice" style="margin-top:12px"><b>Worker 建議現金退款：</b><span id="refundAmountText">'+money(refund)+'</span>'+(transferCredit>0?'<br><b>保留轉用：</b>'+money(transferCredit)+'<br><span class="sub">轉用金額不是現金退款；請使用改期／轉場保留原付款，避免重複退錢。</span>':'<br><span class="sub">確認後 Worker 仍會依 DB 實收與規則再次驗證。</span>')+'</div>'
+      +'<div class="notice" style="margin-top:12px"><b>建議現金退款：</b><span id="refundAmountText">'+money(refund)+'</span>'+(transferCredit>0?'<br><b>保留轉用：</b>'+money(transferCredit)+'<br><span class="sub">轉用金額不是現金退款；請使用改期／轉場保留原付款，避免重複退錢。</span>':'<br><span class="sub">確認送出時，系統會依實際收款與退款規則再次核對。</span>')+'</div>'
       +'<input type="hidden" id="refundTransferCreditInput" value="'+attr(transferCredit)+'">'
 
       +'<div class="card-actions"><button class="btn danger" onclick="confirmAdminRefund(\''+attr(regId)+'\',\''+attr(sid)+'\')">確認完成退費</button><button class="btn secondary" onclick="panelBack()">取消</button></div>'
       +'</div></div>';
-    openPanel('取消／退費','系統先依本場退款規則帶入扣項；行政費與轉帳手續費可依個案調整，實退金額會由 Worker 重新驗證。',html);
+    openPanel('取消／退費','系統會先依本場退款規則計算；如需調整行政費或轉帳手續費，可在確認前修改，送出時系統會再次核對實際收款。',html);
     calcRefundAmount();
   }catch(e){ const msg=String(e.message||e); toast('退費資料載入失敗：'+msg,7000); if(msg.includes('已完成退費')||msg.includes('已退費')){ try{ await refreshSessionsOverview(); if(AdminState.currentPage==='todos') await loadTodos(); }catch(_e){} } }
   finally{ if(btn){ btn.disabled=false; btn.textContent=old; } }
@@ -3018,42 +3045,153 @@ function tenantModulePreset(type){
   else if(type==='event'){Object.assign(m,{participants:true,payment:true,checkin:true,quantityMode:'participant',operatingMode:'activity'});}
   return m;
 }
+const TENANT_PRESET_META={
+  generic:{title:'通用報名',desc:'適合一般名單收集、審核、付款與報到。'},
+  market:{title:'市集／攤位招募',desc:'攤位數、審核、付款、押金、設備、加購、選位與現場報到。'},
+  workshop:{title:'手作體驗／工作坊',desc:'日期梯次、名額、服務項目、付款、報到與行事曆。'},
+  beauty:{title:'美業／工作室預約',desc:'日期時段、服務項目、指定人員、訂金、改期與取消規則。'},
+  service_booking:{title:'一般服務預約',desc:'適合顧問、攝影、教學、諮詢等長期時段預約。'},
+  resource_booking:{title:'場地／資源預約',desc:'適合空間、設備或其他有限資源的時段預約與收款。'},
+  event:{title:'一般活動／講座',desc:'票種／人數、付款、通知與現場報到。'}
+};
+function syncTenantPresetUI(type){
+  const meta=TENANT_PRESET_META[type]||TENANT_PRESET_META.generic;
+  document.querySelectorAll('.module-preset-btn').forEach(b=>b.classList.toggle('active',b.dataset.preset===type));
+  const b=$('tm_currentPreset'); if(b)b.textContent=meta.title;
+  const d=$('tm_currentPresetDesc'); if(d)d.textContent=meta.desc;
+}
 function applyTenantModulePreset(type){
   const m=tenantModulePreset(type);
   const use=$('tm_useType');if(use)use.value=type;
   for(const k of TENANT_MODULE_KEYS){const e=$('tm_'+k);if(e)e.checked=k==='i18n'?!!m.i18n?.enabled:!!m[k];}
   if($('tm_quantityMode'))$('tm_quantityMode').value=m.quantityMode||'booking';
   if($('tm_depositKind'))$('tm_depositKind').value=m.depositKind||'none';
+  if($('tm_operatingMode'))$('tm_operatingMode').value=m.operatingMode||'activity';
+  if($('tm_activityDatesTogether'))$('tm_activityDatesTogether').checked=!!m.activityDatesTogether;
+  if($('tm_depositCalcType'))$('tm_depositCalcType').value=m.depositPolicy?.calcType||'fixed';
+  if($('tm_depositPolicyValue'))$('tm_depositPolicyValue').value=Number(m.depositPolicy?.value||0);
+  if($('tm_depositPolicyCap'))$('tm_depositPolicyCap').value=Number(m.depositPolicy?.cap||0);
+  if($('tm_bookingPaymentMode'))$('tm_bookingPaymentMode').value=m.bookingPolicy?.paymentMode||'full';
+  if($('tm_bookingDepositType'))$('tm_bookingDepositType').value=m.bookingPolicy?.depositType||'fixed';
+  if($('tm_bookingDepositValue'))$('tm_bookingDepositValue').value=Number(m.bookingPolicy?.depositValue||0);
+  if($('tm_rescheduleBeforeHours'))$('tm_rescheduleBeforeHours').value=Number(m.bookingPolicy?.rescheduleBeforeHours||24);
+  if($('tm_freeRescheduleCount'))$('tm_freeRescheduleCount').value=Number(m.bookingPolicy?.freeRescheduleCount||1);
+  if($('tm_noShowRefundPercent'))$('tm_noShowRefundPercent').value=Number(m.bookingPolicy?.noShowRefundPercent||0);
+  if($('tm_bookingCancelTiers'))$('tm_bookingCancelTiers').value=bookingCancelTiersText(m.bookingPolicy?.cancelTiers||[]);
+  syncTenantPresetUI(type);
 }
 function collectTenantModuleDefaults(){
-  const m=genericTenantModules();
-  for(const k of TENANT_MODULE_KEYS){const e=$('tm_'+k);if(!e)continue;if(k==='i18n'){m.i18n.enabled=!!e.checked;}else m[k]=!!e.checked;}
+  const base=(TenantModuleProfileCache&&TenantModuleProfileCache.defaults)?TenantModuleProfileCache.defaults:genericTenantModules();
+  const m=normalizeBusinessModules(base);
+  for(const k of TENANT_MODULE_KEYS){
+    const e=$('tm_'+k);if(!e)continue;
+    if(k==='i18n'){m.i18n.enabled=!!e.checked;m.i18n.languages=e.checked?['zh-TW','en','ja','ko']:['zh-TW'];}
+    else m[k]=!!e.checked;
+  }
   m.quantityMode=['stall','booking','participant'].includes($('tm_quantityMode')?.value)?$('tm_quantityMode').value:'booking';
   m.depositKind=['none','booking','refundable'].includes($('tm_depositKind')?.value)?$('tm_depositKind').value:'none';
   m.operatingMode=$('tm_operatingMode')?.value==='booking'?'booking':'activity';
+  m.activityDatesTogether=!!$('tm_activityDatesTogether')?.checked;
   m.googleCalendar=!!$('tm_googleCalendar')?.checked;
+  m.depositPolicy={
+    calcType:['fixed','percent','per_unit'].includes($('tm_depositCalcType')?.value)?$('tm_depositCalcType').value:'fixed',
+    value:Math.max(0,Number($('tm_depositPolicyValue')?.value||0)||0),
+    cap:Math.max(0,Number($('tm_depositPolicyCap')?.value||0)||0)
+  };
+  const oldbp=(m.bookingPolicy&&typeof m.bookingPolicy==='object')?m.bookingPolicy:{};
+  m.bookingPolicy={
+    ...oldbp,
+    paymentMode:$('tm_bookingPaymentMode')?.value==='deposit'?'deposit':'full',
+    depositType:$('tm_bookingDepositType')?.value==='percent'?'percent':'fixed',
+    depositValue:Math.max(0,Number($('tm_bookingDepositValue')?.value||0)||0),
+    cancelTiers:parseBookingCancelTiers($('tm_bookingCancelTiers')?.value||''),
+    rescheduleBeforeHours:Math.max(0,Number($('tm_rescheduleBeforeHours')?.value||0)||0),
+    freeRescheduleCount:Math.max(0,Number($('tm_freeRescheduleCount')?.value||0)||0),
+    noShowRefundPercent:Math.max(0,Math.min(100,Number($('tm_noShowRefundPercent')?.value||0)||0)),
+    organizerCancelModes:['reschedule','credit','refund']
+  };
   return m;
 }
 function renderTenantModuleSettings(profile){
   const p=normalizeTenantModuleProfile(profile),m=p.defaults;
+  const type=TENANT_PRESET_META[p.useType]?p.useType:'generic',meta=TENANT_PRESET_META[type];
   const ck=k=>((k==='i18n'?m.i18n?.enabled:m[k])?'checked':'');
-  return '<div class="notice"><b>這是主辦的「新場次預設」</b><br>通用報名永遠存在；下面只決定新場次要多開哪些功能。既有場次不會被批次改動，仍可在單一場次內自行調整。</div>'
-   +'<div class="report-card module-config-card"><div class="report-title">快速問卷</div><div class="sub">先選最接近的使用方式，系統只幫你勾建議功能；你仍可以自行增減。</div>'
-   +'<div class="card-actions"><button type="button" class="btn secondary" onclick="applyTenantModulePreset(\'generic\')">通用報名</button><button type="button" class="btn secondary" onclick="applyTenantModulePreset(\'market\')">市集／攤位招募</button><button type="button" class="btn secondary" onclick="applyTenantModulePreset(\'workshop\')">手作體驗／工作坊</button><button type="button" class="btn secondary" onclick="applyTenantModulePreset(\'beauty\')">美業／工作室預約</button><button type="button" class="btn secondary" onclick="applyTenantModulePreset(\'service_booking\')">一般服務預約</button><button type="button" class="btn secondary" onclick="applyTenantModulePreset(\'resource_booking\')">場地／資源預約</button><button type="button" class="btn secondary" onclick="applyTenantModulePreset(\'event\')">一般活動／講座</button></div>'
-   +'<input type="hidden" id="tm_useType" value="'+attr(p.useType||'generic')+'">'
-   +'<div class="module-toggle-grid" style="margin-top:16px">'
-   +[['review','需要先審核報名'],['workshopSlots','有日期／時段選擇'],['service','有不同服務項目'],['resource','可指定人員／資源'],['participants','需要票種／人數'],['customFields','需要自訂問題'],['equipment','提供設備租借'],['seatSelection','需要選位／位置'],['addons','有其他加購'],['agreement','需要合約同意'],['invoice','需要發票資料'],['payment','需要收款／付款確認'],['checkin','需要現場報到'],['googleCalendar','Google Calendar'],['i18n','需要多語言']].map(([k,l])=>'<label class="module-toggle"><input type="checkbox" id="tm_'+k+'" '+ck(k)+'> <span>'+l+'</span></label>').join('')
-   +'</div><div class="form-grid"><div class="form-field"><label>營運計費類型</label><select id="tm_operatingMode"><option value="activity" '+(m.operatingMode!=='booking'?'selected':'')+'>活動型（NT$200／獨立場次）</option><option value="booking" '+(m.operatingMode==='booking'?'selected':'')+'>預約型（NT$888／月）</option></select></div><div class="form-field"><label>一筆報名代表</label><select id="tm_quantityMode"><option value="booking" '+(m.quantityMode==='booking'?'selected':'')+'>一筆報名</option><option value="stall" '+(m.quantityMode==='stall'?'selected':'')+'>攤位／單位數</option><option value="participant" '+(m.quantityMode==='participant'?'selected':'')+'>參加人數</option></select></div><div class="form-field"><label>押金用途</label><select id="tm_depositKind"><option value="none" '+(m.depositKind==='none'?'selected':'')+'>沒有押金</option><option value="booking" '+(m.depositKind==='booking'?'selected':'')+'>預約訂金</option><option value="refundable" '+(m.depositKind==='refundable'?'selected':'')+'>可退押金／保證金</option></select></div></div>'
-   +'<div class="card-actions"><button type="button" class="btn" onclick="saveModuleSettings(this)">儲存我的預設模組</button></div></div>';
+  const presetButtons=Object.entries(TENANT_PRESET_META).map(([k,v])=>
+    '<button type="button" data-preset="'+k+'" class="module-preset-btn '+(k===type?'active':'')+'" onclick="applyTenantModulePreset(\''+k+'\')">'+v.title+'</button>'
+  ).join('');
+  const toggle=(k,title,help)=>'<label class="module-toggle detail"><input type="checkbox" id="tm_'+k+'" '+ck(k)+'><span><b>'+title+'</b><small>'+help+'</small></span></label>';
+  return ''
+   +'<div class="notice"><b>先設定「你通常怎麼營運」</b><br>這裡是建立新活動／新場次時的預設。之後每一場仍可依實際需求增減，不會把主辦永久鎖定成某一種類型。</div>'
+   +'<div class="report-card module-config-card">'
+   +'<div class="report-title">① 選擇最接近的營運情境</div><div class="sub">點一個情境，系統會先帶入常用設定；選中的項目會保持明顯標示。</div>'
+   +'<div class="module-preset-grid">'+presetButtons+'</div>'
+   +'<input type="hidden" id="tm_useType" value="'+attr(type)+'">'
+   +'<div class="module-current"><small>目前正在設定</small><b id="tm_currentPreset">'+safe(meta.title)+'</b><span id="tm_currentPresetDesc">'+safe(meta.desc)+'</span></div>'
+
+   +'<div class="module-section"><div class="module-section-title">② 報名／預約怎麼成立？</div><div class="module-section-help">控制參加者送出資料後，要不要審核、要不要選日期／時段，以及一筆資料代表什麼。</div>'
+   +'<div class="module-toggle-grid detail">'
+   +toggle('review','先審核再錄取','送出後先進待審核，主辦確認後才進下一步。')
+   +toggle('workshopSlots','選日期／時段','適合預約、梯次、工作坊與有限時段。')
+   +toggle('participants','選票種／人數','一筆報名可以包含成人、兒童或不同票種。')
+   +toggle('customFields','自訂問題','每場可增加主辦自己需要填寫的問題。')
+   +'</div><div class="module-subgrid" style="margin-top:10px">'
+   +'<div class="form-field"><label>這一筆資料主要代表什麼？</label><select id="tm_quantityMode"><option value="booking" '+(m.quantityMode==='booking'?'selected':'')+'>一筆預約／一組報名</option><option value="stall" '+(m.quantityMode==='stall'?'selected':'')+'>攤位／單位數量</option><option value="participant" '+(m.quantityMode==='participant'?'selected':'')+'>參加人數</option></select><div class="sub">例如市集通常算攤位數；講座通常算人數；美甲通常是一筆預約。</div></div>'
+   +'<div class="form-field"><label>正式營運方式</label><select id="tm_operatingMode"><option value="activity" '+(m.operatingMode!=='booking'?'selected':'')+'>單次活動／獨立報名項目</option><option value="booking" '+(m.operatingMode==='booking'?'selected':'')+'>長期持續接受預約</option></select><div class="sub">這裡決定開通方式；不是限制你只能做其中一種。</div></div>'
+   +'</div><label class="module-toggle detail" style="margin-top:10px"><input type="checkbox" id="tm_activityDatesTogether" '+(m.activityDatesTogether?'checked':'')+'><span><b>多個日期必須一次一起報名</b><small>例如兩日課程是一個完整方案；若每一天都能單獨報名，就不要勾。</small></span></label></div>'
+
+   +'<div class="module-section"><div class="module-section-title">③ 服務、設備與位置</div><div class="module-section-help">決定這類營運是否要讓參加者選方案、人員、設備或位置。</div><div class="module-toggle-grid detail">'
+   +toggle('service','服務／方案選擇','例如凝膠美甲、基礎體驗、不同課程方案。')
+   +toggle('resource','指定人員／老師／資源','例如美甲師、老師、房間、設備或場地。')
+   +toggle('equipment','設備租借','例如桌、椅、帳篷或其他可租設備。')
+   +toggle('seatSelection','座位／攤位選位','需要指定位置、攤位編號或加價位置時啟用。')
+   +toggle('addons','其他加購','在主要費用之外提供額外加購。')
+   +'</div></div>'
+
+   +'<div class="module-section"><div class="module-section-title">④ 收款、訂金與押金</div><div class="module-section-help">付款、訂金與可退押金是不同概念；先選這類營運通常怎麼收。</div><div class="module-toggle-grid detail">'
+   +toggle('payment','需要收款／付款確認','有費用的正式活動或預約請開啟。')
+   +toggle('invoice','需要發票資料','需要向報名者收集統編、抬頭或載具資料。')
+   +'</div><div class="module-subgrid" style="margin-top:10px">'
+   +'<div class="form-field"><label>通常是否收訂金／押金？</label><select id="tm_depositKind"><option value="none" '+(m.depositKind==='none'?'selected':'')+'>不收</option><option value="booking" '+(m.depositKind==='booking'?'selected':'')+'>預約訂金（之後補餘額）</option><option value="refundable" '+(m.depositKind==='refundable'?'selected':'')+'>可退押金／保證金</option></select></div>'
+   +'<div class="form-field"><label>可退押金怎麼算？</label><select id="tm_depositCalcType"><option value="fixed" '+(m.depositPolicy?.calcType==='fixed'?'selected':'')+'>固定金額</option><option value="percent" '+(m.depositPolicy?.calcType==='percent'?'selected':'')+'>依費用百分比</option><option value="per_unit" '+(m.depositPolicy?.calcType==='per_unit'?'selected':'')+'>依攤位／單位數計算</option></select></div>'
+   +'<div class="form-field"><label>押金金額／比例</label><input id="tm_depositPolicyValue" type="number" min="0" value="'+Number(m.depositPolicy?.value||0)+'"><div class="sub">百分比模式填 10 代表 10%。</div></div>'
+   +'<div class="form-field"><label>押金最高上限（0＝不限）</label><input id="tm_depositPolicyCap" type="number" min="0" value="'+Number(m.depositPolicy?.cap||0)+'"></div>'
+   +'</div></div>'
+
+   +'<div class="module-section"><div class="module-section-title">⑤ 預約收款、改期與取消</div><div class="module-section-help">只有做長期預約時才需要設定；活動／市集可以忽略這一區。</div><div class="module-subgrid">'
+   +'<div class="form-field"><label>預約成立時怎麼收款？</label><select id="tm_bookingPaymentMode"><option value="full" '+(m.bookingPolicy?.paymentMode!=='deposit'?'selected':'')+'>一次付清</option><option value="deposit" '+(m.bookingPolicy?.paymentMode==='deposit'?'selected':'')+'>先付訂金，之後補餘額</option></select></div>'
+   +'<div class="form-field"><label>訂金怎麼算？</label><select id="tm_bookingDepositType"><option value="fixed" '+(m.bookingPolicy?.depositType!=='percent'?'selected':'')+'>固定金額</option><option value="percent" '+(m.bookingPolicy?.depositType==='percent'?'selected':'')+'>總額百分比</option></select></div>'
+   +'<div class="form-field"><label>訂金金額／比例</label><input id="tm_bookingDepositValue" type="number" min="0" value="'+Number(m.bookingPolicy?.depositValue||0)+'"></div>'
+   +'<div class="form-field"><label>最晚提前幾小時可改期？</label><input id="tm_rescheduleBeforeHours" type="number" min="0" value="'+Number(m.bookingPolicy?.rescheduleBeforeHours||24)+'"></div>'
+   +'<div class="form-field"><label>免費改期次數</label><input id="tm_freeRescheduleCount" type="number" min="0" value="'+Number(m.bookingPolicy?.freeRescheduleCount||1)+'"></div>'
+   +'<div class="form-field"><label>未到場可退比例（%）</label><input id="tm_noShowRefundPercent" type="number" min="0" max="100" value="'+Number(m.bookingPolicy?.noShowRefundPercent||0)+'"></div>'
+   +'<div class="form-field full"><label>取消規則</label><textarea id="tm_bookingCancelTiers" placeholder="例如：72｜100｜0&#10;24｜0｜100&#10;0｜0｜0">'+safe(bookingCancelTiersText(m.bookingPolicy?.cancelTiers||[]))+'</textarea><div class="sub">每行依序填：提前小時｜退回原付款%｜轉活動金%。例如 24｜0｜100 = 24 小時前取消不退現金、全額轉活動金。</div></div>'
+   +'</div></div>'
+
+   +'<div class="module-section"><div class="module-section-title">⑥ 現場、條款與延伸</div><div class="module-toggle-grid detail">'
+   +toggle('agreement','需要同意條款／合約','報名前必須閱讀並勾選同意。')
+   +toggle('checkin','需要現場報到','活動日可由管理者或工作人員處理報到。')
+   +toggle('googleCalendar','加入行事曆','預約／活動時間可加入行事曆。')
+   +toggle('i18n','需要多語言','主辦有跨語言需求時再開啟。')
+   +'</div></div>'
+
+   +'<div class="module-section"><div class="module-section-title">系統共用核心</div><div class="module-section-help">以下不需要另外勾選，它們是同一套 DOING 營運資料的一部分。</div><div class="module-core-row">'
+   +'<div class="module-core-item"><b>會員資料</b>同一主辦下重複參加可累積紀錄</div>'
+   +'<div class="module-core-item"><b>營運紀錄</b>報名、付款與狀態留在同一條資料鏈</div>'
+   +'<div class="module-core-item"><b>通知流程</b>依報名、付款、改期等狀態處理</div>'
+   +'<div class="module-core-item"><b>財務與匯出</b>依實際資料彙整與輸出</div>'
+   +'</div></div>'
+
+   +'<div class="card-actions"><button type="button" class="btn" onclick="saveModuleSettings(this)">儲存這組新場次預設</button></div>'
+   +'</div>';
 }
 async function openModuleSettings(){
-  openPanel('功能模組','設定主辦預設；建立新場次時自動套用','<div class="loading">載入功能模組…</div>');
+  openPanel('營運功能設定','設定新活動／新場次常用的預設流程','<div class="loading">載入功能模組…</div>');
   try{const p=await api({action:'getTenantModuleProfile'});TenantModuleProfileCache=normalizeTenantModuleProfile(p);$('panelBody').innerHTML=renderTenantModuleSettings(TenantModuleProfileCache);}
-  catch(e){$('panelBody').innerHTML='<div class="empty">功能模組載入失敗：'+safe(e.message)+'</div>';}
+  catch(e){$('panelBody').innerHTML='<div class="empty">營運功能載入失敗：'+safe(e.message)+'</div>';}
 }
 async function saveModuleSettings(btn){
   const old=btn.textContent;btn.disabled=true;btn.textContent='儲存中…';
-  try{const defaults=collectTenantModuleDefaults(),useType=$('tm_useType')?.value||'generic';const p=await apiPost({action:'saveTenantModuleProfile',useType,defaults});TenantModuleProfileCache=normalizeTenantModuleProfile(p);toast('功能模組預設已儲存；之後建立的新場次會自動套用');}
+  try{const defaults=collectTenantModuleDefaults(),useType=$('tm_useType')?.value||'generic';const p=await apiPost({action:'saveTenantModuleProfile',useType,defaults});TenantModuleProfileCache=normalizeTenantModuleProfile(p);toast('營運預設已儲存；之後建立的新場次會自動帶入');}
   catch(e){toast('儲存失敗：'+e.message,7000)}finally{btn.disabled=false;btn.textContent=old;}
 }
 async function loadTenantModuleProfile(force=false){
@@ -3286,7 +3424,7 @@ function sessionSettingsForm(s, agreementTemplates=[]){
   +'<div class="form-field"><label>免費改期次數</label><input id="set_freeRescheduleCount" type="number" min="0" value="'+attr(mods.bookingPolicy?.freeRescheduleCount??1)+'"></div>'
   +'<div class="form-field"><label>超次改期費</label><input id="set_extraRescheduleFee" type="number" min="0" value="'+attr(mods.bookingPolicy?.extraRescheduleFee||0)+'"></div>'
   +'<div class="form-field"><label>No-show 可退比例（%）</label><input id="set_noShowRefundPercent" type="number" min="0" max="100" value="'+attr(mods.bookingPolicy?.noShowRefundPercent||0)+'"></div>'
-  +'<div class="form-field full"><label>預約取消級距（每行：提前小時｜現金退款%｜活動金%）</label><textarea id="set_bookingCancelTiers" placeholder="例如：72｜100｜0\n24｜0｜100\n0｜0｜0">'+safe(bookingCancelTiersText(mods.bookingPolicy?.cancelTiers||[]))+'</textarea><div class="sub">所有數字由主辦自行設定；Worker 依該筆預約建立時保存的規則快照計算。</div></div>'
+  +'<div class="form-field full"><label>預約取消級距（每行：提前小時｜現金退款%｜活動金%）</label><textarea id="set_bookingCancelTiers" placeholder="例如：72｜100｜0\n24｜0｜100\n0｜0｜0">'+safe(bookingCancelTiersText(mods.bookingPolicy?.cancelTiers||[]))+'</textarea><div class="sub">所有數字由主辦自行設定；已成立的預約會沿用成立當下的規則，不會被日後修改影響。</div></div>'
   +'<div class="form-field"><label>開放攤數 / 名額</label><input id="set_limit" type="number" value="'+attr(s.limit||s.limitCount||s.limit_count||s.capacity||0)+'"></div>'
   +'<div class="form-field"><label>最大攤數</label><input id="set_maxStalls" type="number" value="'+attr(s.maxStalls||s.max_stalls||0)+'"></div>'
   +'</div></div>'
@@ -4168,7 +4306,7 @@ async function deleteSessionUI(sid){
   if(!canDeleteEmptySession()){ toast('只有主辦擁有者可以刪除空白場次',5000); return; }
   const ses=(AdminState.sessions||[]).find(x=>String(sessionId(x))===String(sid));
   const nm=ses?sessionName(ses):'這個場次';
-  if(!confirm('確定刪除空白場次「'+nm+'」嗎？\n\n只有完全沒有報名、付款與財務紀錄的場次才會刪除；已有歷史資料時 Worker 會阻擋，請改用「封存」。')) return;
+  if(!confirm('確定刪除空白場次「'+nm+'」嗎？\n\n只有完全沒有報名、付款與財務紀錄的空白場次才能刪除；已有歷史資料請改用「封存」。')) return;
   const typed=prompt('若確定刪除空白場次，請輸入「刪除」二字：');
   if(String(typed||'').trim()!=='刪除'){ toast('已取消，未刪除'); return; }
   try{ await apiPost({action:'deleteSession', sessionId:sid, id:sid,idempotencyKey:'delete-session:'+sid}); toast('已刪除空白場次'); if(typeof refreshSessionsOverview==='function') refreshSessionsOverview(); }
