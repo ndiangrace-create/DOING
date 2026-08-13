@@ -9,7 +9,35 @@
 button,input{font:inherit}button{min-height:46px;border:0;border-radius:14px;padding:10px 14px;font-weight:900;background:var(--main);color:#fff}button.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}button.danger{background:var(--bad)}
 .login{min-height:100vh;display:grid;place-items:center;padding:16px}.loginbox{width:min(440px,100%);background:#fff;border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:0 18px 50px rgba(23,49,58,.12)}.loginbox h1{margin:0 0 6px;font-size:25px}.sub{color:var(--muted)}.field{display:grid;gap:6px;margin-top:13px}.field label{font-weight:900}.field input{width:100%;min-height:48px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:17px}.hidden{display:none!important}
 header{position:sticky;top:0;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);z-index:5}.head{max-width:980px;margin:auto;padding:10px 12px;display:flex;justify-content:space-between;gap:10px;align-items:center}main{max-width:980px;margin:auto;padding:12px 12px 100px}.hero,.summary,.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 24px rgba(23,49,58,.06)}.hero{padding:14px}.hero h2{margin:0;font-size:22px}.workbar{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px}.workbar input{min-width:0;border:1px solid var(--line);border-radius:14px;padding:11px;font-size:17px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:9px;margin:10px 0}.sum{padding:9px;border-radius:13px;background:#F6FAFB}.sum span{display:block;color:var(--muted)}.sum b{font-size:22px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px}.card{padding:13px}.card h3{margin:0;font-size:19px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.meta div{background:#F7FAFB;border-radius:12px;padding:8px;word-break:break-word}.meta small{display:block;color:var(--muted)}.actions{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:10px}.empty{padding:24px;text-align:center;background:#fff;border:1px dashed var(--line);border-radius:16px;color:var(--muted)}.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:grid;place-items:center;padding:14px;z-index:20}.modalbox{width:min(430px,100%);background:#fff;border-radius:20px;padding:16px}.checks{display:grid;gap:9px;margin:12px 0}.checks label{font-size:17px}.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#17313A;color:#fff;padding:10px 14px;border-radius:999px;display:none;z-index:30}@media(max-width:600px){.grid{grid-template-columns:1fr}.head{align-items:flex-start}.workbar{grid-template-columns:1fr}.actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
-</style></head>
+</style>
+<style id="doing-accessible-type-system">
+/* DOING 全系統老花友善字級基準
+   正文/控制項 17-18px；小字最低 16px；手機不縮字，只改版面。 */
+html{font-size:18px!important;-webkit-text-size-adjust:100%!important}
+body{font-size:18px!important;line-height:1.7!important}
+button,input,select,textarea{font:inherit!important;font-size:17px!important;line-height:1.45!important}
+button,.btn,[role="button"]{min-height:44px!important;padding-top:10px!important;padding-bottom:10px!important}
+input,select,textarea{min-height:46px!important;padding:10px 12px!important}
+label{font-size:17px!important;line-height:1.5!important}
+small,.small,.sub,.muted,.hint,.help,.desc,.eyebrow,.meta,.note{
+  font-size:16px!important;
+  line-height:1.55!important;
+}
+h1{font-size:clamp(36px,4vw,58px)!important;line-height:1.16!important}
+h2{font-size:clamp(28px,2.5vw,38px)!important;line-height:1.22!important}
+h3{font-size:22px!important;line-height:1.3!important}
+h4{font-size:19px!important;line-height:1.35!important}
+table,th,td{font-size:17px!important;line-height:1.5!important}
+a{font-size:inherit}
+::placeholder{font-size:16px!important;opacity:.78!important}
+@media(max-width:760px){
+  html,body{font-size:17px!important}
+  button,input,select,textarea,label{font-size:17px!important}
+  small,.small,.sub,.muted,.hint,.help,.desc,.eyebrow,.meta,.note{font-size:16px!important}
+}
+</style>
+
+</head>
 <body>
 <section id="login" class="login"><div class="loginbox"><h1>DOING 現場工作台</h1><div class="sub">輸入場次通行碼，系統會自動判斷場次。</div><div class="field"><label>場次通行碼</label><input id="code" inputmode="numeric" maxlength="4" placeholder="4 位數字"></div><div class="field"><label>操作人員姓名</label><input id="operator" placeholder="請輸入真實姓名"></div><button style="width:100%;margin-top:14px" onclick="startWork()">開始工作</button><div id="loginErr" class="sub" style="margin-top:10px"></div></div></section>
 <section id="app" class="hidden"><header><div class="head"><div><b>DOING｜現場工作台</b><div id="who" class="sub"></div></div><button class="danger" onclick="endWork()">結束工作</button></div></header><main><section class="hero"><h2 id="sessionName">場次</h2><div class="sub">只顯示本場已繳費、今天應出席的名單。</div><div class="workbar"><input id="search" placeholder="搜尋品牌／姓名／電話" oninput="render()"><button class="secondary" onclick="loadRows()">重新整理</button></div></section><div id="summary" class="summary"></div><div id="list" class="grid"><div class="empty">載入中…</div></div></main></section>

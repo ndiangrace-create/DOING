@@ -62,12 +62,77 @@ body{background:linear-gradient(180deg,#f9fcfc,#f5f9fa 55%,#fff)!important}.top{
 .hero-copy:before{content:"活動報名・預約"!important;color:var(--role-accent-dark)!important}
 </style>
 
+
+<style id="doing-accessible-type-system">
+/* DOING 全系統老花友善字級基準
+   正文/控制項 17-18px；小字最低 16px；手機不縮字，只改版面。 */
+html{font-size:18px!important;-webkit-text-size-adjust:100%!important}
+body{font-size:18px!important;line-height:1.7!important}
+button,input,select,textarea{font:inherit!important;font-size:17px!important;line-height:1.45!important}
+button,.btn,[role="button"]{min-height:44px!important;padding-top:10px!important;padding-bottom:10px!important}
+input,select,textarea{min-height:46px!important;padding:10px 12px!important}
+label{font-size:17px!important;line-height:1.5!important}
+small,.small,.sub,.muted,.hint,.help,.desc,.eyebrow,.meta,.note{
+  font-size:16px!important;
+  line-height:1.55!important;
+}
+h1{font-size:clamp(36px,4vw,58px)!important;line-height:1.16!important}
+h2{font-size:clamp(28px,2.5vw,38px)!important;line-height:1.22!important}
+h3{font-size:22px!important;line-height:1.3!important}
+h4{font-size:19px!important;line-height:1.35!important}
+table,th,td{font-size:17px!important;line-height:1.5!important}
+a{font-size:inherit}
+::placeholder{font-size:16px!important;opacity:.78!important}
+@media(max-width:760px){
+  html,body{font-size:17px!important}
+  button,input,select,textarea,label{font-size:17px!important}
+  small,.small,.sub,.muted,.hint,.help,.desc,.eyebrow,.meta,.note{font-size:16px!important}
+}
+</style>
+
+
+<style id="doing-participant-home-20260813">
+/* 公開首頁只服務報名者／預約者；主辦入口維持 Logo 長按 3 秒。 */
+.hero-copy{max-width:none!important}
+.hero-copy:before{content:"報名・預約・我的行程"!important;font-size:16px!important;letter-spacing:.06em!important}
+.hero p{font-size:18px!important;line-height:1.7!important;max-width:760px!important}
+.hero .actions .btn{font-size:18px!important;min-height:48px!important}
+.section-title,.section-head h2{font-size:30px!important}
+
+.participant-benefits{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin:18px 0 24px;
+}
+.participant-benefit{
+  border:1px solid #DCE9E9;
+  background:#fff;
+  border-radius:16px;
+  padding:14px 16px;
+  min-height:108px;
+}
+.participant-benefit b{display:block;font-size:18px;line-height:1.35;margin-bottom:5px;color:#1B5F62}
+.participant-benefit span{display:block;font-size:16px;line-height:1.55;color:#5C6872}
+.home-role-note{
+  margin-top:14px;
+  padding:12px 14px;
+  border-radius:14px;
+  background:#F4FAF9;
+  border:1px solid #DCEBE8;
+  font-size:16px;
+  line-height:1.55;
+}
+@media(max-width:1000px){.participant-benefits{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.participant-benefits{grid-template-columns:1fr}.participant-benefit{min-height:auto}}
+</style>
+
 </head>
 <body>
-<header class="top"><div class="top-in"><div class="brand" id="brandHoldTarget" title="品牌"><img id="tenantLogo" class="tenant-logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3QgeD0iMS41IiB5PSIxLjUiIHdpZHRoPSI2MSIgaGVpZ2h0PSI2MSIgcng9IjE4IiBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiNkOWU2ZTciIHN0cm9rZS13aWR0aD0iMyIvPjxwYXRoIGQ9Ik0yMiA0OFYxOGgyMnYzMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzE5ZGEwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0yMiA0OGgyMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzE5ZGEwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjM3IiBjeT0iMzMiIHI9IjIuOCIgZmlsbD0iIzMxOWRhMCIvPjxwYXRoIGQ9Ik0xMiAzMmgxMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzE5ZGEwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Im0xNyAyNyA1IDUtNSA1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMTlkYTAiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+" alt="主辦入口／品牌 LOGO"><div class="brand-copy"><h1 id="tenantName">活動主辦</h1><p id="brandSub">活動報名與資訊</p></div><span id="holdRing" class="hold-ring"></span></div><div class="nav"><select id="languageSelect" class="lang-select hidden" aria-label="Language"></select><button id="memberLoginBtn" class="btn outline small" type="button">我的報名</button></div></div></header>
+<header class="top"><div class="top-in"><div class="brand" id="brandHoldTarget" title="品牌"><img id="tenantLogo" class="tenant-logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3QgeD0iMS41IiB5PSIxLjUiIHdpZHRoPSI2MSIgaGVpZ2h0PSI2MSIgcng9IjE4IiBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiNkOWU2ZTciIHN0cm9rZS13aWR0aD0iMyIvPjxwYXRoIGQ9Ik0yMiA0OFYxOGgyMnYzMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzE5ZGEwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0yMiA0OGgyMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzE5ZGEwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjM3IiBjeT0iMzMiIHI9IjIuOCIgZmlsbD0iIzMxOWRhMCIvPjxwYXRoIGQ9Ik0xMiAzMmgxMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzE5ZGEwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Im0xNyAyNyA1IDUtNSA1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMTlkYTAiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+" alt="主辦入口／品牌 LOGO"><div class="brand-copy"><h1 id="tenantName">活動入口</h1><p id="brandSub">活動報名與資訊</p></div><span id="holdRing" class="hold-ring"></span></div><div class="nav"><select id="languageSelect" class="lang-select hidden" aria-label="Language"></select><button id="memberLoginBtn" class="btn outline small" type="button">我的報名</button></div></div></header>
 <main class="shell">
 <section id="pageSessions" class="page active">
-  <div id="hero" class="hero"><div class="hero-copy"><h2 id="heroTitle">活動報名，從這裡開始</h2><p id="heroText">選擇場次、完成報名；登入我的報名即可查看審核、付款、設備、選位與行前資訊。</p><div class="actions"><button class="btn" id="heroMyBtn">查看我的報名</button><a id="lineBtn" class="btn outline hidden" target="_blank" rel="noopener">聯繫主辦</a></div></div><div id="heroArt" class="hero-art"><div class="hero-mark"></div></div></div>
+  <div id="hero" class="hero"><div class="hero-copy"><h2 id="heroTitle">報名、預約，一個入口就搞定</h2><p id="heroText">找活動、選場次、完成報名或預約；之後從「我的報名」就能查看審核、付款、改期、位置與行前通知。</p><div class="actions"><button class="btn" id="heroMyBtn">查看我的報名</button><a id="lineBtn" class="btn outline hidden" target="_blank" rel="noopener">聯繫主辦</a></div></div><div id="heroArt" class="hero-art"><div class="hero-mark"></div></div></div>
   <div id="announcements"></div>
   <div id="eventSection" class="hidden"><div class="section-title"><div><h2>主題活動</h2><p>查看活動系列與目前開放場次。</p></div></div><div id="eventStrip" class="event-strip"></div></div>
   <div class="section-title"><div><h2>開放報名</h2><p>依最近日期排序，只顯示目前開放中的場次。</p></div></div>
