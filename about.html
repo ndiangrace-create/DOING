@@ -236,19 +236,34 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
         </div>
 
         <div class="group">
-          <h3>二、負責人與聯絡資料</h3>
-          <div class="desc">這些資料會用於審核、帳務聯繫、客服與必要時的爭議處理。</div>
+          <h3>二、你的聯絡資料</h3>
+          <div class="desc">這份個人資料同時作為申請人與主要聯絡人，不需要重複建立；Google 驗證後的 Email 會成為登入與通知信箱。</div>
           <div class="field-grid">
-            <div class="field"><label class="required" for="signupOwnerName">負責人姓名</label><input id="signupOwnerName" placeholder="實際負責人"></div>
-            <div class="field"><label class="required" for="signupContactName">主要聯絡人</label><input id="signupContactName" placeholder="平常聯絡窗口"></div>
-            <div class="field"><label class="required" for="signupPhone">聯絡電話</label><input id="signupPhone" inputmode="tel" placeholder="手機或電話"></div>
-            <div class="field"><label for="signupBillingName">帳務聯絡人</label><input id="signupBillingName" placeholder="可留空，視同主要聯絡人"></div>
+            <div class="field"><label class="required" for="signupOwnerName">姓名</label><input id="signupOwnerName" autocomplete="name" placeholder="申請人姓名"></div>
+            <div class="field"><label class="required" for="signupPhone">聯絡電話</label><input id="signupPhone" inputmode="tel" autocomplete="tel" placeholder="手機或電話"></div>
+            <div class="field"><label for="signupLineId">LINE 帳號</label><input id="signupLineId" autocomplete="off" placeholder="選填，方便需要時聯繫"></div>
             <div class="field full"><div class="inline-tip">Google 驗證成功後的 Google Email，會成為你的主要登入與通知信箱。</div></div>
           </div>
         </div>
 
         <div class="group">
-          <h3>三、你要怎麼使用 DOING？</h3>
+          <h3>三、你的產業類別</h3>
+          <div class="desc">請勾選目前實際經營的產業，可複選；資料會保存於申請紀錄，供平台統計與後續服務規劃。</div>
+          <div id="signupIndustries" class="choice-grid">
+            <label class="choice"><input type="checkbox" value="market_retail"><span><b>市集／展售／零售</b></span></label>
+            <label class="choice"><input type="checkbox" value="event_exhibition"><span><b>活動／展演／社群</b></span></label>
+            <label class="choice"><input type="checkbox" value="education"><span><b>課程／講座／教育</b></span></label>
+            <label class="choice"><input type="checkbox" value="craft_experience"><span><b>手作／體驗／工作坊</b></span></label>
+            <label class="choice"><input type="checkbox" value="beauty_wellness"><span><b>美業／美容／個人工作室</b></span></label>
+            <label class="choice"><input type="checkbox" value="space_studio"><span><b>場地／教室／攝影棚</b></span></label>
+            <label class="choice"><input type="checkbox" value="tour_outdoor"><span><b>導覽／旅遊／戶外體驗</b></span></label>
+            <label class="choice"><input type="checkbox" value="professional_service"><span><b>專業服務／一對一預約</b></span></label>
+            <label class="choice"><input type="checkbox" value="other"><span><b>其他通用營運</b></span></label>
+          </div>
+        </div>
+
+        <div class="group">
+          <h3>四、你要怎麼使用 DOING？</h3>
           <div class="desc">請勾選你主要想用的營運情境；可複選，不必只限單一類型。</div>
           <div id="signupUseCases" class="choice-grid">
             <label class="choice"><input type="checkbox" value="market"><span><b>市集／攤商招募</b><span>適合攤商招募、審核、設備、攤位、單場財務與現場管理。</span></span></label>
@@ -267,7 +282,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
         </div>
 
         <div class="group">
-          <h3>四、你現在最想解決哪些困擾？</h3>
+          <h3>五、你現在最想解決哪些困擾？</h3>
           <div class="desc">請勾選最符合現況的項目，最多 5 項。這些答案會幫助我們優先改善大家真正卡住的地方。</div>
           <div id="signupPainPoints" class="choice-grid">
             <label class="choice"><input type="checkbox" value="scattered"><span><b>報名資料散落在表單和訊息裡</b></span></label>
@@ -291,17 +306,19 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
         </div>
 
         <div class="group">
-          <h3>五、可辨識的公開資訊</h3>
-          <div class="desc">至少提供一項公開資訊；若目前還沒有公開頁面，也可以據實填寫。</div>
+          <h3>六、可辨識的公開資訊</h3>
+          <div class="desc">網站、Facebook、Instagram 或其他公開介紹網址至少提供一項；若仍在籌備且尚未建立頁面，可據實勾選。</div>
           <div class="field-grid">
-            <div class="field"><label for="signupLink1">公開連結 1</label><input id="signupLink1" placeholder="Facebook、Instagram、官網、Google 商家等"></div>
-            <div class="field"><label for="signupLink2">公開連結 2</label><input id="signupLink2" placeholder="可選填第二個連結"></div>
-            <div class="field full"><label class="choice" style="align-items:center"><input id="signupNoPublicLink" type="checkbox"><span><b>目前尚未建立公開頁面</b><span>若你還在籌備中，可勾選此項，但仍需填完整營運內容。</span></span></label></div>
+            <div class="field"><label for="signupWebsite">官方網站</label><input id="signupWebsite" inputmode="url" placeholder="https://..."></div>
+            <div class="field"><label for="signupFacebook">Facebook</label><input id="signupFacebook" inputmode="url" placeholder="Facebook 粉專完整網址"></div>
+            <div class="field"><label for="signupInstagram">Instagram</label><input id="signupInstagram" inputmode="url" placeholder="Instagram 完整網址"></div>
+            <div class="field"><label for="signupOtherLink">其他公開介紹網址</label><input id="signupOtherLink" inputmode="url" placeholder="Google 商家或其他公開頁面"></div>
+            <div class="field full"><label class="choice no-public-choice"><input id="signupNoPublicLink" type="checkbox"><span><b>目前尚未建立公開頁面</b><span>只有仍在籌備、確實沒有任何公開頁面時才需勾選。</span></span></label></div>
           </div>
         </div>
 
         <div class="group">
-          <h3>六、送出前確認</h3>
+          <h3>七、送出前確認</h3>
           <div class="confirm-box">
             <label><input id="confirmReal" type="checkbox"><span>我確認以上資料真實，且可供 DOING 審核營運帳號使用資格。</span></label>
             <label><input id="confirmUse" type="checkbox"><span>我申請的是營運帳號（活動、品牌、工作室、服務或預約使用），不是一般參加者帳號。</span></label>
@@ -334,7 +351,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
   const API='https://tobeloved-api.ndiangrace.workers.dev';
   const btn=document.getElementById('signupGoogleBtn');
   const err=document.getElementById('signupErr');
-  const showErr=(m)=>{err.textContent=m;err.style.display='block';document.getElementById('apply')?.scrollIntoView({block:'start'})};
+  const showErr=(m,field)=>{err.textContent=m;err.style.display='block';if(field){field.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>field.focus(),350)}else document.getElementById('apply')?.scrollIntoView({block:'start'})};
   const clearErr=()=>{err.textContent='';err.style.display='none'};
   const useLabelMap={market:'市集／攤商招募',event:'活動／講座／課程報名',workshop:'手作體驗／工作坊',beauty:'美業／工作室預約',service_booking:'一般服務預約',resource_booking:'場地／資源預約',guide:'導覽／戶外體驗',general:'其他通用報名'};
   const painLabelMap={scattered:'報名資料散落在表單和訊息裡',status:'不清楚誰已錄取、候補或取消',payment:'收款、對帳和退款容易漏掉',schedule:'日期、時段與剩餘名額不好整理',collision:'老師、空間或設備的時間容易排在一起',reschedule:'改期後又要重新整理名單',extras:'設備、材料或加購內容容易對錯',seating:'攤位或座位安排很花時間',notification:'活動前要逐一通知參加者',checkin:'現場報到和名單核對不方便',finance:'活動結束後，財務和紀錄不好整理',repeat_data:'每次都要請客人重新填寫資料',other:'還有其他困擾'};
@@ -342,40 +359,45 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
   const painBox=document.getElementById('signupPainPoints'),primaryPain=document.getElementById('signupPrimaryPainPoint');
   const refreshPrimaryPain=()=>{const selected=[...painBox.querySelectorAll('input:checked')].map(x=>x.value),current=primaryPain.value;primaryPain.innerHTML='<option value="">請選擇一項</option>'+selected.map(x=>'<option value="'+x+'">'+painLabelMap[x]+'</option>').join('');if(selected.includes(current))primaryPain.value=current};
   painBox?.addEventListener('change',e=>{const selected=[...painBox.querySelectorAll('input:checked')];if(selected.length>5){e.target.checked=false;showErr('困擾最多選擇 5 項');}else clearErr();refreshPrimaryPain()});
-  btn?.addEventListener('click',()=>{
+  const publicLinkIds=['signupWebsite','signupFacebook','signupInstagram','signupOtherLink'];
+  const noPublic=document.getElementById('signupNoPublicLink');
+  publicLinkIds.forEach(id=>document.getElementById(id)?.addEventListener('input',e=>{if(e.target.value.trim())noPublic.checked=false}));
+  noPublic?.addEventListener('change',()=>{publicLinkIds.forEach(id=>{const input=document.getElementById(id);input.disabled=noPublic.checked;if(noPublic.checked)input.value=''})});
+  btn?.addEventListener('click',async()=>{
     const unitName=(document.getElementById('signupUnitName').value||'').trim();
     const companyName=(document.getElementById('signupCompanyName').value||'').trim();
     const taxId=(document.getElementById('signupTaxId').value||'').trim();
     const region=(document.getElementById('signupRegion').value||'').trim();
     const businessIntro=(document.getElementById('signupBusinessIntro').value||'').trim();
     const ownerName=(document.getElementById('signupOwnerName').value||'').trim();
-    const contactName=(document.getElementById('signupContactName').value||'').trim();
+    const contactName=ownerName;
     const phone=(document.getElementById('signupPhone').value||'').trim();
-    const billingName=(document.getElementById('signupBillingName').value||'').trim();
+    const lineId=(document.getElementById('signupLineId').value||'').trim();
+    const billingName=ownerName;
     const painPoints=[...document.querySelectorAll('#signupPainPoints input:checked')].map(x=>x.value);
     const primaryPainPoint=(document.getElementById('signupPrimaryPainPoint').value||'').trim();
     const otherPainPoint=(document.getElementById('signupOtherPainPoint').value||'').trim();
     const operationStage=(document.getElementById('signupOperationStage').value||'').trim();
     const startTime=(document.getElementById('signupStartTime').value||'').trim();
-    const link1=(document.getElementById('signupLink1').value||'').trim();
-    const link2=(document.getElementById('signupLink2').value||'').trim();
+    const publicLinks=publicLinkIds.map(id=>(document.getElementById(id).value||'').trim()).filter(Boolean);
     const noPublicLink=!!document.getElementById('signupNoPublicLink').checked;
     const confirmReal=!!document.getElementById('confirmReal').checked;
     const confirmUse=!!document.getElementById('confirmUse').checked;
     const confirmReview=!!document.getElementById('confirmReview').checked;
     const useCases=[...document.querySelectorAll('#signupUseCases input:checked')].map(x=>x.value);
-    if(!unitName)return showErr('請先填寫營運單位名稱');
-    if(!region)return showErr('請先選擇所在地區');
-    if(!businessIntro)return showErr('請先填寫主要營運內容');
-    if(!ownerName)return showErr('請先填寫負責人姓名');
-    if(!contactName)return showErr('請先填寫主要聯絡人');
-    if(!phone)return showErr('請先填寫聯絡電話');
+    const industryCategories=[...document.querySelectorAll('#signupIndustries input:checked')].map(x=>x.value);
+    if(!unitName)return showErr('請先填寫營運單位名稱',document.getElementById('signupUnitName'));
+    if(!region)return showErr('請先選擇所在地區',document.getElementById('signupRegion'));
+    if(!businessIntro)return showErr('請先填寫主要營運內容',document.getElementById('signupBusinessIntro'));
+    if(!ownerName)return showErr('請先填寫姓名',document.getElementById('signupOwnerName'));
+    if(!phone)return showErr('請先填寫聯絡電話',document.getElementById('signupPhone'));
+    if(!industryCategories.length)return showErr('請至少選擇一個產業類別',document.getElementById('signupIndustries'));
     if(!useCases.length)return showErr('請至少選擇一個營運情境');
     if(!painPoints.length)return showErr('請至少選擇一項目前最想解決的困擾');
     if(!primaryPainPoint)return showErr('請選擇其中最想先解決的一項');
     if(painPoints.includes('other')&&!otherPainPoint)return showErr('請補充你的其他困擾');
     if(!operationStage)return showErr('請先選擇目前營運狀態');
-    if(!link1 && !link2 && !noPublicLink)return showErr('請至少提供一個公開連結，或勾選「目前尚未建立公開頁面」');
+    if(!publicLinks.length && !noPublicLink)return showErr('請至少提供網站、Facebook、Instagram 或其他公開介紹網址其中一項',document.getElementById('signupWebsite'));
     if(!confirmReal || !confirmUse || !confirmReview)return showErr('請先完成送出前確認');
     clearErr();
 
@@ -407,8 +429,8 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     };
     const moduleProfile={configured:true,useType:bookingUse?'booking':(marketUse?'market':'activity'),useCases,defaults};
     const applicationPayload={
-      unitName,companyName,taxId,region,businessIntro,ownerName,contactName,phone,billingName,operationStage,startTime,
-      publicLinks:[link1,link2].filter(Boolean),noPublicLink,
+      unitName,companyName,taxId,region,businessIntro,ownerName,contactName,phone,lineId,billingName,operationStage,startTime,
+      industryCategories,publicLinks,noPublicLink,
       useCases,useCaseLabels:useCases.map(x=>useLabelMap[x]||x),
       painPoints,painPointLabels:painPoints.map(x=>painLabelMap[x]||x),primaryPainPoint,primaryPainPointLabel:painLabelMap[primaryPainPoint]||primaryPainPoint,otherPainPoint,
       needFlags:flags,
@@ -416,15 +438,13 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
       confirmations:{confirmReal,confirmUse,confirmReview}
     };
 
-    const u=new URL(API+'/auth/google/start');
-    u.searchParams.set('mode','organizer_signup');
-    u.searchParams.set('brand_name',unitName);
-    u.searchParams.set('contact_name',contactName);
-    u.searchParams.set('contact_phone',phone);
-    u.searchParams.set('event_type',useCases.join(','));
-    u.searchParams.set('module_profile',JSON.stringify(moduleProfile));
-    u.searchParams.set('application_payload',JSON.stringify(applicationPayload));
-    location.href=u.toString();
+    btn.disabled=true;btn.textContent='正在保存申請資料…';
+    try{
+      const response=await fetch(API+'?action=createOrganizerApplicationDraft',{method:'POST',headers:{'Content-Type':'application/json;charset=UTF-8'},body:JSON.stringify({action:'createOrganizerApplicationDraft',application:applicationPayload})});
+      const result=await response.json();
+      if(!response.ok||result.error)throw new Error(result.error||'申請資料保存失敗');
+      const u=new URL(API+'/auth/google/start');u.searchParams.set('mode','organizer_signup');u.searchParams.set('application_id',result.applicationId);location.href=u.toString();
+    }catch(e){showErr(e.message||'申請資料保存失敗，請稍後再試');btn.disabled=false;btn.textContent='使用 Google 驗證並送出申請'}
   });
 
   const pageUrl=new URL(location.href);
@@ -433,16 +453,18 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     const b=document.getElementById('applicationPendingBanner');
     if(b){
       b.style.display='block';
-      if(applicationStatus==='pending')b.innerHTML='<b>申請已送出，等待 DOING 審核。</b><br>審核通過後才會建立正式營運帳號；若需要補件，系統也會另外通知。';
+      const applicationId=pageUrl.searchParams.get('application_id')||'';
+      if(applicationStatus==='pending')b.innerHTML='<b>營運帳號申請已送出，等待 DOING 審核。</b><br>'+(applicationId?'申請編號：<strong>'+applicationId+'</strong><br>':'')+'審核結果會寄到你的 Google Email。<br><a href="platform.html">DOING 平台管理者前往大平台後台審核</a>';
       if(applicationStatus==='supplement_submitted')b.innerHTML='<b>補件已重新送出。</b><br>DOING 會再依你最新補充的資料進行審核。';
     }
     document.getElementById('apply')?.scrollIntoView({block:'start'});
-    const clean=new URL(location.href);clean.searchParams.delete('application_status');history.replaceState({},'',clean.pathname+clean.search+clean.hash);
+    const clean=new URL(location.href);clean.searchParams.delete('application_status');clean.searchParams.delete('application_id');history.replaceState({},'',clean.pathname+clean.search+clean.hash);
   }
   const oauthErr=pageUrl.searchParams.get('login_error')||'';
   if(oauthErr){
     const messages={
       signup_missing_profile:'申請資料不完整，請重新填寫。',
+      signup_draft_not_found:'找不到這筆申請資料，請重新送出申請。',
       signup_failed:'營運帳號申請建立失敗，請重新操作。',
       google_cancelled:'Google 驗證已取消。',
       id_token_verify_failed:'Google 身分驗證失敗，請重新操作。',

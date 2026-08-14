@@ -139,3 +139,6 @@ html.doing-public-refactor body>.top,html.doing-public-refactor body>.bottom-nav
   .doing-carousel-frame{min-height:0!important;padding:44px 30px 52px!important}.doing-public-carousel{height:auto!important;min-height:520px!important}.doing-activity-track{height:auto!important;align-items:stretch!important}.doing-activity-card{height:auto!important;min-height:510px!important;grid-template-columns:1fr!important;grid-template-rows:auto 1fr!important;padding:8px!important;gap:16px!important;align-content:start!important}.doing-card-cover{width:min(270px,100%)!important}.doing-card-copy h3{-webkit-line-clamp:2!important}.doing-carousel-arrow{top:42%!important}
   .doing-faq-groups>section{padding:17px!important}
 }
+
+/* 營運帳號申請：勾選框維持正常尺寸並靠左排列 */
+.doing-organizer-content .choice>input[type=checkbox],.doing-organizer-content .confirm-box input[type=checkbox]{flex:0 0 20px!important;width:20px!important;height:20px!important;min-width:20px!important;min-height:20px!important;margin:2px 0 0!important;padding:0!important}.doing-organizer-content .no-public-choice{align-items:flex-start!important;justify-content:flex-start!important}.doing-organizer-content .no-public-choice>span{min-width:0!important}

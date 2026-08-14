@@ -299,7 +299,7 @@ body.doing-global-mode>.top,body.doing-global-mode>.bottom-nav{display:none!impo
 </style>
 
 <link rel="stylesheet" href="doing-system.css?v=20260814b">
-<link rel="stylesheet" href="doing-home-refresh.css?v=20260815m">
+<link rel="stylesheet" href="doing-home-refresh.css?v=20260815n">
 </head>
 <body>
 <nav id="doingGlobalFixedNav" class="doing-global-fixed-nav hidden" aria-label="DOING 快速功能">
@@ -838,7 +838,7 @@ async function handleWorkspaceToken(){
 
 bootstrap();
 handleWorkspaceToken();
-if(oauthLoginError){
+if(oauthLoginError && location.hash!=='#apply'){
   const loginMessages={not_authorized:'這個 Google 帳號目前沒有可管理的主辦帳號。',google_cancelled:'Google 登入已取消。',id_token_verify_failed:'Google 身分驗證失敗，請重新登入。',token_exchange_failed:'Google 登入流程失敗，請稍後再試。',invalid_or_expired_state:'登入驗證已逾時，請重新操作。'};
   setTimeout(()=>{toast(loginMessages[oauthLoginError]||('登入失敗：'+oauthLoginError));openModal('adminEntryModal');},300);
   const clean=new URL(location.href);clean.searchParams.delete('login_error');history.replaceState({},'',clean.pathname+clean.search+clean.hash);
