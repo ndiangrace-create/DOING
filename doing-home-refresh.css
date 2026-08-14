@@ -1,0 +1,31 @@
+/* DOING 公開首頁：參加者優先、原 Canva 美術不重畫 */
+#doingGlobalFixedNav{gap:9px!important}
+#globalSearchNavBtn{background-position:-625px -31px!important}
+#globalMyNavBtn{background-position:-1163px -31px!important}
+#globalSupportNavBtn{background-position:-983px -31px!important}
+#doingGlobalFixedNav a[href*="#pricing"]{background-position:-804px -31px!important}
+#doingGlobalFixedNav a[href*="#apply"]{background-position:-445px -31px!important}
+/* 讓找活動／我的報名成為前兩個主要入口 */
+#globalSearchNavBtn,#globalMyNavBtn{filter:saturate(1.05) brightness(1.01);transform:translateY(-1px);box-shadow:0 9px 18px rgba(95,82,112,.14)!important}
+#doingGlobalFixedNav a[href*="#apply"]{opacity:.88}
+
+/* 真正輸入區直接蓋住 Canva 搜尋框內的假文字，外框美術保留 */
+.doing-search-overlay{left:52.4%!important;top:44.34%!important;width:37.6%!important;height:4.55%!important;padding:0 1.4%!important;gap:0!important;border-radius:999px!important;background:rgba(174,215,243,.94)!important;box-shadow:inset 0 2px 9px rgba(80,137,181,.12)!important;z-index:30!important}
+.doing-search-overlay input{height:100%!important;padding:0 12px!important;font-size:clamp(17px,1.5vw,21px)!important;font-weight:800!important;color:#526f82!important;line-height:1!important}
+.doing-search-overlay input::placeholder{color:#6a8799!important;opacity:.82!important}
+.doing-search-overlay button{height:100%!important;width:48px!important;min-width:48px!important;font-size:23px!important;color:#58788d!important}
+.doing-search-overlay:focus-within{outline:4px solid rgba(255,255,255,.76);box-shadow:0 10px 24px rgba(71,121,157,.18),inset 0 2px 9px rgba(80,137,181,.12)!important}
+
+/* 搜尋結果直接在首頁搜尋區展開，不跳另一頁 */
+.doing-home-inline-results{position:absolute;left:48.3%;top:49.45%;width:44.5%;max-height:19.5%;z-index:60;padding:14px;border-radius:25px;background:rgba(255,252,250,.97);border:1px solid rgba(116,91,125,.14);box-shadow:0 22px 55px rgba(91,71,101,.20);overflow:auto;backdrop-filter:blur(12px)}
+.doing-home-inline-results.hidden{display:none!important}.doing-home-inline-head{position:sticky;top:-14px;background:rgba(255,252,250,.97);display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 4px 10px;z-index:2}.doing-home-inline-head b{font-size:18px;color:#5f5366}.doing-home-inline-close{width:38px;height:38px;border:0;border-radius:999px;background:#f1e4f7;color:#63546b;font-size:22px;font-weight:900}
+.doing-home-inline-grid{display:grid;gap:9px}.doing-home-result{display:grid;grid-template-columns:82px 1fr auto;gap:10px;align-items:center;padding:10px;border-radius:18px;background:#fff;border:1px solid rgba(105,87,116,.10);text-decoration:none;color:#514957}.doing-home-result-cover{width:82px;height:66px;border-radius:13px;background:linear-gradient(135deg,#f0dff6,#dff2bc,#d7eff7);overflow:hidden}.doing-home-result-cover img{width:100%;height:100%;object-fit:cover}.doing-home-result b{display:block;font-size:17px;line-height:1.25}.doing-home-result span{display:block;margin-top:3px;color:#7c7181;font-size:15px;line-height:1.3}.doing-home-result em{font-style:normal;font-weight:900;color:#6e5b75;background:#f2e5f6;border-radius:999px;padding:7px 10px;white-space:nowrap}
+.doing-home-noresult{padding:20px;text-align:center;font-size:17px;color:#786d7c}
+
+@media(max-width:760px){
+  #doingGlobalFixedNav{gap:7px!important}
+  .doing-search-overlay{left:50.5%!important;top:44.28%!important;width:43%!important;height:4.8%!important;padding-left:2%!important}
+  .doing-search-overlay input{font-size:16px!important}
+  .doing-home-inline-results{left:4%!important;top:49.5%!important;width:92%!important;max-height:25%!important;border-radius:20px;padding:10px}
+  .doing-home-result{grid-template-columns:64px 1fr}.doing-home-result-cover{width:64px;height:58px}.doing-home-result em{display:none}
+}
