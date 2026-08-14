@@ -35,7 +35,8 @@ html.doing-public-refactor #pageSessions>#sessionGrid{display:none!important}
   box-shadow:0 7px 24px rgba(91,75,98,.09)!important;
   overflow:visible!important;white-space:nowrap!important;
 }
-#doingGlobalFixedNav.hidden{display:flex!important}
+#doingGlobalFixedNav.hidden{display:none!important}
+html.doing-public-refactor #doingGlobalFixedNav.hidden{display:flex!important}
 #doingGlobalFixedNav:before{content:none!important}
 .doing-nav-brand{
   flex:0 0 auto!important;border:0!important;background:transparent!important;padding:0!important;
