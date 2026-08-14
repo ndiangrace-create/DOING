@@ -1,0 +1,29 @@
+name: Apply original Canva navigation
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-home-nav-css.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Link stylesheet
+        shell: bash
+        run: |
+          if ! grep -q 'doing-original-nav.css' index.html; then
+            sed -i '/<\/head>/i <link rel="stylesheet" href="doing-original-nav.css?v=20260814">' index.html
+          fi
+          grep -q 'doing-original-nav.css' index.html
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name 'DOING Automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'fix: use original Canva navigation artwork'
+            git push
+          fi
