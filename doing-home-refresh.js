@@ -277,13 +277,13 @@ function publicAppHTML(){
   <div id="doingPublicApp" class="doing-public-app">
     <section class="doing-public-hero" id="doingPublicHero" aria-label="DOING 活動首頁">
       <span class="doing-hero-blob blob-a" aria-hidden="true"></span><span class="doing-hero-blob blob-b" aria-hidden="true"></span>
-      <span class="doing-bee" aria-hidden="true"><i></i></span><span class="doing-bunny" aria-hidden="true"><i></i><b></b></span>
+      <span class="doing-bee" aria-hidden="true"><i></i></span>
       <div class="doing-hero-copy" id="doingPublicSearch">
         <span class="doing-eyebrow">活動預約營運管理系統</span>
         <div class="doing-wordmark" aria-label="DOING"><span>D</span><span class="doing-check-o"><b>✓</b></span><span>I</span><span>N</span><span>G</span></div>
         <p class="doing-hero-tagline">先做就對了！美好從這裡開始。</p>
-        <h1>把週末，安排成喜歡的樣子。</h1>
-        <p class="doing-hero-desc">逛市集、看展演、上課、做體驗，或替自己預約一段喜歡的時間。所有主辦的公開活動，都從 DOING 開始。</p>
+        <h1>表單只收到報名，<br>DOING 幫你把活動做完。</h1>
+        <p class="doing-hero-desc">從找活動、報名與付款，到主辦端的審核、通知、選位、現場報到、退款與財務結案，每一步都沿用同一筆正式資料，不必再整理五張表。</p>
         <div class="doing-search-box">
           <span class="doing-search-icon" aria-hidden="true"></span>
           <input id="doingPublicSearchInput" type="search" placeholder="搜尋活動、課程、體驗或地點" aria-label="搜尋活動、課程、體驗或地點" autocomplete="off">
@@ -297,7 +297,7 @@ function publicAppHTML(){
         <div class="doing-console-top"><span></span><span></span><span></span><b>DOING</b></div>
         <div class="doing-console-card main"><small>一個入口完成</small><b>找活動 → 報名 → 付款</b><span>我的報名隨時查看進度</span></div>
         <div class="doing-console-grid">
-          <div><i>♡</i><b>活動探索</b><span>跨主辦搜尋</span></div>
+          <div><i>♡</i><b>活動探索</b><span>查看近期內容</span></div>
           <div><i>✓</i><b>報名紀錄</b><span>狀態集中管理</span></div>
           <div><i>✦</i><b>行前提醒</b><span>資訊不漏接</span></div>
           <div><i>→</i><b>直接出發</b><span>時間地點一次看</span></div>
@@ -306,10 +306,19 @@ function publicAppHTML(){
       </div>
     </section>
 
+    <section class="doing-proof-section" aria-label="DOING 系統亮點">
+      <header><span class="doing-kicker">為什麼主辦需要 DOING</span><h2>真正麻煩的，從來不是做一張報名表。</h2><p>而是報名送出以後，名單、款項、異動與現場資訊開始出現不同版本。DOING 把這些工作接成一條完整流程。</p></header>
+      <div class="doing-proof-story">
+        <article><span>01</span><div><small>一筆資料，跑完整場</small><h3>不再從表單搬到 Excel、付款表、位置表與簽到表。</h3><p>報名、審核、付款、設備、選位、通知、報到與結案都沿用同一筆正式資料；打開系統看到的，就是現在正確的版本。</p></div><b>少整理<br>多完成</b></article>
+        <article><span>02</span><div><small>活動有變，也不用全部重來</small><h3>延期、取消、改期與退款，都接著原本紀錄處理。</h3><p>名單、付款、設備和位置不必重新複製，主辦可以沿著原資料完成通知與後續安排。</p></div><b>不怕異動<br>不漏處理</b></article>
+        <article><span>03</span><div><small>不同工作方式，一個營運後台</small><h3>市集、課程、體驗、導覽與工作室預約，不必各養一套工具。</h3><p>流程可以不同，會員、日曆、通知、付款與財務仍集中管理；下一場也不用重新開始。</p></div><b>活動多元<br>營運不亂</b></article>
+      </div>
+    </section>
+
     <section class="doing-public-section doing-activities-section" id="doingPublicActivities" aria-label="活動快訊輪播">
       <div class="doing-section-title row">
-        <div><span class="doing-kicker">活動快訊</span><h2 id="doingActivityLabel">全平台精選活動</h2><p>首頁曝光依租戶購買資格、期間與排序顯示；活動內容永遠讀取正式場次資料。</p></div>
-        <span class="doing-ad-label">全租戶曝光版位</span>
+        <div><span class="doing-kicker">活動快訊</span><h2 id="doingActivityLabel">近期精選活動</h2><p>看看最近有哪些活動、課程與體驗正在開放，點進去即可查看完整內容。</p></div>
+        <span class="doing-ad-label">精選曝光</span>
       </div>
       <div class="doing-carousel-frame">
         <span class="doing-frame-title">DOING NOW</span>
@@ -324,7 +333,7 @@ function publicAppHTML(){
 
     <section class="doing-public-section doing-organizer-section">
       <div class="doing-organizer-icon">D</div>
-      <div><span class="doing-kicker yellow">給主辦／營運者</span><h2>你不只參加，也正在做自己的事？</h2><p>DOING 把報名、會員、付款、預約、通知與現場管理整理在同一套系統。功能依申請問卷核准開通，需要新增功能時可直接向系統客服提出申請。</p></div>
+      <div><span class="doing-kicker yellow">給主辦／營運者</span><h2>你不只參加，也正在做自己的事？</h2><p>DOING 把報名、會員、付款、預約、通知與現場管理整理在同一套系統。無論是單場活動或持續經營，都能從建立內容一路管理到現場與結案。</p></div>
       <div class="doing-organizer-actions"><a href="#doingOrganizerDetails" data-organizer-target="apply">申請營運帳號</a><a class="secondary" href="#doingOrganizerDetails" data-organizer-target="pricing">查看主辦方案</a></div>
     </section>
 
