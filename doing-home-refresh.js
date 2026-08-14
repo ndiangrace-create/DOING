@@ -290,7 +290,6 @@ function publicAppHTML(){
     <section class="doing-public-hero" id="doingPublicHero" aria-label="DOING 活動首頁">
       <span class="doing-hero-blob blob-a" aria-hidden="true"></span><span class="doing-hero-blob blob-b" aria-hidden="true"></span>
       <div class="doing-hero-copy" id="doingPublicSearch">
-        <span class="doing-eyebrow">活動預約營運管理系統</span>
         <div class="doing-hero-logo" aria-label="DOING 活動預約營運管理系統"><img src="doing-logo.png?v=20260815k" alt="DOING 活動預約營運管理系統"></div>
         <h1>表單只收到報名，<br>DOING 幫你把活動做完。</h1>
         <p class="doing-hero-desc">從找活動、報名與付款，到主辦端的審核、通知、選位、現場報到、退款與財務結案，每一步都沿用同一筆正式資料，不必再整理五張表。</p>
