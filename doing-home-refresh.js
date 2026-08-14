@@ -64,7 +64,7 @@ function buildHeader(){
     p.apply.dataset.organizerTarget='apply';
     p.apply.classList.add('doing-organizer-nav','primary');
   }
-  [p.search,p.my,p.support,p.pricing,p.apply].filter(Boolean).forEach(x=>{
+  [p.my,p.search,p.support,p.pricing,p.apply].filter(Boolean).forEach(x=>{
     x.classList.add('doing-nav-action');
     if(x.tagName==='BUTTON')x.type='button';
     actions.appendChild(x);
@@ -228,6 +228,15 @@ function renderActivities(items,query=''){
   restartCarousel(stage,rows);
 }
 
+function renderActivityList(items,query=''){
+  const host=$('doingPublicActivityList');
+  if(!host)return;
+  const rows=Array.isArray(items)?items:[];
+  if(!rows.length){host.innerHTML=`<div class="doing-list-empty"><b>${query?'找不到符合的活動':'目前沒有開放中的活動'}</b><span>${query?'換個活動名稱、類型或地點試試看。':'有新活動時會顯示在這裡。'}</span></div>`;return}
+  host.innerHTML=rows.map((x,i)=>`<article class="doing-list-card" data-i="${i}" tabindex="0" role="link"><div class="doing-list-cover doing-cover-${(i%5)+1}">${x.cover?`<img src="${esc(x.cover)}" alt="" loading="lazy">`:`<span>${['市','課','體','親','約'][i%5]}</span>`}</div><div class="doing-list-copy"><small>${esc(itemType(x))}</small><h3>${esc(x.sessionName||x.eventTitle||'活動')}</h3><p>${esc(dateText(x.dates))}${x.venue?' · '+esc(x.venue):''}</p><span>查看活動 <b>→</b></span></div></article>`).join('');
+  host.querySelectorAll('.doing-list-card').forEach(card=>{const go=()=>openActivity(rows[Number(card.dataset.i)]);card.onclick=go;card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}}});
+}
+
 function restartCarousel(stage,rows){
   clearInterval(carouselTimer);
   if(rows.length<2)return;
@@ -249,12 +258,14 @@ function searchActivities(){
   const label=$('doingActivityLabel');
   if(label)label.textContent=query?`搜尋「${raw}」`:'近期開放活動';
   renderActivities(results.slice(0,5),raw);
-  smoothTo($('doingPublicActivities'));
+  renderActivityList(results,raw);
+  smoothTo($('doingPublicActivityList'));
 }
 
 function watchActivities(){
   let tries=0;
   renderActivities(displayRows());
+  renderActivityList(realRows().length?realRows():demoActivities);
   const tick=()=>{
     tries++;
     const rows=realRows();
@@ -262,6 +273,7 @@ function watchActivities(){
     if(rows.length&&key!==lastRowsKey){
       lastRowsKey=key;
       renderActivities(rows.slice(0,5));
+      renderActivityList(rows);
       const label=$('doingActivityLabel');
       if(label)label.textContent='近期開放活動';
       return;
@@ -289,7 +301,7 @@ function publicAppHTML(){
           <button id="doingPublicSearchGo" type="button">搜尋</button>
         </div>
         <div class="doing-quick-tags" aria-label="活動快速分類">
-          <button type="button" data-q="市集">市集</button><button type="button" data-q="課程">課程</button><button type="button" data-q="體驗">體驗</button><button type="button" data-q="預約">預約</button><button type="button" data-q="地點">地點</button>
+          <button type="button" data-q="市集">市集</button><button type="button" data-q="課程">課程</button><button type="button" data-q="體驗">體驗</button><button type="button" data-q="預約">預約</button><button type="button" data-location>地點</button>
         </div>
       </div>
       <div class="doing-hero-console" aria-label="DOING 系統服務">
@@ -303,6 +315,8 @@ function publicAppHTML(){
         </div>
         <button type="button" data-go="my">查看我的報名</button>
       </div>
+      <div class="doing-list-head"><h3>所有開放活動</h3><span>搜尋結果會直接顯示在這裡</span></div>
+      <div id="doingPublicActivityList" class="doing-public-activity-list" aria-live="polite"></div>
     </section>
 
     <section class="doing-proof-section" aria-label="DOING 系統亮點">
@@ -425,6 +439,7 @@ function wireSearch(){
     if(input)input.value=btn.dataset.q||'';
     searchActivities();
   });
+  document.querySelectorAll('.doing-quick-tags [data-location]').forEach(btn=>btn.onclick=()=>{if(input){input.value='';input.placeholder='輸入想找的地點';input.focus()}});
 }
 
 function wire(){
