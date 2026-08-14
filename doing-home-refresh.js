@@ -40,7 +40,7 @@ function buildHeader(){
     brand=document.createElement('button');
     brand.type='button';
     brand.className='doing-nav-brand';
-    brand.innerHTML='<span class="doing-nav-logo"><img src="doing-logo-header.png?v=20260815" alt="DOING"></span><span><b>活動營運管理系統</b></span>';
+    brand.innerHTML='<span class="doing-nav-logo"><img src="doing-logo.png?v=20260815" alt="DOING"></span><span><b>活動營運管理系統</b></span>';
     brand.onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
     p.nav.prepend(brand);
   }
@@ -289,7 +289,6 @@ function publicAppHTML(){
   <div id="doingPublicApp" class="doing-public-app">
     <section class="doing-public-hero" id="doingPublicHero" aria-label="DOING 活動首頁">
       <span class="doing-hero-blob blob-a" aria-hidden="true"></span><span class="doing-hero-blob blob-b" aria-hidden="true"></span>
-      <span class="doing-bee" aria-hidden="true"><i></i></span>
       <div class="doing-hero-copy" id="doingPublicSearch">
         <span class="doing-eyebrow">活動預約營運管理系統</span>
         <div class="doing-hero-logo" aria-label="DOING 活動預約營運管理系統"><img src="doing-logo.png?v=20260815" alt="DOING 活動預約營運管理系統"></div>
@@ -306,7 +305,7 @@ function publicAppHTML(){
       </div>
       <div class="doing-hero-console" aria-label="DOING 系統服務">
         <div class="doing-console-top"><span></span><span></span><span></span><b>DOING</b></div>
-        <div class="doing-console-card main"><small>一個入口完成</small><b>找活動 → 報名 → 付款</b><span>我的報名隨時查看進度</span></div>
+        <div class="doing-console-card featured"><small>一個入口完成</small><b>找活動 → 報名 → 付款</b><span>我的報名隨時查看進度</span></div>
         <div class="doing-console-grid">
           <div><i>♡</i><b>活動探索</b><span>查看近期內容</span></div>
           <div><i>✓</i><b>報名紀錄</b><span>狀態集中管理</span></div>
@@ -315,7 +314,10 @@ function publicAppHTML(){
         </div>
         <button type="button" data-go="my">查看我的報名</button>
       </div>
-      <div class="doing-list-head"><h3>所有開放活動</h3><span>搜尋結果會直接顯示在這裡</span></div>
+    </section>
+
+    <section class="doing-public-section doing-list-section" aria-label="所有開放活動">
+      <div class="doing-list-head"><div><span class="doing-kicker">找活動</span><h2>所有開放活動</h2></div><span>左右滑動查看更多活動</span></div>
       <div id="doingPublicActivityList" class="doing-public-activity-list" aria-live="polite"></div>
     </section>
 
@@ -340,6 +342,12 @@ function publicAppHTML(){
 
     <div id="doingMyMount"></div>
 
+    <section class="doing-public-section doing-organizer-section">
+      <div class="doing-organizer-icon">D</div>
+      <div><span class="doing-kicker yellow">給主辦／營運者</span><h2>你不只參加，也正在做自己的事？</h2><p>DOING 把報名、會員、付款、預約、通知與現場管理整理在同一套系統。無論是單場活動或持續經營，都能從建立內容一路管理到現場與結案。</p></div>
+      <div class="doing-organizer-actions"><a href="#doingOrganizerDetails" data-organizer-target="apply">申請營運帳號</a><a class="secondary" href="#doingOrganizerDetails" data-organizer-target="pricing">查看主辦方案</a></div>
+    </section>
+
     <section class="doing-proof-section" aria-label="DOING 系統亮點">
       <header><span class="doing-kicker">為什麼主辦需要 DOING</span><h2>真正麻煩的，從來不是做一張報名表。</h2><p>而是報名送出以後，名單、款項、異動與現場資訊開始出現不同版本。DOING 把這些工作接成一條完整流程。</p></header>
       <div class="doing-proof-story">
@@ -347,12 +355,6 @@ function publicAppHTML(){
         <article><span>02</span><div><small>活動有變，也不用全部重來</small><h3>延期、取消、改期與退款，都接著原本紀錄處理。</h3><p>名單、付款、設備和位置不必重新複製，主辦可以沿著原資料完成通知與後續安排。</p></div><b>不怕異動<br>不漏處理</b></article>
         <article><span>03</span><div><small>不同工作方式，一個營運後台</small><h3>市集、課程、體驗、導覽與工作室預約，不必各養一套工具。</h3><p>流程可以不同，會員、日曆、通知、付款與財務仍集中管理；下一場也不用重新開始。</p></div><b>活動多元<br>營運不亂</b></article>
       </div>
-    </section>
-
-    <section class="doing-public-section doing-organizer-section">
-      <div class="doing-organizer-icon">D</div>
-      <div><span class="doing-kicker yellow">給主辦／營運者</span><h2>你不只參加，也正在做自己的事？</h2><p>DOING 把報名、會員、付款、預約、通知與現場管理整理在同一套系統。無論是單場活動或持續經營，都能從建立內容一路管理到現場與結案。</p></div>
-      <div class="doing-organizer-actions"><a href="#doingOrganizerDetails" data-organizer-target="apply">申請營運帳號</a><a class="secondary" href="#doingOrganizerDetails" data-organizer-target="pricing">查看主辦方案</a></div>
     </section>
 
     <details id="doingOrganizerDetails" class="doing-organizer-details">
