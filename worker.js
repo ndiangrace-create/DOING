@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 168764)
-Total output lines: 10317
-
 // DOING_MUST_FIX_CLOSURE_20260725：付款回報撤回／主辦全流程取消／不可抗力延期完整資料與金流搬移／SaaS feature gate 保留
 // SAAS_TENANT_FEATURE_GATE_20260723：租戶功能旗標後端強制閘門＋前台 bootstrap 回傳
 // SEAT_SINGLE_SOURCE_ACTUAL_FIX_20260722：實際移除舊 API、補上 saveSeatMapImage、統一位置分類與資料來源
@@ -2956,6 +2953,48 @@ async function hGetMember(env, p) {
   return jsonOk(memberPayloadFromRow(m));
 }
 
+async function verifiedPlatformMember(env, token){
+  const payload=await verifyAdminJwt(String(token||''),env).catch(()=>null);
+  if(!payload||payload.type!=='member'||!payload.google_sub)return null;
+  const providers=['line','google'];
+  for(const provider of providers){const row=await getPlatformMemberByProvider(env,provider,String(payload.google_sub));if(row)return {payload,row}}
+  return null;
+}
+
+async function hGetPlatformMemberProfile(env,p){
+  const verified=await verifiedPlatformMember(env,p.member_token||p.token);
+  if(!verified)return jsonErr('會員登入已失效，請重新登入');
+  const v=safeJson(verified.row.vendor_json,{});
+  return jsonOk({profile:{email:verified.row.email||'',name:verified.row.name||verified.row.display_name||'',phone:verified.row.phone||'',lineId:verified.row.line_id||'',city:verified.row.city||'',brand:v.brandName||'',brand_name:v.brandName||'',brandIntro:v.brandIntro||'',sellCat:v.category||'',sellItem:v.items||'',fb:v.facebook||'',ig:v.instagram||'',photo:v.photoUrl||'',company:v.company||'',taxId:v.taxId||''},complete:platformMemberComplete(verified.row),provider:verified.row._identity?.provider||''});
+}
+
+async function hSavePlatformMemberProfile(env,b){
+  const verified=await verifiedPlatformMember(env,b.member_token||b.token);
+  if(!verified)return jsonErr('會員登入已失效，請重新登入');
+  const name=String(b.name||'').trim(),email=normEmail(b.email),phone=normPhone(b.phone);
+  if(!name||!email||!phone)return jsonErr('姓名、Email 與手機為必填');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return jsonErr('Email 格式不正確');
+  if(phone.length<9)return jsonErr('手機格式不正確');
+  const duplicate=await dbGet(env,'platform_members',`email=ilike.${encodeURIComponent(email)}&id=neq.${encodeURIComponent(verified.row.id)}&select=id`).catch(()=>[]);
+  if(duplicate.length)return jsonErr('此 Email 已連結另一個會員，請先使用原登入方式登入後再綁定');
+  const vendor=b.vendor&&typeof b.vendor==='object'?b.vendor:{};
+  const vendorJson={brandName:String(vendor.brandName||'').trim(),brandIntro:String(vendor.brandIntro||'').trim(),category:String(vendor.category||'').trim(),items:String(vendor.items||'').trim(),facebook:String(vendor.facebook||'').trim(),instagram:String(vendor.instagram||'').trim(),photoUrl:String(vendor.photoUrl||'').trim(),company:String(vendor.company||'').trim(),taxId:String(vendor.taxId||'').trim()};
+  const update={email,phone,name,line_id:String(b.lineId||'').trim(),city:String(b.city||'').trim(),vendor_json:vendorJson,completed_at:nowIso(),updated_at:nowIso()};
+  await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(verified.row.id)}`,update);
+  let applicationId='';
+  const sys=b.systemApplication&&typeof b.systemApplication==='object'?b.systemApplication:null;
+  if(sys&&sys.enabled){
+    const unitName=String(sys.unitName||vendor.brandName||vendor.company||'').trim();
+    const industries=Array.isArray(sys.industryCategories)?sys.industryCategories.map(String).filter(Boolean):[];
+    const useCases=Array.isArray(sys.useCases)?sys.useCases.map(String).filter(Boolean):[];
+    if(!unitName||!industries.length||!useCases.length)return jsonErr('系統申請請完整填寫單位名稱、產業類別與使用功能');
+    const existing=await dbGet(env,'tenant_apply_logs',`contact_email=eq.${encodeURIComponent(email)}&brand_name=eq.${encodeURIComponent(unitName)}&status=in.(pending,supplement_required)&select=id`).catch(()=>[]);
+    if(existing[0])applicationId=existing[0].id;
+    else{applicationId=genId('APL');await dbInsert(env,'tenant_apply_logs',{id:applicationId,brand_name:unitName,contact_name:name,contact_email:email,contact_phone:phone,event_type:useCases.join(','),plan_type:'review',note:'由已驗證 DOING 會員送出',status:'pending',application_json:{unitName,ownerName:name,phone,industryCategories:industries,useCases,publicLinks:[vendor.facebook,vendor.instagram,vendor.photoUrl].filter(Boolean),memberId:verified.row.id,loginProvider:verified.row._identity?.provider||''},created_at:nowIso()})}
+  }
+  return jsonOk({ok:true,complete:true,applicationId});
+}
+
 // getMyRegs
 async function hGetMyRegs(env, p) {
   const TENANT = (p && p._tenantId);
@@ -3069,7 +3108,4464 @@ async function checkIsMember(env, email, tenantId) {
 // 輔助：用 email 簽發 staff token
 async function issueStaffTokenByEmail(env, email, tenantId) {
   const platformRows = await dbGet(env, 'platform_staff', `email=eq.${encodeURIComponent(email)}&is_active=eq.true&select=*`).catch(()=>[]);
-  if (platformRows[0]) return iss…68764 tokens truncated…pshot:String(s.description||'').slice(0,2000),
+  if (platformRows[0]) return issueAdminToken({ ...platformRows[0], email }, 'platform', env);
+  const rows = await dbGet(env, 'staff', `tenant_id=eq.${tenantId}&email=eq.${encodeURIComponent(email)}&select=*`).catch(()=>[]);
+  if (!rows[0]) throw new Error('staff not found');
+  const active = rows[0].is_active !== undefined ? rows[0].is_active : rows[0].active;
+  if (active === false) throw new Error('staff inactive');
+  return issueAdminToken({ ...rows[0], email }, tenantId, env);
+}
+
+// 輔助：更新 staff 最後登入
+async function updateStaffLastLogin(env, email, tenantId, displayName) {
+  await dbUpdate(env, 'staff', `tenant_id=eq.${tenantId}&email=eq.${encodeURIComponent(email)}`,
+    { last_login_at: new Date().toISOString(), display_name: displayName }).catch(()=>{});
+}
+
+// 輔助：更新 member 最後登入 + Google 資料
+async function updateMemberLastLogin(env, email, tenantId, googleSub, displayName, avatarUrl) {
+  const rows = await dbGet(env, 'members', `tenant_id=eq.${tenantId}&email=eq.${encodeURIComponent(email)}&select=email`).catch(()=>[]);
+  if (rows[0]) {
+    await dbUpdate(env, 'members', `tenant_id=eq.${tenantId}&email=eq.${encodeURIComponent(email)}`,
+      { last_login_at: new Date().toISOString(), google_sub: googleSub, display_name: displayName, avatar_url: avatarUrl, login_provider: 'google' }).catch(()=>{});
+  } else {
+    // 新會員：建立記錄
+    await dbInsert(env, 'members', {
+      email, tenant_id: tenantId, google_sub: googleSub,
+      display_name: displayName, avatar_url: avatarUrl,
+      login_provider: 'google', last_login_at: new Date().toISOString(),
+      joined_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    }).catch(()=>{});
+  }
+}
+
+// ── 申請試用 API ──────────────────────────────────────────────────
+
+// 營運帳號申請先完整寫入資料庫，再以申請編號進行 Google 驗證；瀏覽器不保存申請資料。
+async function hCreateOrganizerApplicationDraft(env,b){
+  const app=(b&&b.application&&typeof b.application==='object')?b.application:{};
+  const unitName=String(app.unitName||'').trim(),ownerName=String(app.ownerName||'').trim(),phone=String(app.phone||'').trim();
+  const industries=Array.isArray(app.industryCategories)?app.industryCategories.map(String).filter(Boolean).slice(0,20):[];
+  const useCases=Array.isArray(app.useCases)?app.useCases.map(String).filter(Boolean).slice(0,20):[];
+  const publicLinks=Array.isArray(app.publicLinks)?app.publicLinks.map(x=>String(x||'').trim()).filter(Boolean).slice(0,8):[];
+  if(!unitName||!ownerName||!phone)return jsonErr('營運單位、姓名與聯絡電話不可空白');
+  if(!industries.length)return jsonErr('請至少選擇一個產業類別');
+  if(!useCases.length)return jsonErr('請至少選擇一個 DOING 使用情境');
+  if(!publicLinks.length&&app.noPublicLink!==true)return jsonErr('請至少提供一項公開資訊');
+  const id=genId('APL');
+  const applicationJson={...app,ownerName,contactName:ownerName,billingName:ownerName,industryCategories:industries,useCases,publicLinks};
+  await dbInsert(env,'tenant_apply_logs',{
+    id,brand_name:unitName,contact_name:ownerName,contact_email:`pending+${id.toLowerCase()}@doing.invalid`,contact_phone:phone,
+    event_type:useCases.join(','),plan_type:'review',note:'等待 Google 驗證',status:'google_verification_pending',application_json:applicationJson,created_at:nowIso()
+  });
+  return jsonOk({ok:true,applicationId:id});
+}
+
+// 主辦申請改為「Google 驗證後送審」，審核通過才建立 Tenant / Owner / 創業金。
+async function hApplyTrial(env,b){
+  const brand=String(b.brand_name||'').trim(),contact=String(b.contact_name||'').trim(),email=normEmail(b.contact_email||''),phone=String(b.contact_phone||'').trim();
+  if(!brand||!contact||!email||!phone)return jsonErr('主辦基本資料不完整');
+  const existing=await dbGet(env,'tenant_apply_logs',`contact_email=eq.${encodeURIComponent(email)}&status=eq.pending&select=id`).catch(()=>[]);
+  if(existing.length)return jsonOk({ok:true,pending:true,applyId:existing[0].id});
+  const id=genId('APL'),now=nowIso();
+  await dbInsert(env,'tenant_apply_logs',{
+    id,brand_name:brand,contact_name:contact,contact_email:email,contact_phone:phone,
+    event_type:String(b.event_type||''),plan_type:'review',note:String(b.note||''),status:'pending',
+    application_json:b.application_json||{},created_at:now
+  });
+  return jsonOk({ok:true,pending:true,applyId:id});
+}
+async function hApproveApply(env,b){
+  const pay=await verifyAdminJwt(b.token,env);
+  if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限',401);
+  const applyId=String(b.apply_id||'').trim();if(!applyId)return jsonErr('缺少申請資料');
+  const rows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applyId)}&select=*`).catch(()=>[]);
+  const apply=rows[0];if(!apply)return jsonErr('找不到申請資料');
+  if(String(apply.status)!=='pending')return jsonErr('此申請已處理');
+  const email=normEmail(apply.contact_email),brand=String(apply.brand_name||'').trim(),contact=String(apply.contact_name||brand).trim();
+  if(!email||!brand)return jsonErr('申請資料不完整');
+  const base=brand.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,20)||'doing';
+  let tid=String(b.tenant_id||'').trim().toLowerCase()||base;
+  for(let i=0;i<30;i++){
+    const hit=await dbGet(env,'tenants',`id=eq.${encodeURIComponent(tid)}&select=id`).catch(()=>[]);
+    if(!hit.length)break;
+    tid=base+'-'+crypto.randomUUID().replace(/-/g,'').slice(0,4);
+  }
+  const now=nowIso(),app=safeJson(apply.application_json,{});
+  const mp=safeJson(app.moduleProfile,{});
+  const defaults=normalizeSessionModules(mp.defaults||{});
+  const requested=safeJson(app.needFlags,{});
+  const approvedFlags={registration:true};
+  for(const key of Object.keys(DEFAULT_TENANT_MODULE_FLAGS)){
+    if(key==='registration')continue;
+    const requestKey=key==='googleCalendar'?'calendar':key;
+    approvedFlags[key]=requested[requestKey]===true||defaults[key]===true;
+  }
+  approvedFlags.businessType=String(mp.useType||'generic');
+  const profile={configured:true,useType:String(mp.useType||'generic'),useCases:Array.isArray(mp.useCases)?mp.useCases.map(String).slice(0,12):[],defaults,updatedAt:now};
+  try{
+    await dbInsert(env,'tenants',{
+      id:tid,slug:tid,name:brand,status:'active',plan_type:'active',is_locked:false,
+      contact_name:contact,contact_phone:String(apply.contact_phone||''),event_type:String(apply.event_type||''),
+      notify_email:email,config_json:JSON.stringify({moduleProfile:profile,industryCategories:Array.isArray(app.industryCategories)?app.industryCategories:[]}),payment_config_json:'{}',
+      default_refund_rules_json:'{}',created_at:now,updated_at:now
+    });
+    try{
+      await dbInsert(env,'staff',{
+        id:genId('STF'),tenant_id:tid,email,name:contact,display_name:contact,
+        role:'organizer_owner',normalized_role:'organizer_owner',is_active:true,active:true,
+        perms_json:JSON.stringify({events:true,sessions:true,review:true,finance:true,checkin:true,announce:true,members:true,settings:true}),
+        limit_sessions:'',created_at:now,updated_at:now
+      });
+    }catch(e){await dbDelete(env,'tenants',`id=eq.${encodeURIComponent(tid)}`).catch(()=>{});throw e}
+    await dbInsert(env,'tenant_settings',{tenant_id:tid,module_flags_json:approvedFlags,theme_json:{key:'cute_pastel',updatedAt:now}});
+    await grantStartupCreditIfEligible(env,tid);
+    await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applyId)}`,{
+      status:'approved',tenant_id:tid,approved_at:now,approved_by:pay.email,rejection_reason:null,rejected_at:null,rejected_by:null
+    });
+    try{
+      const baseUrl=String(env.DOING_SITE_URL||env.FRONTEND_SITE_URL||'https://ndiangrace-create.github.io/DOING/').replace(/\/+$/,'/');
+      await sendEmail(env,email,'【DOING】營運帳號申請已通過',emailWrap(`<p>${contact} 您好：</p><p>您的 DOING 營運帳號申請已通過，可以開始使用主辦工作台。</p><p><a href="${baseUrl}">前往 DOING</a></p>`));
+    }catch(e){}
+    return jsonOk({ok:true,tenantId:tid});
+  }catch(e){
+    await dbDelete(env,'billing_logs',`tenant_id=eq.${encodeURIComponent(tid)}&billing_type=eq.startup_credit_grant&confirmed_by=eq.system_onboarding`).catch(()=>{});
+    await dbDelete(env,'staff',`tenant_id=eq.${encodeURIComponent(tid)}&email=eq.${encodeURIComponent(email)}`).catch(()=>{});
+    await dbDelete(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(tid)}`).catch(()=>{});
+    await dbDelete(env,'tenants',`id=eq.${encodeURIComponent(tid)}`).catch(()=>{});
+    return jsonErr('開通失敗：'+(e&&e.message?e.message:'資料建立失敗'));
+  }
+}
+async function hRejectApply(env,b){
+  const pay=await verifyAdminJwt(b.token,env);
+  if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限',401);
+  const applyId=String(b.apply_id||'').trim(),reason=String(b.reason||'').trim();
+  if(!applyId)return jsonErr('缺少申請資料');
+  const rows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applyId)}&select=*`).catch(()=>[]);
+  const apply=rows[0];if(!apply)return jsonErr('找不到申請資料');
+  if(String(apply.status)!=='pending')return jsonErr('此申請已處理');
+  await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applyId)}`,{
+    status:'rejected',rejected_at:nowIso(),rejected_by:pay.email,rejection_reason:reason||'申請資料未通過審核'
+  });
+  try{await sendEmail(env,apply.contact_email,'【DOING】營運帳號申請結果',emailWrap(`<p>${apply.contact_name||''} 您好：</p><p>本次 DOING 營運帳號申請尚未通過審核。</p>${reason?`<p>說明：${reason}</p>`:''}<p>如資料需要補充，可重新提出申請。</p>`));}catch(e){}
+  return jsonOk({ok:true});
+}
+
+// GET /apply/list — 查詢申請列表（平台管理員用）
+// GET /getTenantsAdmin — 平台管理員查詢所有租戶
+// BUG-B FIX 2025-06
+async function hGetPlatformDashboard(env,p){
+  const pay=await verifyAdminJwt(p.token,env);if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限');
+  const [tenants,sessions,units,regs,logs]=await Promise.all([
+    dbGet(env,'tenants','select=id,status,is_locked,created_at').catch(()=>[]),
+    dbGet(env,'sessions','select=id,tenant_id,status,created_at').catch(()=>[]),
+    dbGet(env,'operation_units','select=id,tenant_id,status,unit_type,created_at').catch(()=>[]),
+    dbGet(env,'registrations','select=id,tenant_id,operation_unit_id,created_at').catch(()=>[]),
+    dbGet(env,'billing_logs','status=eq.confirmed&select=billing_type,amount,total,created_at').catch(()=>[])
+  ]);
+  const now=Date.now(),monthAgo=now-30*86400000,activeTenantIds=new Set();
+  for(const x of sessions)if(new Date(x.created_at||0).getTime()>=monthAgo)activeTenantIds.add(String(x.tenant_id||''));
+  for(const x of regs)if(new Date(x.created_at||0).getTime()>=monthAgo)activeTenantIds.add(String(x.tenant_id||''));
+  const revenueLogs=logs.filter(x=>{const t=String(x.billing_type||'');return t==='booking_monthly'||t.startsWith('activity_publish:')||t.startsWith('activity_unit:')||t.startsWith('setup_feature:')||t.startsWith('exposure:')});
+  const revenue=revenueLogs.reduce((n,x)=>n+Math.max(0,safeNum(x.total||x.amount)),0);
+  const startupGranted=logs.filter(x=>String(x.billing_type)==='startup_credit_grant').reduce((n,x)=>n+Math.max(0,safeNum(x.amount)),0);
+  return jsonOk({tenantCount:tenants.length,activeTenant30d:activeTenantIds.size,lockedTenantCount:tenants.filter(x=>x.is_locked===true).length,sessionCount:sessions.length,operationUnitCount:units.length,registrationCount:regs.length,platformRevenue:revenue,startupCreditGranted:startupGranted,bookingUnitCount:units.filter(x=>String(x.unit_type)==='booking').length,openUnitCount:units.filter(x=>['open','active','published'].includes(String(x.status||''))).length});
+}
+
+async function hGetTenantsAdmin(env, p) {
+  const payload = await verifyAdminJwt(p.token, env);
+  if (!payload || payload.normalized_role !== 'platform_super_admin') return jsonErr('無權限', 401);
+  const rows = await dbGet(env, 'tenants',
+    'order=created_at.desc&select=id,name,slug,plan_type,is_locked,locked_reason,trial_start_at,trial_end_at,session_count_used,contact_name,contact_phone,notify_email,created_at'
+  );
+  for (const tenant of rows) {
+    const owners = await dbGet(env,'staff',
+      `tenant_id=eq.${encodeURIComponent(tenant.id)}&normalized_role=eq.organizer_owner&select=email,name,is_active,active&limit=1`
+    ).catch(()=>[]);
+    const owner = owners[0] || null;
+    tenant.owner_email = owner ? owner.email : '';
+    tenant.owner_name = owner ? (owner.name||'') : '';
+    tenant.owner_active = owner ? (owner.is_active !== false && owner.active !== false) : false;
+  }
+  return jsonOk(rows);
+}
+
+
+async function hPlatformUpsertTenantOwner(env,b){
+  const payload=await verifyAdminJwt(b.token,env);
+  if(!payload || payload.normalized_role!=='platform_super_admin')return jsonErr('無權限',401);
+
+  const tenantId=String(b.target_tenant_id||b.tenant_id||'').trim().toLowerCase();
+  const ownerEmail=normEmail(b.owner_email||b.target_email||'');
+  const ownerName=String(b.owner_name||b.target_name||'').trim();
+  const active=b.active!==false && b.active!=='false' && b.active!==0 && b.active!=='0';
+
+  if(!tenantId)return jsonErr('請選擇租戶');
+  if(!ownerEmail)return jsonErr('請輸入擁有者 Email');
+
+  const tenants=await dbGet(env,'tenants',`id=eq.${encodeURIComponent(tenantId)}&select=id,name,is_locked`);
+  if(!tenants.length)return jsonErr('找不到租戶');
+
+  const existing=await dbGet(env,'staff',`tenant_id=eq.${encodeURIComponent(tenantId)}&email=eq.${encodeURIComponent(ownerEmail)}&select=*`);
+  const before=existing[0]||null;
+  const data={
+    email:ownerEmail,
+    tenant_id:tenantId,
+    name:ownerName,
+    display_name:ownerName,
+    role:'organizer_owner',
+    normalized_role:'organizer_owner',
+    role_id:null,
+    perms_json:JSON.stringify({events:true,sessions:true,review:true,finance:true,checkin:true,announce:true,members:true,settings:true}),
+    limit_sessions:'',
+    scope_type:'all',
+    scope_event_id:'',
+    active,
+    is_active:active,
+    updated_at:nowIso()
+  };
+
+  if(existing.length){
+    await dbUpdate(env,'staff',
+      `tenant_id=eq.${encodeURIComponent(tenantId)}&email=eq.${encodeURIComponent(ownerEmail)}`,
+      data
+    );
+  }else{
+    await dbInsert(env,'staff',{id:crypto.randomUUID(),...data,created_at:nowIso()});
+  }
+
+  await syncStaffSessionPermissions(env,tenantId,ownerEmail,[]);
+  await writeAuditLog(
+    env,tenantId,payload.email||'',payload.normalized_role||'platform_super_admin',
+    existing.length?'platform_update_tenant_owner':'platform_create_tenant_owner',
+    'staff',ownerEmail,before,data,{source:'platform.html'}
+  ).catch(()=>{});
+
+  const tc=await getTenantCtx(env,tenantId).catch(()=>null);
+  try{
+    await mailStaffInvite(env,ownerEmail,ownerName,'organizer_owner',safeJson(data.perms_json,{}),[],tc);
+  }catch{}
+
+  const base=String(env.DOING_SITE_URL||env.FRONTEND_SITE_URL||'https://ndiangrace-create.github.io/DOING/').replace(/\/+$/,'/');
+  return jsonOk({
+    ok:true,
+    tenant_id:tenantId,
+    tenant_name:tenants[0].name||tenantId,
+    owner_email:ownerEmail,
+    owner_name:ownerName,
+    role:'organizer_owner',
+    active,
+    admin_url:base+'admin.html?tenant='+encodeURIComponent(tenantId)
+  });
+}
+
+async function hPlatformTenantSessions(env,p){
+  const payload=await verifyAdminJwt(p.token,env);if(!payload||payload.normalized_role!=='platform_super_admin')return jsonErr('無權限',401);const T=String(p.target_tenant_id||'').trim().toLowerCase();if(!T)return jsonErr('請選擇主辦');const rows=await dbGet(env,'sessions',`tenant_id=eq.${encodeURIComponent(T)}&select=id,name,status,modules_json&order=created_at.desc`).catch(()=>[]);return jsonOk(rows.map(s=>({id:s.id,name:s.name||s.id,status:s.status||'',operatingMode:normalizeSessionModules(safeJson(s.modules_json,{})).operatingMode,entitled:false})));
+}
+
+async function hPlatformTenantOperationUnits(env,p){
+  const payload=await verifyAdminJwt(p.token,env);if(!payload||payload.normalized_role!=='platform_super_admin')return jsonErr('無權限',401);const T=String(p.target_tenant_id||'').trim().toLowerCase();if(!T)return jsonErr('請選擇主辦');const rows=await dbGet(env,'operation_units',`tenant_id=eq.${encodeURIComponent(T)}&select=id,session_id,name,status,modules_json&order=created_at.desc`).catch(()=>[]);return jsonOk(rows.map(u=>({id:u.id,sessionId:u.session_id,name:u.name||u.id,status:u.status||'',operatingMode:normalizeSessionModules(safeJson(u.modules_json,{})).operatingMode||'activity'})));
+}
+
+async function hPlatformTenantOwnerStatus(env,p){
+  const payload=await verifyAdminJwt(p.token,env);
+  if(!payload || payload.normalized_role!=='platform_super_admin')return jsonErr('無權限',401);
+  const tenantId=String(p.target_tenant_id||p.tenant_id||'').trim().toLowerCase();
+  const ownerEmail=normEmail(p.owner_email||p.target_email||'');
+  if(!tenantId||!ownerEmail)return jsonErr('缺少租戶或 Email');
+  const rows=await dbGet(env,'staff',
+    `tenant_id=eq.${encodeURIComponent(tenantId)}&email=eq.${encodeURIComponent(ownerEmail)}&select=email,name,role,normalized_role,is_active,active`
+  ).catch(()=>[]);
+  if(!rows.length)return jsonOk({exists:false,tenant_id:tenantId,owner_email:ownerEmail});
+  const s=rows[0];
+  return jsonOk({
+    exists:true,
+    tenant_id:tenantId,
+    owner_email:s.email,
+    owner_name:s.name||'',
+    role:s.normalized_role||s.role||'',
+    active:s.is_active!==false && s.active!==false
+  });
+}
+
+async function hPlatformEnterTenant(env, b) {
+  const payload = await verifyAdminJwt(b.token, env);
+  if (!payload || payload.normalized_role !== 'platform_super_admin') return jsonErr('無權限', 401);
+  const target = String(b.target_workspace_id || b.tenant_id || b.tenant || '').trim().toLowerCase();
+  if (!target) return jsonErr('請選擇主辦空間');
+  const rows = await dbGet(env,'tenants',`id=eq.${encodeURIComponent(target)}&select=id,name,status,is_locked`);
+  const tenant = rows[0];
+  if (!tenant) return jsonErr('找不到主辦空間');
+  const adminToken = await issueAdminToken({
+    id: payload.staff_id || payload.sub || payload.email,
+    email: payload.email,
+    name: payload.display_name || payload.email,
+    role: 'platform_super_admin',
+    normalized_role: 'platform_super_admin',
+    limit_sessions: ''
+  }, target, env);
+  return jsonOk({ok:true, tenant_id:target, tenant_name:tenant.name||target, admin_token:adminToken, admin_url:adminSiteUrl(env)});
+}
+
+async function hApplyList(env, p) {
+  const payload = await verifyAdminJwt(p.token, env);
+  if (!payload || payload.normalized_role !== 'platform_super_admin') return jsonErr('無權限', 401);
+  const rows = await dbGet(env, 'tenant_apply_logs', `order=created_at.desc&limit=50&select=*`);
+  return jsonOk(rows);
+}
+async function hRequestApplySupplement(env,b){
+  const pay=await verifyAdminJwt(b.token,env);
+  if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限',401);
+  const applyId=String(b.apply_id||'').trim(),reason=String(b.reason||'').trim();
+  if(!applyId)return jsonErr('缺少申請資料');
+  if(!reason)return jsonErr('請填寫補件說明');
+  const rows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applyId)}&select=*`).catch(()=>[]);
+  const apply=rows[0];if(!apply)return jsonErr('找不到申請資料');
+  await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applyId)}`,
+    {status:'supplement_required',supplement_requested_at:nowIso(),supplement_requested_by:pay.email,supplement_reason:reason,rejected_at:null,rejected_by:null,rejection_reason:null}
+  );
+  try{
+    const page=doingPageUrl(env,'about.html');
+    await sendEmail(env,apply.contact_email,'【DOING】營運帳號申請需要補件',emailWrap(`<p>${apply.contact_name||''} 您好：</p><p>你的 DOING 營運帳號申請需要補充資料後再繼續審核。</p><p><b>補件說明：</b><br>${reason}</p><p>請回到申請頁重新填寫並使用原 Google 帳號完成送出：</p><p><a href="${page}#apply">前往 DOING 營運帳號申請</a></p>`));
+  }catch(e){}
+  return jsonOk({ok:true});
+}
+
+
+// ── 鎖定 / 停用機制 API ──────────────────────────────────────────
+
+// POST /lockTenant — 鎖定租戶（平台管理員用）
+async function hLockTenant(env, b) {
+  const payload = await verifyAdminJwt(b.token, env);
+  if (!payload || payload.normalized_role !== 'platform_super_admin') return jsonErr('無權限', 401);
+  await dbUpdate(env, 'tenants', `id=eq.${b.tenant_id}`, {
+    is_locked: true,
+    locked_at: new Date().toISOString(),
+    locked_reason: b.reason || '帳號鎖定',
+    updated_at: new Date().toISOString(),
+  });
+  return jsonOk({ ok: true });
+}
+
+// POST /unlockTenant — 解鎖租戶（收到付款後）
+async function hUnlockTenant(env, b) { return jsonErr('舊試用解鎖流程已停用；正式營運權請使用計費／額度流程'); }
+
+// ── 場次下載 Excel ────────────────────────────────────────────────
+
+// GET /downloadSession — 下載單場次完整 Excel
+async function hDownloadSession(env,p){
+  const TENANT=p._tenantId;
+  if(!await verifyStaff(env,p.email,p.token,TENANT))return jsonErr('無權限');
+  const lockCheck=await checkTenantLocked(env,TENANT);
+  if(lockCheck.locked)return jsonErr('帳號已鎖定，無法下載資料，請先續費');
+  const sesId=String(p.sessionId||'').trim();
+  if(!sesId)return jsonErr('請指定場次');
+
+  const sessions=await dbGet(env,'sessions',`id=eq.${encodeURIComponent(sesId)}&tenant_id=eq.${TENANT}&select=*`);
+  const session=sessions[0];if(!session)return jsonErr('找不到場次');
+  const regs=await dbGet(env,'registrations',`session_id=eq.${encodeURIComponent(sesId)}&tenant_id=eq.${TENANT}&select=*&order=created_at.asc`);
+  const itemMap=await _getRegistrationItemsForRegs(env,regs);
+  const cashbook=await _getSessionCashbook(env,TENANT,sesId);
+  const payments=await dbGet(env,'payments',`tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sesId)}&select=*&order=created_at.asc`).catch(()=>[]);
+  const allocations=await dbGet(env,'payment_allocations',`tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sesId)}&select=*&order=created_at.asc`).catch(()=>[]);
+  const eventRows=session.event_id?await dbGet(env,'events',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(session.event_id)}&select=*`).catch(()=>[]):[];
+  const event=eventRows[0]||{};
+
+  const activeRegs=regs.filter(_isActiveFinanceReg);
+  const receivableRegs=activeRegs.filter(_isReceivableReg);
+  const receivedRegs=activeRegs.filter(_isConfirmedPaidReg);
+  const totalReceivable=_sumCash(receivableRegs,session,itemMap);
+  const totalReceived=_sumCash(receivedRegs,session,itemMap);
+  const totalDeposit=_sumDeposit(receivedRegs,session,itemMap);
+  const refundTotal=regs.reduce((sum,r)=>sum+_officialRefund(r),0);
+
+  const summary=[
+    ['欄位','內容'],
+    ['系列',event.title||''],
+    ['場次',session.name||''],
+    ['日期',_sessionDateRows(safeJson(session.dates_json,[])).map(x=>x.date).filter(Boolean).join('、')],
+    ['地點',session.venue||''],
+    ['狀態',session.status||''],
+    ['報名筆數',regs.length],
+    ['有效報名筆數',activeRegs.length],
+    ['應收總額',totalReceivable],
+    ['已收總額',totalReceived],
+    ['未收總額',Math.max(0,totalReceivable-totalReceived)],
+    ['已收押金',totalDeposit],
+    ['已退款',refundTotal],
+    ['場次收入',cashbook.totals.income],
+    ['場次支出',cashbook.totals.expense],
+    ['場次結餘',cashbook.totals.balance],
+  ];
+
+  const regHeaders=[
+    '報名編號','系列','場次','品牌名稱','品牌介紹','聯絡人','Email','電話',
+    '販售分類','販售內容','品牌連結','Facebook','Instagram','照片連結',
+    '報名日期','攤位數','設備','加購內容','位置','選位意願','選位狀態',
+    '應收金額','實收金額','押金','審核狀態','繳費狀態','付款方式','付款末碼',
+    '退款金額','退款狀態','發票類型','統一編號','發票抬頭','發票 Email','發票狀態',
+    '報到狀態','清場狀態','押金退還狀態','自訂欄位','參加者資料','申請時間'
+  ];
+  const regRows=regs.map(r=>{
+    const money=_regFinanceAmounts(r,session,itemMap[r.id]);
+    return [
+      r.registration_no||r.id,event.title||'',session.name||'',
+      r.brand_name||'',r.brand_intro||'',r.name||'',r.email||'',r.phone||'',
+      r.sell_category||'',r.sell_items||'',r.sell_link||'',r.fb_url||'',r.ig_url||'',r.photo_url||'',
+      safeJson(r.selected_dates_json,[]).join('、'),safeNum(r.stall_count)||1,
+      _equipmentTextFromMap(_effectiveEquipmentMapForReg(r,session)),
+      JSON.stringify(safeJson(r.addon_qty_json,{})),r.stall_number||'',
+      r.seat_choice_intent||'',r.seat_choice_status||'',
+      money.cashTotal,safeNum(r.paid_amount),money.depositTotal,
+      _reviewStatus(r)||'',_payStatus(r)||'',r.payment_method||'',r.payment_last5||'',
+      safeNum(r.refund_amount),r.transfer_status||'',
+      r.invoice_type||'',r.tax_id||'',r.invoice_title||'',r.invoice_email||'',r.invoice_status||'',
+      _checkinStatus(r)||'',_clearStatus(r)||'',_depositStatus(r)||'',
+      JSON.stringify(safeJson(r.custom_fields_json,{})),JSON.stringify(safeJson(r.participants_json,{})),
+      r.created_at?new Date(r.created_at).toLocaleString('zh-TW'):''
+    ];
+  });
+
+  const incomeRows=cashbook.rows.filter(x=>x.kind==='收入').map(x=>[x.date,x.category,x.amount,x.note,x.source,x.referenceType,x.referenceId]);
+  const expenseRows=cashbook.rows.filter(x=>x.kind==='支出').map(x=>[x.date,x.category,x.amount,x.note,x.source,x.referenceType,x.referenceId]);
+  const payRows=payments.map(x=>[
+    x.id,x.registration_id||'',x.email||'',safeNum(x.amount),x.method||'',x.status||'',x.trade_no||'',
+    x.paid_at?new Date(x.paid_at).toLocaleString('zh-TW'):'',x.created_at?new Date(x.created_at).toLocaleString('zh-TW'):''
+  ]);
+  const allocRows=allocations.map(x=>[
+    x.id,x.payment_id||'',x.registration_id||'',x.allocation_type||'',safeNum(x.amount),
+    x.created_at?new Date(x.created_at).toLocaleString('zh-TW'):''
+  ]);
+  const equipRows=regs.map(r=>[
+    r.registration_no||r.id,r.brand_name||r.name||r.email||'',
+    safeNum(r.stall_count)||1,_equipmentTextFromMap(_effectiveEquipmentMapForReg(r,session)),
+    r.stall_number||'',r.seat_choice_intent||'',r.seat_choice_status||'',
+    _checkinStatus(r)||'',_clearStatus(r)||''
+  ]);
+
+  return jsonOk({
+    filename:`${String(session.name||sesId).replace(/[\\/:*?"<>|]/g,'_')}_完整報表.xlsx`,
+    session:{id:sesId,name:session.name||'',eventName:event.title||'',date:_sessionFirstDate(session),venue:session.venue||''},
+    sheets:[
+      {name:'場次總覽',rows:summary},
+      {name:'完整報名名單',rows:[regHeaders,...regRows]},
+      {name:'收入明細',rows:[['日期','分類','金額','備註','來源','關聯類型','關聯編號'],...incomeRows]},
+      {name:'支出明細',rows:[['日期','分類','金額','備註','來源','關聯類型','關聯編號'],...expenseRows]},
+      {name:'付款紀錄',rows:[['付款編號','報名編號','Email','金額','方式','狀態','末碼／交易號','確認時間','建立時間'],...payRows]},
+      {name:'付款分配',rows:[['分配編號','付款編號','報名編號','類型','金額','建立時間'],...allocRows]},
+      {name:'設備與位置',rows:[['報名編號','品牌／姓名','攤位數','設備','位置','選位意願','選位狀態','報到','清場'],...equipRows]}
+    ]
+  });
+}
+
+
+// ── Cron：試用到期提醒 ────────────────────────────────────────────
+async function cronTrialExpireReminders(env) {
+  // 舊 trial_end_at 到期提醒／自動鎖定正式停用。
+  // DOING 現行規則：免費帳號可持續設定與預覽，正式營運權由 billing entitlement 控制。
+  return {ok:true, skipped:'legacy_trial_disabled'};
+}
+
+
+// 免輸入主辦識別登入：依 Google email 找出可管理的主辦空間
+async function findAdminWorkspacesByEmail(env, email) {
+  const rows = await dbGet(env, 'staff', `email=eq.${encodeURIComponent(email)}&select=*`).catch(()=>[]);
+  const byTenant = new Map();
+  for (const row of rows) {
+    const active = row.is_active !== undefined ? row.is_active : row.active;
+    const tenantId = String(row.tenant_id || '').trim().toLowerCase();
+    if (active === false || !tenantId || byTenant.has(tenantId)) continue;
+    byTenant.set(tenantId, row);
+  }
+  const workspaces = [];
+  for (const [tenantId, staff] of byTenant.entries()) {
+    const tenantRows = await dbGet(env, 'tenants', `id=eq.${encodeURIComponent(tenantId)}&select=id,name,slug,is_locked,locked_reason,plan_type,trial_end_at`).catch(()=>[]);
+    const tenant = tenantRows[0];
+    if (!tenant) continue;
+    workspaces.push({
+      tenant_id: tenantId,
+      name: tenant.name || tenant.slug || tenantId,
+      role: staff.normalized_role || staff.role || 'organizer_admin',
+      is_locked: !!tenant.is_locked,
+    });
+  }
+  workspaces.sort((a,b)=>String(a.name).localeCompare(String(b.name), 'zh-Hant'));
+  return workspaces;
+}
+
+const DEFAULT_DOING_SITE_URL = 'https://ndiangrace-create.github.io/DOING/';
+
+function doingSiteUrl(env) {
+  const raw = String(env.DOING_SITE_URL || DEFAULT_DOING_SITE_URL).trim();
+  try {
+    const u = new URL(raw);
+    if (!u.pathname.endsWith('/')) u.pathname += '/';
+    u.search = '';
+    u.hash = '';
+    return u.toString();
+  } catch(e) {
+    return DEFAULT_DOING_SITE_URL;
+  }
+}
+
+function doingPageUrl(env, filename) {
+  return new URL(filename, doingSiteUrl(env)).toString();
+}
+
+function adminLoginSiteUrl(env) {
+  return env.DOING_LOGIN_URL || doingSiteUrl(env);
+}
+
+function adminSiteUrl(env) {
+  return env.DOING_ADMIN_URL || doingPageUrl(env, 'admin.html');
+}
+
+function platformSiteUrl(env) {
+  return env.DOING_PLATFORM_URL || doingPageUrl(env, 'platform.html');
+}
+
+function googleRedirectUri(env, requestUrl) {
+  return env.GOOGLE_REDIRECT_URI || `${requestUrl.origin}/auth/google/callback`;
+}
+
+function lineRedirectUri(env, requestUrl) {
+  return env.LINE_LOGIN_REDIRECT_URI || `${requestUrl.origin}/auth/line/callback`;
+}
+
+async function issueLineOAuthState(env, extra={}) {
+  const now=Date.now();
+  return signAdminJwt({iss:'DOING',type:'line_oauth_state',return_url:String(extra.return_url||'').slice(0,1800),issued_at:now,expires_at:now+10*60*1000},env);
+}
+
+async function verifyLineOAuthState(env, token) {
+  const payload=await verifyAdminJwt(token||'',env);
+  return payload&&payload.iss==='DOING'&&payload.type==='line_oauth_state'?payload:null;
+}
+
+function safeDoingReturnUrl(env, raw) {
+  const fallback=new URL(doingSiteUrl(env));
+  try{const target=new URL(String(raw||''),fallback);return target.origin===fallback.origin?target:fallback}catch(e){return fallback}
+}
+
+async function getPlatformMemberByProvider(env, provider, subject) {
+  const ids=await dbGet(env,'platform_member_identities',`provider=eq.${encodeURIComponent(provider)}&provider_subject=eq.${encodeURIComponent(subject)}&select=*`).catch(()=>[]);
+  if(!ids[0])return null;
+  const rows=await dbGet(env,'platform_members',`id=eq.${encodeURIComponent(ids[0].member_id)}&select=*`).catch(()=>[]);
+  return rows[0]?{...rows[0],_identity:ids[0]}:null;
+}
+
+function platformMemberComplete(row){return !!(row&&normEmail(row.email)&&normPhone(row.phone)&&String(row.name||'').trim()&&row.completed_at)}
+
+async function upsertPlatformIdentity(env,{provider,subject,email='',displayName='',avatarUrl=''}){
+  const now=nowIso();
+  let member=await getPlatformMemberByProvider(env,provider,subject);
+  if(member){await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(member.id)}`,{display_name:displayName||member.display_name||'',avatar_url:avatarUrl||member.avatar_url||'',updated_at:now}).catch(()=>{});await dbUpdate(env,'platform_member_identities',`id=eq.${encodeURIComponent(member._identity.id)}`,{last_login_at:now}).catch(()=>{});return member}
+  const normalizedEmail=normEmail(email);
+  if(normalizedEmail){
+    const byEmail=await dbGet(env,'platform_members',`email=ilike.${encodeURIComponent(normalizedEmail)}&select=*`).catch(()=>[]);
+    if(byEmail[0]){member=byEmail[0];if(!member.email_verified_at)throw new Error('email_link_requires_existing_login');await dbInsert(env,'platform_member_identities',{id:genId('MID'),member_id:member.id,provider,provider_subject:subject,provider_email:normalizedEmail,created_at:now,last_login_at:now});await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(member.id)}`,{display_name:displayName||member.display_name||'',avatar_url:avatarUrl||member.avatar_url||'',updated_at:now});return member}
+  }
+  const row={id:genId('MEM'),email:normalizedEmail||null,phone:null,name:null,line_id:null,city:null,display_name:displayName,avatar_url:avatarUrl,vendor_json:{},created_at:now,updated_at:now,completed_at:null,email_verified_at:provider==='google'&&normalizedEmail?now:null};
+  await dbInsert(env,'platform_members',row);await dbInsert(env,'platform_member_identities',{id:genId('MID'),member_id:row.id,provider,provider_subject:subject,provider_email:normalizedEmail||null,created_at:now,last_login_at:now});return row;
+}
+
+async function hLineStart(env,url){
+  if(!env.LINE_LOGIN_CHANNEL_ID)return new Response('LINE Login 尚未設定 Channel ID',{status:500});
+  const state=await issueLineOAuthState(env,{return_url:url.searchParams.get('return_url')||doingSiteUrl(env)});
+  const params=new URLSearchParams({response_type:'code',client_id:env.LINE_LOGIN_CHANNEL_ID,redirect_uri:lineRedirectUri(env,url),state,scope:'openid profile',bot_prompt:'normal'});
+  return Response.redirect(`https://access.line.me/oauth2/v2.1/authorize?${params}`,302);
+}
+
+async function hLineCallback(env,url){
+  const statePayload=await verifyLineOAuthState(env,url.searchParams.get('state')||'');
+  const target=safeDoingReturnUrl(env,statePayload&&statePayload.return_url);
+  const fail=reason=>{target.searchParams.set('member_login_error',reason);return Response.redirect(target.toString(),302)};
+  if(!statePayload)return fail('invalid_or_expired_state');
+  if(url.searchParams.get('error'))return fail('line_cancelled');
+  const code=url.searchParams.get('code');
+  if(!code||!env.LINE_LOGIN_CHANNEL_ID||!env.LINE_LOGIN_CHANNEL_SECRET)return fail('line_config_or_code_missing');
+  try{
+    const tokenHttp=await fetch('https://api.line.me/oauth2/v2.1/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'authorization_code',code,redirect_uri:lineRedirectUri(env,url),client_id:env.LINE_LOGIN_CHANNEL_ID,client_secret:env.LINE_LOGIN_CHANNEL_SECRET})});
+    const tokens=await tokenHttp.json();if(!tokenHttp.ok||!tokens.access_token)throw new Error('token_exchange_failed');
+    const profileHttp=await fetch('https://api.line.me/v2/profile',{headers:{Authorization:`Bearer ${tokens.access_token}`}});const profile=await profileHttp.json();if(!profileHttp.ok||!profile.userId)throw new Error('profile_failed');
+    const member=await upsertPlatformIdentity(env,{provider:'line',subject:String(profile.userId),displayName:String(profile.displayName||''),avatarUrl:String(profile.pictureUrl||'')});
+    const memberToken=await issueMemberToken({email:member.email,google_sub:profile.userId,display_name:profile.displayName||'',avatar_url:profile.pictureUrl||''},env);
+    target.searchParams.set('member_token',memberToken);target.searchParams.set('member_status',platformMemberComplete(member)?'ready':'profile_required');return Response.redirect(target.toString(),302);
+  }catch(e){return fail('line_login_failed')}
+}
+
+async function issueGoogleOAuthState(env, tenant, extra={}) {
+  const now = Date.now();
+  return signAdminJwt({
+    iss: 'DOING',
+    type: 'google_oauth_state',
+    tenant: String(tenant || '').trim().toLowerCase(),
+    mode:String(extra.mode||''), return_url:String(extra.return_url||'').slice(0,1800), application_id:String(extra.application_id||'').slice(0,120), brand_name:String(extra.brand_name||'').slice(0,120), contact_name:String(extra.contact_name||'').slice(0,120), contact_phone:String(extra.contact_phone||'').slice(0,80), event_type:String(extra.event_type||'').slice(0,240), module_profile:String(extra.module_profile||'').slice(0,6000),
+    issued_at: now,
+    expires_at: now + 10 * 60 * 1000,
+  }, env);
+}
+
+async function verifyGoogleOAuthState(env, token) {
+  const payload = await verifyAdminJwt(token || '', env);
+  if (!payload || payload.iss !== 'DOING' || payload.type !== 'google_oauth_state') return null;
+  return payload;
+}
+
+async function hListLoginWorkspaces(env, p) {
+  const payload = await verifyWorkspaceSelectionToken(p.workspace_token || p.token || '', env);
+  if (!payload) return jsonErr('登入選擇已失效，請重新使用 Google 登入');
+  const current = await findAdminWorkspacesByEmail(env, payload.email);
+  const allowed = new Set(payload.tenant_ids.map(v=>String(v).toLowerCase()));
+  return jsonOk({
+    ok: true,
+    email: payload.email,
+    workspaces: current.filter(w=>allowed.has(String(w.tenant_id).toLowerCase())),
+  });
+}
+
+async function hSelectLoginWorkspace(env, b) {
+  const payload = await verifyWorkspaceSelectionToken(b.workspace_token || b.token || '', env);
+  if (!payload) return jsonErr('登入選擇已失效，請重新使用 Google 登入');
+  const tenant = String(b.target_workspace_id || b.tenant || b.tenant_id || '').trim().toLowerCase();
+  const allowed = payload.tenant_ids.map(v=>String(v).toLowerCase());
+  if (!tenant || !allowed.includes(tenant)) return jsonErr('此主辦空間不在本次登入授權範圍');
+
+  const rows = await dbGet(env, 'staff', `tenant_id=eq.${encodeURIComponent(tenant)}&email=eq.${encodeURIComponent(payload.email)}&select=*`).catch(()=>[]);
+  const staff = rows.find(r=>((r.is_active !== undefined ? r.is_active : r.active) !== false));
+  if (!staff) return jsonErr('此帳號已無該主辦空間管理權限，請重新登入');
+
+  const adminToken = await issueAdminToken({ ...staff, email: payload.email }, tenant, env);
+  await dbUpdate(env, 'staff', `id=eq.${encodeURIComponent(staff.id)}`, { last_login_at: new Date().toISOString() }).catch(()=>{});
+  await logAdminLogin(env, tenant, staff.id, payload.email, 'google', 'success', 'workspace_selected', '', '');
+
+  const adminUrl = adminSiteUrl(env);
+  return jsonOk({ ok:true, tenant, admin_token:adminToken, admin_url:adminUrl });
+}
+
+// GET /auth/google/start
+async function hGoogleStart(env, url) {
+  const GOOGLE_CLIENT_ID = env.GOOGLE_CLIENT_ID;
+  if (!GOOGLE_CLIENT_ID) {
+    return new Response('Google OAuth 未設定：缺少 GOOGLE_CLIENT_ID', { status: 500 });
+  }
+
+  const GOOGLE_REDIRECT_URI = googleRedirectUri(env, url);
+  const tenant = String(url.searchParams.get('tenant') || '').trim().toLowerCase();
+  const state = await issueGoogleOAuthState(env, tenant, {mode:url.searchParams.get('mode')||'',return_url:url.searchParams.get('return_url')||'',application_id:url.searchParams.get('application_id')||'',brand_name:url.searchParams.get('brand_name')||'',contact_name:url.searchParams.get('contact_name')||'',contact_phone:url.searchParams.get('contact_phone')||'',event_type:url.searchParams.get('event_type')||'',module_profile:url.searchParams.get('module_profile')||''});
+
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: GOOGLE_REDIRECT_URI,
+    response_type: 'code',
+    scope: 'openid email profile',
+    state,
+    access_type: 'online',
+    prompt: 'select_account',
+  });
+  return Response.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`, 302);
+}
+
+// GET /auth/google/callback
+async function hGoogleCallback(env, url) {
+  const GOOGLE_CLIENT_ID = env.GOOGLE_CLIENT_ID;
+  const GOOGLE_CLIENT_SECRET = env.GOOGLE_CLIENT_SECRET;
+  const GOOGLE_REDIRECT_URI = googleRedirectUri(env, url);
+
+  const loginUrl = adminLoginSiteUrl(env);
+  const adminUrl = adminSiteUrl(env);
+  const platformUrl = platformSiteUrl(env);
+
+  const code = url.searchParams.get('code');
+  const state = url.searchParams.get('state');
+  const errorParam = url.searchParams.get('error');
+
+  const failRedirect = (reason, target = loginUrl) => {
+    const u = new URL(target);
+    u.searchParams.set('login_error', reason);
+    return Response.redirect(u.toString(), 302);
+  };
+
+  if (!GOOGLE_CLIENT_ID) return failRedirect('google_client_id_missing');
+  if (!GOOGLE_CLIENT_SECRET) return failRedirect('google_client_secret_missing');
+  if (errorParam) return failRedirect('google_cancelled');
+  if (!code || !state) return failRedirect('missing_params');
+
+  const statePayload = await verifyGoogleOAuthState(env, state);
+  if (!statePayload) return failRedirect('invalid_or_expired_state');
+  const tenant = String(statePayload.tenant || '').trim().toLowerCase();
+
+  let tokenRes;
+  try {
+    const tokenHttp = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code,
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        redirect_uri: GOOGLE_REDIRECT_URI,
+        grant_type: 'authorization_code',
+      }),
+    });
+    tokenRes = await tokenHttp.json();
+    if (!tokenHttp.ok) throw new Error(tokenRes.error || 'token_exchange_failed');
+  } catch(e) {
+    await logAdminLogin(env, tenant, null, '', 'google', 'error', 'token_exchange_failed', '', '').catch(()=>{});
+    return failRedirect('token_exchange_failed', tenant === 'platform' ? platformUrl : loginUrl);
+  }
+
+  if (!tokenRes.id_token) {
+    await logAdminLogin(env, tenant, null, '', 'google', 'error', 'no_id_token', '', '').catch(()=>{});
+    return failRedirect('no_id_token', tenant === 'platform' ? platformUrl : loginUrl);
+  }
+
+  let userInfo;
+  try {
+    const infoRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(tokenRes.id_token)}`);
+    userInfo = await infoRes.json();
+    if (!infoRes.ok || userInfo.error || userInfo.aud !== GOOGLE_CLIENT_ID) throw new Error('invalid_token');
+  } catch(e) {
+    await logAdminLogin(env, tenant, null, '', 'google', 'denied', 'id_token_verify_failed', '', '').catch(()=>{});
+    return failRedirect('id_token_verify_failed', tenant === 'platform' ? platformUrl : loginUrl);
+  }
+
+  const googleEmail = String(userInfo.email || '').trim().toLowerCase();
+  const googleName = userInfo.name || '';
+  if (!googleEmail) return failRedirect('no_email', tenant === 'platform' ? platformUrl : loginUrl);
+
+  if(statePayload.mode==='member'){
+    const target=safeDoingReturnUrl(env,statePayload.return_url||doingSiteUrl(env));
+    try{const member=await upsertPlatformIdentity(env,{provider:'google',subject:String(userInfo.sub||googleEmail),email:googleEmail,displayName:googleName,avatarUrl:String(userInfo.picture||'')});const memberToken=await issueMemberToken({email:member.email,google_sub:String(userInfo.sub||googleEmail),display_name:googleName,avatar_url:String(userInfo.picture||'')},env);target.searchParams.set('member_token',memberToken);target.searchParams.set('member_status',platformMemberComplete(member)?'ready':'profile_required');return Response.redirect(target.toString(),302)}catch(e){target.searchParams.set('member_login_error',e&&e.message==='email_link_requires_existing_login'?'email_link_requires_existing_login':'google_member_login_failed');return Response.redirect(target.toString(),302)}
+  }
+
+  if(statePayload.mode==='organizer_signup'){
+    const applicationId=String(statePayload.application_id||'').trim();
+    if(!applicationId)return failRedirect('signup_missing_profile',doingSiteUrl(env)+'#apply');
+    const draftRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&status=eq.google_verification_pending&select=*`).catch(()=>[]);
+    const draft=draftRows[0];
+    if(!draft)return failRedirect('signup_draft_not_found',doingSiteUrl(env)+'#apply');
+    const appPayload=safeJson(draft.application_json,{});
+    const brand=String(appPayload.unitName||draft.brand_name||'').trim();
+    const contact=String(appPayload.ownerName||appPayload.contactName||draft.contact_name||googleName||'').trim();
+    const phone=String(appPayload.phone||draft.contact_phone||'').trim();
+    if(!brand||!contact||!phone)return failRedirect('signup_missing_profile',doingSiteUrl(env)+'#apply');
+    let signupProfile=appPayload.moduleProfile||{};
+    const signupDefaults=normalizeSessionModules(signupProfile&&signupProfile.defaults?signupProfile.defaults:{});
+    const profile={configured:true,useType:String(signupProfile.useType||'generic'),useCases:Array.isArray(signupProfile.useCases)?signupProfile.useCases.map(String).slice(0,12):[],defaults:signupDefaults,updatedAt:nowIso()};
+    const applicationJson={...appPayload,ownerName:contact,contactName:contact,billingName:contact,moduleProfile:profile,googleName,googleSub:String(userInfo.sub||'')};
+    const existingRows=await dbGet(env,'tenant_apply_logs',`contact_email=eq.${encodeURIComponent(googleEmail)}&status=eq.supplement_required&select=id,status,supplement_count,brand_name`).catch(()=>[]);
+    const supplement=existingRows.find(x=>String(x.brand_name||'').trim().toLowerCase()===brand.toLowerCase());
+    if(supplement){
+      await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(supplement.id)}`,
+        {
+          brand_name:brand,contact_name:contact,contact_email:googleEmail,contact_phone:phone,event_type:(appPayload.useCases||[]).join(','),status:'pending',
+          plan_type:'review',note:'補件後重新送出',application_json:applicationJson,
+          supplement_submitted_at:nowIso(),supplement_count:safeNum(supplement.supplement_count)+1,
+          rejected_at:null,rejected_by:null,rejection_reason:null
+        }
+      );
+      await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{status:'replaced',note:'已併入補件申請'}).catch(()=>{});
+      const u=new URL(doingSiteUrl(env));u.hash='apply';u.searchParams.set('application_status','supplement_submitted');u.searchParams.set('application_id',supplement.id);
+      return Response.redirect(u.toString(),302);
+    }
+    await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{
+      brand_name:brand,contact_name:contact,contact_email:googleEmail,contact_phone:phone,
+      event_type:(appPayload.useCases||[]).join(','),plan_type:'review',note:'Google 驗證完成',status:'pending',application_json:applicationJson
+    });
+    try{await sendEmail(env,googleEmail,'【DOING】營運帳號申請已送出',emailWrap(`<p>${contact} 您好：</p><p>你的 DOING 營運帳號申請已送出，目前等待平台審核。</p><p><b>申請編號：</b>${applicationId}</p><p>審核通過或需要補件時，系統會再寄信通知。</p>`));}catch(e){}
+    const u=new URL(doingSiteUrl(env));u.hash='apply';u.searchParams.set('application_status','pending');u.searchParams.set('application_id',applicationId);
+    return Response.redirect(u.toString(),302);
+  }
+
+
+  if (tenant === 'platform') {
+    const platformRows = await dbGet(env,'platform_staff',`email=eq.${encodeURIComponent(googleEmail)}&is_active=eq.true&select=*`).catch(()=>[]);
+    const ps = platformRows[0];
+    if (!ps) {
+      await logAdminLogin(env, 'platform', null, googleEmail, 'google', 'denied', 'not_platform_staff', '', '').catch(()=>{});
+      return failRedirect('not_authorized', platformUrl);
+    }
+    const platformToken = await issueAdminToken({ ...ps, email: googleEmail, name: ps.name || googleName }, 'platform', env);
+    await dbUpdate(env,'platform_staff',`email=eq.${encodeURIComponent(googleEmail)}`,{ last_login_at: new Date().toISOString() }).catch(()=>{});
+    await logAdminLogin(env, 'platform', ps.id, googleEmail, 'google', 'success', 'platform_login', '', '').catch(()=>{});
+    const u = new URL(platformUrl);
+    u.searchParams.set('admin_token', platformToken);
+    return Response.redirect(u.toString(), 302);
+  }
+
+  if (!tenant) {
+    const platformRows = await dbGet(env,'platform_staff',`email=eq.${encodeURIComponent(googleEmail)}&is_active=eq.true&select=*`).catch(()=>[]);
+    if (platformRows[0]) {
+      const ps = platformRows[0];
+      const platformToken = await issueAdminToken({ ...ps, email: googleEmail, name: ps.name || googleName }, 'platform', env);
+      await dbUpdate(env,'platform_staff',`email=eq.${encodeURIComponent(googleEmail)}`,{ last_login_at: new Date().toISOString() }).catch(()=>{});
+      await logAdminLogin(env, 'platform', ps.id, googleEmail, 'google', 'success', 'platform_login_from_home', '', '').catch(()=>{});
+      const u = new URL(platformUrl);
+      u.searchParams.set('admin_token', platformToken);
+      return Response.redirect(u.toString(), 302);
+    }
+
+    const workspaces = await findAdminWorkspacesByEmail(env, googleEmail);
+    if (!workspaces.length) {
+      await logAdminLogin(env, '', null, googleEmail, 'google', 'denied', 'email_not_in_staff', '', '').catch(()=>{});
+      return failRedirect('not_authorized', loginUrl);
+    }
+
+    if (workspaces.length === 1) {
+      const workspace = workspaces[0];
+      const staffRows = await dbGet(env,'staff',`tenant_id=eq.${encodeURIComponent(workspace.tenant_id)}&email=eq.${encodeURIComponent(googleEmail)}&select=*`).catch(()=>[]);
+      const staff = staffRows.find(r=>((r.is_active !== undefined ? r.is_active : r.active) !== false));
+      if (!staff) return failRedirect('not_authorized', loginUrl);
+      const adminToken = await issueAdminToken({ ...staff, email: googleEmail }, workspace.tenant_id, env);
+      await dbUpdate(env,'staff',`id=eq.${encodeURIComponent(staff.id)}`,{ last_login_at: new Date().toISOString(), display_name: staff.display_name || googleName }).catch(()=>{});
+      await logAdminLogin(env, workspace.tenant_id, staff.id, googleEmail, 'google', 'success', 'single_workspace', '', '').catch(()=>{});
+      const u = new URL(adminUrl);
+      u.searchParams.set('admin_token', adminToken);
+      return Response.redirect(u.toString(), 302);
+    }
+
+    const selectionToken = await issueWorkspaceSelectionToken(googleEmail, workspaces.map(w=>w.tenant_id), env);
+    const u = new URL(loginUrl);
+    u.searchParams.set('workspace_token', selectionToken);
+    return Response.redirect(u.toString(), 302);
+  }
+
+  const rows = await dbGet(env,'staff',`tenant_id=eq.${encodeURIComponent(tenant)}&email=eq.${encodeURIComponent(googleEmail)}&select=*`).catch(()=>[]);
+  const staff = rows.find(r=>((r.is_active !== undefined ? r.is_active : r.active) !== false));
+  if (!staff) {
+    await logAdminLogin(env, tenant, null, googleEmail, 'google', 'denied', 'email_not_in_staff', '', '').catch(()=>{});
+    return failRedirect('not_authorized', loginUrl);
+  }
+
+  await dbUpdate(env,'staff',`id=eq.${encodeURIComponent(staff.id)}`,{ last_login_at: new Date().toISOString(), display_name: staff.display_name || googleName }).catch(()=>{});
+  const adminToken = await issueAdminToken({ ...staff, email: googleEmail }, tenant, env);
+  await logAdminLogin(env, tenant, staff.id, googleEmail, 'google', 'success', 'tenant_login', '', '').catch(()=>{});
+  const u = new URL(adminUrl);
+  u.searchParams.set('tenant', tenant);
+  u.searchParams.set('admin_token', adminToken);
+  return Response.redirect(u.toString(), 302);
+}
+
+// POST /admin/logout
+async function hAdminLogout(env, b) {
+  // 前端負責清除 token；後端可在此將 token 加入黑名單（可擴充）
+  // 目前：記錄登出事件
+  if (b && b.email && b.token) {
+    const payload = await verifyAdminJwt(b.token, env).catch(()=>null);
+    if (payload) {
+      await logAdminLogin(env, payload.tenant_id||'', payload.staff_id||'', payload.email||b.email, 'google', 'success', 'logout', '', '');
+    }
+  }
+  return jsonOk({ ok: true, message: '已登出' });
+}
+
+// GET /admin/me
+async function hAdminMe(env, p) {
+  const token = p.token || p.admin_token;
+  const email = p.email;
+  if (!token) return jsonErr('未帶 token', 401);
+  const payload = await verifyAdminJwt(token, env);
+  if (!payload) return jsonErr('token 無效或已過期，請重新登入', 401);
+  // email=_ 表示由 JWT 自行驗證，不做 email 比對
+  if (email && email !== '_' && email !== '__jwt__' && payload.email !== email) return jsonErr('token 與 email 不符', 401);
+  let tenant = { id: payload.tenant_id, name: payload.tenant_id, is_locked:false, locked_reason:'' };
+  if (payload.tenant_id && payload.tenant_id !== 'platform') {
+    const [ctx, lock] = await Promise.all([
+      getTenantCtx(env, payload.tenant_id).catch(()=>null),
+      checkTenantLocked(env, payload.tenant_id),
+    ]);
+    const agreementTemplates = await dbGet(
+      env,
+      'tenant_agreement_templates',
+      `tenant_id=eq.${encodeURIComponent(payload.tenant_id)}&select=slot_no,label,title,content,version&order=slot_no.asc`
+    ).catch(()=>[]);
+    tenant = {
+      id: payload.tenant_id,
+      name: (ctx && ctx.name) || payload.tenant_id,
+      is_locked: !!lock.locked,
+      locked_reason: lock.reason || '',
+      default_refund_rules: (ctx && ctx.defaultRefundRules) || DEFAULT_REFUND_RULES,
+      payment_config: (ctx && ctx.paymentConfig) || {},
+      agreement_templates: agreementTemplates,
+    };
+  }
+  return jsonOk({
+    email: payload.email,
+    tenant_id: payload.tenant_id,
+    tenant_name: tenant.name,
+    tenant,
+    locked: tenant.is_locked,
+    locked_reason: tenant.locked_reason,
+    staff_id: payload.staff_id,
+    role: payload.role,
+    normalized_role: payload.normalized_role,
+    limit_sessions: payload.limit_sessions,
+    display_name: payload.display_name,
+    issued_at: payload.issued_at,
+    expires_at: payload.expires_at,
+  });
+}
+
+// 記錄登入 log
+async function logAdminLogin(env, tenantId, staffId, email, provider, status, reason, ip, ua) {
+  try {
+    await dbInsert(env, 'admin_login_logs', {
+      id: genId('LOG'),
+      tenant_id: tenantId || '',
+      staff_id: staffId || null,
+      email: email || '',
+      provider: provider || 'google',
+      login_status: status || 'error',
+      reason: reason || '',
+      ip: ip || '',
+      user_agent: ua || '',
+      created_at: new Date().toISOString(),
+    });
+  } catch(e) { /* 登入 log 失敗不影響主流程 */ }
+}
+
+// adminLogin（保留用於緊急後門，但改為需要系統設定的 EMERGENCY_ADMIN_KEY）
+async function hAdminLogin(env, p) {
+  // Google OAuth 升級後，此 endpoint 僅供緊急恢復用
+  // 必須提供 EMERGENCY_ADMIN_KEY 環境變數才能使用
+  const emergencyKey = env.EMERGENCY_ADMIN_KEY;
+  if (!emergencyKey) return jsonErr('Email 直接登入已停用，請使用 Google OAuth 登入');
+  if (!p.emergency_key || p.emergency_key !== emergencyKey) return jsonErr('無效的緊急登入金鑰');
+
+  const TENANT = p && p._tenantId;
+  if (!TENANT) return jsonErr('無法辨識主辦空間');
+  if (!p.email) return jsonErr('請提供 email');
+
+  const platformRows = await dbGet(env, 'platform_staff',
+    `email=eq.${encodeURIComponent(p.email)}&is_active=eq.true&select=*`).catch(()=>[]);
+  if (platformRows.length) {
+    const ps = platformRows[0];
+    const token = await issueAdminToken({ ...ps, email: p.email }, 'platform', env);
+    const tc = await getTenantCtx(env, TENANT);
+    return jsonOk({ success:true, role:ps.role, name:ps.name||'', token, tenantId:TENANT, tenantName:tc.name, isPlatformStaff:true });
+  }
+
+  const rows = await dbGet(env, 'staff', `tenant_id=eq.${TENANT}&email=eq.${encodeURIComponent(p.email)}&select=*`);
+  if (!rows.length) return jsonErr('此帳號無管理員權限');
+  const isActive = rows[0].is_active;
+  if (!isActive) return jsonErr('此帳號已停用');
+  const token = await issueAdminToken({ ...rows[0], email: p.email }, TENANT, env);
+  const tc = await getTenantCtx(env, TENANT);
+  return jsonOk({ success:true, role:rows[0].role, name:rows[0].name||'', token, tenantId:TENANT, tenantName:tc.name });
+}
+
+// getDashboard
+async function hGetDashboard(env, p) {
+  const TENANT = (p && p._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+  if (!await verifyStaff(env, p.email, p.token, TENANT)) return jsonErr('無權限');
+  let qs = `tenant_id=eq.${TENANT}&select=review_status,payment_status,amount,transfer_status,refund_amount`;
+  if (p.sessionId) qs += `&session_id=eq.${encodeURIComponent(p.sessionId)}`;
+  if (p.eventId)   qs += `&event_id=eq.${encodeURIComponent(p.eventId)}`;
+  const [regs, sesCnt, evtCnt] = await Promise.all([
+    dbGet(env, 'registrations', qs),
+    dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&status=eq.%E5%A0%B1%E5%90%8D%E4%B8%AD&select=id`),
+    dbGet(env, 'events', `tenant_id=eq.${TENANT}&status=neq.%E5%81%9C%E7%94%A8&select=id`),
+  ]);
+  const activeRegs = regs.filter(r => !_isCancelledReg(r));
+  const paidList = activeRegs.filter(r=>isPaidStatus(r.payment_status));
+  return jsonOk({
+    total:activeRegs.length,
+    pending:activeRegs.filter(r=>r.review_status==='待審核').length,
+    approved:activeRegs.filter(r=>r.review_status==='已錄取').length,
+    rejected:regs.filter(r=>r.review_status==='不錄取').length,
+    paid:paidList.length,
+    revenue:paidList.reduce((s,r)=>s+(Number(r.amount)||0),0) - regs.reduce((s,r)=>s+safeNum(r.refund_amount),0),
+    sessionCount:sesCnt.length, eventCount:evtCnt.length,
+  });
+}
+
+
+// adminBusinessOverview：後台「總覽」頁使用。
+// 原則：所有數字由 Worker 從同一份 Supabase 即時計算，前端只負責顯示。
+function _adminDateInRange(dateStr, start, end){
+  const d = new Date(dateStr || '');
+  if (isNaN(d.getTime())) return false;
+  return d >= start && d < end;
+}
+function _adminMonthStart(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+function _adminNextMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 1); }
+function _adminQuarterStart(d){ const q=Math.floor(d.getMonth()/3)*3; return new Date(d.getFullYear(), q, 1); }
+function _adminNextQuarter(d){ const q=Math.floor(d.getMonth()/3)*3; return new Date(d.getFullYear(), q+3, 1); }
+function _adminYearStart(d){ return new Date(d.getFullYear(),0,1); }
+function _adminNextYear(d){ return new Date(d.getFullYear()+1,0,1); }
+function _sessionDateValue(s){
+  const dates = safeJson(s.dates_json || s.dates || s.date_json, []);
+  if (Array.isArray(dates) && dates.length) {
+    const parts = dates.map(d => typeof d === 'object' ? (d.date || d.day || d.start || d.startDate || '') : String(d||'')).filter(Boolean);
+    if (parts.length) return parts.join('、');
+  }
+  return s.date || s.event_date || s.start_date || s.created_at || '';
+}
+function _sessionVenueValue(s){ return String(s.region||s.location||s.venue||s.place||'未設定場域').trim() || '未設定場域'; }
+function _sessionTypeValue(){ return '活動場次'; }
+function _regStatus(r){ return String(r.status || r.reg_status || '').trim(); }
+function _reviewStatus(r){ return String(r.review_status || r.status || '').trim(); }
+function _payStatus(r){ return String(r.payment_status || '').trim(); }
+function _transferStatus(r){ return String(r.transfer_status || r.refund_status || '').trim(); }
+function _checkinStatus(r){ return String(r.checkin_status || r.checkin || '').trim(); }
+function _clearStatus(r){ return String(r.clear_status || r.clearStatus || '').trim(); }
+function _depositStatus(r){ return String(r.deposit_refunded || r.depositRefunded || '').trim(); }
+function _invoiceStatus(r){ return String(r.invoice_status || r.invoiceStatus || '').trim(); }
+function _firstNum() {
+  for (const v of arguments) {
+    if (v === null || v === undefined || v === '') continue;
+    const n = Number(v);
+    if (!isNaN(n)) return n;
+  }
+  return 0;
+}
+function _isFreePay(r){ return _payStatus(r)==='免費' || (safeNum(r.amount)===0 && safeNum(r.total_amount)===0 && _payStatus(r).includes('免費')); }
+function _isPaidReg(r){ return isPaidStatus(_payStatus(r)) || _isFreePay(r); }
+function _isConfirmedPaidReg(r){ return isPaidStatus(_payStatus(r)); }
+function _isCancelledReg(r){
+  const rev=_reviewStatus(r), st=_regStatus(r), tr=_transferStatus(r), pay=_payStatus(r);
+  if (['已取消','不錄取','未錄取'].includes(rev) || st==='cancelled') return true;
+  if (isCapacityInactiveTransferStatus(tr)) return true;
+  if (['已退費','已退款'].includes(pay)) return true;
+  return false;
+}
+function _isApprovedReg(r){ return _reviewStatus(r)==='已錄取'; }
+function _isReceivableReg(r){
+  if (_isCancelledReg(r)) return false;
+  const p = _payStatus(r);
+  // 應收只認「已錄取後」的正式金額：未繳費、付款待確認、已繳費／已付款、免費。
+  return _isApprovedReg(r) || _isPendingPaymentReg(r) || _isPaidReg(r) || p === '未繳費';
+}
+function _officialAmount(r){ return safeNum(_firstNum(r.amount, r.total_amount, r.total, r.registration_total_amount)); }
+function _sessionDeposit(s){ return safeNum(_firstNum(s && s.deposit, s && s.deposit_amount, s && s.deposit_total)); }
+function _regDeposit(r, s){
+  const own = safeNum(_firstNum(r.deposit, r.deposit_total, r.deposit_amount));
+  if (own > 0) return own;
+  return _sessionDeposit(s);
+}
+function _officialDeposit(r, s){ return _regDeposit(r, s); }
+function _officialRefund(r){ return safeNum(_firstNum(r.refund_amount, r.refund_total)); }
+function _equipmentEntries(r){
+  // 從資料庫既有欄位抽取設備，不用前端猜、不用假資料。
+  // 報名設備唯一來源：registrations.equipment_json。
+  const out = [];
+  const push = (name, qty) => {
+    name = normalizeEquipName(String(name || '').trim().replace(/^設備[:：]?/, ''));
+    const n = Number(qty) || 0;
+    if (!name || n <= 0) return;
+    if (/^(無|沒有|未加購|不需|none)$/i.test(name)) return;
+    out.push([name, n]);
+  };
+  const parseObj = (obj) => {
+    obj = safeJson(obj, null);
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return;
+    Object.entries(obj).forEach(([k,v]) => {
+      if (v && typeof v === 'object') {
+        push(k, v.qty ?? v.count ?? v.quantity ?? v.value ?? v.num ?? 0);
+      } else {
+        push(k, v);
+      }
+    });
+  };
+  parseObj(r.equipment_json);
+  parseObj(r.equipment);
+  parseObj(r.equip);
+
+  const text = String(r.equipment_text || r.equipmentText || r.equip_text || r.equipment_summary || '').trim();
+  if (text && !/^(無|沒有|未加購|不需|none)$/i.test(text)) {
+    text.split(/[、,，;；\n]+/).forEach(part => {
+      let s = String(part || '').trim();
+      if (!s) return;
+      s = s.replace(/^設備[:：]/, '').trim();
+      let m = s.match(/^(.+?)[xX×＊*]\s*(\d+(?:\.\d+)?)$/);
+      if (!m) m = s.match(/^(.+?)[：:]\s*(\d+(?:\.\d+)?)$/);
+      if (!m) m = s.match(/^(.+?)\s+(\d+(?:\.\d+)?)$/);
+      if (m) push(m[1], m[2]);
+    });
+  }
+  const merged = {};
+  out.forEach(([k,v]) => { merged[k] = (merged[k] || 0) + Number(v || 0); });
+  return Object.entries(merged);
+}
+function _inc(map, key, n=1){ key=String(key||'未設定').trim()||'未設定'; map[key]=(map[key]||0)+n; }
+function _mapToRows(map){ return Object.entries(map).sort((a,b)=>b[1]-a[1]).map(([name,count])=>({name,count})); }
+function _aggregateBiz(sessions, regs, members, staff, start, end){
+  const sesMap={}; sessions.forEach(s=>{sesMap[s.id]=s;});
+  const ses = sessions.filter(s => !start || _adminDateInRange(_sessionDateValue(s), start, end));
+  const sesIds = new Set(ses.map(s=>s.id));
+  const rgs = regs.filter(r => !start ? true : (sesIds.has(r.session_id) || _adminDateInRange(r.created_at, start, end)));
+  const paid = rgs.filter(_isPaidReg);
+  const brandSet = new Set();
+  rgs.forEach(r=>{ const k=String(r.brand_name||r.name||r.email||'').trim(); if(k) brandSet.add(k); });
+  const memberSet = new Set();
+  (members||[]).forEach(m=>{ if(!start || _adminDateInRange(m.updated_at||m.joined_at, start, end)){ const k=String(m.email||'').trim(); if(k) memberSet.add(k); } });
+  const venueSet = new Set();
+  ses.forEach(s=>{ const v=_sessionVenueValue(s); if(v) venueSet.add(v); });
+  const equipmentMap={};
+  rgs.forEach(r=>Object.entries(_effectiveEquipmentMapForReg(r, sesMap[r.session_id] || {})).forEach(([k,v])=>_inc(equipmentMap,k,v)));
+  const gross = paid.reduce((sum,r)=>sum+_officialAmount(r),0);
+  const depositTotal = paid.filter(_isConfirmedPaidReg).reduce((sum,r)=>sum+_regDeposit(r, sesMap[r.session_id]),0);
+  const refundTotal = rgs.reduce((sum,r)=>sum+_officialRefund(r),0);
+  return {
+    sessions: ses.length,
+    activeSessions: ses.filter(s=>!['停用','關閉','已關閉','封存'].includes(String(s.status||''))).length,
+    registrations: rgs.length,
+    members: memberSet.size,
+    pending: rgs.filter(r=>_reviewStatus(r)==='待審核').length,
+    approved: rgs.filter(r=>_reviewStatus(r)==='已錄取').length,
+    waitlist: rgs.filter(r=>_reviewStatus(r)==='備取').length,
+    rejected: rgs.filter(r=>_reviewStatus(r)==='不錄取').length,
+    cancelled: rgs.filter(r=>_reviewStatus(r)==='已取消' || _regStatus(r)==='cancelled').length,
+    unpaid: rgs.filter(r=>_payStatus(r)==='未繳費').length,
+    paymentPending: rgs.filter(r=>_payStatus(r)==='待確認').length,
+    paid: paid.length,
+    free: rgs.filter(_isFreePay).length,
+    grossRevenue: gross,
+    depositTotal,
+    refundTotal,
+    netRevenue: Math.max(0, gross - refundTotal),
+    brands: brandSet.size,
+    venues: venueSet.size,
+    checkinDone: rgs.filter(r=>_checkinStatus(r)==='已報到').length,
+    checkinNotYet: rgs.filter(r=>_checkinStatus(r)==='未報到' || !_checkinStatus(r)).length,
+    absent: rgs.filter(r=>_checkinStatus(r)==='未到').length,
+    clearDone: rgs.filter(r=>_clearStatus(r)==='已清場').length,
+    depositRefunded: rgs.filter(r=>_depositStatus(r)==='已退押金').length,
+    depositForfeited: rgs.filter(r=>_depositStatus(r)==='押金沒收').length,
+    invoiceCount: rgs.filter(r=>String(r.invoice_type||r.invoice_title||r.tax_id||r.invoice_email||'').trim()).length,
+    invoiceIssued: rgs.filter(r=>_invoiceStatus(r)==='已開立' || _invoiceStatus(r)==='已寄出').length,
+    equipmentTotal: Object.values(equipmentMap).reduce((a,b)=>a+b,0),
+    equipmentItems: _mapToRows(equipmentMap).slice(0,10),
+  };
+}
+function _financeIssuesForReg(r){
+  const issues=[];
+  const st=_payStatus(r), rev=_reviewStatus(r), tr=_transferStatus(r);
+  const amt=_officialAmount(r), total=safeNum(r.total_amount), deposit=_officialDeposit(r);
+  if(_isPaidReg(r) && amt<=0 && !_isFreePay(r)) issues.push('已付款但金額為 0 或缺失');
+  if(st==='待確認' && amt<=0) issues.push('付款待確認但金額為 0 或缺失');
+  if((rev==='已取消' || _regStatus(r)==='cancelled') && _isPaidReg(r) && !['已退費','refunded'].includes(tr)) issues.push('已取消但仍為已付款且未完成退費');
+  if(deposit<0) issues.push('押金金額異常');
+  if(total>0 && amt>0 && Math.abs(total-amt)>1 && !String(st).includes('待')) issues.push('amount 與 total_amount 不一致');
+  if(st==='待確認' && !String(r.payment_method||r.payment_last5||r.payment_reported_at||'').trim()) issues.push('付款待確認但缺付款資料');
+  return issues;
+}
+
+// ── 權限縮放金流總覽 ───────────────────────────────────────
+
+function _financePeriodBounds(period,date,startDate,endDate){
+  const now=new Date(),raw=String(date||'');
+  let y=Number(raw.slice(0,4))||now.getUTCFullYear(),m=Number(raw.slice(5,7))||now.getUTCMonth()+1;
+  if(period==='custom'){
+    const s=String(startDate||'').slice(0,10),e=String(endDate||'').slice(0,10);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(s)||!/^\d{4}-\d{2}-\d{2}$/.test(e))return {error:'請選擇自訂起訖日期'};
+    const end=new Date(`${e}T00:00:00+08:00`);end.setDate(end.getDate()+1);
+    return {start:`${s}T00:00:00+08:00`,end:end.toISOString(),label:`${s.replaceAll('-','/')}～${e.replaceAll('-','/')}`,startDate:s,endDate:e};
+  }
+  if(period==='all')return {start:null,end:null,label:'全部期間',startDate:'',endDate:''};
+  if(period==='week'){
+    const base=/^\d{4}-\d{2}-\d{2}$/.test(raw)?new Date(`${raw}T12:00:00+08:00`):now;
+    const day=(base.getDay()+6)%7,start=new Date(base);start.setDate(base.getDate()-day);
+    const end=new Date(start);end.setDate(start.getDate()+7);
+    const sd=start.toISOString().slice(0,10),ed=new Date(end.getTime()-86400000).toISOString().slice(0,10);
+    return {start:`${sd}T00:00:00+08:00`,end:end.toISOString(),label:`本週 ${sd.replaceAll('-','/')}～${ed.replaceAll('-','/')}`,startDate:sd,endDate:ed};
+  }
+  if(period==='year')return {start:`${y}-01-01T00:00:00+08:00`,end:`${y+1}-01-01T00:00:00+08:00`,label:`${y} 年財務年報`,startDate:`${y}-01-01`,endDate:`${y}-12-31`};
+  if(period==='quarter'){
+    const q=Math.floor((m-1)/3),sm=q*3+1,ey=sm+3>12?y+1:y,em=(sm+2)%12+1,last=new Date(y,sm+2,0).getDate();
+    return {start:`${y}-${String(sm).padStart(2,'0')}-01T00:00:00+08:00`,end:`${ey}-${String(em).padStart(2,'0')}-01T00:00:00+08:00`,label:`${y} 年第 ${q+1} 季財務季報`,startDate:`${y}-${String(sm).padStart(2,'0')}-01`,endDate:`${y}-${String(sm+2).padStart(2,'0')}-${String(last).padStart(2,'0')}`};
+  }
+  const ey=m===12?y+1:y,em=m===12?1:m+1,last=new Date(y,m,0).getDate();
+  return {start:`${y}-${String(m).padStart(2,'0')}-01T00:00:00+08:00`,end:`${ey}-${String(em).padStart(2,'0')}-01T00:00:00+08:00`,label:`${y} 年 ${m} 月財務月報`,startDate:`${y}-${String(m).padStart(2,'0')}-01`,endDate:`${y}-${String(m).padStart(2,'0')}-${String(last).padStart(2,'0')}`};
+}
+function _finInRange(v,b){if(!b.start)return true;const t=new Date(v||0).getTime();return t>=new Date(b.start).getTime()&&t<new Date(b.end).getTime()}
+function _finBucket(v,period){
+  const d=new Date(v||0);if(isNaN(d))return '';
+  const y=d.getUTCFullYear(),m=d.getUTCMonth()+1,day=d.getUTCDate();
+  if(period==='year'||period==='quarter'||period==='all')return `${y}-${String(m).padStart(2,'0')}`;
+  if(period==='week'||period==='custom')return `${String(m).padStart(2,'0')}/${String(day).padStart(2,'0')}`;
+  return `${String(day).padStart(2,'0')}日`;
+}
+async function hFinanceReport(env,p){
+  const TENANT=p&&p._tenantId;
+  if(!await verifyStaff(env,p.email,p.token,TENANT,'finance'))return jsonErr('無權限',403);
+  const jwt=await verifyAdminJwt(p.token,env);
+  const role=String((jwt&&(jwt.normalized_role||jwt.role))||'');
+  const allowed=await getStaffScopedSessionIds(env,TENANT,p.email,role);
+  const period=String(p.period||'month');
+  const bounds=_financePeriodBounds(period,p.date,p.startDate,p.endDate);
+  if(bounds.error)return jsonErr(bounds.error);
+  const eventId=String(p.eventId||'');
+
+  const [sessionsRaw,events,regs,pays,allocs,items,ledger,regItems]=await Promise.all([
+    dbGet(env,'sessions',`tenant_id=eq.${TENANT}&select=*`),
+    dbGet(env,'events',`tenant_id=eq.${TENANT}&select=id,title`),
+    dbGet(env,'registrations',`tenant_id=eq.${TENANT}&select=*`),
+    dbGet(env,'payments',`tenant_id=eq.${TENANT}&select=*`),
+    dbGet(env,'payment_allocations',`tenant_id=eq.${TENANT}&select=*`),
+    dbGet(env,'finance_items',`tenant_id=eq.${TENANT}&select=*`),
+    dbGet(env,'finance_ledger',`tenant_id=eq.${TENANT}&select=*`),
+    dbGet(env,'registration_items',`tenant_id=eq.${TENANT}&select=*`)
+  ]);
+
+  let sessions=Array.isArray(allowed)?sessionsRaw.filter(s=>allowed.includes(String(s.id))):sessionsRaw;
+  if(eventId)sessions=sessions.filter(s=>String(s.event_id||'')===eventId);
+  const ids=new Set(sessions.map(s=>String(s.id)));
+  const sm={},regMap={},itemMap={};
+  sessions.forEach(s=>sm[String(s.id)]=s);
+  regs.forEach(r=>regMap[String(r.id||'')]=r);
+  regItems.forEach(it=>{const rid=String(it.registration_id||'');if(!rid)return;(itemMap[rid]||(itemMap[rid]=[])).push(it)});
+
+  const newRow=s=>({
+    id:String(s.id),eventId:String(s.event_id||''),name:s.name||String(s.id),date:_sessionFirstDate(s),venue:s.venue||'',
+    revenueCash:0,otherIncome:0,operatingIncome:0,depositCollected:0,cashInflow:0,
+    operatingExpense:0,revenueRefunded:0,depositRefunded:0,cashOutflow:0,cashNet:0,
+    activityProfit:0,receivableClosing:0,outstanding:0,overpaid:0,depositDeducted:0,depositHeld:0,
+    internalTransferIn:0,internalTransferOut:0
+  });
+  const sessionRows={};sessions.forEach(s=>sessionRows[String(s.id)]=newRow(s));
+  const inPeriod=v=>_finInRange(v,bounds);
+  const beforeEnd=v=>{if(!bounds.end)return true;const t=new Date(v||0).getTime();return Number.isFinite(t)&&t<new Date(bounds.end).getTime()};
+  const timeline={},transactions=[],anomalies=[];
+  const addTimeline=(at,side,amt)=>{if(!inPeriod(at))return;const b=_finBucket(at,period);if(!timeline[b])timeline[b]={label:b,income:0,expense:0,net:0};timeline[b][side]+=amt;timeline[b].net=timeline[b].income-timeline[b].expense};
+  const addTx=x=>{transactions.push(x);addTimeline(x.date,x.side==='income'?'income':'expense',x.amount)};
+  const addAnomaly=(type,label,detail,sessionId,registrationId,referenceId)=>anomalies.push({type,label,detail:detail||'',sessionId:sessionId||'',registrationId:registrationId||'',referenceId:referenceId||''});
+  const paidStatus=pay=>{const s=String(pay.status||'').toLowerCase();return s.includes('確認')||s.includes('已繳')||s==='paid'||s==='confirmed'||s==='success'};
+
+  // 建立每筆報名的正式應收結構，明細優先、registrations 儲存值次之。
+  const regFinance={};
+  for(const r of regs){
+    const sid=String(r.session_id||'');if(!ids.has(sid))continue;
+    const m=_regFinanceAmounts(r,sm[sid]||{},itemMap[String(r.id||'')]||[]);
+    regFinance[String(r.id||'')]={...m,sid,reg:r};
+    if(m.cashTotal>0&&m.depositTotal>m.cashTotal)addAnomaly('deposit_over_total','押金高於總應收',`總應收 ${m.cashTotal}，押金 ${m.depositTotal}`,sid,r.id,'');
+    if(m.source==='none'&&(_isApprovedReg(r)||_isConfirmedPaidReg(r)))addAnomaly('missing_receivable','已錄取／已付款但找不到正式應收金額','請檢查 registration_items 或 registrations.total_amount/amount',sid,r.id,'');
+  }
+
+  // 付款以 allocation 為優先；同一 payment 有 allocation 時不再 fallback payment，避免重複。
+  const paymentEvents=[];
+  const allocatedPaymentIds=new Set();
+  for(const a of allocs){
+    const rid=String(a.registration_id||'');const rf=regFinance[rid];
+    const sid=String(a.session_id||(rf&&rf.sid)||'');
+    if(!ids.has(sid))continue;
+    if(String(a.allocation_type||'payment').toLowerCase()==='refund')continue;
+    const amt=Math.max(0,safeNum(a.amount));if(!amt)continue;
+    allocatedPaymentIds.add(String(a.payment_id||''));
+    paymentEvents.push({rid,sid,amount:amt,date:a.created_at,source:'payment_allocation',referenceId:String(a.id||''),paymentId:String(a.payment_id||'')});
+  }
+  for(const pay of pays){
+    const pid=String(pay.id||'');if(allocatedPaymentIds.has(pid)||!paidStatus(pay))continue;
+    const rid=String(pay.registration_id||'');const rf=regFinance[rid];
+    const sid=String(pay.session_id||(rf&&rf.sid)||'');
+    if(!ids.has(sid)){if(rid||pid)addAnomaly('orphan_payment','已確認付款找不到可歸屬場次',`付款金額 ${safeNum(pay.amount)}`,'',rid,pid);continue}
+    const amt=Math.max(0,safeNum(pay.amount));if(!amt)continue;
+    paymentEvents.push({rid,sid,amount:amt,date:pay.paid_at||pay.created_at,source:'payment',referenceId:pid,paymentId:pid});
+  }
+  paymentEvents.sort((a,b)=>new Date(a.date||0)-new Date(b.date||0));
+
+  // 對每筆報名依「營業收入優先、押金其次」拆分實收，避免押金誤列收入。
+  const paidRunning={};
+  for(const e of paymentEvents){
+    const rf=regFinance[e.rid];const row=sessionRows[e.sid];if(!row)continue;
+    const prev=paidRunning[e.rid]||0,next=prev+e.amount;paidRunning[e.rid]=next;
+    const revenueCap=rf?rf.revenueTotal:0,depositCap=rf?rf.depositTotal:0;
+    const prevRevenue=Math.min(revenueCap,prev),nextRevenue=Math.min(revenueCap,next);
+    const prevDeposit=Math.min(depositCap,Math.max(0,prev-revenueCap)),nextDeposit=Math.min(depositCap,Math.max(0,next-revenueCap));
+    const revenuePart=Math.max(0,nextRevenue-prevRevenue),depositPart=Math.max(0,nextDeposit-prevDeposit),unclassified=Math.max(0,e.amount-revenuePart-depositPart);
+    if(inPeriod(e.date)){
+      if(revenuePart){row.revenueCash+=revenuePart;row.operatingIncome+=revenuePart;row.cashInflow+=revenuePart;addTx({date:e.date,side:'income',category:'報名收入',amount:revenuePart,sessionId:e.sid,sessionName:row.name,registrationId:e.rid,source:e.source,referenceId:e.referenceId,note:'不含押金'})}
+      if(depositPart){row.depositCollected+=depositPart;row.cashInflow+=depositPart;addTx({date:e.date,side:'income',category:'代收押金',amount:depositPart,sessionId:e.sid,sessionName:row.name,registrationId:e.rid,source:e.source,referenceId:e.referenceId,note:'負債性質，不列活動收入'})}
+      if(unclassified){row.cashInflow+=unclassified;row.overpaid+=unclassified;addTx({date:e.date,side:'income',category:'待釐清溢收',amount:unclassified,sessionId:e.sid,sessionName:row.name,registrationId:e.rid,source:e.source,referenceId:e.referenceId,note:'超過正式應收，暫不列活動收入'});addAnomaly('overpayment','付款超過正式應收',`溢收 ${unclassified}`,e.sid,e.rid,e.referenceId)}
+    }
+  }
+
+  // 期末應收／未收／溢收：使用截至期末累計付款，不受報表開始日影響。
+  const paidToEnd={};
+  for(const e of paymentEvents){if(beforeEnd(e.date))paidToEnd[e.rid]=(paidToEnd[e.rid]||0)+e.amount}
+  for(const [rid,rf] of Object.entries(regFinance)){
+    const r=rf.reg,row=sessionRows[rf.sid];if(!row)continue;
+    const created=r.created_at||_sessionFirstDate(sm[rf.sid]);if(!beforeEnd(created)||!_isActiveFinanceReg(r)||!_isApprovedReg(r)||_isFreePay(r))continue;
+    row.receivableClosing+=rf.cashTotal;
+    const paid=paidToEnd[rid]||0;
+    row.outstanding+=Math.max(0,rf.cashTotal-paid);
+    row.overpaid+=Math.max(0,paid-rf.cashTotal);
+  }
+
+  // 主辦手動收支：只認正式 finance_items，日期優先使用帳務日期（若資料庫只有 created_at 則沿用 created_at）。
+  for(const it of items){
+    const sid=String(it.session_id||'');if(!ids.has(sid)||it.is_auto===true)continue;
+    const at=it.item_date||it.occurred_at||it.created_at;if(!inPeriod(at))continue;
+    const row=sessionRows[sid],amt=Math.max(0,safeNum(it.amount));if(!amt)continue;
+    const kind=_financeItemKind(it.type),part=_financeItemParts(it.name);
+    if(kind==='支出'){
+      row.operatingExpense+=amt;row.cashOutflow+=amt;
+      addTx({date:at,side:'expense',category:part.category||'其他支出',amount:amt,sessionId:sid,sessionName:row.name,source:'finance_item',referenceId:String(it.id||''),note:part.note||'',editable:true});
+    }else{
+      row.otherIncome+=amt;row.operatingIncome+=amt;row.cashInflow+=amt;
+      addTx({date:at,side:'income',category:part.category||'其他收入',amount:amt,sessionId:sid,sessionName:row.name,source:'finance_item',referenceId:String(it.id||''),note:part.note||'',editable:true});
+    }
+  }
+
+  // 退款與押金事件：退款、押金退回、押金扣除分開；延期轉入轉出是內部重分類，不灌大公司現金收支。
+  const depositEventsByReg={};
+  for(const l of ledger){
+    const sid=String(l.session_id||'');if(!ids.has(sid))continue;
+    const row=sessionRows[sid],at=l.created_at,amt=Math.max(0,Math.abs(safeNum(l.amount)));if(!amt)continue;
+    const et=String(l.entry_type||'').toLowerCase(),dir=String(l.direction||'').toLowerCase(),rid=String(l.registration_id||'');
+    if(et.includes('deposit_refund')){
+      if(inPeriod(at)){row.depositRefunded+=amt;row.cashOutflow+=amt;addTx({date:at,side:'expense',category:'退還押金',amount:amt,sessionId:sid,sessionName:row.name,registrationId:rid,source:'finance_ledger',referenceId:String(l.id||''),note:l.memo||'押金退還，不列活動支出'})}
+      if(beforeEnd(at)){(depositEventsByReg[rid]||(depositEventsByReg[rid]={refund:0,deduct:0})).refund+=amt}
+    }else if(et.includes('deposit_forfeit')||et.includes('deposit_deduct')){
+      if(inPeriod(at)){row.depositDeducted+=amt;row.otherIncome+=amt;row.operatingIncome+=amt;addTx({date:at,side:'income',category:'押金扣款轉收入',amount:amt,sessionId:sid,sessionName:row.name,registrationId:rid,source:'finance_ledger',referenceId:String(l.id||''),note:l.memo||'由代管押金轉為收入，沒有新增現金流'})}
+      if(beforeEnd(at)){(depositEventsByReg[rid]||(depositEventsByReg[rid]={refund:0,deduct:0})).deduct+=amt}
+    }else if(et==='transfer_credit_in'){
+      row.internalTransferIn+=inPeriod(at)?amt:0;
+    }else if(et==='transfer_credit_out'){
+      row.internalTransferOut+=inPeriod(at)?amt:0;
+    }else if(et.includes('refund')||et.includes('退款')||et.includes('退費')){
+      if(inPeriod(at)){row.revenueRefunded+=amt;row.cashOutflow+=amt;addTx({date:at,side:'expense',category:'營業退款',amount:amt,sessionId:sid,sessionName:row.name,registrationId:rid,source:'finance_ledger',referenceId:String(l.id||''),note:l.memo||''})}
+    }else if(dir==='in'||dir==='credit'){
+      if(inPeriod(at)){row.otherIncome+=amt;row.operatingIncome+=amt;row.cashInflow+=amt;addTx({date:at,side:'income',category:'其他帳本收入',amount:amt,sessionId:sid,sessionName:row.name,registrationId:rid,source:'finance_ledger',referenceId:String(l.id||''),note:l.memo||''})}
+    }else if(dir==='out'||dir==='debit'){
+      if(inPeriod(at)){row.operatingExpense+=amt;row.cashOutflow+=amt;addTx({date:at,side:'expense',category:'其他帳本支出',amount:amt,sessionId:sid,sessionName:row.name,registrationId:rid,source:'finance_ledger',referenceId:String(l.id||''),note:l.memo||''})}
+    }
+  }
+
+  // 期末代管押金：依實際收款拆分出的押金，扣除退還與扣款；逐筆可追溯。
+  const depositPaidEnd={};
+  for(const [rid,rf] of Object.entries(regFinance)){
+    const paid=paidToEnd[rid]||0;depositPaidEnd[rid]=Math.min(rf.depositTotal,Math.max(0,paid-rf.revenueTotal));
+    const ev=depositEventsByReg[rid]||{refund:0,deduct:0};
+    const held=Math.max(0,depositPaidEnd[rid]-ev.refund-ev.deduct);
+    if(sessionRows[rf.sid])sessionRows[rf.sid].depositHeld+=held;
+    if(ev.refund+ev.deduct>depositPaidEnd[rid]+0.01)addAnomaly('deposit_negative','押金退還／扣除超過實收押金',`實收押金 ${depositPaidEnd[rid]}，已退／扣 ${ev.refund+ev.deduct}`,rf.sid,rid,'');
+  }
+
+  const bySession=Object.values(sessionRows).map(x=>{
+    x.activityProfit=x.operatingIncome-x.operatingExpense-x.revenueRefunded;
+    x.cashNet=x.cashInflow-x.cashOutflow;
+    return x;
+  }).sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.name).localeCompare(String(b.name)));
+
+  const keys=['revenueCash','otherIncome','operatingIncome','depositCollected','cashInflow','operatingExpense','revenueRefunded','depositRefunded','cashOutflow','cashNet','activityProfit','receivableClosing','outstanding','overpaid','depositDeducted','depositHeld','internalTransferIn','internalTransferOut'];
+  const totals={};keys.forEach(k=>totals[k]=0);bySession.forEach(x=>keys.forEach(k=>totals[k]+=safeNum(x[k])));
+  // 相容舊前端欄位，但值改為正確會計口徑。
+  totals.registrationRevenue=totals.revenueCash;totals.totalIncome=totals.operatingIncome;totals.totalExpense=totals.operatingExpense+totals.revenueRefunded;totals.netProfit=totals.activityProfit;totals.receivable=totals.receivableClosing;totals.received=totals.revenueCash+totals.depositCollected;
+
+  const expenseMap={};
+  for(const tx of transactions.filter(x=>x.side==='expense')){
+    const name=String(tx.category||'其他支出');if(!expenseMap[name])expenseMap[name]={name,amount:0,sessions:{}};expenseMap[name].amount+=safeNum(tx.amount);
+    const sid=String(tx.sessionId||'');if(!expenseMap[name].sessions[sid])expenseMap[name].sessions[sid]={id:sid,name:tx.sessionName||sid,date:(sm[sid]&&_sessionFirstDate(sm[sid]))||'',amount:0};expenseMap[name].sessions[sid].amount+=safeNum(tx.amount);
+  }
+  const expenseCategories=Object.values(expenseMap).map(x=>({name:x.name,amount:x.amount,sessions:Object.values(x.sessions).sort((a,b)=>b.amount-a.amount)})).sort((a,b)=>b.amount-a.amount);
+  transactions.sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.sessionName).localeCompare(String(b.sessionName)));
+
+  const duplicateNames={};bySession.forEach(x=>duplicateNames[String(x.name||'')]=(duplicateNames[String(x.name||'')]||0)+1);
+  const alerts=[];
+  const loss=bySession.filter(x=>x.activityProfit<0),unpaid=bySession.filter(x=>x.outstanding>0),dup=bySession.filter(x=>duplicateNames[String(x.name||'')]>1);
+  if(loss.length)alerts.push({type:'loss',label:`${loss.length} 個場次活動損益為負數`,sessionIds:loss.map(x=>x.id)});
+  if(unpaid.length)alerts.push({type:'unpaid',label:`期末尚有 NT$ ${unpaid.reduce((n,x)=>n+x.outstanding,0).toLocaleString('zh-TW')} 未收`,sessionIds:unpaid.map(x=>x.id)});
+  if(totals.overpaid>0)alerts.push({type:'overpaid',label:`有 NT$ ${totals.overpaid.toLocaleString('zh-TW')} 溢收／待釐清款`,sessionIds:bySession.filter(x=>x.overpaid>0).map(x=>x.id)});
+  if(dup.length)alerts.push({type:'duplicate',label:'發現同名場次；報表以場次 ID 分開，不會自行合併。',sessionIds:dup.map(x=>x.id)});
+  if(anomalies.length)alerts.push({type:'data',label:`發現 ${anomalies.length} 筆帳務資料需要核對`,sessionIds:[...new Set(anomalies.map(x=>x.sessionId).filter(Boolean))]});
+
+  return jsonOk({
+    period,bounds,reportTitle:bounds.label,
+    accountingBasis:'現金流依實際收付日；活動損益不含代管押金；應收與代管押金為報表期末餘額；延期轉入／轉出僅做場次歸屬，不重複計入公司現金。',
+    counts:{transactions:transactions.length,sessions:bySession.length,anomalies:anomalies.length},alerts,anomalies,totals,
+    statements:{
+      cashFlow:[{label:'營業款實收',amount:totals.revenueCash},{label:'其他現金收入',amount:totals.otherIncome},{label:'押金收取',amount:totals.depositCollected},{label:'現金流入合計',amount:totals.cashInflow,total:true},{label:'營運支出',amount:totals.operatingExpense},{label:'營業退款',amount:totals.revenueRefunded},{label:'押金退還',amount:totals.depositRefunded},{label:'現金流出合計',amount:totals.cashOutflow,total:true},{label:'現金淨變動',amount:totals.cashNet,total:true,net:true}],
+      profitLoss:[{label:'報名款實收（不含押金）',amount:totals.revenueCash},{label:'其他營業收入',amount:totals.otherIncome},{label:'押金扣款轉收入',amount:totals.depositDeducted},{label:'營業收入合計',amount:totals.operatingIncome,total:true},{label:'營運支出',amount:totals.operatingExpense},{label:'營業退款',amount:totals.revenueRefunded},{label:'活動損益',amount:totals.activityProfit,total:true,net:true}],
+      receivables:[{label:'期末正式應收',amount:totals.receivableClosing},{label:'期末尚未收到',amount:totals.outstanding},{label:'溢收／待釐清',amount:totals.overpaid}],
+      deposits:[{label:'本期收取押金',amount:totals.depositCollected},{label:'本期退還押金',amount:totals.depositRefunded},{label:'本期扣款轉收入',amount:totals.depositDeducted},{label:'期末代管押金',amount:totals.depositHeld,total:true}]
+    },
+    timeline:Object.values(timeline).sort((a,b)=>a.label.localeCompare(b.label)),expenseCategories,bySession,transactions,
+    events:events.map(e=>({id:e.id,title:e.title||e.id})),generatedAt:nowIso()
+  });
+}
+async function hFinanceOverview(env,p){
+  const TENANT=p&&p._tenantId;
+  if(!await verifyStaff(env,p.email,p.token,TENANT,'finance'))return jsonErr('無權限',403);
+  const jwt=await verifyAdminJwt(p.token,env);
+  const role=String((jwt&&(jwt.normalized_role||jwt.role))||'').trim();
+  const allowedIds=await getStaffScopedSessionIds(env,TENANT,p.email,role);
+  const month=String(p.month||'').trim();
+  const eventId=String(p.eventId||p.event_id||'').trim();
+
+  const [sessionsRaw,events]=await Promise.all([
+    dbGet(env,'sessions',`tenant_id=eq.${TENANT}&select=*`).catch(()=>[]),
+    dbGet(env,'events',`tenant_id=eq.${TENANT}&select=*`).catch(()=>[])
+  ]);
+  let sessions=Array.isArray(allowedIds)?sessionsRaw.filter(s=>allowedIds.includes(String(s.id))):sessionsRaw;
+  if(eventId)sessions=sessions.filter(s=>String(s.event_id||'')===eventId);
+  if(/^\d{4}-\d{2}$/.test(month))sessions=sessions.filter(s=>_sessionFirstDate(s).slice(0,7)===month);
+
+  const eventMap={};events.forEach(e=>eventMap[String(e.id)]=e);
+  const bySession=[],seriesMap={};
+  let income=0,expense=0,deposit=0;
+  for(const s of sessions){
+    const book=await _getSessionCashbook(env,TENANT,String(s.id));
+    const row={
+      id:String(s.id),name:s.name||'',date:_sessionFirstDate(s),venue:s.venue||'',
+      eventId:String(s.event_id||''),eventName:(eventMap[String(s.event_id)]||{}).title||'未分類',
+      income:book.totals.income,expense:book.totals.expense,balance:book.totals.balance,deposit:book.totals.deposit
+    };
+    bySession.push(row);
+    income+=row.income;expense+=row.expense;deposit+=row.deposit;
+    const key=row.eventId||'none';
+    if(!seriesMap[key])seriesMap[key]={eventId:row.eventId,eventName:row.eventName,sessions:0,income:0,expense:0,balance:0,deposit:0};
+    const g=seriesMap[key];g.sessions++;g.income+=row.income;g.expense+=row.expense;g.balance+=row.balance;g.deposit+=row.deposit;
+  }
+  bySession.sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.name).localeCompare(String(b.name)));
+  return jsonOk({
+    filters:{month,eventId},
+    totals:{income,expense,balance:income-expense,deposit},
+    bySeries:Object.values(seriesMap),
+    bySession,
+    events:events.map(e=>({id:e.id,title:e.title||e.name||e.id})),
+    scoped:Array.isArray(allowedIds),role,generatedAt:nowIso()
+  });
+}
+
+async function hAdminBusinessOverview(env, p){
+  const TENANT = (p && p._tenantId);
+  if (!await verifyStaff(env, p.email, p.token, TENANT)) return jsonErr('無權限');
+  const [sessions, regs, members, staff, events, agreements] = await Promise.all([
+    dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&select=*`).catch(()=>[]),
+    dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&select=*`).catch(()=>[]),
+    dbGet(env, 'members', `tenant_id=eq.${TENANT}&select=email,joined_at,updated_at`).catch(()=>[]),
+    dbGet(env, 'staff', `tenant_id=eq.${TENANT}&select=id,email,name,role,is_active,active,created_at`).catch(()=>[]),
+    dbGet(env, 'events', `tenant_id=eq.${TENANT}&select=*`).catch(()=>[]),
+    dbGet(env, 'tenant_agreement_templates', `tenant_id=eq.${TENANT}&select=*`).catch(()=>[]),
+  ]);
+  const now = new Date();
+  const month = _aggregateBiz(sessions, regs, members, staff, _adminMonthStart(now), _adminNextMonth(now));
+  const quarter = _aggregateBiz(sessions, regs, members, staff, _adminQuarterStart(now), _adminNextQuarter(now));
+  const year = _aggregateBiz(sessions, regs, members, staff, _adminYearStart(now), _adminNextYear(now));
+  const all = _aggregateBiz(sessions, regs, members, staff, null, null);
+
+  const byVenueMap={}, byTypeMap={}, bySession=[];
+  sessions.forEach(s=>{
+    _inc(byVenueMap, _sessionVenueValue(s));
+    _inc(byTypeMap, _sessionTypeValue(s));
+    const list=regs.filter(r=>r.session_id===s.id);
+    const paid=list.filter(_isPaidReg);
+    bySession.push({
+      id:s.id, name:s.name||s.title||s.id, date:_sessionDateValue(s), venue:_sessionVenueValue(s), status:s.status||'',
+      total:list.length,
+      pending:list.filter(r=>_reviewStatus(r)==='待審核').length,
+      approved:list.filter(r=>_reviewStatus(r)==='已錄取').length,
+      paymentPending:list.filter(r=>_payStatus(r)==='待確認').length,
+      paid:paid.length,
+      revenue:Math.max(0, paid.reduce((sum,r)=>sum+_officialAmount(r),0)-list.reduce((sum,r)=>sum+_officialRefund(r),0)),
+      depositTotal:paid.filter(_isConfirmedPaidReg).reduce((sum,r)=>sum+_regDeposit(r, s),0),
+      checkinDone:list.filter(r=>_checkinStatus(r)==='已報到').length,
+    });
+  });
+  bySession.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+
+  const financeRows=[];
+  regs.forEach(r=>_financeIssuesForReg(r).forEach(issue=>financeRows.push({
+    id:r.id, session_id:r.session_id, email:r.email, name:r.brand_name||r.name||'', issue,
+    amount:_officialAmount(r), total_amount:safeNum(r.total_amount), payment_status:_payStatus(r), review_status:_reviewStatus(r)
+  })));
+  const activeStaff = staff.filter(s=>s.is_active!==false && s.active!==false);
+  return jsonOk({
+    generatedAt: new Date().toISOString(),
+    month, quarter, year, all,
+    registrationStatus: {
+      total: regs.length,
+      pendingReview: regs.filter(r=>_reviewStatus(r)==='待審核').length,
+      approved: regs.filter(r=>_reviewStatus(r)==='已錄取').length,
+      waitlist: regs.filter(r=>_reviewStatus(r)==='備取').length,
+      rejected: regs.filter(r=>_reviewStatus(r)==='不錄取').length,
+      cancelled: regs.filter(r=>_reviewStatus(r)==='已取消' || _regStatus(r)==='cancelled').length,
+    },
+    finance: {
+      unpaid: regs.filter(r=>_payStatus(r)==='未繳費').length,
+      paymentPending: regs.filter(r=>_payStatus(r)==='待確認').length,
+      paid: regs.filter(_isPaidReg).length,
+      free: regs.filter(_isFreePay).length,
+      grossRevenue: all.grossRevenue,
+      depositTotal: all.depositTotal,
+      refundTotal: all.refundTotal,
+      netRevenue: all.netRevenue,
+      anomalies: financeRows.length,
+    },
+    onsite: {
+      checkinDone: all.checkinDone,
+      checkinNotYet: all.checkinNotYet,
+      absent: all.absent,
+      clearDone: all.clearDone,
+      depositRefunded: all.depositRefunded,
+      depositForfeited: all.depositForfeited,
+    },
+    databaseCounts: {
+      sessions: sessions.length,
+      registrations: regs.length,
+      members: members.length,
+      staff: staff.length,
+      activeStaff: activeStaff.length,
+      events: events.length,
+      agreementTemplates: agreements.length,
+    },
+    byVenue: _mapToRows(byVenueMap),
+    byType: _mapToRows(byTypeMap),
+    bySession: bySession.slice(0,12),
+    equipment: all.equipmentItems,
+    tasks: {
+      pendingReview: regs.filter(r=>_reviewStatus(r)==='待審核').length,
+      pendingPayment: regs.filter(r=>_payStatus(r)==='待確認').length,
+      unpaid: regs.filter(r=>_payStatus(r)==='未繳費').length,
+      refundPending: regs.filter(r=>String(_transferStatus(r)).includes('退費') && !['已退費','refunded'].includes(_transferStatus(r))).length,
+      financeAnomalies: financeRows.length,
+      checkinNotYet: all.checkinNotYet,
+    }
+  });
+}
+
+async function hAdminFinanceAnomalies(env, p){
+  const TENANT = (p && p._tenantId);
+  if (!await verifyStaff(env, p.email, p.token, TENANT, 'finance')) return jsonErr('無權限');
+  const regs = await dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&select=id,session_id,email,name,brand_name,review_status,payment_status,amount,total_amount,deposit,refund_amount,transfer_status,payment_method,payment_last5,payment_reported_at,created_at`).catch(()=>[]);
+  const rows=[];
+  regs.forEach(r=>{
+    _financeIssuesForReg(r).forEach(issue=>rows.push({...r, issue, amount:_officialAmount(r)}));
+  });
+  return jsonOk(rows);
+}
+
+// getSessionDashboard
+function _sessionEquipDefs(s){
+  const obj = safeJson((s && (s.equip_json || s.equip || s.equipment_json || s.equipment)), {});
+  return obj && typeof obj === 'object' && !Array.isArray(obj) ? obj : {};
+}
+function _sessionBaseEquipmentMap(s, stallCount=1){
+  // 內含設備一律以資料庫 equip_json 的 incl（每攤內含數）為唯一真實來源，
+  // 不再用 basic_equip 文字猜數量：文字寫法千變萬化（「一攤一個木棧板」「不含桌椅」），
+  // 猜測會導致桌椅數量錯誤或憑空消失。
+  const map = {};
+  const stalls = Math.max(Number(stallCount) || 1, 1);
+  const defs = _sessionEquipDefs(s);
+  Object.entries(defs).forEach(([rawName, def]) => {
+    const name = normalizeEquipName(rawName);
+    if (!name) return;
+    const incl = Number(def && (def.incl ?? def.include ?? def.included ?? def.free ?? def.qty_included)) || 0;
+    if (incl <= 0) return;
+    map[name] = (map[name] || 0) + incl * stalls;
+  });
+  return map;
+}
+function _selectedEquipmentMapFromReg(r){
+  const map = {};
+  _equipmentEntries(r).forEach(([k,v]) => {
+    const name = normalizeEquipName(k);
+    const n = Number(v) || 0;
+    if (name && n > 0) map[name] = (map[name] || 0) + n;
+  });
+  return map;
+}
+function _effectiveEquipmentMapForReg(r, session){
+  const stallCount = safeNum(r && r.stall_count) || 1;
+  const base = _sessionBaseEquipmentMap(session || {}, stallCount);
+  const selected = _selectedEquipmentMapFromReg(r || {});
+  // equipment_json 存的是「實際選擇總量」（前台 ST.equipQty 已含內含量），不是加租量。
+  // 因此正式總設備必須取 max(內含總量, 已選總量)，相加會把內含量重複計一次。
+  // 例：4 攤每攤含 1 桌、攤友沒加租 → base=4、selected=4 → 相加會變 8 桌。
+  return _mergeEquipmentMapsByMax(base, selected);
+}
+function _mergeEquipmentMapsByMax(base, selected){
+  const out = {};
+  const keys = new Set([...Object.keys(base || {}), ...Object.keys(selected || {})]);
+  for (const rawKey of keys) {
+    const name = normalizeEquipName(rawKey);
+    if (!name) continue;
+    const baseQty = Number((base || {})[rawKey]) || 0;
+    const selQty  = Number((selected || {})[rawKey]) || 0;
+    out[name] = Math.max(out[name] || 0, baseQty, selQty);
+  }
+  return out;
+}
+function _equipmentMapFromRegs(regs, session=null) {
+  const map = {};
+  (regs || []).forEach(r => {
+    const one = session ? _effectiveEquipmentMapForReg(r, session) : _selectedEquipmentMapFromReg(r);
+    Object.entries(one).forEach(([k,v]) => {
+      const name = normalizeEquipName(k);
+      const n = Number(v) || 0;
+      if (name && n > 0) map[name] = (map[name] || 0) + n;
+    });
+  });
+  return map;
+}
+function _equipmentTextFromMap(map) {
+  const order = {'桌':1,'椅':2,'電力':3};
+  const parts = Object.entries(map || {})
+    .filter(([k,v]) => Number(v) > 0)
+    .sort((a,b)=>(order[normalizeEquipName(a[0])]||99)-(order[normalizeEquipName(b[0])]||99) || String(a[0]).localeCompare(String(b[0]), 'zh-Hant'))
+    .map(([k,v]) => `${normalizeEquipName(k)}×${Number(v)}`);
+  return parts.length ? parts.join('、') : '無';
+}
+function _isPendingPaymentReg(r){
+  const p = _payStatus(r);
+  return p === '待確認' || p === '付款待確認' || p === '已回報';
+}
+function _isActiveFinanceReg(r){
+  return !_isCancelledReg(r);
+}
+function _itemKind(it){
+  return String(it.item_type || it.type || it.kind || it.name || it.item_name || '').trim();
+}
+function _itemAmount(it){
+  const stored = _firstNum(it.amount, it.total);
+  if (stored !== 0) return stored;
+  const unit = _firstNum(it.unit_price, it.price);
+  const qty = _firstNum(it.quantity, it.qty, 1) || 1;
+  return unit * qty;
+}
+function _itemSums(items){
+  const sums = {hasItems:false, hasCoreItems:false, cashTotal:0, revenueTotal:0, depositTotal:0, rows:[]};
+  for (const it of (items || [])) {
+    const amt = _itemAmount(it);
+    if (!amt) continue;
+    sums.hasItems = true;
+    const kind = _itemKind(it);
+    const k = String(kind || '').toLowerCase();
+    const isDeposit = k === 'deposit' || k.includes('deposit') || kind.includes('押金') || String(it.note || '').includes('exclude_from_invoice');
+    const isCore = isDeposit || ['stall_fee','equipment','addon','discount','adjustment','seat_fee'].includes(k) || kind.includes('攤位') || kind.includes('設備') || kind.includes('加購');
+    if (isCore) sums.hasCoreItems = true;
+    sums.cashTotal += amt;
+    if (isDeposit) sums.depositTotal += amt;
+    else sums.revenueTotal += amt;
+    sums.rows.push({kind, amount:amt, name:it.item_name || it.name || kind || '財務項目', note:it.note || ''});
+  }
+  return sums;
+}
+function _regFinanceAmounts(r, s, regItems){
+  // 正式金流總覽只用 DB 已存資料：registrations 的 total/amount 或 registration_items。
+  // 依 V7/V8 原規則，registrations.total/amount 已是「攤位費 + 設備費 + 加購費 + 押金」。
+  // 因此不得再把 sessions.deposit 加進應收/已收，避免重複計算。
+  const item = _itemSums(regItems);
+  const storedTotal = _officialAmount(r);
+  const itemTotal = item.hasItems ? Math.max(0, item.cashTotal) : 0;
+
+  let cashTotal = 0;
+  let source = 'none';
+  // registration_items 是正式財務明細；若明細存在，優先使用明細加總，避免 registrations.amount 舊值造成應收/已收錯誤。
+  if (item.hasCoreItems && itemTotal > 0) {
+    cashTotal = itemTotal;
+    source = 'registration_items';
+  } else if (storedTotal > 0) {
+    cashTotal = storedTotal;
+    source = 'registrations.total/amount';
+  }
+
+  const ownDeposit = safeNum(_firstNum(r.deposit, r.deposit_total, r.deposit_amount));
+  let depositTotal = 0;
+  let depositSource = 'none';
+  if (item.depositTotal > 0) {
+    depositTotal = item.depositTotal;
+    depositSource = 'registration_items.deposit';
+  } else if (ownDeposit > 0) {
+    depositTotal = ownDeposit;
+    depositSource = 'registrations.deposit';
+  } else if (cashTotal > 0 || _isApprovedReg(r) || _isConfirmedPaidReg(r)) {
+    depositTotal = _sessionDeposit(s);
+    depositSource = 'sessions.deposit';
+  }
+
+  const revenueTotal = Math.max(0, cashTotal - depositTotal);
+  return {
+    cashTotal: Math.max(0, cashTotal),
+    revenueTotal,
+    depositTotal: Math.max(0, depositTotal),
+    source,
+    depositSource,
+    itemRows: item.rows,
+  };
+}
+
+function _receivedSplitForReg(r,s,regItems){
+  const m=_regFinanceAmounts(r,s,regItems),due=Math.max(0,m.cashTotal);
+  const paidRaw=safeNum(r&&r.paid_amount)||(_isConfirmedPaidReg(r)?due:0);
+  const paid=Math.max(0,Math.min(due,paidRaw));
+  // 正式拆帳：收入先、押金後。部分付款時不可把尚未收到的押金列為實收押金。
+  const revenueReceived=Math.min(m.revenueTotal,paid);
+  const depositReceived=Math.min(m.depositTotal,Math.max(0,paid-m.revenueTotal));
+  return {...m,paid,revenueReceived,depositReceived};
+}
+function _cashStateForReg(r,s,regItems){
+  const x=_receivedSplitForReg(r,s,regItems);
+  const normalRefund=Math.min(x.paid,Math.max(0,_officialRefund(r)));
+  // 退款先沖押金，再沖收入；押金退款不應變成負營收。
+  const refundFromDeposit=Math.min(x.depositReceived,normalRefund);
+  const refundFromRevenue=Math.min(x.revenueReceived,Math.max(0,normalRefund-refundFromDeposit));
+  const explicitDepositReturn=String(r&&r.deposit_refunded||'')==='已退押金'
+    ? Math.max(0,x.depositReceived-refundFromDeposit):0;
+  return {...x,
+    cashRefunded:normalRefund+explicitDepositReturn,
+    depositOutstanding:Math.max(0,x.depositReceived-refundFromDeposit-explicitDepositReturn),
+    revenueNet:Math.max(0,x.revenueReceived-refundFromRevenue)};
+}
+function _isTransferSourceReg(r){
+  return String(r&&r.transfer_status||'')==='已延期' && !!String(r&&r.transfer_target_session_id||'').trim();
+}
+async function writeFinanceLedger(env,T,entry){
+  const id=entry.id||genId('LED');
+  try{
+    let operationUnitId=entry.operationUnitId||null;if(!operationUnitId&&entry.registrationId){const rr=await dbGet(env,'registrations',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(entry.registrationId)}&select=operation_unit_id`).catch(()=>[]);operationUnitId=rr[0]?.operation_unit_id||null}
+    await dbInsert(env,'finance_ledger',{
+      id,tenant_id:T,registration_id:entry.registrationId||null,session_id:entry.sessionId||null,operation_unit_id:operationUnitId,
+      payment_id:entry.paymentId||null,settlement_id:entry.settlementId||null,
+      entry_type:entry.entryType||'adjustment',amount:safeNum(entry.amount),
+      direction:entry.direction==='debit'?'debit':'credit',memo:String(entry.memo||'').slice(0,300),
+      meta_json:entry.meta||{},created_at:entry.createdAt||nowIso()
+    });
+    return id;
+  }catch(e){
+    logError(env,{source:'writeFinanceLedger',tenantId:T,message:'finance ledger write failed',error:e&&e.message?e.message:e});
+    if(entry&&entry.strict)throw e;
+    return null;
+  }
+}
+
+async function _getRegistrationItemsForRegs(env, regs){
+  const ids = Array.from(new Set((regs || []).map(r=>String(r.id||'').trim()).filter(Boolean)));
+  const map = {};
+  if (!ids.length) return map;
+  for (let i=0; i<ids.length; i+=80) {
+    const chunk = ids.slice(i, i+80);
+    const _t = String((regs && regs[0] && regs[0].tenant_id) || '').trim();
+    const qs = `${_t?`tenant_id=eq.${encodeURIComponent(_t)}&`:''}registration_id=in.(${chunk.map(id=>encodeURIComponent(id)).join(',')})&select=*`;
+    const rows = await dbGet(env, 'registration_items', qs).catch(()=>[]);
+    for (const it of rows) {
+      const rid = String(it.registration_id || '').trim();
+      if (!rid) continue;
+      if (!map[rid]) map[rid] = [];
+      map[rid].push(it);
+    }
+  }
+  return map;
+}
+function _sumCash(regs, s, itemMap){
+  return (regs || []).reduce((sum,r)=>sum+_regFinanceAmounts(r, s, itemMap && itemMap[r.id]).cashTotal,0);
+}
+function _sumDeposit(regs, s, itemMap){
+  return (regs || []).reduce((sum,r)=>sum+_regFinanceAmounts(r, s, itemMap && itemMap[r.id]).depositTotal,0);
+}
+function _buildAdminSessionRow(s, list, evt, itemMap = {}) {
+  const activeList = (list || []).filter(_isActiveFinanceReg);
+  const paidRegs = activeList.filter(_isPaidReg);
+  // 金流歷史不能只看目前有效狀態：已退款仍要保留曾經實收與已退現金。
+  // 場次轉移的原報名則不再重複計入收入，避免原場＋新場雙算同一筆錢。
+  const receivedRegs = (list||[]).filter(r=>!_isTransferSourceReg(r)&&(safeNum(r.paid_amount)>0||_isConfirmedPaidReg(r)));
+  const receivableRegs = activeList.filter(_isReceivableReg);
+  const approvedRegs = activeList.filter(r => _isApprovedReg(r));
+  const paymentPendingRegs = activeList.filter(r => _isApprovedReg(r) && _isPendingPaymentReg(r));
+  const unpaidRegs = activeList.filter(r => _isApprovedReg(r) && (!_payStatus(r) || _payStatus(r)==='未繳費'));
+  const refundRegs = (list || []).filter(r => isCapacityInactiveTransferStatus(_transferStatus(r)) || ['已退費','已退款'].includes(_payStatus(r)));
+
+  const cashStates=receivedRegs.map(r=>_cashStateForReg(r,s,itemMap&&itemMap[r.id]));
+  const received=cashStates.reduce((sum,x)=>sum+x.paid,0);
+  const receivable=_sumCash(receivableRegs,s,itemMap);
+  const depositTotal=cashStates.reduce((sum,x)=>sum+x.depositOutstanding,0);
+  const revenueReceivedTotal=cashStates.reduce((sum,x)=>sum+x.revenueReceived,0);
+  const transferSourceRefund=(list||[]).filter(_isTransferSourceReg).reduce((sum,r)=>sum+Math.max(0,_officialRefund(r)),0);
+  const refundedCashTotal=cashStates.reduce((sum,x)=>sum+x.cashRefunded,0)+transferSourceRefund;
+  const netRevenueTotal=cashStates.reduce((sum,x)=>sum+x.revenueNet,0);
+
+  const allEquip = _equipmentMapFromRegs(activeList, s);
+  const needEquip = _equipmentMapFromRegs(approvedRegs, s);
+  // 免費報名數（真實付款狀態＝免費）
+  const freeRegs = activeList.filter(_isFreePay);
+  // 整場設備總計（甲：已錄取且已繳費／免費）＋每日設備（依 selected_dates_json 拆，一組不乘天數）
+  const prepareRegs = activeList.filter(r => _isApprovedReg(r) && _isPaidReg(r));
+  const prepareEquip = _equipmentMapFromRegs(prepareRegs, s);
+  const _dk = (x)=> (x && typeof x === 'object') ? String(x.date || x.key || x.value || '') : String(x || '');
+  const sessionDates = (safeJson(s.dates_json, []) || []).map(_dk).filter(Boolean);
+  const _regDates = (r)=>{ const a=(safeJson(r.selected_dates_json, []) || []).map(_dk).filter(Boolean); return a.length ? a : sessionDates.slice(); };
+  const dailyRows = sessionDates.map(dk=>{
+    const dayRegs = prepareRegs.filter(r => _regDates(r).includes(dk));
+    const dayMap = _equipmentMapFromRegs(dayRegs, s);
+    const stallCount = dayRegs.reduce((a,r)=> a + (safeNum(r.stall_count)||1), 0);
+    return { date:dk, key:dk, label:dk, stallCount, equipmentText:_equipmentTextFromMap(dayMap) };
+  }).filter(x => x.equipmentText && x.equipmentText !== '無');
+  const dailyText = dailyRows.length ? dailyRows.map(x=> x.label + '：' + x.equipmentText).join('｜') : '無';
+  const invoiceTotal = Math.max(0,revenueReceivedTotal); // 已收可開立收入；押金不列入
+  const fmt = formatSession(s);
+  const stats = {
+    registrationTotal: activeList.length,
+    pendingReview: activeList.filter(r=>_reviewStatus(r)==='待審核').length,
+    approved: approvedRegs.length,
+    unpaid: unpaidRegs.length,
+    paymentPending: paymentPendingRegs.length,
+    paid: paidRegs.length,
+    free: freeRegs.length,
+    checkedIn: activeList.filter(r=>_checkinStatus(r)==='已報到').length,
+    refund: refundRegs.length,
+  };
+  const finance = {
+    depositTotal: Math.max(0, depositTotal),
+    receivableTotal: Math.max(0, receivable),
+    receivedTotal: Math.max(0, received),
+    unreceivedTotal: Math.max(0, receivable - received),
+    invoiceTotal: invoiceTotal,
+    revenueReceivedTotal:Math.max(0,revenueReceivedTotal),
+    refundedCashTotal:Math.max(0,refundedCashTotal),
+    netRevenueTotal:Math.max(0,netRevenueTotal),
+  };
+  const equipment = {
+    totalText: _equipmentTextFromMap(prepareEquip),   // 整場總計（甲：已錄取＋已繳費／免費，與設備面板一致）
+    neededText: _equipmentTextFromMap(needEquip),      // 需求（已錄取，參考）
+    dailyText: dailyText,
+    dailyRows: dailyRows,
+    approvedNeededText: _equipmentTextFromMap(needEquip),
+    allRequestedText: _equipmentTextFromMap(allEquip),
+  };
+  return {
+    ...fmt,
+    eventName: (evt && (evt.title || evt.name)) || '',
+    eventCover: (evt && evt.cover_url) || '',
+    seriesName: (evt && (evt.title || evt.name)) || '',
+    dateText: _sessionDateValue(s),
+    venue: _sessionVenueValue(s),
+    organizer: s.organizer || s.co_organizer || s.coorg || '',
+    status: s.status || '',
+    stats,
+    finance,
+    equipment,
+    total: stats.registrationTotal,
+    pending: stats.pendingReview,
+    approved: stats.approved,
+    unpaid: stats.unpaid,
+    paymentPending: stats.paymentPending,
+    pendingPayment: stats.paymentPending,
+    paid: stats.paid,
+    free: stats.free,
+    seated: stats.checkedIn,
+    checkedIn: stats.checkedIn,
+    refundReq: stats.refund,
+    revenue: finance.netRevenueTotal,
+    depositTotal: finance.depositTotal,
+    receivableTotal: finance.receivableTotal,
+    receivedTotal: finance.receivedTotal,
+    unreceivedTotal: finance.unreceivedTotal,
+    invoiceTotal: finance.invoiceTotal,
+    refundedAmount: 0,
+    equipNeed: needEquip,
+    equipAll: allEquip,
+  };
+}
+
+async function refreshSessionStatsSafe(env,T,sessionId){
+  try{
+    if(!T||!sessionId)return;
+    const [sr,regs]=await Promise.all([
+      dbGet(env,'sessions',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(sessionId)}&select=*`).catch(()=>[]),
+      dbGet(env,'registrations',`tenant_id=eq.${T}&session_id=eq.${encodeURIComponent(sessionId)}&select=*`).catch(()=>[])
+    ]);
+    if(!sr.length)return;
+    const itemMap=await _getRegistrationItemsForRegs(env,regs).catch(()=>({}));
+    const row=_buildAdminSessionRow(sr[0],regs,{},itemMap),st=row.stats||{},f=row.finance||{};
+    const data={
+      tenant_id:T,session_id:sessionId,
+      registration_total:safeNum(st.registrationTotal),pending_review:safeNum(st.pendingReview),
+      paid:safeNum(st.paid),unpaid:safeNum(st.unpaid),payment_pending:safeNum(st.paymentPending),
+      checked_in:safeNum(st.checkedIn),receivable:safeNum(f.receivableTotal),
+      received:safeNum(f.receivedTotal),refunded:safeNum(f.refundedCashTotal||0),
+      deposit:safeNum(f.depositTotal),updated_at:nowIso()
+    };
+    const ex=await dbGet(env,'session_stats',`tenant_id=eq.${T}&session_id=eq.${encodeURIComponent(sessionId)}&select=session_id`).catch(()=>[]);
+    if(ex.length)await dbUpdate(env,'session_stats',`tenant_id=eq.${T}&session_id=eq.${encodeURIComponent(sessionId)}`,data);
+    else await dbInsert(env,'session_stats',data);
+  }catch(e){logError(env,{source:'refreshSessionStatsSafe',tenantId:T,sessionId,message:'session_stats refresh skipped',error:e&&e.message?e.message:e});}
+}
+
+async function hGetSessionDashboard(env, p) {
+  const TENANT = (p && p._tenantId);
+  if (!await verifyStaff(env, p.email, p.token, TENANT)) return jsonErr('無權限');
+
+  if (p.sessionId || p.session_id) {
+    const sessionId = p.sessionId || p.session_id;
+    if (!await verifyStaff(env, p.email, p.token, TENANT, '', sessionId)) return jsonErr('無權限');
+    const [sesRows, regs, events] = await Promise.all([
+      dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(sessionId)}&select=*`),
+      dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sessionId)}&select=*`),
+      dbGet(env, 'events', `tenant_id=eq.${TENANT}&select=*`).catch(()=>[]),
+    ]);
+    if (!sesRows.length) return jsonOk([]);
+    const itemMap = await _getRegistrationItemsForRegs(env, regs);
+    const evtMap = {}; events.forEach(e=>evtMap[e.id]=e);
+    const s = sesRows[0];
+    return jsonOk([_buildAdminSessionRow(s, regs, evtMap[s.event_id] || {}, itemMap)]);
+  }
+
+  const _jwtForScope = await verifyAdminJwt(p.token, env);
+  const _scopeRole = (_jwtForScope && (_jwtForScope.normalized_role || _jwtForScope.role)) || '';
+  const allowedSesIds = await getStaffScopedSessionIds(env, TENANT, p.email, _scopeRole);
+  const [allRegs, sessionsRaw, events] = await Promise.all([
+    dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&select=*`),
+    dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&select=*`),
+    dbGet(env, 'events', `tenant_id=eq.${TENANT}&select=*`).catch(()=>[]),
+  ]);
+  const sessions = Array.isArray(allowedSesIds) ? sessionsRaw.filter(s => allowedSesIds.includes(String(s.id))) : sessionsRaw;
+  const itemMap = await _getRegistrationItemsForRegs(env, allRegs);
+  const evtMap = {}; events.forEach(e=>evtMap[e.id]=e);
+  return jsonOk(sessions.map(s => _buildAdminSessionRow(s, allRegs.filter(r=>String(r.session_id)===String(s.id)), evtMap[s.event_id] || {}, itemMap)));
+}
+
+// getRegs
+async function hGetRegs(env, p) {
+  const TENANT = (p && p._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+  if (!await verifyStaff(env, p.email, p.token, TENANT)) return jsonErr('無權限');
+  let qs = `tenant_id=eq.${TENANT}&select=*`;
+  if (p.sessionId) qs += `&session_id=eq.${encodeURIComponent(p.sessionId)}`;
+  if (p.eventId)   qs += `&event_id=eq.${encodeURIComponent(p.eventId)}`;
+  const rows = await dbGet(env, 'registrations', qs);
+  return jsonOk(rows.map(r=>({
+    id:r.id, sessionId:r.session_id, eventId:r.event_id,
+    email:r.email, name:r.name, phone:r.phone,
+    brand:r.brand_name, brandIntro:r.brand_intro||'', sellCat:r.sell_category,
+    products:r.sell_items||'', photo:r.photo_url,
+    fb:r.fb_url||'', ig:r.ig_url||'',
+    equip:r.equipment_json, customFields:r.custom_fields_json,
+    participants:safeJson(r.participants_json,{}),
+    status:r.review_status, payStatus:r.payment_status,
+    stallCount:safeNum(r.stall_count)||1,
+    selectedDates:safeJson(r.selected_dates_json,[]),
+    amount:safeNum(r.amount), totalAmount:safeNum(r.total_amount), deposit:safeNum(r.deposit),
+    payMethod:r.payment_method||'', payLast5:r.payment_last5||'', payReportAmount:safeNum(r.payment_report_amount),
+    paymentLineCardText:r.payment_line_card_text||'', paymentScreenshotStatus:r.payment_screenshot_status||'', paymentReportedAt:r.payment_reported_at||'', paymentGroupId:r.payment_group_id||'',
+    paidAt:r.paid_at||'',
+    checkin:r.checkin_status, clearStatus:r.clear_status,
+    depositRefunded:r.deposit_refunded||'未退押金',
+    transferStatus:r.transfer_status||'', transferChosenAt:r.transfer_chosen_at||'',
+    refundAmount:safeNum(r.refund_amount), refundAdminFee:safeNum(r.refund_admin_fee),
+    refundTransferFee:safeNum(r.refund_transfer_fee), refundRuleLabel:r.refund_rule_label||'', refundedAt:r.refunded_at||'', refundNote:r.refund_note||'',
+    adminNote:r.admin_note, createdAt:r.created_at,
+    // ── 合約同意紀錄 ──────────────────────────────────
+    agreementAccepted:      r.agreement_accepted || false,
+    agreementViewed:        r.agreement_viewed   || false,
+    agreementViewedAt:      r.agreement_viewed_at   || '',
+    agreementAcceptedAt:    r.agreement_accepted_at || '',
+    agreementEmail:         r.agreement_email    || '',
+    agreementVersion:       r.agreement_version  || '',
+    agreementTitleSnapshot: r.agreement_title_snapshot   || '',
+  })));
+}
+
+// getRegsBySession
+async function hGetRegsBySession(env, p) {
+  const TENANT = (p && p._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+  if (!await verifyStaff(env, p.email, p.token, TENANT)) return jsonErr('無權限');
+  const sId = p.sessionId || p.session_id;
+  if (!sId) return jsonErr('請提供 sessionId');
+  const rows = await dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sId)}&select=*`);
+  return jsonOk(rows.map(r=>({
+    id:r.id, sessionId:r.session_id, eventId:r.event_id,
+    email:r.email, name:r.name, phone:r.phone,
+    brand:r.brand_name, brandIntro:r.brand_intro||'',
+    sellCat:r.sell_category||'', products:r.sell_items||'',
+    fb:r.fb_url||'', ig:r.ig_url||'',
+    stallCount:safeNum(r.stall_count)||1,
+    equip:r.equipment_json||'{}',
+    addonQty:safeJson(r.addon_qty_json,{}),
+    selectedDates:safeJson(r.selected_dates_json,[]),
+    customFields:safeJson(r.custom_fields_json,[]),
+    participants:safeJson(r.participants_json,{}),
+    status:r.review_status||'待審核',
+    payStatus:r.payment_status||'未繳費',
+    payMethod:r.payment_method||'',
+    paidAt:r.paid_at||'',
+    payLast5:r.payment_last5||'',
+    payReportAmount:safeNum(r.payment_report_amount),
+    amount:safeNum(r.amount), deposit:safeNum(r.deposit),
+    checkin:r.checkin_status||'未報到',
+    clearStatus:r.clear_status||'未清場',
+    depositRefunded:r.deposit_refunded||'未退押金',
+    refundAmount:safeNum(r.refund_amount), refundAdminFee:safeNum(r.refund_admin_fee),
+    refundTransferFee:safeNum(r.refund_transfer_fee), refundRuleLabel:r.refund_rule_label||'',
+    refundedAt:r.refunded_at||'', refundNote:r.refund_note||'',
+    stallNo:r.stall_number||'',
+    taxId:r.tax_id||'', invoiceTitle:r.invoice_title||'',
+    invoiceEmail:r.invoice_email||'', invoiceStatus:r.invoice_status||'',
+    transferStatus:r.transfer_status||'',
+    createdAt:r.created_at||'', adminNote:r.admin_note||'',
+  })));
+}
+
+
+function _adminRegAvailableActions(r) {
+  const review = _reviewStatus(r);
+  const pay = _payStatus(r);
+  const check = _checkinStatus(r);
+  const transfer = _transferStatus(r);
+  const actions = [];
+  if (review === '待審核' || review === '報名成功' || review === '') actions.push('approve','reject','waitlist');
+  if (review === '已錄取' && !isPaidStatus(pay) && pay !== '免費' && !['申請退費','已退費','refunded'].includes(transfer)) {
+    if (pay === '待確認' || pay === '付款待確認') actions.push('confirmPayment','markUnpaid');
+    else actions.push('markPaymentReported','cancelUnpaid');
+  }
+  if (review === '已錄取' && (isPaidStatus(pay) || pay === '免費') && !['申請退費','已退費','refunded'].includes(transfer)) {
+    if (check === '已報到') actions.push('undoCheckin');
+    else actions.push('checkin');
+  }
+  return actions;
+}
+function _formatAdminRegistration(r, sessionRow, eventRow) {
+  const sesName = (sessionRow && sessionRow.name) || r.session_name || '';
+  const eventName = (eventRow && (eventRow.title || eventRow.name)) || '';
+  const brandName = r.brand_name || r.name || '';
+  return {
+    id:r.id, regId:r.id,
+    tenantId:r.tenant_id, tenant_id:r.tenant_id,
+    sessionId:r.session_id, session_id:r.session_id,
+    eventId:r.event_id, event_id:r.event_id,
+    sessionName:sesName, eventName,
+    email:r.email||'', name:r.name||'', phone:r.phone||'',
+    brand:brandName, brandName, brand_name:brandName,
+    brandIntro:r.brand_intro||'', sellCat:r.sell_category||'', products:r.sell_items||'',
+    fb:r.fb_url||r.fb||'', ig:r.ig_url||r.ig||'',
+    equip:r.equipment_json || r.equipment_text || '{}',
+    equipment:r.equipment_json || r.equipment_text || '{}',
+    equipmentText:equipSummaryFromJson(r.equipment_json || {}),
+    addonQty:safeJson(r.addon_qty_json,{}), addon_qty_json:r.addon_qty_json || '{}',
+    addonAmount:safeNum(r.addon_amount), addonText:addonSummaryFromJson(r.addon_qty_json || {}, sessionRow),
+    customFields:safeJson(r.custom_fields_json,[]), participants:safeJson(r.participants_json,{}),
+    reviewStatus:_reviewStatus(r) || '待審核', status:_reviewStatus(r) || '待審核',
+    paymentStatus:_payStatus(r) || '未繳費', payStatus:_payStatus(r) || '未繳費',
+    checkinStatus:_checkinStatus(r) || '未報到', checkin:_checkinStatus(r) || '未報到',
+    clearStatus:_clearStatus(r) || '未清場', depositRefunded:_depositStatus(r) || '未退押金',
+    teardown:r.teardown_status||'未撤場', teardownStatus:r.teardown_status||'未撤場', violation:r.violation_flags||'',
+    transferStatus:_transferStatus(r) || '', refundStatus:_transferStatus(r) || '',
+    bundleGroupId:r.bundle_group_id||'', bundle_group_id:r.bundle_group_id||'',
+    stallCount:safeNum(r.stall_count)||1, stall_count:safeNum(r.stall_count)||1,
+    selectedDates:safeJson(r.selected_dates_json,[]),
+    amount:_officialAmount(r), totalAmount:safeNum(_firstNum(r.total_amount, r.total, r.registration_total_amount, r.amount)),
+    deposit:_regDeposit(r, sessionRow),
+    payMethod:r.payment_method||'', payLast5:r.payment_last5||'', payReportAmount:safeNum(r.payment_report_amount),
+    paymentLineCardText:r.payment_line_card_text||'', paymentScreenshotStatus:r.payment_screenshot_status||'', paymentReportedAt:r.payment_reported_at||'', paymentGroupId:r.payment_group_id||'',
+    paidAt:r.paid_at||'', refundAmount:safeNum(r.refund_amount), refundAdminFee:safeNum(r.refund_admin_fee),
+    refundTransferFee:safeNum(r.refund_transfer_fee), refundRuleLabel:r.refund_rule_label||'', refundedAt:r.refunded_at||'', refundNote:r.refund_note||'',
+    stallNo:r.stall_number||'', taxId:r.tax_id||'', invoiceTitle:r.invoice_title||'', invoiceEmail:r.invoice_email||'', invoiceStatus:_invoiceStatus(r),
+    adminNote:r.admin_note||'', createdAt:r.created_at||'', created_at:r.created_at||'',
+    paymentProfile:_paymentSnapshotPublic(_paymentSnapshotFromReg(r)),
+    paymentProfileName:_paymentSnapshotPublic(_paymentSnapshotFromReg(r)).paymentProfileName,
+    paymentOwnerMode:_paymentSnapshotPublic(_paymentSnapshotFromReg(r)).paymentOwnerMode,
+    availableActions:_adminRegAvailableActions(r),
+  };
+}
+async function hGetSessionRegistrations(env, p) {
+  const TENANT = (p && p._tenantId);
+  const sessionId = p.sessionId || p.session_id;
+  if (!sessionId) return jsonErr('請提供 sessionId');
+  if (!await verifyStaff(env, p.email, p.token, TENANT, '', sessionId)) return jsonErr('無權限');
+  const [sessionRows, regs, events] = await Promise.all([
+    dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(sessionId)}&select=*`),
+    dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sessionId)}&select=*`),
+    dbGet(env, 'events', `tenant_id=eq.${TENANT}&select=*`).catch(()=>[]),
+  ]);
+  const sessionRow = sessionRows[0] || {};
+  const evtMap = {}; events.forEach(e=>evtMap[e.id]=e);
+  return jsonOk(regs.map(r=>_formatAdminRegistration(r, sessionRow, evtMap[sessionRow.event_id] || {})));
+}
+
+
+async function hGetTodos(env, p) {
+  const TENANT = (p && p._tenantId);
+  if (!await verifyStaff(env,p.email,p.token,TENANT)) return jsonErr('無權限');
+  const [regs,sessions,events] = await Promise.all([
+    dbGet(env,'registrations',`tenant_id=eq.${TENANT}&select=*`).catch(()=>[]),
+    dbGet(env,'sessions',`tenant_id=eq.${TENANT}&select=*`).catch(()=>[]),
+    dbGet(env,'events',`tenant_id=eq.${TENANT}&select=*`).catch(()=>[]),
+  ]);
+  const smap={}; sessions.forEach(s=>smap[s.id]=s);
+  const emap={}; events.forEach(e=>emap[e.id]=e);
+  const out=[];
+  for (const r of regs) {
+    const review=_reviewStatus(r), pay=_payStatus(r), transfer=_transferStatus(r);
+    let kind='', label='';
+    // 退費狀態優先於「未繳費／待付款」，避免退款中的資料被錯分到待付款。
+    if (isCapacityInactiveTransferStatus(transfer) && !['已退費','已退款','refunded'].includes(String(transfer||''))) { kind='refund'; label='退款待處理'; }
+    else if (review==='待審核' || review==='報名成功' || review==='') { kind='pending'; label='待審核'; }
+    else if (pay==='待確認' || pay==='付款待確認') { kind='paymentPending'; label='付款待確認'; }
+    else if (review==='已錄取' && (!pay || pay==='未繳費')) { kind='unpaid'; label='未繳費'; }
+    if (!kind) continue;
+    const s=smap[r.session_id]||{};
+    out.push({..._formatAdminRegistration(r, s, emap[s.event_id]||{}), kind, label});
+  }
+  // 連動場次退款是一個整組動作：待辦只顯示一張，點一次由 confirmRefund 完成整組。
+  const groupCounts={};
+  for(const x of out){ if(x.kind==='refund'&&x.bundleGroupId) groupCounts[x.bundleGroupId]=(groupCounts[x.bundleGroupId]||0)+1; }
+  const seen=new Set();
+  const dedup=[];
+  for(const x of out){
+    if(x.kind==='refund'&&x.bundleGroupId){
+      if(seen.has(x.bundleGroupId)) continue;
+      seen.add(x.bundleGroupId);
+      x.bundleCount=groupCounts[x.bundleGroupId]||1;
+      if(x.bundleCount>1) x.label='退款待處理（連動 '+x.bundleCount+' 場）';
+    }
+    dedup.push(x);
+  }
+  return jsonOk(dedup);
+}
+
+async function hSaveRegNote(env, p) {
+  const TENANT = (p && p._tenantId);
+  const regId = p.regId || p.reg_id;
+  const sessionId = p.sessionId || p.session_id || '';
+  const note = String(p.note || '').trim();
+  if (!regId) return jsonErr('請提供 regId');
+  if (!note) return jsonErr('請填寫備註內容');
+  if (!await verifyStaff(env, p.email, p.token, TENANT, '', sessionId)) return jsonErr('無權限');
+  const rows = await dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(regId)}&select=admin_note`);
+  if (!rows.length) return jsonErr('找不到報名');
+  const prev = String(rows[0].admin_note || '').trim();
+  const stamp = new Date().toISOString().slice(0,16).replace('T',' ');
+  const line = '[' + stamp + '] ' + note;
+  const merged = prev ? (prev + '\n' + line) : line;
+  await dbUpdate(env, 'registrations', `id=eq.${encodeURIComponent(regId)}&tenant_id=eq.${TENANT}`, { admin_note: merged });
+  return jsonOk({ success:true, regId, adminNote: merged });
+}
+
+async function hGetSessionEquipmentDetails(env, p) {
+  const TENANT = (p && p._tenantId);
+  const sessionId = p.sessionId || p.session_id;
+  if (!sessionId) return jsonErr('請提供 sessionId');
+  if (!await verifyStaff(env, p.email, p.token, TENANT, '', sessionId)) return jsonErr('無權限');
+  const [sesRows, regs] = await Promise.all([
+    dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(sessionId)}&select=*`),
+    dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sessionId)}&select=*`),
+  ]);
+  const s = sesRows[0] || {};
+  const active = regs.filter(_isActiveFinanceReg);
+  const approved = active.filter(_isApprovedReg);
+  // 甲口徑：整場設備總計＝已錄取 且（已繳費／免費）＝真正要準備、要訂的量。
+  const prepare = active.filter(r => _isApprovedReg(r) && _isPaidReg(r));
+  const approvedMap = _equipmentMapFromRegs(approved, s);   // 需求（含未繳費，僅參考）
+  const prepareMap  = _equipmentMapFromRegs(prepare, s);    // 整場總計：每筆算一次，不乘天數
+  // 每日設備：依報名選的日期拆。一組設備擺三天仍算一次；但三天當日清單都會出現（現場那三天都在）。
+  const _dk = (x)=> (x && typeof x === 'object') ? String(x.date || x.key || x.value || '') : String(x || '');
+  const sessionDates = (safeJson(s.dates_json, []) || []).map(_dk).filter(Boolean);
+  const regDates = (r)=>{ const arr = (safeJson(r.selected_dates_json, []) || []).map(_dk).filter(Boolean); return arr.length ? arr : sessionDates.slice(); };
+  const dailyRows = sessionDates.map(d=>{
+    const dayRegs = prepare.filter(r => regDates(r).includes(d));
+    const dayMap = _equipmentMapFromRegs(dayRegs, s); // 該日每筆算一次
+    const stallCount = dayRegs.reduce((a,r)=> a + (safeNum(r.stall_count)||1), 0);
+    return { date:d, key:d, label:d, stallCount, equipmentText:_equipmentTextFromMap(dayMap) };
+  }).filter(x => x.equipmentText && x.equipmentText !== '無');
+  const dailyText = dailyRows.length ? dailyRows.map(x => x.label + '：' + x.equipmentText).join('｜') : '無';
+  const rows = active.map(r=>{
+    const oneMap = _equipmentMapFromRegs([r], s);
+    const inclMap = _sessionBaseEquipmentMap(s, safeNum(r.stall_count)||1);
+    const extraMap = _selectedEquipmentMapFromReg(r);
+    const rDates = regDates(r);
+    const oneText = _equipmentTextFromMap(oneMap);
+    return {
+      id:r.id,
+      sessionId:sessionId,
+      brand:r.brand_name || r.name || r.email || '',
+      name:r.name || '',
+      phone:r.phone || '',
+      email:r.email || '',
+      reviewStatus:_reviewStatus(r) || '待審核',
+      paymentStatus:_payStatus(r) || '未繳費',
+      stallCount:safeNum(r.stall_count)||1,
+      selectedDatesText: rDates.join('、'),
+      dailyEquipmentRows: rDates.map(d=>({date:d, key:d, label:d, equipmentText:oneText})),
+      equipmentMap:oneMap,
+      equipmentText:oneText,
+      wholeEquipmentText:oneText,
+      dailyEquipmentText:oneText,
+      includedEquipmentText:_equipmentTextFromMap(inclMap),
+      extraEquipmentText:_equipmentTextFromMap(extraMap),
+      createdAt:r.created_at || '',
+    };
+  }).filter(x=>x.equipmentText !== '無');
+  return jsonOk({
+    session:{id:sessionId, name:s.name || sessionId},
+    summary:{
+      totalText:_equipmentTextFromMap(prepareMap),   // 整場設備總計（甲：已錄取＋已繳費／免費）
+      neededText:_equipmentTextFromMap(approvedMap),  // 需求參考（含未繳費）
+      dailyText:dailyText,
+      dailyRows:dailyRows,
+      // 舊欄位相容
+      approvedNeededText:_equipmentTextFromMap(approvedMap),
+      paidNeededText:_equipmentTextFromMap(prepareMap),
+      allRequestedText:_equipmentTextFromMap(prepareMap),
+    },
+    rows
+  });
+}
+
+
+// ── 現場管理模組：獨立 onsite.html 使用，不進完整後台 ───────────────
+function onsitePaymentText(r) {
+  const status = String(r.payment_status || '');
+  if (isPaidStatus(status)) return '已繳費';
+  if (status === '免費') return '免費';
+  return status || '未繳費';
+}
+function formatOnsiteReg(r) {
+  return {
+    id: r.id,
+    sessionId: r.session_id,
+    brand: r.brand_name || r.name || r.email || '',
+    name: r.name || '',
+    phone: r.phone || '',
+    email: r.email || '',
+    status: r.review_status || '',
+    payStatus: onsitePaymentText(r),
+    stallCount: safeNum(r.stall_count) || 1,
+    equip: safeJson(r.equipment_json, {}),
+    addonQty: safeJson(r.addon_qty_json, {}),
+    selectedDates: safeJson(r.selected_dates_json, []),
+    amount: safeNum(r.amount),
+    totalAmount: safeNum(r.total_amount),
+    deposit: safeNum(r.deposit),
+    paidAt: r.paid_at || '',
+    payMethod: r.payment_method || '',
+    payLast5: r.payment_last5 || '',
+    checkin: r.checkin_status || '未報到',
+    checkinAt: r.checkin_at || '',
+    clearStatus: r.clear_status || '',
+    depositRefunded: r.deposit_refunded || '',
+    teardown: r.teardown_status || '未撤場',
+    violation: r.violation_flags || '',
+    transferStatus: r.transfer_status || '',
+    adminNote: r.admin_note || '',
+    createdAt: r.created_at || '',
+  };
+}
+
+async function getFreshOnsiteAllowedSessionIds(env, tenantId, email, token) {
+  const payload = await verifyAdminJwt(token, env);
+  if (!payload) return null;
+  const role = payload.normalized_role || payload.role || '';
+  if (role === 'platform_super_admin') return null; // 平台超管不限制
+  const rows = await dbGet(env, 'staff', `tenant_id=eq.${tenantId}&email=eq.${encodeURIComponent(email)}&select=id,limit_sessions,role,normalized_role,is_active,active,scope_type,scope_event_id`).catch(()=>[]);
+  const s = rows[0];
+  if (!s) return [];
+  const active = s.is_active !== undefined ? s.is_active : s.active;
+  if (active === false) return [];
+  const dbRole = s.normalized_role || s.role || role;
+  const scopeType = s.scope_type || 'all';
+  // scope_type='all' 且角色是 organizer_owner/organizer_admin → 不限制，看全部場次
+  if (scopeType === 'all' && (dbRole === 'organizer_owner' || dbRole === 'organizer_admin')) return null;
+  // scope_type='event' → 依 event_id 過濾整個系列的場次
+  if (scopeType === 'event' && s.scope_event_id) {
+    const sesRows = await dbGet(env, 'sessions', `tenant_id=eq.${tenantId}&event_id=eq.${encodeURIComponent(s.scope_event_id)}&select=id`).catch(()=>[]);
+    return sesRows.map(x=>String(x.id||'').trim()).filter(Boolean);
+  }
+  let ids = [];
+  // 正式授權來源優先使用 009 新增的 staff_session_permissions；若表尚未執行，回退 staff.limit_sessions。
+  const permRows = await dbGet(env, 'staff_session_permissions', `tenant_id=eq.${tenantId}&staff_email=eq.${encodeURIComponent(email)}&is_active=eq.true&select=session_id`).catch(()=>null);
+  if (Array.isArray(permRows)) ids = permRows.map(x=>String(x.session_id||'').trim()).filter(Boolean);
+  if (!ids.length) ids = String(s.limit_sessions || '').split(',').map(x=>x.trim()).filter(Boolean);
+  if (dbRole === 'onsite_staff') return ids;
+  if (dbRole === 'session_admin') return ids.length ? ids : null;
+  return null;
+}
+
+// 通用：依 staff 的授權範圍（all/event/session）取得可見的場次ID清單，null=不限制
+async function getStaffScopedSessionIds(env, tenantId, email, role) {
+  if (role === 'platform_super_admin') return null;
+  const rows = await dbGet(env, 'staff', `tenant_id=eq.${tenantId}&email=eq.${encodeURIComponent(email)}&select=limit_sessions,scope_type,scope_event_id,normalized_role,role`).catch(()=>[]);
+  const s = rows[0];
+  if (!s) return [];
+  const dbRole = s.normalized_role || s.role || role;
+  const scopeType = s.scope_type || 'all';
+  if (scopeType === 'all') {
+    // 財務以上角色若設定為「全部」，可看整租戶；場次／現場角色仍依正式授權縮限。
+    if (['organizer_owner','organizer_admin','finance_admin'].includes(dbRole)) return null;
+  }
+  if (scopeType === 'event' && s.scope_event_id) {
+    const sesRows = await dbGet(env, 'sessions', `tenant_id=eq.${tenantId}&event_id=eq.${encodeURIComponent(s.scope_event_id)}&select=id`).catch(()=>[]);
+    return sesRows.map(x=>String(x.id||'').trim()).filter(Boolean);
+  }
+  // scope_type==='session' 或其他：回退用 limit_sessions
+  const ids = String(s.limit_sessions || '').split(',').map(x=>x.trim()).filter(Boolean);
+  return ids;
+}
+
+async function hOnsiteSessions(env, p) {
+  const TENANT = (p && p._tenantId);
+  if (!await verifyStaff(env, p.email, p.token, TENANT, 'checkin')) return jsonErr('無權限');
+  const allowedIds = await getFreshOnsiteAllowedSessionIds(env, TENANT, p.email, p.token);
+  if (Array.isArray(allowedIds) && allowedIds.length === 0) return jsonOk([]);
+
+  const [sessions, regs] = await Promise.all([
+    dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&select=*`),
+    dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&select=session_id,review_status,payment_status,checkin_status,transfer_status,stall_count,amount,deposit`),
+  ]);
+  let list = sessions;
+  if (Array.isArray(allowedIds)) list = sessions.filter(s => allowedIds.includes(String(s.id)));
+  // 現場管理只服務「當天真的要報到」的場次：
+  // 1) 排除封存／已取消的場次　2) 排除沒有任何可報到名單（已錄取＋已繳費或免費）的場次
+  list = list.filter(s => {
+    const st = String(s.status || '').trim();
+    if (st === '封存' || st === '已取消') return false;
+    const rs = regs.filter(r => r.session_id === s.id);
+    const payable = rs.filter(r => String(r.review_status || '') === '已錄取'
+      && (isPaidStatus(r.payment_status) || isBookingSecuredStatus(r.payment_status) || String(r.payment_status || '') === '免費')
+      && !['申請退費','已退費'].includes(String(r.transfer_status || '')));
+    return payable.length > 0;
+  });
+  return jsonOk(list.map(s => {
+    const rs = regs.filter(r => r.session_id === s.id);
+    const approved = rs.filter(r => String(r.review_status || '') === '已錄取');
+    const paid = approved.filter(r => isPaidStatus(r.payment_status) || isBookingSecuredStatus(r.payment_status) || String(r.payment_status || '') === '免費');
+    const checked = paid.filter(r => String(r.checkin_status || '') === '已報到');
+    const flagged = rs.filter(r => String(r.transfer_status || '').includes('退費') || String(r.transfer_status || '').includes('退款'));
+    const fmt = formatSession(s);
+    return {
+      id: fmt.id,
+      name: fmt.name,
+      type: fmt.type || '',
+      region: fmt.region || '',
+      dates: fmt.dates || [],
+      status: fmt.status || s.status || '',
+      total: rs.length,
+      approved: approved.length,
+      payable: paid.length,
+      checkedIn: checked.length,
+      refundFlag: flagged.length,
+      stallCount: paid.reduce((sum,r)=>sum+(safeNum(r.stall_count)||1),0),
+      paidAmount: paid.reduce((sum,r)=>sum+safeNum(r.amount),0),
+      depositTotal: paid.reduce((sum,r)=>sum+safeNum(r.deposit),0),
+      modules: normalizeSessionModules(safeJson(s.modules_json,{})),
+    };
+  }));
+}
+
+async function hOnsiteRegs(env, p) {
+  const TENANT = (p && p._tenantId);
+  const sId = p.sessionId || p.session_id;
+  if (!sId) return jsonErr('請提供 sessionId');
+  const pcOk = p.passcode ? await verifyPasscode(env, TENANT, sId, String(p.passcode)) : null;
+  if (!pcOk && !await verifyStaff(env, p.email, p.token, TENANT, 'checkin', sId)) return jsonErr('無權限');
+  const rows = await dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sId)}&select=*`);
+  // 現場名單：只出現「已錄取＋已繳費（含免費）＋非退費流程中」的攤友（與報到規則一致）
+  const onsiteRows = rows.filter(r => !checkinGuard(r, false));
+  return jsonOk(onsiteRows.map(formatOnsiteReg));
+}
+
+// ── 現場通行碼（4位數，一場一碼，限報到相關） ──
+async function verifyPasscode(env, tid, sessionId, code) {
+  if (!code) return null;
+  try {
+    const rows = await dbGet(env, 'onsite_passcodes', `tenant_id=eq.${tid}&session_id=eq.${encodeURIComponent(sessionId)}&code=eq.${encodeURIComponent(code)}&active=eq.true&select=*`);
+    if (!rows.length) return null;
+    const p = rows[0]; const now = Date.now();
+    if (p.open_from && now < new Date(p.open_from).getTime()) return null;
+    if (p.open_until && now > new Date(p.open_until).getTime()) return null;
+    return p;
+  } catch (e) { return null; }
+}
+async function staffDisplayName(env, tid, email) {
+  try {
+    const r = await dbGet(env, 'staff', `tenant_id=eq.${tid}&email=eq.${encodeURIComponent(email)}&select=name,display_name,email`);
+    const s = r[0] || {}; return s.name || s.display_name || s.email || email || '管理者';
+  } catch (e) { return email || '管理者'; }
+}
+// 現場輸入碼 → 找出對應場次（公開，不需登入）
+async function hOnsitePasscodeVerify(env, b) {
+  const TENANT = (b && b._tenantId);
+  const code = String((b && b.code) || '').trim();
+  if (!/^\d{4}$/.test(code)) return jsonErr('請輸入 4 位數字通行碼');
+  const now = Date.now();
+  const rows = await dbGet(env, 'onsite_passcodes', `tenant_id=eq.${TENANT}&code=eq.${encodeURIComponent(code)}&active=eq.true&select=*`).catch(() => []);
+  const valid = rows.filter(p => {
+    if (p.open_from && now < new Date(p.open_from).getTime()) return false;
+    if (p.open_until && now > new Date(p.open_until).getTime()) return false;
+    return true;
+  });
+  if (!valid.length) return jsonErr('通行碼無效或已過期');
+  const p = valid[0];
+  const ses = await dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(p.session_id)}&select=id,name,modules_json`).catch(() => []);
+  return jsonOk({ sessionId: p.session_id, sessionName: (ses[0] && ses[0].name) || '', modules:normalizeSessionModules(safeJson(ses[0]&&ses[0].modules_json,{})) });
+}
+// 後台：列出通行碼
+async function hOnsitePasscodeList(env, p) {
+  const TENANT = (p && p._tenantId);
+  if (!await verifyStaff(env, p.email, p.token, TENANT, 'checkin')) return jsonErr('無權限');
+  const rows = await dbGet(env, 'onsite_passcodes', `tenant_id=eq.${TENANT}&select=*`).catch(() => []);
+  return jsonOk(rows.map(r => ({ id: r.id, sessionId: r.session_id, code: r.code, openFrom: r.open_from, openUntil: r.open_until, active: r.active })));
+}
+// 後台：產生 / 換碼（自動算開放時間，4位不與現有啟用碼重複，一場一碼）
+async function hOnsitePasscodeGenerate(env, b) {
+  const TENANT = (b && b._tenantId);
+  if (!await verifyStaff(env, b.email, b.token, TENANT, 'checkin')) return jsonErr('無權限');
+  const sessionId = String((b && b.sessionId) || '');
+  if (!sessionId) return jsonErr('缺少 sessionId');
+  const ses = await dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(sessionId)}&select=*`);
+  if (!ses.length) return jsonErr('找不到場次');
+  const s = ses[0];
+  const dates = (safeJson(s.dates_json, []) || []).map(d => (d && d.date) ? d.date : d).filter(Boolean).sort();
+  let openFrom = null, openUntil = null;
+  if (dates.length) {
+    const first = new Date(dates[0] + 'T00:00:00+08:00');
+    const last = new Date(dates[dates.length - 1] + 'T23:59:59+08:00');
+    openFrom = new Date(first.getTime() - 2 * 24 * 3600 * 1000).toISOString();
+    openUntil = new Date(last.getTime() + 8 * 3600 * 1000).toISOString();
+  }
+  const existing = await dbGet(env, 'onsite_passcodes', `tenant_id=eq.${TENANT}&active=eq.true&select=code`).catch(() => []);
+  const used = new Set(existing.map(x => String(x.code)));
+  let code = '';
+  for (let i = 0; i < 60; i++) { const c = String(Math.floor(1000 + Math.random() * 9000)); if (!used.has(c)) { code = c; break; } }
+  if (!code) code = String(Math.floor(1000 + Math.random() * 9000));
+  await dbUpdate(env, 'onsite_passcodes', `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sessionId)}&active=eq.true`, { active: false, updated_at: nowIso() }).catch(() => {});
+  const id = genId('PC');
+  await dbInsert(env, 'onsite_passcodes', { id, tenant_id: TENANT, session_id: sessionId, code, open_from: openFrom, open_until: openUntil, active: true, created_at: nowIso(), updated_at: nowIso() });
+  return jsonOk({ id, code, openFrom, openUntil });
+}
+// 後台：停用 / 啟用
+async function hOnsitePasscodeToggle(env, b) {
+  const TENANT = (b && b._tenantId);
+  if (!await verifyStaff(env, b.email, b.token, TENANT, 'checkin')) return jsonErr('無權限');
+  const id = String((b && b.id) || '');
+  if (!id) return jsonErr('缺少 id');
+  const active = (b.active === true || b.active === 'true');
+  await dbUpdate(env, 'onsite_passcodes', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(id)}`, { active, updated_at: nowIso() });
+  return jsonOk({ success: true });
+}
+async function hOnsiteMark(env, b) {
+  const TENANT = (b && b._tenantId);
+  const regId = b.regId || b.id;
+  const mode = String(b.mode || '').trim();
+  if (!regId) return jsonErr('缺少 regId');
+  if (!mode) return jsonErr('缺少 mode');
+  const rows = await dbGet(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(regId)}&select=*`);
+  if (!rows.length) return jsonErr('找不到報名');
+  const reg = rows[0];
+  // 認證：Google 管理者 或 現場通行碼（二擇一）；並記錄操作者
+  let operator = '';
+  const PASS_MODES = ['checkin','undoCheckin','noShow','lateFlag','ruleFlag','earlyFlag','teardownDone','teardownUndo','depositRefund','depositForfeited','depositUnrefund','note'];
+  const pc = b.passcode ? await verifyPasscode(env, TENANT, reg.session_id, String(b.passcode)) : null;
+  if (pc) {
+    if (!PASS_MODES.includes(mode)) return jsonErr('現場通行碼無權限做此操作');
+    const who = String(b.operatorName || '').trim();
+    operator = (who || '現場人員') + '·現場碼';
+  } else {
+    if (!await verifyStaff(env,b.email,b.token,TENANT,'checkin',reg.session_id)) return jsonErr('無權限');
+    operator = await staffDisplayName(env, TENANT, b.email);
+  }
+
+  const now = nowIso();
+  const noteText = String(b.note || '').trim();
+  const oldNote = String(reg.admin_note || '').trim();
+  const appendNote = (label) => `${oldNote ? oldNote + ' ' : ''}[現場·${operator}] ${label} ${nowTaipeiText()}${noteText ? '｜' + noteText : ''}`;
+  const data = {};
+
+  if (mode === 'checkin') {
+    const err = checkinGuard(reg, false);
+    if (err) return jsonErr(err);
+    Object.assign(data, checkinData(false, now));
+    data.admin_note = appendNote('已報到');
+  } else if (mode === 'undoCheckin') {
+    Object.assign(data, checkinData(true, now));
+    data.admin_note = appendNote('取消報到');
+  } else if (mode === 'noShow') {
+    data.checkin_status = '未到';
+    data.admin_note = appendNote('標記未到');
+  } else if (mode === 'refundFlag') {
+    data.transfer_status = '退費待處理';
+    data.admin_note = appendNote('特殊／退費待處理');
+  } else if (mode === 'depositRefund') {
+    // 正常退押金：押金歸還攤商，記錄退還時間
+    if (String(reg.deposit_refunded||'') === '已退押金') return jsonErr('此報名押金已退還');
+    data.deposit_refunded = '已退押金';
+    data.admin_note = appendNote('押金已退還攤商');
+  } else if (mode === 'depositForfeited') {
+    // 違約沒收押金：押金轉為主辦收入
+    if (String(reg.deposit_refunded||'') === '押金沒收') return jsonErr('此報名押金已標記沒收');
+    data.deposit_refunded = '押金沒收';
+    const amt=Math.max(0,Math.min(safeNum(reg.deposit),safeNum(b.deductAmount)||safeNum(reg.deposit))),reason=String(b.deductReason||noteText||'').trim();data.admin_note=appendNote('扣押金 NT$'+amt+(reason?'｜原因：'+reason:''));
+  } else if (mode === 'lateFlag' || mode === 'ruleFlag' || mode === 'earlyFlag') {
+    const labelMap = { lateFlag:'遲到', ruleFlag:'不遵守規定', earlyFlag:'早退' };
+    const label = labelMap[mode];
+    const cur = String(reg.violation_flags || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (!cur.includes(label)) cur.push(label);
+    data.violation_flags = cur.join(',');
+    const mins=Math.max(0,safeNum(b.lateMinutes));const contact=[b.lineNotified?'LINE 已通知':'',b.phoneContacted?'電話已聯絡':''].filter(Boolean).join('｜');data.admin_note=appendNote(label+(mode==='lateFlag'&&mins?(' '+mins+' 分鐘'):'')+(contact?'｜'+contact:''));
+  } else if (mode === 'teardownDone') {
+    data.teardown_status = '已撤場';
+    data.admin_note = appendNote('已撤場');
+  } else if (mode === 'teardownUndo') {
+    data.teardown_status = '未撤場';
+    data.admin_note = appendNote('改為未撤場');
+  } else if (mode === 'depositUnrefund') {
+    data.deposit_refunded = '未退押金';
+    data.admin_note = appendNote('押金改為未退');
+  } else if (mode === 'note') {
+    data.admin_note = appendNote('現場備註');
+  } else {
+    return jsonErr('未知現場操作：' + mode);
+  }
+  await dbUpdate(env,'registrations',`id=eq.${encodeURIComponent(regId)}&tenant_id=eq.${TENANT}`,data);
+  if(data.admin_note&&reg.email){const mem=await dbGet(env,'members',`tenant_id=eq.${TENANT}&email=ilike.${encodeURIComponent(reg.email)}&select=id,admin_note`).catch(()=>[]);if(mem.length){const line=data.admin_note.split('\n').slice(-1)[0],mp=String(mem[0].admin_note||'').trim();await dbUpdate(env,'members',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(mem[0].id)}`,{admin_note:mp?mp+'\n'+line:line,admin_note_updated_at:now,admin_note_updated_by:operator,updated_at:now}).catch(()=>{});}}
+  await dbInsert(env,'seat_operation_logs',{ id: genId('OPL'), tenant_id: TENANT, session_id: reg.session_id, registration_id: regId, stall_id: null, action: mode, operator_type: pc ? 'onsite_passcode' : 'admin', operator_id: operator, note: noteText || null, created_at: now }).catch(()=>{});
+  return jsonOk({success:true, mode, regId});
+}
+
+async function hOnsiteShiftStart(env,b){const TENANT=b._tenantId,code=String(b.code||b.passcode||'').trim(),name=String(b.operatorName||'').trim();if(!name)return jsonErr('請輸入操作人員姓名');const rows=await dbGet(env,'onsite_passcodes',`tenant_id=eq.${TENANT}&code=eq.${encodeURIComponent(code)}&active=eq.true&select=*`).catch(()=>[]);if(!rows.length)return jsonErr('通行碼無效或已過期');const p=rows[0],now=nowIso(),id=genId('SHIFT');await dbInsert(env,'seat_operation_logs',{id,tenant_id:TENANT,session_id:p.session_id,registration_id:null,stall_id:null,action:'shift_start',operator_type:'onsite_passcode',operator_id:name,note:'開始工作',created_at:now});const ses=await dbGet(env,'sessions',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(p.session_id)}&select=id,name`).catch(()=>[]);return jsonOk({shiftId:id,sessionId:p.session_id,sessionName:(ses[0]&&ses[0].name)||'',operatorName:name,startedAt:now});}
+async function hOnsiteShiftEnd(env,b){const TENANT=b._tenantId,shiftId=String(b.shiftId||'').trim(),name=String(b.operatorName||'').trim();const starts=await dbGet(env,'seat_operation_logs',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(shiftId)}&action=eq.shift_start&select=*`).catch(()=>[]);if(!starts.length)return jsonErr('找不到開始工作紀錄');const s=starts[0],now=nowIso();await dbInsert(env,'seat_operation_logs',{id:genId('SHIFT'),tenant_id:TENANT,session_id:s.session_id,registration_id:null,stall_id:null,action:'shift_end',operator_type:'onsite_passcode',operator_id:name||s.operator_id,note:'結束工作｜shift:'+shiftId,created_at:now});return jsonOk({success:true,endedAt:now});}
+async function hOnsiteShiftList(env,p){const TENANT=p._tenantId;if(!await verifyStaff(env,p.email,p.token,TENANT,'checkin'))return jsonErr('無權限');const [logs,sessions]=await Promise.all([dbGet(env,'seat_operation_logs',`tenant_id=eq.${TENANT}&action=in.(shift_start,shift_end)&select=*&order=created_at.desc`).catch(()=>[]),dbGet(env,'sessions',`tenant_id=eq.${TENANT}&select=id,name`).catch(()=>[])]);const sm={};sessions.forEach(s=>sm[s.id]=s.name||s.id);const ends=logs.filter(x=>x.action==='shift_end');return jsonOk(logs.filter(x=>x.action==='shift_start').map(s=>{const e=ends.find(x=>String(x.note||'').includes('shift:'+s.id)),start=new Date(s.created_at),end=e?new Date(e.created_at):null,hours=end?Math.round(((end-start)/3600000)*100)/100:null;return{shiftId:s.id,sessionId:s.session_id,sessionName:sm[s.session_id]||s.session_id,operatorName:s.operator_id,startedAt:s.created_at,endedAt:e?e.created_at:'進行中',hours:hours==null?'—':hours,operationCount:0}}));}
+
+// getStaff
+async function hGetStaff(env, p) {
+  const TENANT = (p && p._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+  if (!await verifyStaff(env,p.email,p.token,TENANT,'superadmin')) return jsonErr('無權限');
+  const rows = await dbGet(env, 'staff', `tenant_id=eq.${TENANT}&select=*`);
+  return jsonOk(rows.map(r=>({
+    email:r.email,
+    name:r.name || r.display_name || '',
+    role:r.normalized_role || r.role,
+    rawRole:r.role,
+    isActive: r.is_active !== undefined ? r.is_active : r.active,
+    permsJson:r.perms_json||'{}',
+    limitSessions:r.limit_sessions ? String(r.limit_sessions).split(',').filter(Boolean) : [],
+    scopeType:r.scope_type || 'all',
+    scopeEventId:r.scope_event_id || '',
+    joinedAt:r.created_at,
+    lastLoginAt:r.last_login_at || '',
+  })));
+}
+
+// getEventsAdmin
+async function hGetEventsAdmin(env, p) {
+  const TENANT = (p && p._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+  if (!await verifyStaff(env, p.email, p.token, TENANT)) return jsonErr('無權限');
+  const rows = await dbGet(env, 'events', `tenant_id=eq.${TENANT}&select=*`);
+  return jsonOk(rows.map(r=>({id:r.id,title:r.title,desc:r.description,location:r.location,cover:r.cover_url,status:r.status,createdAt:r.created_at,paymentProfileId:r.payment_profile_id||'',paymentProfile:_paymentSnapshotPublic(safeJson(r.payment_profile_snapshot,null))})));
+}
+
+// getSessionsAdmin
+async function hGetSessionsAdmin(env, p) {
+  const TENANT = (p && p._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+  if (!await verifyStaff(env, p.email, p.token, TENANT)) return jsonErr('無權限');
+  let qs = `tenant_id=eq.${TENANT}&select=*`;
+  if (p.eventId) qs += `&event_id=eq.${encodeURIComponent(p.eventId)}`;
+  const [sessionsRaw, allRegs, events] = await Promise.all([
+    dbGet(env, 'sessions', qs),
+    dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&select=*`),
+    dbGet(env, 'events', `tenant_id=eq.${TENANT}&select=*`).catch(()=>[]),
+  ]);
+  const itemMap = await _getRegistrationItemsForRegs(env, allRegs);
+  const evtMap = {}; events.forEach(e=>evtMap[e.id]=e);
+  return jsonOk(sessionsRaw.map(s => _buildAdminSessionRow(
+    s,
+    allRegs.filter(r=>String(r.session_id)===String(s.id)),
+    evtMap[s.event_id] || {},
+    itemMap
+  )));
+}
+
+// getPayments
+async function hGetPayments(env, p) {
+  const TENANT = (p && p._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+  if (!await verifyStaff(env, p.email, p.token, TENANT, 'finance')) return jsonErr('無權限');
+  const rows = await dbGet(env, 'payments', `tenant_id=eq.${TENANT}&select=*`);
+  return jsonOk(rows.map(r=>({id:r.id,regId:r.registration_id,sessionId:r.session_id,email:r.email,amount:r.amount,method:r.method,status:r.status,tradeNo:r.trade_no,paidAt:r.paid_at,createdAt:r.created_at,paymentProfileId:r.payment_profile_id||'',paymentProfile:_paymentSnapshotPublic(safeJson(r.payment_profile_snapshot,null))})));
+}
+
+
+function _financeItemKind(v){
+  const s=String(v||'').trim();
+  return ['支出','expense','out','debit'].includes(s.toLowerCase())||s==='支出'?'支出':'收入';
+}
+function _financeItemParts(name){
+  const s=String(name||'').trim();
+  const i=s.indexOf('｜');
+  return i<0?{category:s||'其他',note:''}:{category:s.slice(0,i).trim()||'其他',note:s.slice(i+1).trim()};
+}
+function _financeItemStoredName(category,note){
+  const c=String(category||'其他').trim()||'其他';
+  const n=String(note||'').trim();
+  return n?`${c}｜${n}`:c;
+}
+function _financeDate(v){
+  const d=new Date(v||0);
+  return Number.isFinite(d.getTime())?d.toISOString().slice(0,10):'';
+}
+function _sessionFirstDate(s){
+  const rows=_sessionDateRows(safeJson(s&&s.dates_json,[]));
+  const ds=rows.map(x=>String(x.date||'').slice(0,10)).filter(Boolean).sort();
+  return ds[0]||'';
+}
+async function _getSessionCashbook(env,TENANT,sId){
+  const [sesRows,payments,refundAllocs,transferLedger,manualItems,regs] = await Promise.all([
+    dbGet(env,'sessions',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(sId)}&select=*`).catch(()=>[]),
+    dbGet(env,'payments',`tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sId)}&status=eq.%E5%B7%B2%E7%A2%BA%E8%AA%8D&select=*`).catch(()=>[]),
+    dbGet(env,'payment_allocations',`tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sId)}&allocation_type=eq.refund&select=*`).catch(()=>[]),
+    dbGet(env,'finance_ledger',`tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sId)}&entry_type=in.(transfer_credit_in,transfer_credit_out)&select=*`).catch(()=>[]),
+    dbGet(env,'finance_items',`tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sId)}&select=*&order=created_at.asc`).catch(()=>[]),
+    dbGet(env,'registrations',`tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sId)}&select=id,email,name,brand_name,deposit,payment_status,paid_amount,refund_amount,refunded_at,created_at`).catch(()=>[]),
+  ]);
+  const session=sesRows[0]||{};
+  const regMap={}; regs.forEach(r=>regMap[String(r.id)]=r);
+  const rows=[];
+
+  for(const p of payments){
+    const r=regMap[String(p.registration_id)]||{};
+    rows.push({
+      id:String(p.id),sessionId:sId,date:_financeDate(p.paid_at||p.created_at),
+      kind:'收入',category:'報名收款',amount:Math.max(0,safeNum(p.amount)),
+      note:[r.brand_name||r.name||r.email||'',p.method||'',p.trade_no?('末碼／交易號 '+p.trade_no):''].filter(Boolean).join('｜'),
+      source:'系統自動',editable:false,referenceType:'payment',referenceId:String(p.id)
+    });
+  }
+  for(const x of refundAllocs){
+    const r=regMap[String(x.registration_id)]||{};
+    rows.push({
+      id:String(x.id),sessionId:sId,date:_financeDate(x.created_at),
+      kind:'支出',category:'退款',amount:Math.max(0,safeNum(x.amount)),
+      note:r.brand_name||r.name||r.email||'',
+      source:'系統自動',editable:false,referenceType:'refund',referenceId:String(x.payment_id||x.id)
+    });
+  }
+  for(const x of transferLedger){
+    const isIn=String(x.entry_type)==='transfer_credit_in';
+    rows.push({
+      id:String(x.id),sessionId:sId,date:_financeDate(x.created_at),
+      kind:isIn?'收入':'支出',category:isIn?'延期轉入':'延期轉出',
+      amount:Math.max(0,safeNum(x.amount)),note:x.memo||'',
+      source:'系統自動',editable:false,referenceType:'transfer',referenceId:String(x.settlement_id||x.id)
+    });
+  }
+  for(const x of manualItems){
+    if(x.is_auto===true)continue;
+    const part=_financeItemParts(x.name);
+    rows.push({
+      id:String(x.id),sessionId:sId,date:_financeDate(x.created_at),
+      kind:_financeItemKind(x.type),category:part.category,amount:Math.max(0,safeNum(x.amount)),
+      note:part.note,source:'手動新增',editable:true,referenceType:'manual',referenceId:String(x.id)
+    });
+  }
+  rows.sort((x,y)=>String(x.date).localeCompare(String(y.date))||String(x.id).localeCompare(String(y.id)));
+  const income=rows.filter(x=>x.kind==='收入').reduce((n,x)=>n+safeNum(x.amount),0);
+  const expense=rows.filter(x=>x.kind==='支出').reduce((n,x)=>n+safeNum(x.amount),0);
+  const deposits=regs.filter(_isConfirmedPaidReg).reduce((n,r)=>n+Math.max(0,safeNum(r.deposit)),0);
+  return {
+    session:{id:sId,name:session.name||'',eventId:session.event_id||'',date:_sessionFirstDate(session),venue:session.venue||''},
+    totals:{income,expense,balance:income-expense,deposit:deposits},
+    rows
+  };
+}
+async function hGetSessionCashbook(env,p){
+  const TENANT=p&&p._tenantId;
+  if(!await verifyStaff(env,p.email,p.token,TENANT,'finance'))return jsonErr('無權限');
+  const sId=String(p.sessionId||p.session_id||'').trim();
+  if(!sId)return jsonErr('請提供 sessionId');
+  return jsonOk(await _getSessionCashbook(env,TENANT,sId));
+}
+async function hSaveSessionCashItem(env,b){
+  const TENANT=b&&b._tenantId;
+  if(!await verifyStaff(env,b.email,b.token,TENANT,'finance'))return jsonErr('無權限');
+  const sId=String(b.sessionId||b.session_id||'').trim();
+  if(!sId)return jsonErr('請選擇場次');
+  const kind=_financeItemKind(b.kind||b.type);
+  const amount=Math.max(0,safeNum(b.amount));
+  if(amount<=0)return jsonErr('金額必須大於 0');
+  const category=String(b.category||'其他').trim()||'其他';
+  const note=String(b.note||'').trim().slice(0,300);
+  const date=String(b.date||'').slice(0,10);
+  const createdAt=/^\d{4}-\d{2}-\d{2}$/.test(date)?`${date}T12:00:00.000Z`:nowIso();
+
+  if(b.id){
+    const rows=await dbGet(env,'finance_items',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.id)}&select=*`);
+    if(!rows.length)return jsonErr('找不到這筆帳');
+    if(rows[0].is_auto===true)return jsonErr('系統自動帳不可直接修改');
+    if(String(rows[0].session_id)!==sId)return jsonErr('這筆帳不屬於目前場次');
+    await dbUpdate(env,'finance_items',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.id)}`,{
+      type:kind,name:_financeItemStoredName(category,note),amount,created_at:createdAt
+    });
+    await writeAuditLog(env,TENANT,b.email||'','finance_admin','manual_cash_item_updated','finance_items',String(b.id),rows[0],{session_id:sId,type:kind,category,amount,date},{note}).catch(()=>{});
+    return jsonOk({success:true,id:String(b.id),item:{id:String(b.id),sessionId:sId,kind,category,amount,note,date,source:'主辦手動登錄'}});
+  }
+
+  const id=genId('FIN');
+  const row={id,tenant_id:TENANT,session_id:sId,type:kind,name:_financeItemStoredName(category,note),amount,is_auto:false,created_at:createdAt};
+  await dbInsert(env,'finance_items',row);
+  await writeAuditLog(env,TENANT,b.email||'','finance_admin','manual_cash_item_created','finance_items',id,null,{session_id:sId,type:kind,category,amount,date},{note}).catch(()=>{});
+  return jsonOk({success:true,id,item:{id,sessionId:sId,kind,category,amount,note,date,source:'主辦手動登錄'}});
+}
+async function hDeleteSessionCashItem(env,b){
+  const TENANT=b&&b._tenantId;
+  if(!await verifyStaff(env,b.email,b.token,TENANT,'finance'))return jsonErr('無權限');
+  const id=String(b.id||'').trim();
+  if(!id)return jsonErr('請提供帳目 ID');
+  const rows=await dbGet(env,'finance_items',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(id)}&select=*`);
+  if(!rows.length)return jsonErr('找不到這筆帳');
+  if(rows[0].is_auto===true)return jsonErr('系統自動帳不可刪除');
+  await dbDelete(env,'finance_items',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(id)}`);
+  await writeAuditLog(env,TENANT,b.email||'','finance_admin','manual_cash_item_deleted','finance_items',id,rows[0],null,{}).catch(()=>{});
+  return jsonOk({success:true});
+}
+
+// getFinance
+async function hGetFinance(env, p) {
+  const TENANT = (p && p._tenantId) ;
+  if (!await verifyStaff(env,p.email,p.token,TENANT,'finance')) return jsonErr('無權限');
+  const sId = p.sessionId||p.session_id;
+  if (!sId) return jsonErr('請提供 sessionId');
+  const [sesRows, regs, manualItems] = await Promise.all([
+    dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(sId)}&select=*`),
+    dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sId)}&select=*`),
+    dbGet(env, 'finance_items', `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sId)}&select=*&order=created_at.asc`).catch(()=>[]),
+  ]);
+  const ses = sesRows[0] || {};
+  const itemMap = await _getRegistrationItemsForRegs(env, regs);
+  const out = [];
+  for (const r of regs.filter(_isReceivableReg)) {
+    const money = _regFinanceAmounts(r, ses, itemMap[r.id]);
+    const brand = r.brand_name || r.name || r.email || r.id;
+    if (money.itemRows && money.itemRows.length) {
+      for (const it of money.itemRows) {
+        out.push({id:r.id, sessionId:sId, type:it.kind || '項目', name:`${brand}｜${it.name}`, amount:it.amount, note:`${_reviewStatus(r)}／${_payStatus(r)}｜${it.note || money.source}`, paymentProfileName:_paymentSnapshotPublic(_paymentSnapshotFromReg(r)).paymentProfileName||'未保存快照'});
+      }
+    } else {
+      out.push({id:r.id, sessionId:sId, type:'應收款', name:brand, amount:money.cashTotal, note:`${_reviewStatus(r)}／${_payStatus(r)}｜來源：${money.source}`, paymentProfileName:_paymentSnapshotPublic(_paymentSnapshotFromReg(r)).paymentProfileName||'未保存快照'});
+      if (money.depositTotal > 0) out.push({id:r.id+'-deposit', sessionId:sId, type:'押金', name:brand, amount:money.depositTotal, note:'押金獨立列，不列入發票'});
+    }
+  }
+  for(const x of manualItems.filter(x=>x.is_auto!==true)){
+    const part=_financeItemParts(x.name);
+    out.push({id:x.id,sessionId:sId,type:_financeItemKind(x.type),name:part.category,amount:safeNum(x.amount),note:part.note||'手動新增',source:'手動新增',date:_financeDate(x.created_at),editable:true});
+  }
+  return jsonOk(out);
+}
+
+// getInvoiceList
+async function hGetInvoiceList(env, p) {
+  const TENANT = (p && p._tenantId) ;
+  if (!await verifyStaff(env, p.email, p.token, TENANT, 'finance')) return jsonErr('無權限');
+  const sId = p.sessionId||p.session_id;
+  if (!sId) return jsonErr('請提供 sessionId');
+  const [sesRows, regs] = await Promise.all([
+    dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(sId)}&select=*`),
+    dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sId)}&select=*`),
+  ]);
+  const ses = sesRows[0] || {};
+  const itemMap = await _getRegistrationItemsForRegs(env, regs);
+  return jsonOk(regs.filter(_isReceivableReg).map(r=>{
+    const money = _regFinanceAmounts(r, ses, itemMap[r.id]);
+    const invoiceAmount = Math.max(0, money.cashTotal - money.depositTotal);
+    const untaxed = Math.round(invoiceAmount / 1.05);
+    const tax = invoiceAmount - untaxed;
+    return {
+      id:r.id, email:r.email, name:r.name, brand:r.brand_name, phone:r.phone,
+      invoiceType:r.tax_id ? '公司／機關' : '個人',
+      taxId:r.tax_id||'', invoiceTitle:r.invoice_title||r.brand_name||'',
+      invoiceEmail:r.invoice_email||r.email,
+      deposit:money.depositTotal, amount:invoiceAmount,
+      untaxedAmount:untaxed, taxAmount:tax,
+      invoiceStatus:r.invoice_status||'待開立',
+      note:r.admin_note||'',
+    };
+  }));
+}
+
+// getSiteConfig
+async function hGetSiteConfig(env, p) {
+  const TENANT = (p && p._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+  const rows = await dbGet(env, 'tenants', `id=eq.${TENANT}&select=config_json,line_url,bank_info`);
+  if (!rows.length) return jsonOk({heroImg:'',infoText:''});
+  const cfg = safeJson(rows[0].config_json, {});
+  return jsonOk({
+    heroImg:cfg.heroImg||'', logoUrl:cfg.logoUrl||'', infoText:cfg.infoText||'',
+    lineUrl:rows[0].line_url||'',
+    bankInfo:rows[0].bank_info||'',
+    i18n:(cfg.i18n&&typeof cfg.i18n==='object')?cfg.i18n:{enabled:false,defaultLanguage:'zh-TW',languages:['zh-TW']},
+  });
+}
+
+// getForceRefundList
+async function hGetForceRefundList(env, p) {
+  const TENANT = (p && p._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+  if (!await verifyStaff(env, p.email, p.token, TENANT, 'finance')) return jsonErr('無權限');
+  // 正式資料庫目前以 transfer_status=申請退費 作為不可抗力／一般退費待處理狀態。
+  // 不查不存在的 registrations.force_status，避免前台/後台因欄位不同步中斷。
+  const rows = await dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&transfer_status=eq.%E7%94%B3%E8%AB%8B%E9%80%80%E8%B2%BB&select=*`);
+  // 取得場次名稱
+  const sesIds = [...new Set(rows.map(r=>r.session_id).filter(Boolean))];
+  const sesNames = {};
+  if (sesIds.length) {
+    const sesRows = await dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&id=in.(${sesIds.map(id=>encodeURIComponent(id)).join(',')})&select=id,name`);
+    sesRows.forEach(s=>sesNames[s.id]=s.name||s.id);
+  }
+  return jsonOk(rows.map(r=>{
+    const forceS = String(r.force_status||'');
+    let applySource = '一般申請退費';
+    if (forceS === 'auto_refund_requested') applySource = '逾期自動申請退費';
+    else if (forceS === 'refund_only_auto') applySource = '無延期場次自動進入退費';
+    else if (forceS === 'refund_requested') applySource = '主動申請退費（不可抗力）';
+    return {
+      id:r.id, sessionId:r.session_id, sessionName:sesNames[r.session_id]||r.session_id,
+      email:r.email, name:r.name, brand:r.brand_name, phone:r.phone||'',
+      amount:safeNum(r.amount), deposit:safeNum(r.deposit),
+      payStatus:r.payment_status||'',
+      transferChosenAt:r.transfer_chosen_at||'', depositRefunded:r.deposit_refunded||'未退押金',
+      refundAmount:safeNum(r.refund_amount), refundAdminFee:safeNum(r.refund_admin_fee),
+      refundTransferFee:safeNum(r.refund_transfer_fee), refundRuleLabel:r.refund_rule_label||'',
+      refundedAt:r.refunded_at||'', refundNote:r.refund_note||'',
+      // 不可抗力欄位
+      forceStatus:forceS||'',
+      applySource,
+      forceRefundRequestedAt:r.force_refund_requested_at||r.transfer_chosen_at||'',
+      forceRefundedAt:r.force_refunded_at||'',
+      forceRefundNote:r.force_refund_note||'',
+    };
+  }));
+}
+
+// ── SECTION 12: POST Handlers ────────────────────────────────────
+
+// register
+// ── 場次組合套組（自由組合、同進退；押金/發票/合約等其他規則同單場） ──
+async function hGetBundles(env, p) {
+  const T = p._tenantId;
+  if (!await verifyStaff(env, p.email, p.token, T)) return jsonErr('無權限');
+  const rows = await dbGet(env, 'session_bundles', `tenant_id=eq.${T}&select=*`).catch(() => []);
+  return jsonOk(rows.map(r => ({ id: r.id, name: r.name, sessionIds: String(r.session_ids || '').split(',').filter(Boolean), bundlePrice: r.bundle_price, active: r.active })));
+}
+async function hSaveBundle(env, b) {
+  const T = b._tenantId;
+  if (!await verifyStaff(env, b.email, b.token, T)) return jsonErr('無權限');
+  const name = String(b.name || '').trim(); if (!name) return jsonErr('請填套組名稱');
+  const sids = (Array.isArray(b.sessionIds) ? b.sessionIds : String(b.sessionIds || '').split(',')).map(x => String(x).trim()).filter(Boolean);
+  if (sids.length !== 2) return jsonErr('兩場組合價必須剛好綁定 2 個場次');
+  const price = Number(b.bundlePrice) || 0;
+  if (!(price>0)) return jsonErr('兩場組合價必須大於 0');
+  if (b.id) {
+    await dbUpdate(env, 'session_bundles', `tenant_id=eq.${T}&id=eq.${encodeURIComponent(b.id)}`, { name, session_ids: sids.join(','), bundle_price: price, active: (b.active !== false), updated_at: nowIso() });
+    return jsonOk({ id: b.id });
+  }
+  const id = genId('BND');
+  await dbInsert(env, 'session_bundles', { id, tenant_id: T, name, session_ids: sids.join(','), bundle_price: price, active: true, created_at: nowIso(), updated_at: nowIso() });
+  return jsonOk({ id });
+}
+async function hDeleteBundle(env, b) {
+  const T = b._tenantId;
+  if (!await verifyPlatformSuperAdmin(env, b.email, b.token, T)) return jsonErr('刪除套組僅限平台超級管理員');
+  await dbDelete(env, 'session_bundles', `tenant_id=eq.${T}&id=eq.${encodeURIComponent(b.id)}`);
+  return jsonOk({ success: true });
+}
+
+function bundleSessionCompatible(s){
+  if(!s)return false;
+  if(!['報名中','開放'].includes(String(s.status||'')))return false;
+  const mods=normalizeSessionModules(safeJson(s.modules_json,{}));
+  // 兩場組合共用同一張報名表；需要逐場重新選擇的複雜模組不可自動套用。
+  if(mods.workshopSlots||mods.service||mods.resource||mods.participants)return false;
+  const dates=_sessionDateRows(s.dates_json);
+  // 目前「兩場組合」定義：每個場次本身是一個明確場次，不用在第二場再猜日期。
+  return dates.length===1;
+}
+
+async function hGetBundlesPublic(env,p){
+  const T=p._tenantId;
+  const rows=await dbGet(env,'session_bundles',`tenant_id=eq.${T}&active=eq.true&select=*`).catch(()=>[]);
+  const sess=await dbGet(env,'sessions',`tenant_id=eq.${T}&select=*`).catch(()=>[]);
+  const sMap={};sess.forEach(s=>sMap[s.id]=s);
+  const out=[];
+  for(const r of rows){
+    const sids=String(r.session_ids||'').split(',').map(x=>x.trim()).filter(Boolean);
+    if(sids.length!==2||!sids.every(id=>bundleSessionCompatible(sMap[id])))continue;
+    try{
+      const p1=await _resolvePaymentProfileForSession(env,T,sMap[sids[0]]);
+      const p2=await _resolvePaymentProfileForSession(env,T,sMap[sids[1]]);
+      if(String(p1?.id||'')!==String(p2?.id||''))continue; // 必須同一收款帳戶，才能一起繳費。
+    }catch(e){continue}
+    out.push({id:r.id,name:r.name,bundlePrice:safeNum(r.bundle_price),sessions:sids.map(id=>({id,name:sMap[id].name,status:sMap[id].status}))});
+  }
+  return jsonOk(out);
+}
+// ── 報名建立：計算與寫入分離（B-05）────────────────────────────
+// prepareRegistration：只做驗證與計算，一個字都不寫進資料庫，回傳完整的 registrations 列。
+//   單場與組合共用同一份，所以審核規則、費用、設備、發票只會有一套算法。
+// finalizeRegistration：交易成功「之後」才做的非交易性後續（財務明細、會員、攤位、寄信）。
+// 實際寫入：單場走 claim_session_slot；組合走 SQL 021 的單一交易 RPC，全成或全不成。
+async function prepareRegistration(env, b) {
+  const TENANT = (b && b._tenantId);
+  b.email = normEmail(b.email);
+  b.phone = normPhone(b.phone);
+  if (!b.email) return {error:'請填寫 Email'};
+  if (!b.phone) return {error:'請填寫手機'};
+  const ses = await getSessionRow(env, b.sessionId, TENANT);
+  if (!ses) return {error:'找不到場次'};
+  if (ses.status==='關閉'||ses.status==='停用') return {error:'此場次已關閉報名'};
+  const operationUnitId=String(b.operationUnitId||'').trim();
+  const operationUnit=operationUnitId?await getOperationUnitRow(env,TENANT,operationUnitId,b.sessionId):null;
+  if(operationUnitId&&!operationUnit)return {error:'找不到這個營運項目'};
+  if(operationUnit&&!operationUnitIsOpen(operationUnit))return {error:'此營運項目目前未開放'};
+  if(operationUnit){if(!await operationUnitEntitlementActive(env,TENANT,operationUnit))return {error:'此營運項目尚未取得正式營運權，暫不接受報名／預約'}}
+  else if (!await operatingEntitlementActive(env, TENANT, ses)) return {error:'此場次尚未取得正式營運權，暫不接受報名／預約'};
+
+  // ── DOING 通用模組引擎：新資料以 Operation Unit 為正式來源；舊場次無 Unit 時沿用 sessions.modules_json。
+  const modules=normalizeSessionModules(operationUnit?safeJson(operationUnit.modules_json,{}):safeJson(ses.modules_json,{}));
+  const moduleSelections=(b.moduleSelections&&typeof b.moduleSelections==='object')?b.moduleSelections:{};
+  const sessionDateRows=safeJson(ses.dates_json,[]),selectedDateList=Array.isArray(b.selectedDates)?b.selectedDates.map(String):[];
+  if(modules.operatingMode==='activity'&&modules.activityDatesTogether&&sessionDateRows.length>1){
+    const allDates=sessionDateRows.map(x=>String(x&&x.date||'')).filter(Boolean);
+    if(selectedDateList.length!==allDates.length||!allDates.every(d=>selectedDateList.includes(d)))return {error:'此為同一完整多日活動，必須一次報名全部日期'};
+  }
+  let moduleExtraTotal=0, genericParticipantTotal=0;
+  const moduleSnapshot={quantityMode:modules.quantityMode,timeslotIds:[]};
+  let claimedTimeslotIds=Array.isArray(b.timeslotIds)?b.timeslotIds.map(String).filter(Boolean):[];
+  if(modules.workshopSlots){
+    const sd=Array.isArray(b.selectedDates)?b.selectedDates:[];
+    if(sd.length!==1)return {error:'請選擇一個預約日期／時段'};
+    if(claimedTimeslotIds.length!==1)return {error:'預約時段資料已更新，請重新選擇'};
+    const unitSlotFilter=operationUnit?`&operation_unit_id=eq.${encodeURIComponent(operationUnit.id)}`:'&operation_unit_id=is.null';
+    const slots=await dbGet(env,'timeslots',`tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(b.sessionId)}${unitSlotFilter}&id=eq.${encodeURIComponent(claimedTimeslotIds[0])}&status=eq.open&select=id,booking_calendar_id`);
+    if(!slots.length)return {error:'此預約時段已停止開放，請重新選擇'};
+    moduleSnapshot.bookingCalendarId=String(slots[0].booking_calendar_id||'');
+  }
+  if(modules.service){
+    const svc=moduleItemById(modules.services,moduleSelections.serviceId);
+    if(!svc)return {error:'請選擇服務項目'};
+    moduleSnapshot.service={id:String(svc.id),label:String(svc.label||svc.name||''),price:safeNum(svc.price)};
+    moduleExtraTotal+=safeNum(svc.price);
+  }
+  if(modules.resource){
+    const res=moduleItemById(modules.resources,moduleSelections.resourceId);
+    if(!res)return {error:'請選擇服務人員／資源'};
+    moduleSnapshot.resource={id:String(res.id),label:String(res.label||res.name||''),price:safeNum(res.price)};
+    moduleExtraTotal+=safeNum(res.price);
+  }
+  moduleSnapshot.timeslotIds=claimedTimeslotIds;
+  const participantQty=(b.participantQty&&typeof b.participantQty==='object')?b.participantQty:{};
+  if(modules.participants){
+    const snap={};
+    for(const pt of modules.participantTypes){
+      const id=String(pt.id||''),qty=Math.max(0,parseInt(participantQty[id],10)||0);
+      if(qty){snap[id]={label:String(pt.label||pt.name||id),qty,price:safeNum(pt.price)};genericParticipantTotal+=qty;moduleExtraTotal+=qty*safeNum(pt.price)}
+    }
+    if(genericParticipantTotal<1)return {error:'請選擇參加人數'};
+    moduleSnapshot.participants=snap;
+  }
+
+  // ── 合約同意驗證（後端硬性規則）──────────────────────────
+  const agreementRequired = modules.agreement && agreementRequiredOn(ses.agreement_required);
+  if (agreementRequired) {
+    if (!b.agreementViewed)   return {error:'請先點開並閱讀報名合約，才能送出報名。'};
+    if (!b.agreementAccepted) return {error:'請勾選同意報名合約後，才能送出報名。'};
+  }
+
+  const stallMax=modules.quantityMode==='stall'?Math.max(1,safeNum(ses.max_stalls)||3):999;
+  const requestedUnits=modules.quantityMode==='participant'?Math.max(1,genericParticipantTotal):(modules.quantityMode==='booking'?1:Math.max(parseInt(b.stallCount)||1,1));
+  const stallCount=Math.min(requestedUnits,stallMax);
+  const selectedDates = Array.isArray(b.selectedDates) ? b.selectedDates : [];
+  const dates = safeJson(ses.dates_json, []);
+
+  // 逐日／Unit 名額先做顯示層檢查；最終仍由 DB 原子 RPC 把關。
+  if(operationUnit){
+    const lim=safeNum(operationUnit.capacity),cur=safeNum(operationUnit.current_count);
+    if(lim>0&&cur+stallCount>lim)return {error:'名額不足，剩 '+Math.max(0,lim-cur)+' 名'};
+  } else if (dates.length>0 && selectedDates.length>0) {
+    const existing = await dbGet(env, 'registrations',
+      `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(b.sessionId)}&select=selected_dates_json,stall_count,review_status,transfer_status`);
+    for (const sd of selectedDates) {
+      const def = dates.find(d=>d.date===sd);
+      if (!def) continue;
+      const dayLimit = Number(def.limit)||0;
+      if (!dayLimit) continue;
+      const dayUsed = existing.reduce((s,r)=>{
+        if (!isActiveForCapacity(r)) return s;
+        const rd = safeJson(r.selected_dates_json,[]);
+        return s+(rd.includes(sd)?(Number(r.stall_count)||1):0);
+      },0);
+      if (dayUsed+stallCount>dayLimit) return {error: sd.slice(5).replace('-','/')+'當日名額不足，剩 '+(dayLimit-dayUsed)+' 攤'};
+    }
+  } else {
+    const cur = safeNum(ses.current_count), lim = safeNum(ses.limit_count);
+    if (lim>0 && cur+stallCount>lim) return {error:'名額不足，剩 '+(lim-cur)+' 攤'};
+  }
+
+
+  // B-01：Email 已有會員但手機不符 → 直接擋下。
+  // 必須在任何寫入（占名額／建報名／覆寫 members）之前。
+  const existingMemberRows = await dbGet(env, 'members', `tenant_id=eq.${TENANT}&email=ilike.${encodeURIComponent(b.email)}&select=email,phone`).catch(()=>[]);
+  if (existingMemberRows.length && !phoneMatches(existingMemberRows[0].phone, b.phone)) {
+    return {error:'此 Email 已有會員資料，但手機不一致。請使用原報名手機登入，或聯繫主辦協助。'};
+  }
+
+  // 重複報名檢查：已取消、不錄取、已退費 → 視為結束，允許重新報名
+  const dupExclude = encodeURIComponent('不錄取') + ',' + encodeURIComponent('已取消');
+  const dupUnitFilter=operationUnit?`&operation_unit_id=eq.${encodeURIComponent(operationUnit.id)}`:'&operation_unit_id=is.null';
+  const dupRaw = await dbGet(env, 'registrations',
+    `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(b.sessionId)}${dupUnitFilter}&email=ilike.${encodeURIComponent(b.email)}&review_status=not.in.(${dupExclude})&select=id,transfer_status`
+  ).catch(()=>[]);
+  const dup = dupRaw.filter(r => {
+    const ts = String(r.transfer_status || '').trim();
+    return ts !== '已退費' && ts !== '已退款';
+  });
+  if (dup.length) return {error:'您已報名此場次'};
+
+  // 審核規則：以場次設定為基礎；members.fast_pass（免審核會員）直接錄取。fast_pass 只信資料庫。
+  const needReview = modules.review && (ses.need_review===true||ses.need_review==='true');
+  let fastPass = false;
+  if (needReview && b.email) {
+    const mrows = await dbGet(env,'members',`tenant_id=eq.${TENANT}&email=ilike.${encodeURIComponent(String(b.email).trim())}&select=fast_pass`).catch(()=>[]);
+    fastPass = !!(mrows[0] && (mrows[0].fast_pass === true || mrows[0].fast_pass === 'true'));
+  }
+  const status = (needReview && !fastPass) ? '待審核' : '已錄取';
+
+  // 費用計算（一律後端算，前端金額不可信）
+  const baseFee = b.bundleGroupId ? (Number(b.bundleFee)||0) : (operationUnit?Math.max(0,safeNum(operationUnit.fee))*Math.max(1,stallCount):calcFee(ses, selectedDates, stallCount));
+  const grossFee=Math.max(0,baseFee+moduleExtraTotal);
+  const benefit=await calculateRegistrationBenefits(env,TENANT,b,operationUnit,grossFee);
+  const fee=Math.max(0,benefit.netAmount);
+  moduleSnapshot.benefit=benefit;
+  const effectiveDepositKind = modules.depositKind;
+  const depositBaseAmount = fee;
+  const refundableDeposit = effectiveDepositKind==='refundable' ? calcConfiguredDeposit(modules,depositBaseAmount,requestedUnits) : 0;
+  const deposit = refundableDeposit;
+  moduleSnapshot.depositKind=effectiveDepositKind;
+  moduleSnapshot.depositPolicy=modules.depositPolicy;
+  moduleSnapshot.bookingPolicy=modules.bookingPolicy;
+  const equipTotal = modules.equipment ? calcEquipTotal(b.equip||{}, ses.equip_json, stallCount, ses.basic_equip||'') : 0;
+  let addonTotal=0;
+  try {
+    const addonDefs = modules.addons ? safeJson(ses.addons_json,[]) : [];
+    const addonQty = modules.addons ? (b.addonQty||{}) : {};
+    addonDefs.forEach((a,i)=>{ if(a&&a.open===true) addonTotal+=(Number(a.price)||0)*(Number(addonQty[i])||0); });
+  } catch {}
+  const chargeBeforeBookingDeposit = fee + equipTotal + addonTotal;
+  const bookingDeposit = effectiveDepositKind==='booking' ? calcBookingDeposit({...modules,depositKind:effectiveDepositKind},chargeBeforeBookingDeposit) : 0;
+  moduleSnapshot.bookingDeposit=bookingDeposit;
+  const total = fee+deposit+equipTotal+addonTotal;
+  moduleSnapshot.amountDueNow = effectiveDepositKind==='booking' ? bookingDeposit : total;
+  moduleSnapshot.balanceDue = effectiveDepositKind==='booking' ? Math.max(0,total-bookingDeposit) : 0;
+
+  const pjSrc = (b.participantsJson && typeof b.participantsJson==='object') ? b.participantsJson : {};
+  const adultCount = Math.max(0, parseInt(b.adultCount ?? pjSrc.adultCount ?? 0, 10) || 0);
+  const childCount = Math.max(0, parseInt(b.childCount ?? pjSrc.childCount ?? 0, 10) || 0);
+  const childAgesRaw = Array.isArray(b.childAges) ? b.childAges : (Array.isArray(pjSrc.childAges) ? pjSrc.childAges : []);
+  const childAges = childAgesRaw.slice(0, childCount).map(x=>Number(x)).filter(x=>Number.isFinite(x) && x>=0);
+  const participantsJson = {adultCount,childCount,childAges,totalCount:modules.participants?genericParticipantTotal:(adultCount+childCount),types:moduleSnapshot.participants||{}};
+
+  if(modules.invoice && b.needInvoice!==false && b.invoiceType && b.invoiceType!=='不需要'){
+    if(!String(b.invoiceEmail||b.email||'').trim()) return {error:'請填寫發票 Email'};
+    if(String(b.invoiceType)==='公司／機關'){
+      if(!String(b.taxId||'').trim()) return {error:'公司／機關發票請填統一編號與抬頭'};
+      if(!String(b.invoiceTitle||'').trim()) return {error:'公司／機關發票請填統一編號與抬頭'};
+    }
+  }
+  const invoiceStatus = (!modules.invoice || b.needInvoice===false || b.invoiceType==='不需要') ? '' : '待開立';
+
+  const id = genId('REG');
+  const row = {
+    id, tenant_id:TENANT, bundle_id:b.bundleId||'', bundle_group_id:b.bundleGroupId||'',
+    session_id:b.sessionId, operation_unit_id:operationUnit?operationUnit.id:null, booking_calendar_id:moduleSnapshot.bookingCalendarId||null, event_id:cleanEventId(ses.event_id),
+    email:b.email, member_id:b.email, name:b.name, phone:String(b.phone||''),
+    brand_name:b.brand||'', brand_intro:b.brandIntro||'',
+    sell_category:b.sellCategory||b.sellCat||'', sell_items:b.sellItems||b.sellItem||'',
+    sell_link:b.sellLink||'', photo_url:b.photo||'', fb_url:b.fb||'', ig_url:b.ig||'',
+    equipment_json:(b.equip||{}),
+    custom_fields_json:[...(modules.customFields&&Array.isArray(b.customFields)?b.customFields:[]),{key:'__doing_modules',value:moduleSnapshot}],
+    participants_json:participantsJson,
+    stall_count:stallCount, deposit,
+    review_status:status,
+    payment_status:total===0?'免費':'未繳費',
+      amount:total, total_amount:total, addon_amount:addonTotal,
+    paid_amount: 0,
+    checkin_status:'未報到', clear_status:'未清場',
+    deposit_refunded:'未退押金', stall_number:'',
+    seat_choice_intent: (modules.seatSelection && b.seatChoiceIntent==='paid'?'paid':'auto'),
+    seat_choice_status: 'pending',
+    selected_dates_json:selectedDates,
+    addon_qty_json:(b.addonQty||{}),
+    tax_id:b.taxId||'', invoice_title:b.invoiceTitle||'',
+    invoice_type:b.invoiceType||'', invoice_email:b.invoiceEmail||'', invoice_carrier:b.invoiceCarrier||'',
+    invoice_status:invoiceStatus,
+    reminder_sent:false, created_at:nowIso(),
+    ...(status==='已錄取' ? paymentDeadlinePayload(ses,nowIso(),total) : {}),
+    // ── 合約同意快照 ──────────────────────────────────────
+    agreement_accepted: agreementRequired ? true : (b.agreementAccepted===true),
+    agreement_viewed:   agreementRequired ? true : (b.agreementViewed===true),
+  };
+
+  return {ses, id, row, meta:{
+    sesType, stallCount, selectedDates, needReview, fastPass, status,
+    fee, grossFee, benefit, operationUnit, operationUnitId:operationUnit?operationUnit.id:'', deposit, equipTotal, addonTotal, moduleExtraTotal, total, invoiceStatus, timeslotIds:claimedTimeslotIds,
+  }};
+}
+
+// 交易成功之後才跑。這裡失敗不會回捲報名（報名已成立），但一律記錄，不靜默吞掉。
+async function finalizeRegistration(env, TENANT, b, ses, id, meta, ctx, opts={}) {
+  if(!opts.skipFinance){
+    // registration_items / invoice 屬於正式報名資料；失敗必須往上拋，不能留下「報名成功但財務缺資料」。
+    await createRegistrationFinanceRecords(env, TENANT, id, b.sessionId, b.email,
+      meta.fee, meta.deposit, meta.equipTotal, meta.addonTotal, {
+        invoice_status: meta.invoiceStatus,
+        invoice_type: b.invoiceType || '',
+        invoice_title: b.invoiceTitle || '',
+        tax_id: b.taxId || '',
+        invoice_email: b.invoiceEmail || '',
+        invoice_carrier: b.invoiceCarrier || '',
+      }, {operationUnitId:meta.operationUnitId||'',grossFee:meta.grossFee||meta.fee,benefit:meta.benefit||null});
+  }
+  if(meta.operationUnit)await applyRewardRedemption(env,TENANT,b.email,id,meta.operationUnit,meta.benefit);
+  await recordNotification(env,{tenantId:TENANT,unitId:meta.operationUnitId||null,sessionId:b.sessionId,registrationId:id,email:b.email,eventKey:'registration_created',title:'報名／預約已建立',body:(ses.name||'活動')+(meta.operationUnit?('｜'+meta.operationUnit.name):'')+' 已建立成功',meta:{status:meta.status,total:meta.total}});
+
+  try{
+    const existingMember=await dbGet(env,'members',`tenant_id=eq.${TENANT}&email=ilike.${encodeURIComponent(normEmail(b.email))}&select=email`);
+    if(!existingMember.length || b.syncMemberProfile===true || b.syncMemberProfile==='true') await upsertMember(env,b);
+  }catch(e){ logError(env,{source:'finalizeRegistration',tenantId:TENANT,regId:id,message:'member sync skipped',error:e&&e.message?e.message:e}); }
+
+  if (b.stallNumber) {
+    try { await holdStall(env, b.sessionId, b.stallNumber, id, b.email||'', TENANT); } catch {}
+  }
+
+  // 寄信不可阻塞前台成功畫面：Email 服務慢或失敗時，使用者不該卡在報名頁。
+  const sendConfirmMail = async () => {
+    try {
+      const tcReg = await getTenantCtx(env, TENANT);
+      const dn = getDisplayName(b.name, b.brand || '', meta.sesType);
+      await mailRegConfirm(env, b.email, dn, ses.name || b.sessionId, id, meta.total, meta.stallCount, meta.selectedDates, b.equip || {}, tcReg);
+      // 免審核會員報名需審核的場次會直接錄取，必須一併寄錄取信，否則攤友拿不到繳費指引。
+      if (meta.needReview && meta.fastPass) {
+        await mailApproval(env, b.email, dn, ses.name || b.sessionId, id, meta.total, meta.stallCount, meta.selectedDates, b.equip || {}, ses.basic_equip || '', tcReg);
+      }
+    } catch(e) {
+      console.error('mailRegConfirm after register failed:', e && e.message ? e.message : String(e)); logError(env, {source:'finalizeRegistration', message:'mailRegConfirm after register failed:', error:e && e.message ? e.message : String(e)});
+    }
+  };
+  if (ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(sendConfirmMail());
+  else sendConfirmMail();
+}
+
+// 找出這個 Email 在某場次「還有效」的既有報名（已取消／不錄取／已退費 視為結束，不算）
+async function findActiveRegForSession(env, TENANT, sessionId, email) {
+  const exclude = encodeURIComponent('不錄取') + ',' + encodeURIComponent('已取消');
+  const rows = await dbGet(env, 'registrations',
+    `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sessionId)}&email=ilike.${encodeURIComponent(email)}&review_status=not.in.(${exclude})&select=*`
+  ).catch(()=>[]);
+  const live = rows.filter(r => {
+    const ts = String(r.transfer_status || '').trim();
+    return ts !== '已退費' && ts !== '已退款';
+  });
+  return live.length ? live[0] : null;
+}
+
+async function hRegisterBundle(env,b,ctx){
+  const T=b._tenantId;
+  b.email=normEmail(b.email);b.phone=normPhone(b.phone);
+  if(!b.email||!b.phone)return jsonErr('請填寫 Email 與手機');
+  const memberVerified=await verifiedPlatformMember(env,b.member_token||b.memberToken);
+  if(!memberVerified||!platformMemberComplete(memberVerified.row))return jsonErr('請先登入並完成 DOING 會員資料');
+  if(normEmail(memberVerified.row.email)!==b.email||!phoneMatches(memberVerified.row.phone,b.phone))return jsonErr('報名聯絡資料必須與登入中的會員資料一致');
+  const bundleId=String(b.bundleId||'');
+  const rows=await dbGet(env,'session_bundles',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(bundleId)}&active=eq.true&select=*`);
+  if(!rows.length)return jsonErr('找不到兩場組合方案');
+  const bundle=rows[0],sids=String(bundle.session_ids||'').split(',').map(x=>x.trim()).filter(Boolean);
+  if(sids.length!==2)return jsonErr('此方案不是有效的兩場組合');
+  const sessions=[];
+  for(const sid of sids){
+    const ses=await getSessionRow(env,sid,T);
+    if(!bundleSessionCompatible(ses))return jsonErr('兩場組合只支援兩個已開放、各自日期明確且可共用同一張表單的場次');
+    sessions.push(ses);
+    const existing=await findActiveRegForSession(env,T,sid,b.email);
+    if(existing)return jsonErr('兩場組合必須一次一起報名；您已經有其中一場的有效報名，不能事後併成組合價');
+  }
+  // 一起付款的前提：兩場必須使用同一個正式收款設定。
+  let profileId='';
+  for(const ses of sessions){
+    const prof=await _resolvePaymentProfileForSession(env,T,ses);
+    const pid=String(prof?.id||'');
+    if(!profileId)profileId=pid;
+    else if(profileId!==pid)return jsonErr('兩場的收款帳戶不同，不能建立需要一起付款的組合方案');
+  }
+
+  const groupId=genId('BGRP'),bundleTotal=Math.max(0,safeNum(bundle.bundle_price));
+  const firstShare=Math.ceil(bundleTotal/2),secondShare=bundleTotal-firstShare;
+  const shares=[firstShare,secondShare],preps=[];
+
+  // 兩場都先完整試算；任一場失敗，不寫資料。
+  for(let i=0;i<2;i++){
+    const ses=sessions[i],sid=sids[i];
+    const dates=_sessionDateRows(ses.dates_json).map(x=>x.date).filter(Boolean);
+    const bb={...b,sessionId:sid,bundleId,bundleGroupId:groupId,bundleFee:shares[i],
+      selectedDates:dates,timeslotIds:[],idempotencyKey:String(b.idempotencyKey||'')+':'+sid};
+    const prep=await prepareRegistration(env,bb);
+    if(prep.error)return jsonErr('兩場組合報名失敗：'+prep.error);
+    preps.push({bb,prep});
+  }
+
+  // 同一個 PostgreSQL transaction 鎖兩個場次名額＋寫入兩筆 registrations。
+  let res;
+  try{
+    res=await dbRpc(env,'create_bundle_registrations_atomic',{
+      p_tenant_id:T,p_bundle_group_id:groupId,p_rows:preps.map(x=>x.prep.row),p_merges:[]
+    });
+  }catch(e){
+    logError(env,{source:'hRegisterBundle',tenantId:T,message:'bundle atomic failed',error:e&&e.message?e.message:e});
+    return jsonErr('兩場組合報名失敗，未建立任何報名：'+((e&&e.message)||'資料庫交易失敗'));
+  }
+  if(!res||res.ok===false)return jsonErr('兩場組合報名失敗，未建立任何報名：'+((res&&res.error)||'名額不足'));
+
+  // 兩場 finance items / invoice 先全部建立成功，才進入會員同步與寄信。
+  try{
+    for(const {bb,prep} of preps){
+      await createRegistrationFinanceRecords(env,T,prep.id,bb.sessionId,bb.email,
+        prep.meta.fee,prep.meta.deposit,prep.meta.equipTotal,prep.meta.addonTotal,{
+          invoice_status:prep.meta.invoiceStatus,invoice_type:bb.invoiceType||'',invoice_title:bb.invoiceTitle||'',
+          tax_id:bb.taxId||'',invoice_email:bb.invoiceEmail||'',invoice_carrier:bb.invoiceCarrier||''
+        });
+    }
+  }catch(e){
+    for(const {bb,prep} of preps){
+      await dbDelete(env,'invoices',`tenant_id=eq.${T}&registration_id=eq.${encodeURIComponent(prep.id)}`).catch(()=>{});
+      await dbDelete(env,'registration_items',`tenant_id=eq.${T}&registration_id=eq.${encodeURIComponent(prep.id)}`).catch(()=>{});
+      await dbDelete(env,'registrations',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(prep.id)}`).catch(()=>{});
+      await dbRpc(env,'release_session_slot',{p_tenant_id:T,p_session_id:bb.sessionId,p_stall_count:prep.meta.stallCount}).catch(()=>{});
+    }
+    return jsonErr('兩場組合財務資料建立失敗，整組報名與名額已回復：'+(e&&e.message?e.message:'資料寫入失敗'));
+  }
+  for(const {bb,prep} of preps){
+    await finalizeRegistration(env,T,bb,prep.ses,prep.id,prep.meta,ctx,{skipFinance:true});
+    await refreshSessionStatsSafe(env,T,bb.sessionId);
+  }
+
+  return jsonOk({
+    success:true,bundleGroupId:groupId,count:2,bundlePrice:bundleTotal,dueTotal:preps.reduce((n,x)=>n+x.prep.meta.total,0),
+    registrations:preps.map((x,i)=>({
+      id:x.prep.id,sessionId:x.bb.sessionId,sessionName:x.prep.ses.name||x.bb.sessionId,
+      bundleFeeShare:shares[i],deposit:x.prep.meta.deposit,equipment:x.prep.meta.equipTotal,
+      addon:x.prep.meta.addonTotal,total:x.prep.meta.total,status:x.prep.meta.status
+    }))
+  });
+}
+
+async function hRegister(env, b, ctx) {
+  const TENANT = (b && b._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+  const memberVerified=await verifiedPlatformMember(env,b.member_token||b.memberToken);
+  if(!memberVerified||!platformMemberComplete(memberVerified.row))return jsonErr('請先登入並完成 DOING 會員資料');
+  if(normEmail(memberVerified.row.email)!==normEmail(b.email)||!phoneMatches(memberVerified.row.phone,b.phone))return jsonErr('報名聯絡資料必須與登入中的會員資料一致');
+  const prep = await prepareRegistration(env, b);
+  if (prep.error) return jsonErr(prep.error);
+  const { ses, id, row, meta } = prep;
+
+  // M-01：insert 之前原子鎖定名額。
+  // B-05：舊寫法 if (!b.bundleGroupId && claim 失敗) 會讓套組情境略過這道檢查。claim 失敗永遠要擋。
+  const claimedSlotIds=[];
+  for(const tsid of (meta.timeslotIds||[])){
+    const ts=await dbRpc(env,'claim_timeslot_capacity',{p_tenant_id:TENANT,p_timeslot_id:tsid,p_qty:meta.stallCount});
+    if(!ts||ts.ok===false){for(const x of claimedSlotIds)await dbRpc(env,'release_timeslot_capacity',{p_tenant_id:TENANT,p_timeslot_id:x,p_qty:meta.stallCount}).catch(()=>{});return jsonErr(ts?(ts.error||'此時段名額不足'):'時段名額鎖定失敗')}
+    claimedSlotIds.push(tsid);
+  }
+  const claimResult = meta.operationUnitId ? await dbRpc(env,'claim_operation_unit_capacity',{p_tenant_id:TENANT,p_operation_unit_id:meta.operationUnitId,p_qty:meta.stallCount}) : await dbRpc(env, 'claim_session_slot', {
+    p_tenant_id: TENANT, p_session_id: b.sessionId, p_stall_count: meta.stallCount
+  });
+  if (!claimResult || claimResult.ok === false) {
+    for(const x of claimedSlotIds)await dbRpc(env,'release_timeslot_capacity',{p_tenant_id:TENANT,p_timeslot_id:x,p_qty:meta.stallCount}).catch(()=>{});
+    return jsonErr(claimResult ? (claimResult.error || '名額不足') : '名額鎖定失敗，請稍後再試');
+  }
+
+  try {
+    await dbInsert(env, 'registrations', row);
+  } catch(e) {
+    console.error('DB INSERT registrations failed:', e && e.message ? e.message : e); logError(env, {source:'hRegister', message:'DB INSERT registrations failed:', error:e && e.message ? e.message : e});
+    // FIX-02：registrations 寫入失敗，把名額與時段都還回去
+    for(const x of claimedSlotIds)try{await dbRpc(env,'release_timeslot_capacity',{p_tenant_id:TENANT,p_timeslot_id:x,p_qty:meta.stallCount})}catch(_e){}
+    try {
+      if(meta.operationUnitId)await dbRpc(env,'release_operation_unit_capacity',{p_tenant_id:TENANT,p_operation_unit_id:meta.operationUnitId,p_qty:meta.stallCount});
+      else await dbRpc(env, 'release_session_slot', {
+        p_tenant_id: TENANT, p_session_id: b.sessionId, p_stall_count: meta.stallCount
+      });
+    } catch(re) { console.error('release_session_slot failed after register error', re&&re.message); logError(env, {source:'hRegister', message:'release_session_slot failed after register error', error:re&&re.message}); }
+    return jsonErr('報名建立失敗，請稍後再試（名額已釋放）');
+  }
+
+  try{
+    await finalizeRegistration(env,TENANT,b,ses,id,meta,ctx);
+  }catch(e){
+    await dbDelete(env,'invoices',`tenant_id=eq.${TENANT}&registration_id=eq.${encodeURIComponent(id)}`).catch(()=>{});
+    await dbDelete(env,'registration_items',`tenant_id=eq.${TENANT}&registration_id=eq.${encodeURIComponent(id)}`).catch(()=>{});
+    await dbDelete(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(id)}`).catch(()=>{});
+    for(const x of claimedSlotIds)await dbRpc(env,'release_timeslot_capacity',{p_tenant_id:TENANT,p_timeslot_id:x,p_qty:meta.stallCount}).catch(()=>{});
+    if(meta.operationUnitId)await dbRpc(env,'release_operation_unit_capacity',{p_tenant_id:TENANT,p_operation_unit_id:meta.operationUnitId,p_qty:meta.stallCount}).catch(()=>{});
+    else await dbRpc(env,'release_session_slot',{p_tenant_id:TENANT,p_session_id:b.sessionId,p_stall_count:meta.stallCount}).catch(()=>{});
+    return jsonErr('報名財務資料建立失敗，本次報名與名額已回復：'+(e&&e.message?e.message:'資料寫入失敗'));
+  }
+  return jsonOk({success:true,ok:true,id,status:meta.status,total:meta.total,operationUnitId:meta.operationUnitId||'',benefit:meta.benefit||null,rewardBalance:await rewardBalance(env,TENANT,b.email)});
+}
+
+
+async function createRegistrationFinanceRecords(env, TENANT, regId, sessionId, email, fee, deposit, equipTotal, addonTotal, invoicePayload, financeMeta={}) {
+  const items = [],uid=String(financeMeta.operationUnitId||'')||null,grossFee=Math.max(safeNum(fee),safeNum(financeMeta.grossFee));
+  if (grossFee > 0) items.push({id:genId('ITEM'), registration_id:regId, operation_unit_id:uid, item_type:'stall_fee', item_name:'報名費／攤位費', quantity:1, unit_price:grossFee, amount:grossFee, note:'tax_included'});
+  const discount=Math.max(0,grossFee-safeNum(fee));
+  if(discount>0)items.push({id:genId('ITEM'),registration_id:regId,operation_unit_id:uid,item_type:'discount',item_name:'優惠／回饋折抵',quantity:1,unit_price:-discount,amount:-discount,note:'tax_included'});
+  if (safeNum(deposit) > 0) items.push({id:genId('ITEM'), registration_id:regId, operation_unit_id:uid, item_type:'deposit', item_name:'押金', quantity:1, unit_price:safeNum(deposit), amount:safeNum(deposit), note:'exclude_from_invoice'});
+  if (safeNum(equipTotal) > 0) items.push({id:genId('ITEM'), registration_id:regId, operation_unit_id:uid, item_type:'equipment', item_name:'設備費', quantity:1, unit_price:safeNum(equipTotal), amount:safeNum(equipTotal), note:''});
+  if (safeNum(addonTotal) > 0) items.push({id:genId('ITEM'), registration_id:regId, operation_unit_id:uid, item_type:'addon', item_name:'加購項目', quantity:1, unit_price:safeNum(addonTotal), amount:safeNum(addonTotal), note:'tax_included'});
+  for (const it of items) await dbInsert(env, 'registration_items', Object.assign({tenant_id: TENANT}, it));
+
+  const invoiceTotal = safeNum(fee) + safeNum(equipTotal) + safeNum(addonTotal);
+  if (invoiceTotal > 0 && invoicePayload && invoicePayload.invoice_status) {
+    const untaxed = Math.round(invoiceTotal / 1.05);
+    const tax = invoiceTotal - untaxed;
+    await dbInsert(env, 'invoices', {
+      tenant_id: TENANT,
+      id: genId('INV'),
+      registration_id: regId,
+      operation_unit_id: uid,
+      invoice_type: invoicePayload.invoice_type || '',
+      invoice_title: invoicePayload.invoice_title || '',
+      tax_id: invoicePayload.tax_id || '',
+      email: invoicePayload.invoice_email || email || '',
+      carrier: invoicePayload.invoice_carrier || '',
+      amount: invoiceTotal,
+      status: invoicePayload.invoice_status,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    });
+  }
+}
+
+// upsertMember
+async function upsertMember(env, b) {
+  const TENANT = (b && b._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+  b.email = normEmail(b.email);
+  b.phone = normPhone(b.phone);
+  if (!b.email) return;
+  const now = nowIso();
+  const rows = await dbGet(env, 'members', `tenant_id=eq.${TENANT}&email=ilike.${encodeURIComponent(b.email)}&select=joined_at`);
+  const data = {
+    email:b.email, tenant_id:TENANT,
+    name:b.name||'', phone:String(b.phone||''),
+    brand_name:b.brand||'', brand_intro:b.brandIntro||'',
+    sell_category:b.sellCat||b.sellCategory||'', sell_items:b.sellItem||b.sellItems||'',
+    photo_url:b.photo||'', fb_url:b.fb||'', ig_url:b.ig||'',
+    collab_url:b.collabUrl||'', collab_desc:b.collabDesc||'',
+    company:b.company||b.invoiceTitle||'', tax_id:b.taxId||'',
+    invoice_type:b.invoiceType||'', invoice_title:b.invoiceTitle||b.company||'',
+    invoice_email:b.invoiceEmail||'', invoice_carrier:b.invoiceCarrier||'',
+    collab_items:b.collabItems||'', city:b.city||'', line_id:b.lineId||'', updated_at:now,
+  };
+  if (!rows.length) {
+    data.joined_at = now; data.fast_pass = false;
+    await dbInsert(env, 'members', data);
+  } else {
+    data.joined_at = rows[0].joined_at;
+    await dbUpdate(env, 'members', `email=ilike.${encodeURIComponent(b.email)}&tenant_id=eq.${TENANT}`, data);
+  }
+}
+
+// holdStall helper
+async function holdStall(env, sessionId, stallNumber, regId, email, tenantId) {
+  const TENANT = tenantId ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+  const rows = await dbGet(env, 'stalls', `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sessionId)}&stall_no=eq.${encodeURIComponent(stallNumber)}&select=*`);
+  if (!rows.length) return;
+  const s = rows[0];
+  if ((s.status==='鎖定'||s.status==='預留') && String(s.registration_id||'')!==String(regId)) return;
+  await dbUpdate(env, 'stalls', `id=eq.${s.id}&tenant_id=eq.${TENANT}`, {status:'預留',registration_id:regId,email,hold_time:nowIso()});
+}
+
+// saveMember
+async function hSaveMember(env, b) {
+  const TENANT = (b && b._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+  const email = normEmail(b && b.email);
+  // authPhone＝目前已驗證的「舊手機」；b.phone＝要存進去的「新手機」。兩者絕不可混用，
+  // 否則改手機時會拿新手機驗自己，等於誰都能改。
+  const authPhone = normPhone(b && b.authPhone);
+  if (!email || !authPhone) return jsonErr('請先以 Email 與手機完成身份驗證');
+  const verified = await findVerifiedMemberByEmailPhone(env, TENANT, email, authPhone);
+  if (!verified || normEmail(verified.email) !== email) return jsonErr('身份驗證失敗，無權限修改此會員資料');
+  b.email = email;
+  await upsertMember(env, b);
+  return jsonOk({success:true});
+}
+
+// cancelReg
+// ── 組合套組同進退共用核心 ──
+// 規則：組合套組（bundle_group_id 相同）是綁定優惠，退一場＝整組一起退／取消，
+// 不可只退其中一場（否則等於用組合價買單場）。三條路（前台取消／後台取消／申請退費）共用此核心。
+async function getBundleGroupRegs(env, TENANT, reg){
+  const gid=String(reg&&reg.bundle_group_id||'').trim();
+  if(!gid)return [reg];
+  const rows=await dbGet(env,'registrations',`tenant_id=eq.${TENANT}&bundle_group_id=eq.${encodeURIComponent(gid)}&select=*`).catch(()=>[]);
+  if(!rows.length)return [reg];
+  // 延期後原場那筆是歷史來源，不可再被取消／付款／退款當成目前組合成員重複處理。
+  const current=rows.filter(x=>String(x.transfer_status||'').trim()!=='已延期');
+  return current.length?current:[reg];
+}
+async function releaseRegistrationSeats(env,TENANT,reg,reason){
+  let count=0;
+  try{
+    const st=await dbGet(env,'stalls',`tenant_id=eq.${TENANT}&registration_id=eq.${encodeURIComponent(reg.id)}&select=id`);
+    for(const s of st){ await dbUpdate(env,'stalls',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(s.id)}`,{status:'空閒',registration_id:null,email:null,hold_time:null,seat_hold_expires_at:null,updated_at:nowIso()}); count++; }
+  }catch(e){ logError(env,{source:'releaseRegistrationSeats',message:reason||'release seats failed',error:e&&e.message?e.message:e}); }
+  try{ await dbUpdate(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(reg.id)}`,{stall_number:null,seat_choice_status:'released',seat_choice_type:null,seat_hold_expires_at:null}); }catch(e){}
+  return count;
+}
+
+function registrationTimeslotIds(reg){
+  const rows=safeJson(reg?.custom_fields_json,[]),hit=(Array.isArray(rows)?rows:[]).find(x=>x&&x.key==='__doing_modules');
+  return hit?.value&&Array.isArray(hit.value.timeslotIds)?hit.value.timeslotIds.map(String).filter(Boolean):[];
+}
+async function releaseRegistrationTimeslots(env,T,reg){
+  const qty=Math.max(1,safeNum(reg?.stall_count)||1);
+  for(const id of registrationTimeslotIds(reg))await dbRpc(env,'release_timeslot_capacity',{p_tenant_id:T,p_timeslot_id:id,p_qty:qty}).catch(()=>{});
+}
+
+async function captureRefundResourceState(env,T,reg){
+  const seats=await dbGet(env,'stalls',`tenant_id=eq.${T}&registration_id=eq.${encodeURIComponent(reg.id)}&select=*`).catch(()=>[]);
+  return {
+    reg:{...reg},
+    seats,
+    timeslotIds:registrationTimeslotIds(reg),
+    active:isActiveForCapacity(reg),
+    qty:Math.max(1,safeNum(reg.stall_count)||1),
+    resourcesReleased:false,
+    countAdjusted:false
+  };
+}
+async function releaseRefundResourcesStrict(env,T,state,reason){
+  const releasedSeats=[],releasedSlots=[];
+  try{
+    for(const s of state.seats){
+      await dbUpdate(env,'stalls',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(s.id)}`,{
+        status:'空閒',registration_id:null,email:null,hold_time:null,seat_hold_expires_at:null,updated_at:nowIso()
+      });
+      releasedSeats.push(s);
+    }
+    for(const id of state.timeslotIds){
+      const r=await dbRpc(env,'release_timeslot_capacity',{p_tenant_id:T,p_timeslot_id:id,p_qty:state.qty});
+      if(!r||r.ok===false)throw new Error((r&&r.error)||'時段名額釋放失敗');
+      releasedSlots.push(id);
+    }
+    await dbUpdate(env,'registrations',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(state.reg.id)}`,{
+      stall_number:null,seat_choice_status:'released',seat_choice_type:null,seat_hold_expires_at:null
+    });
+    state.resourcesReleased=true;
+    return true;
+  }catch(e){
+    for(const s of releasedSeats){
+      await dbUpdate(env,'stalls',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(s.id)}`,{
+        status:s.status||'空閒',registration_id:s.registration_id||null,email:s.email||null,hold_time:s.hold_time||null,
+        seat_hold_expires_at:s.seat_hold_expires_at||null,updated_at:s.updated_at||nowIso()
+      }).catch(()=>{});
+    }
+    for(const id of releasedSlots){
+      await dbRpc(env,'claim_timeslot_capacity',{p_tenant_id:T,p_timeslot_id:id,p_qty:state.qty}).catch(()=>{});
+    }
+    throw new Error(reason+': '+(e&&e.message?e.message:'資源釋放失敗'));
+  }
+}
+async function restoreRefundResourceState(env,T,state){
+  if(!state||!state.resourcesReleased)return;
+  for(const s of state.seats){
+    await dbUpdate(env,'stalls',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(s.id)}`,{
+      status:s.status||'空閒',registration_id:s.registration_id||null,email:s.email||null,hold_time:s.hold_time||null,
+      seat_hold_expires_at:s.seat_hold_expires_at||null,updated_at:s.updated_at||nowIso()
+    }).catch(()=>{});
+  }
+  for(const id of state.timeslotIds){
+    await dbRpc(env,'claim_timeslot_capacity',{p_tenant_id:T,p_timeslot_id:id,p_qty:state.qty}).catch(()=>{});
+  }
+  await dbUpdate(env,'registrations',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(state.reg.id)}`,{
+    stall_number:state.reg.stall_number||null,seat_choice_status:state.reg.seat_choice_status||null,
+    seat_choice_type:state.reg.seat_choice_type||null,seat_hold_expires_at:state.reg.seat_hold_expires_at||null
+  }).catch(()=>{});
+  state.resourcesReleased=false;
+}
+
+
+async function hCancelReg(env, b) {
+  const TENANT = (b && b._tenantId);
+  const rows = await dbGet(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.regId)}&select=*`);
+  if(!rows.length) return jsonErr('找不到報名');
+  const reg=rows[0];
+  const own=regOwnerGuard(reg,b,'取消'); if(own) return own;
+  if(isPaidStatus(_payStatus(reg)) || safeNum(reg.paid_amount)>0) return jsonErr('已有實收金額，請走退款申請流程');
+  if(isCapacityInactiveTransferStatus(reg.transfer_status)) return jsonErr('此報名已進入退款或退費完成流程，不能用取消流程處理');
+  const group=await getBundleGroupRegs(env,TENANT,reg);
+  if(group.some(g=>isPaidStatus(_payStatus(g))||safeNum(g.paid_amount)>0)) return jsonErr('此組合已有實收金額，整組必須走退款申請流程');
+  for(const g of group){
+    if(_reviewStatus(g)==='已取消') continue;
+    const active=isActiveForCapacity(g);
+    const note=(String(g.admin_note||'').trim()+' [前台] 取消未繳費報名'+(group.length>1?'（組合整組取消）':'')+' '+nowTaipeiText()).trim();
+    await dbUpdate(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(g.id)}`,{
+      review_status:'已取消', payment_status:'已取消', transfer_status:null,
+      payment_report_amount:0,payment_last5:null,payment_reported_at:null,
+      stall_number:null,seat_choice_status:'released',seat_choice_type:null,seat_hold_expires_at:null,admin_note:note
+    });
+    if(active) await adjustRegistrationCapacity(env,TENANT,g,-(safeNum(g.stall_count)||1));
+    await releaseRegistrationSeats(env,TENANT,g,'member_cancel');
+    await releaseRegistrationTimeslots(env,TENANT,g);
+    try{ await dbUpdate(env,'payments',`tenant_id=eq.${TENANT}&registration_id=eq.${encodeURIComponent(g.id)}&status=eq.%E5%BE%85%E7%A2%BA%E8%AA%8D`,{status:'已取消'}); }catch(e){}
+  }
+  for(const sid of [...new Set(group.map(x=>x.session_id).filter(Boolean))])await refreshSessionStatsSafe(env,TENANT,sid);
+  try{ const sesName=await getSessionName(env,reg.session_id,TENANT); const tc=await getTenantCtx(env,TENANT); await mailCancelReg(env,reg.email,getDisplayName(reg.name,reg.brand_name||'',''),sesName,tc); }catch(e){}
+  for(const g of group)await recordNotification(env,{tenantId:TENANT,unitId:g.operation_unit_id||null,sessionId:g.session_id,registrationId:g.id,email:g.email,eventKey:'registration_cancelled',title:'報名／預約已取消',body:'您的報名／預約已取消。',meta:{source:'member'}}).catch(()=>{});
+  return jsonOk({success:true,bundleCount:group.length});
+}
+// ── 加價選位模組（V8）────────────────────────────────────────
+function seatTypeLabel(t){ return ({auto:'自動排位', paid:'加價選位', service:'服務台', closed:'不開放'})[String(t||'auto')] || '自動排位'; }
+function normalizeSeatType(t){
+  const v=String(t||'auto').trim();
+  if(['auto','paid','service','closed'].includes(v)) return v;
+  if(v.includes('加價')) return 'paid';
+  if(v.includes('服務')) return 'service';
+  if(v.includes('不開')) return 'closed';
+  return 'auto';
+}
+function isSeatOccupiedActive(row){
+  const st=String(row.status||'');
+  if(st==='鎖定') return true;
+  if(st==='預留'){
+    const exp=row.seat_hold_expires_at||row.hold_expires_at||'';
+    if(!exp) return true;
+    return Date.parse(exp) > Date.now();
+  }
+  return false;
+}
+function seatCodeOf(row){ return row.stall_no || ''; }
+function seatRegId(row){ return row.registration_id || ''; }
+function addHoursIso(h){ return new Date(Date.now() + (Number(h)||24)*60*60*1000).toISOString(); }
+function isHoldExpiredAt(v){ return !!v && Date.parse(v) <= Date.now(); }
+function isPaidSeatHoldExpired(reg){
+  return String(reg?.seat_choice_intent||'')==='paid' && String(reg?.seat_choice_status||'')==='reserved' && isHoldExpiredAt(reg?.seat_hold_expires_at);
+}
+async function getExistingSeatFeeFromItems(env, regId, tenantId){
+  try {
+    const _t=String(tenantId||'').trim();
+    const rows = await dbGet(env,'registration_items',`${_t?`tenant_id=eq.${encodeURIComponent(_t)}&`:''}registration_id=eq.${encodeURIComponent(regId)}&item_type=eq.seat_fee&select=amount`);
+    return rows.reduce((sum,r)=>sum+safeNum(r.amount),0);
+  } catch(e) { return 0; }
+}
+async function releasePaidSeatHold(env, tenantId, reg, reason='expired'){
+  if(!reg || !reg.id) return;
+  try{
+    await dbUpdate(env,'stalls',`tenant_id=eq.${tenantId}&registration_id=eq.${encodeURIComponent(reg.id)}&status=eq.預留`,{status:'空閒',registration_id:null,email:null,hold_time:null,seat_hold_expires_at:null});
+  }catch(e){ console.error('releasePaidSeatHold stalls skipped', e&&e.message?e.message:e); logError(env, {source:'releasePaidSeatHold', message:'releasePaidSeatHold stalls skipped', error:e&&e.message?e.message:e}); }
+  const oldSeatFee = await getExistingSeatFeeFromItems(env, reg.id, tenantId);
+  try{ await rebuildSeatFeeItem(env,tenantId,reg,reg.session_id,0); }catch(e){}
+  const baseAmount=Math.max(0,(safeNum(reg.total_amount)||safeNum(reg.amount)||0)-oldSeatFee);
+  try{
+    await dbUpdate(env,'registrations',`tenant_id=eq.${tenantId}&id=eq.${encodeURIComponent(reg.id)}`,{
+      stall_number:null, seat_choice_status:'released', seat_choice_type:null,
+      seat_fee_total:0, seat_hold_expires_at:null, amount:baseAmount, total_amount:baseAmount
+    });
+  }catch(e){ console.error('releasePaidSeatHold reg skipped', e&&e.message?e.message:e); logError(env, {source:'releasePaidSeatHold', message:'releasePaidSeatHold reg skipped', error:e&&e.message?e.message:e}); }
+}
+async function claimSeatRowAtomic(env, tenantId, seat, reg, expiresAt){
+  const code=seatCodeOf(seat);
+  if(String(seatRegId(seat)||'')===String(reg.id||'') && String(seat.status||'')==='預留' && !isHoldExpiredAt(seat.seat_hold_expires_at)){
+    const rows=await dbUpdateReturning(env,'stalls',`tenant_id=eq.${tenantId}&id=eq.${encodeURIComponent(seat.id)}&registration_id=eq.${encodeURIComponent(reg.id)}`,{status:'預留',email:reg.email,hold_time:nowIso(),seat_hold_expires_at:expiresAt});
+    if(!rows.length) throw new Error('此位置已被選走，請重新選擇其他位置。');
+    return rows[0];
+  }
+  const rows=await dbUpdateReturning(env,'stalls',`tenant_id=eq.${tenantId}&id=eq.${encodeURIComponent(seat.id)}&status=eq.空閒&registration_id=is.null&is_active=eq.true`,{status:'預留',registration_id:reg.id,email:reg.email,hold_time:nowIso(),seat_hold_expires_at:expiresAt});
+  if(!rows.length) throw new Error(code+' 已被選走，請重新選擇其他位置。');
+  return rows[0];
+}
+async function getSessionSeatSetting(env, tenantId, sessionId){
+  const rows=await dbGet(env,'sessions',`tenant_id=eq.${tenantId}&id=eq.${encodeURIComponent(sessionId)}&select=id,seat_pricing_enabled,seat_hold_hours,seat_map_url`);
+  if(!rows.length) return {enabled:false, holdHours:SEAT_HOLD_HOURS, mapUrl:''};
+  const s=rows[0];
+  return {enabled:s.seat_pricing_enabled===true||s.seat_pricing_enabled==='true', holdHours:safeNum(s.seat_hold_hours)||SEAT_HOLD_HOURS, mapUrl:s.seat_map_url||''};
+}
+async function getSeatRows(env, tenantId, sessionId){
+  return await dbGet(env,'stalls',`tenant_id=eq.${tenantId}&session_id=eq.${encodeURIComponent(sessionId)}&select=*&order=map_order.asc,stall_no.asc`);
+}
+// B-02：公開選位圖不得回傳 id／regId／email。
+// 前台只需要知道「這格是不是我的」，所以改回 mine 旗標；ownRegId 由後端驗證後帶入，
+// 呼叫端無法自行指定別人的 regId 來探測。
+function publicSeat(row, ownRegId){
+  const code=seatCodeOf(row);
+  const type=normalizeSeatType(row.seat_type);
+  const rid=String(seatRegId(row)||'');
+  return {
+    code, stallNo:code, seatCode:code,
+    type, typeLabel:seatTypeLabel(type),
+    price:safeNum(row.price_delta), priceDelta:safeNum(row.price_delta),
+    x:safeNum(row.map_x), y:safeNum(row.map_y), order:safeNum(row.map_order),
+    active: (type==='auto'||type==='paid') && row.is_active!==false && row.is_active!=='false',
+    note:row.note||'', status:row.status||'空閒',
+    mine: !!(ownRegId && rid && rid===String(ownRegId)),
+    holdExpiresAt:row.seat_hold_expires_at||'',
+    occupied:isSeatOccupiedActive(row)
+  };
+}
+async function hGetSeatMap(env,p){
+  const TENANT=p._tenantId;
+  if(!p.sessionId) return jsonErr('缺少場次編號');
+  const setting=await getSessionSeatSetting(env,TENANT,p.sessionId);
+  let rows=[]; try{ rows=await getSeatRows(env,TENANT,p.sessionId); }catch(e){ rows=[]; }
+  // 只有通過 Email＋手機驗證的本人，才會拿到自己那格的 mine=true；
+  // 未驗證者一律看到「已被佔用」，看不出是誰。
+  let ownRegId='';
+  if (p.regId && p.email && p.phone) {
+    const regRows=await dbGet(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(p.regId)}&select=id,email,phone`).catch(()=>[]);
+    if (regRows.length && isRegistrationOwner(regRows[0], p.email, p.phone)) ownRegId=String(regRows[0].id);
+  }
+  const seats=rows.map(r=>publicSeat(r, ownRegId));
+  return jsonOk({enabled:setting.enabled, holdHours:setting.holdHours, mapUrl:setting.mapUrl, seats});
+}
+// ══════════════════════════════════════════════════════════════
+// 活動限定拍照框（行銷工具）
+//   顯示條件：開關開 AND（無限期 或 現在在區間內）AND 範圍相符
+//   優先序：場次框 > 活動框 > 全站框；同層取 start_at 較晚者（新上架勝出）
+// ══════════════════════════════════════════════════════════════
+function photoActivityActiveNow(a, nowMs){
+  if(!a || a.is_active===false || a.is_active==='false') return false;
+  if(a.is_unlimited===true || a.is_unlimited==='true') return true;
+  const st=a.start_at?Date.parse(a.start_at):NaN;
+  const en=a.end_at?Date.parse(a.end_at):NaN;
+  if(!isNaN(st)&&nowMs<st) return false;
+  if(!isNaN(en)&&nowMs>en) return false;
+  return true;
+}
+function normalizePhotoSlug(raw){
+  return String(raw||'').trim().toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
+}
+async function getPhotoActivityFrames(env,T,activityId,activeOnly){
+  let qs=`tenant_id=eq.${T}&activity_id=eq.${encodeURIComponent(activityId)}&select=*`;
+  if(activeOnly) qs+='&is_active=eq.true';
+  const rows=await dbGet(env,'photo_activity_frames',qs);
+  return (rows||[]).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0)||String(a.created_at||'').localeCompare(String(b.created_at||'')));
+}
+// 公開：列出目前有效的拍照活動（供活動卡或其他公開頁使用）
+async function hListActivePhotoActivities(env,b){
+  const T=b._tenantId; if(!T) return jsonOk({activities:[]});
+  let rows=[];
+  try{ rows=await dbGet(env,'photo_activities',`tenant_id=eq.${T}&select=*`); }
+  catch(e){ logError(env,{source:'hListActivePhotoActivities',message:'read activities failed',error:e&&e.message?e.message:e}); return jsonOk({activities:[]}); }
+  const now=Date.now(), out=[];
+  for(const a of (rows||[]).filter(x=>photoActivityActiveNow(x,now))){
+    const frames=await getPhotoActivityFrames(env,T,a.id,true).catch(()=>[]);
+    if(!frames.length) continue;
+    out.push({id:a.id,name:a.name||'',slug:a.slug||'',frameMode:a.frame_mode||'single',defaultFrameId:a.default_frame_id||'',scopeType:a.scope_type||'none',scopeEventId:a.scope_event_id||'',scopeSessionId:a.scope_session_id||'',frameCount:frames.length,previewUrl:(frames.find(f=>String(f.id)===String(a.default_frame_id))||frames[0]||{}).frame_url||''});
+  }
+  return jsonOk({activities:out});
+}
+// 公開：依固定短網址取得活動與全部可用框
+async function hGetPhotoActivityBySlug(env,b){
+  const T=b._tenantId; if(!T) return jsonErr('無法辨識主辦空間');
+  const slug=normalizePhotoSlug(b.slug||b.activitySlug||'');
+  if(!slug) return jsonErr('缺少拍照活動短網址');
+  let rows=[];
+  try{ rows=await dbGet(env,'photo_activities',`tenant_id=eq.${T}&slug=eq.${encodeURIComponent(slug)}&select=*`); }
+  catch(e){ logError(env,{source:'hGetPhotoActivityBySlug',message:'read activity failed',error:e&&e.message?e.message:e}); return jsonErr('讀取失敗'); }
+  const a=(rows||[])[0];
+  if(!a) return jsonErr('找不到這個拍照活動');
+  if(!photoActivityActiveNow(a,Date.now())) return jsonErr('這個拍照活動目前未開放');
+  const frames=await getPhotoActivityFrames(env,T,a.id,true).catch(()=>[]);
+  if(!frames.length) return jsonErr('這個拍照活動尚未設定可用拍照框');
+  let def=frames.find(f=>String(f.id)===String(a.default_frame_id)); if(!def) def=frames[0];
+  return jsonOk({activity:{id:a.id,name:a.name||'',slug:a.slug||'',pageTitle:a.page_title||a.name||'',pageContent:a.page_content||'',hashtag:a.hashtag||'',rewardText:a.reward_text||'',frameMode:a.frame_mode||'single',defaultFrameId:def.id,scopeType:a.scope_type||'none'},frames:frames.map(f=>({id:f.id,name:f.name||'',frameUrl:f.frame_url||'',sortOrder:Number(f.sort_order)||0,isActive:true}))});
+}
+async function hSubmitPhotoLead(env,b){
+  const T=b._tenantId; if(!T) return jsonErr('無法辨識主辦空間');
+  const activityId=String(b.activityId||'').trim(), frameId=String(b.frameId||'').trim();
+  if(!activityId||!frameId) return jsonErr('缺少拍照活動或拍照框');
+  const valid=await dbGet(env,'photo_activity_frames',`tenant_id=eq.${T}&activity_id=eq.${encodeURIComponent(activityId)}&id=eq.${encodeURIComponent(frameId)}&is_active=eq.true&select=id`).catch(()=>[]);
+  if(!valid[0]) return jsonErr('拍照框不存在或已停用');
+  const name=String(b.name||'').trim(), email=String(b.email||'').trim();
+  if(!name) return jsonErr('請填姓名或暱稱');
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return jsonErr('Email 格式不正確');
+  const id=genId('PLD');
+  try{ await dbInsert(env,'photo_leads',{id,tenant_id:T,activity_id:activityId,frame_id:frameId,event_id:String(b.eventId||'')||null,session_id:String(b.sessionId||'')||null,name,email,phone:String(b.phone||'').trim(),first_time:String(b.firstTime||''),source:String(b.source||''),marketing_consent:(b.consent===true||b.consent==='true'),created_at:nowIso()}); }
+  catch(e){ logError(env,{source:'hSubmitPhotoLead',message:'insert lead failed',error:e&&e.message?e.message:e}); return jsonErr('送出失敗，請稍後再試'); }
+  return jsonOk({success:true,id});
+}
+async function hListPhotoActivities(env,b){
+  const T=b._tenantId; if(!await verifyStaff(env,b.email,b.token,T,'sessions')) return jsonErr('無權限');
+  const acts=await dbGet(env,'photo_activities',`tenant_id=eq.${T}&select=*`);
+  const frames=await dbGet(env,'photo_activity_frames',`tenant_id=eq.${T}&select=*`).catch(()=>[]);
+  const leads=await dbGet(env,'photo_leads',`tenant_id=eq.${T}&select=activity_id,frame_id,marketing_consent`).catch(()=>[]);
+  const out=(acts||[]).map(a=>{
+    const fs=(frames||[]).filter(f=>String(f.activity_id)===String(a.id)).sort((x,y)=>(Number(x.sort_order)||0)-(Number(y.sort_order)||0));
+    const ls=(leads||[]).filter(l=>String(l.activity_id)===String(a.id));
+    return Object.assign({},a,{frames:fs,lead_count:ls.length,consent_count:ls.filter(l=>l.marketing_consent===true||l.marketing_consent==='true').length});
+  }).sort((a,b2)=>String(b2.created_at||'').localeCompare(String(a.created_at||'')));
+  return jsonOk({activities:out,total_leads:(leads||[]).length});
+}
+async function hSavePhotoActivity(env,b){
+  const T=b._tenantId; if(!await verifyStaff(env,b.email,b.token,T,'sessions')) return jsonErr('無權限');
+  const name=String(b.name||'').trim(); if(!name) return jsonErr('請填拍照活動名稱');
+  let slug=normalizePhotoSlug(b.slug||''); if(!slug) slug='photo-'+crypto.randomUUID().replace(/-/g,'').slice(0,8);
+  const mode=String(b.frameMode||'single')==='multiple'?'multiple':'single';
+  const scope=['none','all','event','session'].includes(String(b.scopeType||''))?String(b.scopeType):'none';
+  if(scope==='event'&&!String(b.scopeEventId||'').trim()) return jsonErr('請選擇活動');
+  if(scope==='session'&&!String(b.scopeSessionId||'').trim()) return jsonErr('請選擇場次');
+  const unlimited=b.isUnlimited===true||b.isUnlimited==='true', startAt=String(b.startAt||'').trim(), endAt=String(b.endAt||'').trim();
+  if(!unlimited&&startAt&&endAt&&Date.parse(endAt)<Date.parse(startAt)) return jsonErr('結束時間不可早於開始時間');
+  const id=String(b.activityId||'').trim()||genId('PHA');
+  const dupe=await dbGet(env,'photo_activities',`tenant_id=eq.${T}&slug=eq.${encodeURIComponent(slug)}&select=id`).catch(()=>[]);
+  if(dupe.some(x=>String(x.id)!==id)) return jsonErr('短網址代碼已被使用');
+  const payload={tenant_id:T,name,slug,page_title:String(b.pageTitle||'').trim()||name,page_content:String(b.pageContent||''),hashtag:String(b.hashtag||''),reward_text:String(b.rewardText||''),frame_mode:mode,scope_type:scope,scope_event_id:scope==='event'?String(b.scopeEventId||'').trim():null,scope_session_id:scope==='session'?String(b.scopeSessionId||'').trim():null,is_unlimited:unlimited,start_at:(!unlimited&&startAt)?startAt:null,end_at:(!unlimited&&endAt)?endAt:null,is_active:!(b.isActive===false||b.isActive==='false'),note:String(b.note||''),updated_at:nowIso()};
+  if(b.activityId) await dbUpdate(env,'photo_activities',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(id)}`,payload);
+  else await dbInsert(env,'photo_activities',Object.assign({id,default_frame_id:null,created_at:nowIso()},payload));
+  return jsonOk({success:true,id,slug});
+}
+async function hSavePhotoActivityFrame(env,b){
+  const T=b._tenantId; if(!await verifyStaff(env,b.email,b.token,T,'sessions')) return jsonErr('無權限');
+  const activityId=String(b.activityId||'').trim(); if(!activityId) return jsonErr('缺少拍照活動');
+  const name=String(b.name||'').trim(), frameUrl=String(b.frameUrl||'').trim(); if(!name) return jsonErr('請填框名稱'); if(!frameUrl) return jsonErr('請上傳拍照框');
+  const act=await dbGet(env,'photo_activities',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(activityId)}&select=id,frame_mode,default_frame_id`).catch(()=>[]); if(!act[0]) return jsonErr('找不到拍照活動');
+  const id=String(b.frameId||'').trim()||genId('PAF');
+  const payload={tenant_id:T,activity_id:activityId,name,frame_url:frameUrl,sort_order:Math.max(0,Number(b.sortOrder)||0),is_active:!(b.isActive===false||b.isActive==='false'),updated_at:nowIso()};
+  if(b.frameId) await dbUpdate(env,'photo_activity_frames',`tenant_id=eq.${T}&activity_id=eq.${encodeURIComponent(activityId)}&id=eq.${encodeURIComponent(id)}`,payload);
+  else await dbInsert(env,'photo_activity_frames',Object.assign({id,created_at:nowIso()},payload));
+  if(b.isDefault===true||b.isDefault==='true'||!act[0].default_frame_id) await dbUpdate(env,'photo_activities',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(activityId)}`,{default_frame_id:id,updated_at:nowIso()});
+  return jsonOk({success:true,id});
+}
+async function hDeletePhotoActivityFrame(env,b){
+  const T=b._tenantId; if(!await verifyStaff(env,b.email,b.token,T,'sessions')) return jsonErr('無權限');
+  const activityId=String(b.activityId||'').trim(), frameId=String(b.frameId||'').trim(); if(!activityId||!frameId) return jsonErr('缺少拍照活動或框');
+  await dbDelete(env,'photo_activity_frames',`tenant_id=eq.${T}&activity_id=eq.${encodeURIComponent(activityId)}&id=eq.${encodeURIComponent(frameId)}`);
+  const left=await getPhotoActivityFrames(env,T,activityId,false).catch(()=>[]);
+  await dbUpdate(env,'photo_activities',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(activityId)}`,{default_frame_id:left[0]?.id||null,updated_at:nowIso()});
+  return jsonOk({success:true});
+}
+async function hDeletePhotoActivity(env,b){
+  const T=b._tenantId; if(!await verifyStaff(env,b.email,b.token,T,'sessions')) return jsonErr('無權限');
+  const id=String(b.activityId||'').trim(); if(!id) return jsonErr('缺少拍照活動');
+  await dbDelete(env,'photo_activities',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(id)}`);
+  return jsonOk({success:true});
+}
+async function hListPhotoLeads(env,b){
+  const T=b._tenantId; if(!await verifyStaff(env,b.email,b.token,T,'sessions')) return jsonErr('無權限');
+  let qs=`tenant_id=eq.${T}&select=*`;
+  if(b.activityId) qs+=`&activity_id=eq.${encodeURIComponent(b.activityId)}`;
+  if(b.frameId) qs+=`&frame_id=eq.${encodeURIComponent(b.frameId)}`;
+  if(b.source) qs+=`&source=eq.${encodeURIComponent(b.source)}`;
+  if(b.consentOnly===true||b.consentOnly==='true') qs+='&marketing_consent=eq.true';
+  if(b.from) qs+=`&created_at=gte.${encodeURIComponent(b.from)}`;
+  if(b.to) qs+=`&created_at=lte.${encodeURIComponent(b.to)}`;
+  const rows=await dbGet(env,'photo_leads',qs), list=(rows||[]).sort((a,b2)=>String(b2.created_at||'').localeCompare(String(a.created_at||'')));
+  const bySource={}; for(const l of list){const k=String(l.source||'未填');bySource[k]=(bySource[k]||0)+1;}
+  return jsonOk({leads:list,total:list.length,consent_total:list.filter(l=>l.marketing_consent===true||l.marketing_consent==='true').length,by_source:bySource});
+}
+
+// 活動名單：把「拍照框名單（民眾）」與「會員（攤商）」以 Email 合併去重，
+// 產生單一份可再行銷的人名單。只讀不寫，不建立任何會員。
+async function hListContactLeads(env,b){
+  const T=b._tenantId;
+  if(!await verifyStaff(env,b.email,b.token,T,'sessions')) return jsonErr('無權限');
+  let leads=[], mems=[];
+  try{ leads=await dbGet(env,'photo_leads',`tenant_id=eq.${T}&select=name,email,phone,source,first_time,marketing_consent,frame_id,session_id,created_at`); }catch(e){ leads=[]; }
+  try{ mems=await dbGet(env,'members',`tenant_id=eq.${T}&select=name,display_name,brand_name,email,phone,joined_at,last_login_at`); }catch(e){ mems=[]; }
+  const map={};
+  const keyOf=e=>String(e||'').trim().toLowerCase();
+  for(const l of (leads||[])){
+    const k=keyOf(l.email); if(!k) continue;
+    const cur=map[k]||{email:String(l.email||'').trim(),name:'',phone:'',isPublic:false,isVendor:false,brand:'',consent:false,sources:[],lastAt:''};
+    cur.name=cur.name||String(l.name||'');
+    cur.phone=cur.phone||String(l.phone||'');
+    cur.isPublic=true;
+    if(l.marketing_consent===true||l.marketing_consent==='true') cur.consent=true;
+    const src=String(l.source||'').trim(); if(src && cur.sources.indexOf(src)<0) cur.sources.push(src);
+    const t=String(l.created_at||''); if(t>cur.lastAt) cur.lastAt=t;
+    map[k]=cur;
+  }
+  for(const m of (mems||[])){
+    const k=keyOf(m.email); if(!k) continue;
+    const cur=map[k]||{email:String(m.email||'').trim(),name:'',phone:'',isPublic:false,isVendor:false,brand:'',consent:false,sources:[],lastAt:''};
+    cur.name=cur.name||String(m.name||m.display_name||'');
+    cur.phone=cur.phone||String(m.phone||'');
+    cur.brand=cur.brand||String(m.brand_name||'');
+    cur.isVendor=true;
+    const t=String(m.last_login_at||m.joined_at||''); if(t>cur.lastAt) cur.lastAt=t;
+    map[k]=cur;
+  }
+  const list=Object.keys(map).map(k=>map[k]).sort((a,b2)=>String(b2.lastAt||'').localeCompare(String(a.lastAt||'')));
+  return jsonOk({
+    contacts:list,
+    total:list.length,
+    consent_total:list.filter(x=>x.consent).length,
+    public_total:list.filter(x=>x.isPublic).length,
+    vendor_total:list.filter(x=>x.isVendor).length,
+    both_total:list.filter(x=>x.isPublic&&x.isVendor).length
+  });
+}
+
+// ── 常用場地圖庫（租戶層級可重用：圖片 + 整份攤位清單） ──
+function normalizeVenueMapSeats(raw){
+  const parsed=safeJson(raw,[]);
+  if(Array.isArray(parsed)) return parsed;
+  if(parsed && Array.isArray(parsed.seats)) return parsed.seats;
+  if(parsed && Array.isArray(parsed.items)) return parsed.items;
+  return [];
+}
+// 選位設定唯一正規化來源：後台只管理「攤位（固定）／服務台／禁用」。
+// 固定攤位由 price 自動映射為 auto（0 元）或 paid（>0 元）；舊 category 不再沿用。
+function normalizeSeatConfigItem(raw={}, index=0){
+  const code=String(raw.code||raw.stallNo||raw.stall_no||'').trim();
+  const oldType=normalizeSeatType(raw.type||raw.seatType||raw.seat_type||'auto');
+  const legacyInactive=(raw.active===false||raw.active==='false'||raw.is_active===false||raw.is_active==='false');
+  let kind=(oldType==='service')?'service':((oldType==='closed'||legacyInactive)?'closed':'fixed');
+  let price=Math.max(0,safeNum(raw.price||raw.priceDelta||raw.price_delta));
+  if(kind!=='fixed') price=0;
+  const type=kind==='service'?'service':kind==='closed'?'closed':(price>0?'paid':'auto');
+  return {
+    code,
+    type,
+    price,
+    x:safeNum(raw.x||raw.mapX||raw.map_x),
+    y:safeNum(raw.y||raw.mapY||raw.map_y),
+    order:safeNum(raw.order||raw.mapOrder||raw.map_order)||index+1,
+    note:String(raw.note||''),
+    active:type==='auto'||type==='paid',
+    category:''
+  };
+}
+function normalizeSeatConfigList(raw){
+  return normalizeVenueMapSeats(raw).map((item,index)=>normalizeSeatConfigItem(item,index)).filter(item=>item.code);
+}
+function seatMapApplyErrorMessage(err){
+  const m=String(err&&err.message?err.message:err||'');
+  if(/column.*number|Could not find.*number/i.test(m)) return '資料庫攤位欄位版本不一致（舊 number 欄位），請更新 Worker 後再試。';
+  if(/seat_assign_days_before/i.test(m)) return '資料庫缺少自動排位設定欄位，請先執行正式場地圖資料庫更新。';
+  if(/venue_map_template_id/i.test(m)) return '資料庫缺少常用場地圖關聯欄位，請先執行正式場地圖資料庫更新。';
+  if(/duplicate key|unique constraint/i.test(m)) return '場地圖內有重複攤位號碼，請檢查常用圖號碼。';
+  return '資料庫寫入失敗，錯誤已記錄。';
+}
+async function hListVenueMaps(env,b){
+  const TENANT=b._tenantId;
+  if(!await verifyStaff(env,b.email,b.token,TENANT,'sessions')) return jsonErr('無權限');
+  const rows=await dbGet(env,'venue_map_templates',`tenant_id=eq.${TENANT}&select=*&order=updated_at.desc`);
+  // seats_json 為 JSONB；舊資料可能曾被存成 JSON 字串，回傳前一律正規化成陣列。
+  const maps=(rows||[]).map(r=>({...r,seats_json:normalizeSeatConfigList(r.seats_json)}));
+  return jsonOk({maps});
+}
+async function hSaveVenueMap(env,b){
+  const TENANT=b._tenantId;
+  if(!await verifyStaff(env,b.email,b.token,TENANT,'sessions')) return jsonErr('無權限');
+  const name=String(b.name||'').trim();
+  if(!name) return jsonErr('請填常用圖名稱');
+  const seats=normalizeSeatConfigList(b.seats||[]);
+  // JSONB 直接寫正規化陣列；category／active 不再形成第二套控制來源。
+  const payload={ tenant_id:TENANT, name, seat_map_url:b.mapUrl||'', seats_json:seats, note:b.note||'', updated_at:nowIso() };
+  const exist=await dbGet(env,'venue_map_templates',`tenant_id=eq.${TENANT}&name=eq.${encodeURIComponent(name)}&select=id`);
+  if(exist&&exist.length){
+    await dbUpdate(env,'venue_map_templates',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(exist[0].id)}`,payload);
+    return jsonOk({success:true,id:exist[0].id,updated:true});
+  }
+  const id=genId('VMT');
+  await dbInsert(env,'venue_map_templates',{id,...payload,created_at:nowIso()});
+  return jsonOk({success:true,id});
+}
+async function hApplyVenueMap(env,b){
+  const TENANT=b._tenantId;
+  if(!await verifyStaff(env,b.email,b.token,TENANT,'sessions')) return jsonErr('無權限');
+  if(!b.sessionId) return jsonErr('缺少場次編號');
+  const rows=await dbGet(env,'venue_map_templates',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.mapId)}&select=*`);
+  if(!rows||!rows.length) return jsonErr('找不到常用圖');
+  const tpl=rows[0];
+  const seats=normalizeSeatConfigList(tpl.seats_json);
+  try{
+    const r=await hSaveSeatMap(env,{_tenantId:TENANT,email:b.email,token:b.token,sessionId:b.sessionId,enabled:b.enabled!==false,holdHours:b.holdHours,assignDaysBefore:b.assignDaysBefore,mapUrl:tpl.seat_map_url,seats});
+    try{ await dbUpdate(env,'sessions',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.sessionId)}`,{venue_map_template_id:tpl.id}); }catch(e){ logError(env,{source:'hApplyVenueMap',message:'set template id failed',error:e&&e.message?e.message:e}); }
+    return r;
+  }catch(e){
+    logError(env,{source:'hApplyVenueMap',message:'apply venue map failed',error:e&&e.message?e.message:e,meta:{sessionId:b.sessionId,mapId:b.mapId}});
+    return jsonErr('套用場地圖失敗：'+seatMapApplyErrorMessage(e));
+  }
+}
+async function hDeleteVenueMap(env,b){
+  const TENANT=b._tenantId;
+  if(!await verifyStaff(env,b.email,b.token,TENANT,'sessions')) return jsonErr('無權限');
+  if(!b.mapId) return jsonErr('缺少常用圖編號');
+  await dbDelete(env,'venue_map_templates',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.mapId)}`);
+  return jsonOk({success:true});
+}
+async function hSaveSeatMapImage(env,b){
+  const TENANT=b._tenantId;
+  if(!await verifyStaff(env,b.email,b.token,TENANT,'sessions')) return jsonErr('無權限');
+  if(!b.sessionId) return jsonErr('缺少場次編號');
+  await dbUpdate(env,'sessions',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.sessionId)}`,{
+    seat_map_url:String(b.mapUrl||'').trim()
+  });
+  return jsonOk({success:true,mapUrl:String(b.mapUrl||'').trim()});
+}
+async function hSaveSeatMap(env,b){
+  const TENANT=b._tenantId;
+  if(!await verifyStaff(env,b.email,b.token,TENANT,'sessions')) return jsonErr('無權限');
+  if(!b.sessionId) return jsonErr('缺少場次編號');
+  const seats=normalizeSeatConfigList(b.seats||[]);
+  const codes=new Set();
+  for(const s of seats){
+    const code=String(s.code||s.seatCode||s.stallNo||'').trim();
+    if(!code) return jsonErr('攤位代碼不可空白');
+    if(codes.has(code)) return jsonErr('同一場次攤位代碼不可重複：'+code);
+    codes.add(code);
+  }
+  const _sesUpd={
+    seat_pricing_enabled: !!b.enabled,
+    seat_hold_hours: Number(b.holdHours)||SEAT_HOLD_HOURS,
+    seat_map_url: b.mapUrl||''
+  };
+  if(b.assignDaysBefore!=null && b.assignDaysBefore!=='') _sesUpd.seat_assign_days_before=Math.max(3,Number(b.assignDaysBefore)||7);
+  await dbUpdate(env,'sessions',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.sessionId)}`,_sesUpd);
+  const existing=await getSeatRows(env,TENANT,b.sessionId);
+  for(const item of seats){
+    const code=item.code;
+    const type=item.type;
+    const data={
+      tenant_id:TENANT, session_id:b.sessionId,
+      stall_no:code,
+      seat_type:type, price_delta:type==='paid'?item.price:0,
+      category:'',
+      map_x:item.x, map_y:item.y, map_order:item.order,
+      is_active:item.active, note:item.note,
+      status:item.active?'空閒':'停用',
+      registration_id:null, email:null, hold_time:null, seat_hold_expires_at:null,
+      updated_at:nowIso()
+    };
+    const old=existing.find(x=>seatCodeOf(x)===code);
+    if(old) {
+      if (seatRegId(old) && isSeatOccupiedActive(old)) {
+        // 套用常用圖不得洗掉已預留／已鎖定的位置。
+        data.status = old.status; data.registration_id = seatRegId(old); data.email = old.email; data.hold_time = old.hold_time; data.seat_hold_expires_at = old.seat_hold_expires_at;
+      }
+      await dbUpdate(env,'stalls',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(old.id)}`,data);
+    }
+    else await dbInsert(env,'stalls',{id:genId('STL'),...data,created_at:nowIso()});
+  }
+  // 清單沒帶到的、且未被占用者，自動停用，不直接刪除，避免誤刪歷史。
+  for(const old of existing){
+    const code=seatCodeOf(old);
+    if(code && !codes.has(code) && !seatRegId(old)){
+      await dbUpdate(env,'stalls',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(old.id)}`,{is_active:false,status:'停用',updated_at:nowIso()});
+    }
+  }
+  return jsonOk({success:true,count:seats.length});
+}
+async function rebuildSeatFeeItem(env, tenantId, reg, sessionId, seatFee){
+  const _t=String(tenantId||'').trim();
+  try{ await dbDelete(env,'registration_items',`${_t?`tenant_id=eq.${encodeURIComponent(_t)}&`:''}registration_id=eq.${encodeURIComponent(reg.id)}&item_type=eq.seat_fee`); }catch(e){}
+  if(safeNum(seatFee)>0){
+    await dbInsert(env,'registration_items',{id:genId('ITEM'),tenant_id:_t,registration_id:reg.id,item_type:'seat_fee',item_name:'加價選位費',quantity:1,unit_price:safeNum(seatFee),amount:safeNum(seatFee),note:'tax_included'});
+  }
+}
+async function hClaimPaidSeat(env,b){
+  const TENANT=b._tenantId;
+  if(!b.regId||!b.sessionId) return jsonErr('缺少報名或場次編號');
+  const regRows=await dbGet(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.regId)}&select=*`);
+  if(!regRows.length) return jsonErr('找不到報名紀錄');
+  const reg=regRows[0];
+  if(isPaidSeatHoldExpired(reg)){ await releasePaidSeatHold(env,TENANT,reg,'expired_before_claim'); return jsonErr('原選位保留已逾期，位置已釋出，請重新整理後再選擇位置。'); }
+  if(String(reg.session_id||'')!==String(b.sessionId||'')) return jsonErr('報名與場次不一致');
+  const own=regOwnerGuard(reg,b,'選擇位置的'); if(own) return own;
+  if(String(reg.review_status||'')!=='已錄取') return jsonErr('尚未錄取，不能加價選位');
+  if(String(reg.payment_status||'')==='免費') return jsonErr('免費報名不開放加價選位');
+  if(String(reg.payment_status||'')==='待確認'||String(reg.payment_status||'')==='付款待確認') return jsonErr('付款正在確認中，請先等待主辦確認後再選位');
+  if(isCapacityInactiveTransferStatus(reg.transfer_status)) return jsonErr('此報名已取消或進入退費流程');
+  if(String(reg.seat_choice_intent||'')!=='paid') return jsonErr('報名時未選擇加價選位意願，不能加購加價選位');
+  const setting=await getSessionSeatSetting(env,TENANT,b.sessionId);
+  if(!setting.enabled) return jsonErr('此場次未開放加價選位');
+  const codes=(Array.isArray(b.seats)?b.seats:[b.seatCode||b.stallNumber]).map(x=>String(x||'').trim()).filter(Boolean);
+  const max=Math.max(1,Number(reg.stall_count)||1);
+  if(!codes.length) return jsonErr('請選擇位置');
+  if(codes.length!==max) return jsonErr('請選滿 '+max+' 個位置，需與報名攤位數一致');
+  const rows=await getSeatRows(env,TENANT,b.sessionId); let seatFee=0;
+  for(const code of codes){
+    const seat=rows.find(x=>seatCodeOf(x)===code); if(!seat) return jsonErr('找不到位置 '+code);
+    if(normalizeSeatType(seat.seat_type)!=='paid') return jsonErr(code+' 不是加價選位位置');
+    if(seat.is_active===false||seat.is_active==='false') return jsonErr(code+' 未開放');
+    if(String(seat.status||'')==='預留'&&isHoldExpiredAt(seat.seat_hold_expires_at)){
+      if(seatRegId(seat)){ try{await dbUpdate(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(seatRegId(seat))}&seat_choice_status=eq.reserved`,{stall_number:null,seat_choice_status:'released',seat_choice_type:null,seat_hold_expires_at:null});}catch(e){} }
+      await dbUpdate(env,'stalls',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(seat.id)}`,{status:'空閒',registration_id:null,email:null,hold_time:null,seat_hold_expires_at:null});
+      seat.status='空閒'; seat.registration_id=null; seat.email=null; seat.seat_hold_expires_at=null;
+    }
+    if(isSeatOccupiedActive(seat)&&String(seatRegId(seat)||'')!==String(reg.id)) return jsonErr('此位置已被選走，請重新選擇其他位置。');
+    seatFee+=safeNum(seat.price_delta);
+  }
+  const oldSeatFee=await getExistingSeatFeeFromItems(env,reg.id,TENANT);
+  const baseAmount=Math.max(0,(safeNum(reg.total_amount)||safeNum(reg.amount)||0)-oldSeatFee);
+  const newTotal=baseAmount+seatFee;
+  const wasPaid=isPaidStatus(reg.payment_status);
+  const paidAmount=safeNum(reg.paid_amount)||(wasPaid?baseAmount:0);
+  const due=Math.max(0,newTotal-paidAmount);
+  const expiresAt=addHoursIso(setting.holdHours);
+  for(const s of rows.filter(x=>String(seatRegId(x)||'')===String(reg.id)&&normalizeSeatType(x.seat_type)==='paid'&&!codes.includes(seatCodeOf(x)))){
+    await dbUpdate(env,'stalls',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(s.id)}`,{status:'空閒',registration_id:null,email:null,hold_time:null,seat_hold_expires_at:null});
+  }
+  const claimed=[];
+  for(const code of codes){
+    const seat=rows.find(x=>seatCodeOf(x)===code);
+    try{ await claimSeatRowAtomic(env,TENANT,seat,reg,expiresAt); claimed.push(seat); }
+    catch(e){ for(const got of claimed){try{await dbUpdate(env,'stalls',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(got.id)}&registration_id=eq.${encodeURIComponent(reg.id)}&status=eq.預留`,{status:'空閒',registration_id:null,email:null,hold_time:null,seat_hold_expires_at:null});}catch(_e){}} return jsonErr(e.message||'此位置已被選走，請重新選擇其他位置。'); }
+  }
+  const locked=due<=0;
+  if(locked){ for(const got of claimed) await dbUpdate(env,'stalls',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(got.id)}&registration_id=eq.${encodeURIComponent(reg.id)}`,{status:'鎖定',seat_hold_expires_at:null}); }
+  const upd={stall_number:codes.join(','),seat_choice_status:locked?'locked':'reserved',seat_choice_type:'paid',seat_fee_total:seatFee,seat_hold_expires_at:locked?null:expiresAt,amount:newTotal,total_amount:newTotal};
+  // 舊已繳資料若尚未回填 paid_amount，先把原已繳金額寫回，補款時才只會收選位差額。
+  if(wasPaid && paidAmount>safeNum(reg.paid_amount)) upd.paid_amount=paidAmount;
+  if(wasPaid&&due>0) Object.assign(upd,{payment_status:'未繳費',payment_report_amount:0,payment_last5:null,payment_reported_at:null});
+  await dbUpdate(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(reg.id)}`,upd);
+  await rebuildSeatFeeItem(env,TENANT,reg,b.sessionId,seatFee);
+  const message=locked?'位置已正式鎖定。':(wasPaid?'位置已保留 '+setting.holdHours+' 小時，請補繳加價差額 NT$'+due+'。':'此位置已為您保留 '+setting.holdHours+' 小時，請於期限內完成付款。');
+  return jsonOk({success:true,seats:codes,seatFee,total:newTotal,paid:paidAmount,due,expiresAt:locked?'':expiresAt,locked,message});
+}
+async function autoAssignSeatForPaidReg(env, tenantId, reg){
+  if(reg.stall_number) return {skipped:true,reason:'already_has_stall'};
+  if(String(reg.seat_choice_intent||'auto')==='paid') return {skipped:true,reason:'paid_choice'};
+  const need=Math.max(1,Number(reg.stall_count)||1);
+  const rows=await getSeatRows(env,tenantId,reg.session_id);
+  const free=rows.filter(s=>normalizeSeatType(s.seat_type)==='auto' && s.is_active!==false && s.is_active!=='false' && !isSeatOccupiedActive(s)).sort((a,b)=>{const oa=Number(a.map_order)||0,ob=Number(b.map_order)||0;return oa!==ob?oa-ob:String(seatCodeOf(a)).localeCompare(String(seatCodeOf(b)));});
+  if(free.length<need) return {skipped:true,reason:'no_auto_seat'};
+  const picked=free.slice(0,need);
+  for(const s of picked){ await dbUpdate(env,'stalls',`tenant_id=eq.${tenantId}&id=eq.${encodeURIComponent(s.id)}`,{status:'鎖定',registration_id:reg.id,email:reg.email||'',hold_time:nowIso(),seat_hold_expires_at:null}); }
+  const codes=picked.map(seatCodeOf);
+  await dbUpdate(env,'registrations',`tenant_id=eq.${tenantId}&id=eq.${encodeURIComponent(reg.id)}`,{stall_number:codes.join(','),seat_choice_status:'locked',seat_choice_type:'auto'});
+  return {success:true,seats:codes};
+}
+
+function sessionFirstStartMs(session){
+  const rows=safeJson(session && session.dates_json,[]);
+  const ms=[];
+  for(const row of rows){
+    const date=String((row&&row.date)||'').trim();
+    if(!date) continue;
+    const start=String((row&&row.start)||'').trim();
+    let raw=date;
+    // DOING 場次日期通常是 YYYY-MM-DD；用台灣時區解讀，避免 UTC 造成跨日誤差。
+    if(/^\d{4}-\d{2}-\d{2}$/.test(date)) raw=`${date}T${start||'00:00'}:00+08:00`;
+    const t=Date.parse(raw);
+    if(Number.isFinite(t)) ms.push(t);
+  }
+  return ms.length?Math.min(...ms):NaN;
+}
+
+function sessionAutoAssignWindow(session, nowMs=Date.now()){
+  const startMs=sessionFirstStartMs(session);
+  const days=Math.max(3,Number(session&&session.seat_assign_days_before)||7);
+  if(!Number.isFinite(startMs)) return {active:false,days,startMs:null};
+  const windowStart=startMs-days*24*60*60*1000;
+  return {active:nowMs>=windowStart && nowMs<startMs,days,startMs,windowStart};
+}
+
+// ── 活動前持續自動配位 ─────────────────────────────────────
+// 規則：進入 seat_assign_days_before（預設 7 天、最低 3 天）後，到活動開始前，
+// 所有「已錄取＋已確認付款＋非加價選位＋尚未配位」的報名，都持續依付款確認順序補位。
+// 不再以 seat_assign_done_at 當作「只跑一次」的阻斷旗標；該欄位只記錄最近一次自動配位執行時間。
+async function batchAssignSeatsForSession(env, tenantId, session){
+  const sid=session.id;
+  const regs=await dbGet(env,'registrations',`tenant_id=eq.${tenantId}&session_id=eq.${encodeURIComponent(sid)}&review_status=eq.%E5%B7%B2%E9%8C%84%E5%8F%96&select=*`);
+  const queue=(regs||[])
+    .filter(r=>isPaidStatus(r.payment_status) && !r.stall_number && String(r.seat_choice_intent||'auto')!=='paid')
+    .sort((a,b)=>{
+      // registrations.paid_at 由「確認付款」寫入，是正式付款確認順序；無值時才退回回報時間／建立時間。
+      const pa=a.paid_at||a.payment_reported_at||a.created_at||'';
+      const pb=b.paid_at||b.payment_reported_at||b.created_at||'';
+      const c=String(pa).localeCompare(String(pb));
+      return c!==0?c:String(a.created_at||'').localeCompare(String(b.created_at||''));
+    });
+  let assigned=0, skipped=0;
+  for(const r of queue){
+    try{
+      const res=await autoAssignSeatForPaidReg(env,tenantId,r);
+      if(res&&res.success) assigned++; else skipped++;
+    }catch(e){
+      skipped++;
+      logError(env,{source:'batchAssignSeatsForSession',message:'assign one failed',error:e&&e.message?e.message:e});
+    }
+  }
+  return {assigned,skipped,total:queue.length};
+}
+
+
+// ── DOING 主辦選位營運 ─────────────────────────────────────
+async function hAdminSeatBoard(env,b){
+  const T=b._tenantId;
+  if(!await verifyStaff(env,b.email,b.token,T,'sessions',String(b.sessionId||''))) return jsonErr('無權限');
+  if(!b.sessionId) return jsonErr('缺少場次編號');
+  const seatRows=await getSeatRows(env,T,b.sessionId).catch(()=>[]);
+  const regRows=await dbGet(env,'registrations',`tenant_id=eq.${T}&session_id=eq.${encodeURIComponent(b.sessionId)}&review_status=eq.%E5%B7%B2%E9%8C%84%E5%8F%96&select=*`).catch(()=>[]);
+  const seats=(seatRows||[]).map(s=>({
+    code:seatCodeOf(s), type:normalizeSeatType(s.seat_type), typeLabel:seatTypeLabel(normalizeSeatType(s.seat_type)), price:safeNum(s.price_delta),
+    active:s.is_active!==false&&s.is_active!=='false'&&normalizeSeatType(s.seat_type)!=='closed', status:s.status||'空閒', occupied:isSeatOccupiedActive(s),
+    regId:seatRegId(s)||'', holdExpiresAt:s.seat_hold_expires_at||'', note:s.note||'', order:safeNum(s.map_order)
+  }));
+  const regs=(regRows||[]).map(r=>({regId:r.id,brand:r.brand_name||'',name:r.name||'',email:r.email||'',stallNumber:r.stall_number||'',stallCount:Math.max(1,Number(r.stall_count)||1),intent:String(r.seat_choice_intent||'auto')==='paid'?'paid':'auto',payStatus:r.payment_status||'',paidAt:r.paid_at||r.payment_reported_at||'',seatStatus:r.seat_choice_status||''}));
+  return jsonOk({sessionId:b.sessionId,seats,regs});
+}
+async function hAdminAssignSeat(env,b){
+  const T=b._tenantId;
+  if(!await verifyStaff(env,b.email,b.token,T,'sessions')) return jsonErr('無權限');
+  const lock=await checkTenantLocked(env,T); if(lock.locked) return jsonErr(lock.reason||'此主辦空間目前為唯讀鎖定');
+  const regId=String(b.regId||'').trim(); if(!regId) return jsonErr('缺少報名編號');
+  const regs=await dbGet(env,'registrations',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(regId)}&select=*`).catch(()=>[]); if(!regs.length) return jsonErr('找不到報名紀錄');
+  const reg=regs[0]; if(String(reg.review_status||'')!=='已錄取') return jsonErr('只有已錄取報名可安排位置');
+  const codes=(Array.isArray(b.seats)?b.seats:String(b.seats||'').split(/[,，\s]+/)).map(x=>String(x||'').trim()).filter(Boolean);
+  const need=Math.max(1,Number(reg.stall_count)||1); if(codes.length!==need) return jsonErr(`此報名需要 ${need} 個位置`); if(new Set(codes).size!==codes.length) return jsonErr('位置號碼不可重複');
+  const all=await getSeatRows(env,T,reg.session_id); const targets=[];
+  for(const code of codes){const s=all.find(x=>seatCodeOf(x)===code);if(!s)return jsonErr('找不到位置 '+code);const typ=normalizeSeatType(s.seat_type);if(!(typ==='auto'||typ==='paid')||s.is_active===false||s.is_active==='false')return jsonErr(code+' 不可使用');if(isSeatOccupiedActive(s)&&String(seatRegId(s)||'')!==regId)return jsonErr(code+' 已被其他報名使用');targets.push(s);}
+  const newly=[];
+  for(const s of targets){if(String(seatRegId(s)||'')===regId)continue;const got=await dbUpdateReturning(env,'stalls',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(s.id)}&status=eq.%E7%A9%BA%E9%96%92&registration_id=is.null&is_active=eq.true`,{status:'鎖定',registration_id:regId,email:reg.email||'',hold_time:nowIso(),seat_hold_expires_at:null});if(!got.length){for(const x of newly){await dbUpdate(env,'stalls',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(x.id)}&registration_id=eq.${encodeURIComponent(regId)}`,{status:'空閒',registration_id:null,email:null,hold_time:null,seat_hold_expires_at:null}).catch(()=>{});}return jsonErr(seatCodeOf(s)+' 剛被其他人使用，請重新整理');}newly.push(s);}
+  for(const old of all.filter(x=>String(seatRegId(x)||'')===regId&&!codes.includes(seatCodeOf(x)))) await dbUpdate(env,'stalls',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(old.id)}&registration_id=eq.${encodeURIComponent(regId)}`,{status:'空閒',registration_id:null,email:null,hold_time:null,seat_hold_expires_at:null});
+  await dbUpdate(env,'registrations',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(regId)}`,{stall_number:codes.join(','),seat_choice_status:'locked',seat_choice_type:String(reg.seat_choice_intent||'auto')==='paid'?'paid':'auto',seat_hold_expires_at:null});
+  return jsonOk({success:true,seats:codes});
+}
+async function hRunBatchAssign(env,b){
+  const T=b._tenantId;
+  if(!await verifyStaff(env,b.email,b.token,T,'sessions',String(b.sessionId||''))) return jsonErr('無權限');
+  const lock=await checkTenantLocked(env,T); if(lock.locked) return jsonErr(lock.reason||'此主辦空間目前為唯讀鎖定');
+  const rows=await dbGet(env,'sessions',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(b.sessionId||'')}&select=*`).catch(()=>[]); if(!rows.length)return jsonErr('找不到場次');
+  const r=await batchAssignSeatsForSession(env,T,rows[0]); return jsonOk({success:true,...r});
+}
+
+// selectStall（相容舊 action，正式轉交加價選位 claimPaidSeat）
+async function hSelectStall(env, b) {
+  return hClaimPaidSeat(env, b);
+}
+
+// ── 合併結帳（購物車）：多筆報名一次付款、一次回報、一張合併卡片 ──
+// 規則：僅「同一個收款設定」的報名可合併（多主辦不可混收）；報名紀錄仍分場次各一筆，
+// 以 payment_group_id 綁定為同一次付款，後台可一次確認。
+function buildMergedPaymentCardText(items, who, method, total, groupNo){
+  const lines = ['【合併繳費】共 ' + items.length + ' 場', ''];
+  for (const it of items) {
+    const dep = Number(it.reg.deposit||0);
+    const equipText = equipSummaryFromJson(it.reg.equipment_json);
+    lines.push('・' + (it.sesName||'場次'));
+    lines.push('　攤位 ' + Math.max(Number(it.reg.stall_count||1),1) + ' 攤');
+    lines.push('　設備：' + (equipText || '自備'));
+    if (dep > 0) lines.push('　保證金 NT$' + dep.toLocaleString());
+    lines.push('　NT$' + Number(it.amount||0).toLocaleString());
+  }
+  lines.push('');
+  lines.push(who || '未填名稱');
+  lines.push('合計金額：NT$' + Number(total||0).toLocaleString() + '（' + (method||'付款') + '）');
+  lines.push('合併編號：' + groupNo);
+  return lines.join('\n');
+}
+
+async function hSubmitPaymentBatch(env, b) {
+  const TENANT = (b && b._tenantId);
+  const ids = Array.isArray(b.regIds) ? b.regIds.map(x=>String(x||'').trim()).filter(Boolean) : [];
+  if (ids.length < 2) return jsonErr('請至少勾選兩筆報名再合併繳費');
+  const method = b.method || '匯款';
+  const isBank = /ATM|銀行|轉帳|匯款/.test(String(method));
+  const last5 = isBank ? String(b.lastFive||b.last5||'').trim() : '';
+  if (isBank && !last5) return jsonErr('ATM／銀行轉帳需填帳號末五碼');
+
+  const items = [];
+  let profileKey = null;
+  for (const id of ids) {
+    const rows = await dbGet(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(id)}&select=*`);
+    if (!rows.length) return jsonErr('找不到報名紀錄');
+    const reg = rows[0];
+    // B-03：每一筆都要用同一組 b.email＋b.phone 驗；任一筆非本人，整批立即失敗。
+    // 此迴圈只做驗證與試算，不寫入任何資料，所以不會出現「前幾筆已改、後面才失敗」。
+    const _ownBatch = regOwnerGuard(reg, b, '回報付款的'); if (_ownBatch) return _ownBatch;
+    if (reg.review_status !== '已錄取') return jsonErr('有場次尚未錄取，無法合併繳費');
+    const _totalAmount=Number(reg.total_amount)||Number(reg.amount)||0;
+    const _paidAmount=Number(reg.paid_amount)||0;
+    const _dueAmount=Math.max(0,_totalAmount-_paidAmount);
+    if (isPaidStatus(reg.payment_status) && _dueAmount<=0) return jsonErr('有場次已完成繳費，請重新勾選');
+    if (String(reg.seat_choice_intent||'')==='paid' && !['reserved','locked'].includes(String(reg.seat_choice_status||''))) return jsonErr('有場次尚未完成加價選位，請先完成選位');
+    const sessionRow = await getSessionRow(env, reg.session_id, TENANT).catch(()=>null);
+    let paySnap;
+    try {
+      paySnap = await ensurePaymentSnapshotForReg(env,TENANT,reg,sessionRow||{}, {writeIfSafe:true});
+    } catch(e) {
+      return jsonErr(e && e.message ? e.message : '有場次的收款設定無法解析，請聯繫主辦');
+    }
+    if (!_methodAllowedFromSnapshot(paySnap, method)) return jsonErr('有場次未開放此付款方式，請分開繳費');
+    // 多主辦安全：不同收款帳戶不可合併收款
+    const key = String((paySnap && paySnap.payment_profile_id) || '');
+    if (profileKey === null) profileKey = key;
+    else if (profileKey !== key) return jsonErr('勾選的場次收款帳戶不同，需分開繳費');
+    const amount = _dueAmount>0?_dueAmount:_totalAmount;
+    const sesName = await getSessionName(env, reg.session_id, TENANT);
+    items.push({reg, paySnap, amount, sesName});
+  }
+
+  // 組合套組完整性檢查：勾選中若含組合場次，該組所有未繳場次都必須一起勾（不可只繳其中一場）
+  const _groups = [...new Set(items.map(it=>String(it.reg.bundle_group_id||'').trim()).filter(Boolean))];
+  for (const g of _groups) {
+    const grp = await dbGet(env,'registrations',`tenant_id=eq.${TENANT}&bundle_group_id=eq.${encodeURIComponent(g)}&select=id,payment_status,total_amount,amount,paid_amount`).catch(()=>[]);
+    const unpaid = grp.filter(x=>String(x.payment_status||'')!=='免費' && Math.max(0,(Number(x.total_amount)||Number(x.amount)||0)-(Number(x.paid_amount)||0))>0).map(x=>String(x.id));
+    const picked = new Set(items.map(it=>String(it.reg.id)));
+    if (unpaid.some(id=>!picked.has(id))) return jsonErr('組合優惠場次需整組一起繳費，請一併勾選同組的所有場次');
+  }
+  const total = items.reduce((s,it)=>s+Number(it.amount||0),0);
+  if (!(total > 0)) return jsonErr('合計金額異常，請聯繫主辦');
+  const groupId = genId('PGR');
+  const now = nowIso();
+  const first = items[0].reg;
+  const brand = String(first.brand_name || '').trim();
+  const nm = String(first.name || '').trim();
+  const who = brand && nm ? `${brand}／${nm}` : (brand || nm || '未填名稱');
+  const cardText = buildMergedPaymentCardText(items, who, method, total, groupId);
+
+  const applied=[], insertedPaymentIds=[];
+  try{
+    for (const it of items) {
+      const reg=it.reg;
+      const note=(reg.admin_note||'')+` [攤友回報·合併] ${method} 合計NT$${total}${last5?' 末5碼:'+last5:''} 編號:${groupId} 時間:${nowTaipeiText()}`;
+      await dbUpdate(env,'registrations',`id=eq.${encodeURIComponent(reg.id)}&tenant_id=eq.${TENANT}`,{
+        payment_status:'待確認',payment_method:method,payment_report_amount:it.amount,payment_last5:last5,payment_reported_at:now,
+        payment_line_card_text:cardText,payment_screenshot_status:'待補截圖',payment_group_id:groupId,admin_note:note,
+        ..._paymentSnapshotDbPayload(it.paySnap),
+      });
+      applied.push(reg);
+      const payId=genId('PAY');
+      await dbInsert(env,'payments',{id:payId,tenant_id:TENANT,registration_id:reg.id,session_id:reg.session_id,operation_unit_id:reg.operation_unit_id||null,email:reg.email,amount:it.amount,method,status:'待確認',trade_no:last5,paid_at:null,created_at:now,payment_profile_id:(it.paySnap&&it.paySnap.payment_profile_id)||null,payment_profile_snapshot:it.paySnap||{}});
+      insertedPaymentIds.push(payId);
+    }
+  }catch(e){
+    for(const id of insertedPaymentIds) await dbDelete(env,'payments',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(id)}`).catch(()=>{});
+    for(const reg of applied){
+      await dbUpdate(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(reg.id)}`,{
+        payment_status:reg.payment_status||'',payment_method:reg.payment_method||'',payment_report_amount:safeNum(reg.payment_report_amount),
+        payment_last5:reg.payment_last5||'',payment_reported_at:reg.payment_reported_at||null,
+        payment_line_card_text:reg.payment_line_card_text||'',payment_screenshot_status:reg.payment_screenshot_status||'',
+        payment_group_id:reg.payment_group_id||null,admin_note:reg.admin_note||'',
+        payment_profile_id:reg.payment_profile_id||null,payment_profile_snapshot:safeJson(reg.payment_profile_snapshot,{}),
+        payment_owner_mode:reg.payment_owner_mode||'',payment_methods_allowed:safeJson(reg.payment_methods_allowed,{}),
+        bank_account_snapshot:safeJson(reg.bank_account_snapshot,{}),linepay_config_snapshot:safeJson(reg.linepay_config_snapshot,{}),
+        card_config_snapshot:safeJson(reg.card_config_snapshot,{}),payment_snapshot_created_at:reg.payment_snapshot_created_at||null
+      }).catch(()=>{});
+    }
+    return jsonErr('合併付款回報失敗，系統已回復本次變更，請重新操作：'+(e&&e.message?e.message:'資料寫入失敗'));
+  }
+  return jsonOk({success:true,lineCardText:cardText,paymentLineCardText:cardText,payStatus:'待確認',paymentGroupId:groupId,total,count:items.length});
+}
+
+// submitPayment（攤友回報匯款）
+async function hSubmitPayment(env, b) {
+  const TENANT = (b && b._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+  const rows = await dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.regId)}&select=*`);
+  if (!rows.length) return jsonErr('找不到報名紀錄');
+  const reg = rows[0];
+  const _ownPay = regOwnerGuard(reg, b, '回報付款的'); if (_ownPay) return _ownPay;
+  if (reg.review_status!=='已錄取') return jsonErr('尚未錄取，無法回報繳費');
+  const _totalDueBase=Number(reg.total_amount)||Number(reg.amount)||0;
+  const _alreadyPaid=Number(reg.paid_amount)||0;
+  const _snapPay=selectedModuleSnapshot(reg),_firstDue=safeNum(_snapPay.amountDueNow);
+  const _outstanding=Math.max(0,(_alreadyPaid<=0&&_firstDue>0?_firstDue:_totalDueBase)-_alreadyPaid);
+  if (isPaidStatus(reg.payment_status) && Math.max(0,_totalDueBase-_alreadyPaid)<=0) return jsonErr('此報名已完成繳費');
+  if (String(reg.seat_choice_intent||'')==='paid' && !['reserved','locked'].includes(String(reg.seat_choice_status||''))) return jsonErr('請先完成加價選位，再回報付款。');
+  const now = nowIso();
+  const method = b.method || '匯款';
+  // 組合套組（bundle_group_id）為綁定優惠：必須整組一起繳，
+  // 不可只繳其中一場（否則等於用組合價買單場，與退費同進退規則一致）。
+  const _bg = String(reg.bundle_group_id || '').trim();
+  if (_bg) {
+    const grp = await dbGet(env,'registrations',`tenant_id=eq.${TENANT}&bundle_group_id=eq.${encodeURIComponent(_bg)}&select=id,payment_status`).catch(()=>[]);
+    const unpaid = grp.filter(g=>!isPaidStatus(g.payment_status) && String(g.payment_status||'')!=='免費');
+    if (unpaid.length > 1) return jsonErr('此為組合優惠場次，需與同組場次一起繳費，請使用「前往繳費（組合）」');
+  }
+  const sessionRow = await getSessionRow(env, reg.session_id, TENANT).catch(()=>null);
+  let paySnap;
+  try {
+    paySnap = await ensurePaymentSnapshotForReg(env,TENANT,reg,sessionRow||{}, {writeIfSafe:true});
+  } catch(e) {
+    return jsonErr(e && e.message ? e.message : '此報名的收款設定無法解析，請聯繫主辦');
+  }
+  if(!_methodAllowedFromSnapshot(paySnap, method)) return jsonErr('此報名未開放此付款方式，請依系統顯示方式付款');
+  // B-06：正式金額只能來自資料庫。前端 b.amount 僅供顯示，絕不可寫入正式紀錄。
+  const amount = _outstanding>0?_outstanding:_totalDueBase;
+  if (!(amount > 0)) return jsonErr('此報名金額異常，請聯繫主辦');
+  const isBank = /ATM|銀行|轉帳|匯款/.test(String(method));
+  const last5 = isBank ? String(b.lastFive||b.last5||'').trim() : '';
+  if (isBank && !last5) return jsonErr('ATM／銀行轉帳需填帳號末五碼');
+  const sesName = await getSessionName(env, reg.session_id, TENANT);
+  const cardText = buildPaymentLineCardText(reg, sesName, method, amount);
+  const note = (reg.admin_note||'')+` [攤友回報] ${method} NT$${amount||''}${last5?' 末5碼:'+last5:''} 時間:${nowTaipeiText()}`;
+  try{
+    await dbUpdate(env,'registrations',`id=eq.${encodeURIComponent(b.regId)}&tenant_id=eq.${TENANT}`,{
+      payment_status:'待確認',payment_method:method,payment_report_amount:amount,payment_last5:last5,payment_reported_at:now,
+      payment_line_card_text:cardText,payment_screenshot_status:'待補截圖',admin_note:note,..._paymentSnapshotDbPayload(paySnap),
+    });
+    const existingPayRows=await dbGet(env,'payments',`tenant_id=eq.${TENANT}&registration_id=eq.${encodeURIComponent(b.regId)}&status=eq.%E5%BE%85%E7%A2%BA%E8%AA%8D&select=id`);
+    if(existingPayRows.length){
+      await dbUpdate(env,'payments',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(existingPayRows[0].id)}`,{session_id:reg.session_id,operation_unit_id:reg.operation_unit_id||null,email:reg.email,amount,method,status:'待確認',trade_no:last5,paid_at:null,created_at:now,payment_profile_id:(paySnap&&paySnap.payment_profile_id)||null,payment_profile_snapshot:paySnap||{}});
+    }else{
+      await dbInsert(env,'payments',{id:genId('PAY'),tenant_id:TENANT,registration_id:b.regId,session_id:reg.session_id,operation_unit_id:reg.operation_unit_id||null,email:reg.email,amount,method,status:'待確認',trade_no:last5,paid_at:null,created_at:now,payment_profile_id:(paySnap&&paySnap.payment_profile_id)||null,payment_profile_snapshot:paySnap||{}});
+    }
+  }catch(e){
+    await dbUpdate(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.regId)}`,{
+      payment_status:reg.payment_status||'',payment_method:reg.payment_method||'',payment_report_amount:safeNum(reg.payment_report_amount),
+      payment_last5:reg.payment_last5||'',payment_reported_at:reg.payment_reported_at||null,
+      payment_line_card_text:reg.payment_line_card_text||'',payment_screenshot_status:reg.payment_screenshot_status||'',
+      admin_note:reg.admin_note||'',payment_profile_id:reg.payment_profile_id||null,payment_profile_snapshot:safeJson(reg.payment_profile_snapshot,{}),
+      payment_owner_mode:reg.payment_owner_mode||'',payment_methods_allowed:safeJson(reg.payment_methods_allowed,{}),
+      bank_account_snapshot:safeJson(reg.bank_account_snapshot,{}),linepay_config_snapshot:safeJson(reg.linepay_config_snapshot,{}),
+      card_config_snapshot:safeJson(reg.card_config_snapshot,{}),payment_snapshot_created_at:reg.payment_snapshot_created_at||null
+    }).catch(()=>{});
+    return jsonErr('付款回報失敗，系統已回復本次變更，請重新操作：'+(e&&e.message?e.message:'資料寫入失敗'));
+  }
+  try {
+    const sesType = await getSessionType(env, reg.session_id, TENANT);
+    const dn = getDisplayName(reg.name, reg.brand_name||'', sesType);
+    const tc = await getTenantCtx(env, TENANT);
+    await mailPaymentReceived(env, reg.email, dn, sesName, method, amount, last5, b.regId, tc);
+  } catch(e) { console.error('mailPaymentReceived failed:', e&&e.message?e.message:e); logError(env, {source:'hSubmitPayment', message:'mailPaymentReceived failed:', error:e&&e.message?e.message:e}); }
+  return jsonOk({success:true, lineCardText:cardText, paymentLineCardText:cardText, payStatus:'待確認'});
+}
+
+// createLinePayOrder
+async function hCreateLinePayOrder(env, b) {
+  const TENANT = (b && b._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+  return jsonErr('目前採外部付款連結＋人工確認，未啟用 LINE Pay API');
+  const rows = await dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.regId)}&select=*`);
+  if (!rows.length) return jsonErr('找不到報名');
+  const reg = rows[0];
+  if (reg.review_status!=='已錄取') return jsonErr('尚未錄取');
+  if (isPaidStatus(reg.payment_status)) return jsonErr('已完成繳費');
+  const amount = Number(reg.amount)||0;
+  if (amount<=0) return jsonErr('金額錯誤');
+  const orderId = 'TBL'+Date.now().toString().slice(-12);
+  const sesName = await getSessionName(env, reg.session_id, TENANT);
+  const workerUrl = (env.WORKER_URL||WORKER_PUBLIC_URL).replace(/\/$/,'');
+  const confirmUrl = workerUrl+'/?action=linePayConfirm&orderId='+orderId;
+  const cancelUrl = workerUrl+'/?action=linePayCancel';
+  const payload = {
+    amount, currency:'TWD', orderId,
+    packages:[{id:'pkg_'+orderId, amount, products:[{name:sesName.slice(0,50), quantity:1, price:amount}]}],
+    redirectUrls:{confirmUrl, cancelUrl},
+  };
+  const secret = env.LINEPAY_SECRET||LINEPAY_SECRET;
+  const channelId = env.LINEPAY_CHANNEL_ID||LINEPAY_CHANNEL_ID;
+  const apiUrl = env.LINEPAY_API_URL||LINEPAY_API_URL;
+  const nonce = crypto.randomUUID();
+  const ts = Date.now().toString();
+  const uri = '/v3/payments/request';
+  const sig = await hmacSha256Base64(secret, secret+uri+JSON.stringify(payload)+nonce+ts);
+  try {
+    const res = await fetch(apiUrl+uri, {
+      method:'POST', body:JSON.stringify(payload),
+      headers:{'Content-Type':'application/json','X-LINE-ChannelId':channelId,'X-LINE-Authorization-Nonce':nonce,'X-LINE-Authorization-Date':ts,'X-LINE-Authorization':sig},
+    });
+    const data = await res.json();
+    if (data.returnCode!=='0000') return jsonErr(data.returnMessage||'LINE Pay 錯誤');
+    await dbInsert(env, 'payments', {id:genId('PAY'),tenant_id:TENANT,registration_id:b.regId,session_id:reg.session_id,email:reg.email,amount,method:'LINE Pay',status:'待付款',trade_no:orderId,created_at:nowIso()});
+    return jsonOk({success:true, paymentUrl:data.info.paymentUrl.web});
+  } catch(e) { return jsonErr('LINE Pay 連線失敗: '+e.message); }
+}
+
+// createEcpayOrder
+async function hCreateEcpayOrder(env, b) {
+  const TENANT = (b && b._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+  return jsonErr('目前採外部付款連結＋人工確認，未啟用信用卡 API');
+  const rows = await dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.regId)}&select=*`);
+  if (!rows.length) return jsonErr('找不到報名');
+  const reg = rows[0];
+  if (reg.review_status!=='已錄取') return jsonErr('尚未錄取');
+  if (isPaidStatus(reg.payment_status)) return jsonErr('已完成繳費');
+  const amount = Number(reg.amount)||0;
+  if (amount<=0) return jsonErr('金額錯誤');
+  const merchantId = env.ECPAY_MERCHANT_ID||ECPAY_MERCHANT_ID;
+  const hashKey = env.ECPAY_HASH_KEY||ECPAY_HASH_KEY;
+  const hashIv = env.ECPAY_HASH_IV||ECPAY_HASH_IV;
+  const apiUrl = env.ECPAY_API_URL||ECPAY_API_URL;
+  const tradeNo = 'TBL'+Date.now().toString().slice(-10);
+  const now = new Date();
+  const pad = n=>String(n).padStart(2,'0');
+  const td = `${now.getFullYear()}/${pad(now.getMonth()+1)}/${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  const sesName = await getSessionName(env, reg.session_id, TENANT);
+  const workerUrl = (env.WORKER_URL||WORKER_PUBLIC_URL).replace(/\/$/,'');
+  const params = {
+    MerchantID:merchantId, MerchantTradeNo:tradeNo, MerchantTradeDate:td,
+    PaymentType:'aio', TotalAmount:String(amount),
+    TradeDesc:encodeURIComponent(((await getTenantCtx(env,TENANT)).name||FALLBACK_TENANT_NAME)+'報名費'),
+    ItemName:encodeURIComponent(sesName||'報名費'),
+    ReturnURL:`${workerUrl}/?action=ecpayReturn`,
+    OrderResultURL:(await getTenantCtx(env,TENANT)).siteUrl+'?pay_result=1',
+    ChoosePayment:'ALL', EncryptType:'1', ClientBackURL:(await getTenantCtx(env,TENANT)).siteUrl,
+  };
+  params.CheckMacValue = await ecpayMac(params, hashKey, hashIv);
+  await dbInsert(env, 'payments', {id:genId('PAY'),tenant_id:TENANT,registration_id:b.regId,session_id:reg.session_id,email:reg.email,amount,method:'綠界',status:'待付款',trade_no:tradeNo,created_at:nowIso()});
+  return jsonOk({success:true, params, apiUrl});
+}
+
+async function ecpayMac(params, hashKey, hashIv) {
+  const sorted = Object.keys(params).sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
+  let str = 'HashKey='+hashKey+'&'+sorted.map(k=>k+'='+params[k]).join('&')+'&HashIV='+hashIv;
+  str = encodeURIComponent(str).toLowerCase()
+    .replace(/%20/g,'+').replace(/%21/g,'!').replace(/%28/g,'(')
+    .replace(/%29/g,')').replace(/%2a/g,'*').replace(/%2d/g,'-')
+    .replace(/%2e/g,'.').replace(/%5f/g,'_');
+  return sha256Hex(str);
+}
+
+// AI 主視覺：讀取場次圖片資產
+async function hGetSessionVisualAssets(env, p) {
+  const TENANT = p._tenantId;
+  const sessionId = String(p.sessionId || p.session_id || '').trim();
+  if (!sessionId) return jsonErr('缺少 sessionId');
+  if (!await verifyPlatformSuperAdmin(env, p.email, p.token, TENANT)) return jsonErr('無權限');
+  const rows = await dbGet(env, 'session_visual_assets', `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sessionId)}&select=*&order=created_at.desc`);
+  return jsonOk(rows.map(_aiVisualAssetPublic));
+}
+
+// AI 主視覺：讀取生成任務歷史
+async function hGetSessionVisualJobs(env, p) {
+  const TENANT = p._tenantId;
+  const sessionId = String(p.sessionId || p.session_id || '').trim();
+  if (!sessionId) return jsonErr('缺少 sessionId');
+  if (!await verifyPlatformSuperAdmin(env, p.email, p.token, TENANT)) return jsonErr('無權限');
+  const rows = await dbGet(env, 'ai_visual_jobs', `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sessionId)}&select=*&order=created_at.desc&limit=30`);
+  return jsonOk(rows.map(r => ({
+    id:r.id, sessionId:r.session_id, status:r.status, stylePreset:r.style_preset,
+    requestedCount:Number(r.requested_count||0), completedCount:Number(r.completed_count||0),
+    model:r.model||'', quality:r.quality||'', errorMessage:r.error_message||'',
+    createdAt:r.created_at||'', completedAt:r.completed_at||''
+  })));
+}
+
+// AI 主視覺：固定 1:1、每次生成 1 張
+async function hGenerateSessionVisual(env, b) {
+  const TENANT = b._tenantId;
+  const sessionId = String(b.sessionId || b.session_id || '').trim();
+  if (!sessionId) return jsonErr('缺少 sessionId');
+  if (!await verifyPlatformSuperAdmin(env, b.email, b.token, TENANT)) return jsonErr('無權限');
+  if (!env.OPENAI_API_KEY) return jsonErr('尚未設定 OPENAI_API_KEY，無法產圖');
+
+  const sesRows = await dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(sessionId)}&select=*`);
+  if (!sesRows.length) return jsonErr('找不到場次');
+  const s = sesRows[0];
+
+  // 防重複扣費：同場次 30 分鐘內已有 processing 任務時，不重複送 OpenAI。
+  // 超過 30 分鐘視為中斷任務，標記 failed 後允許重新生成。
+  const runningJobs = await dbGet(env, 'ai_visual_jobs', `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sessionId)}&status=eq.processing&select=id,created_at`).catch(()=>[]);
+  const nowMs = Date.now();
+  for (const j of (Array.isArray(runningJobs) ? runningJobs : [])) {
+    const ageMs = nowMs - new Date(j.created_at || 0).getTime();
+    if (Number.isFinite(ageMs) && ageMs >= 0 && ageMs < 30 * 60 * 1000) return jsonErr('此場次已有 AI 主視覺正在生成，請勿重複送出');
+    await dbUpdate(env, 'ai_visual_jobs', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(j.id)}`, {status:'failed', error_message:'逾時中斷，已允許重新生成', completed_at:nowIso()}).catch(()=>{});
+  }
+
+  const eventRows = s.event_id ? await dbGet(env, 'events', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(s.event_id)}&select=*`).catch(()=>[]) : [];
+  const evt = eventRows[0] || null;
+  const title = String(s.name || '').trim();
+  const dateText = _aiVisualDateText(s);
+  const location = String(s.venue || '').trim();
+  if (!title) return jsonErr('請先設定場次名稱');
+  if (!dateText) return jsonErr('請先設定活動日期');
+  if (!location) return jsonErr('請先設定活動地點');
+
+  const requestedPreset = String(b.stylePreset || b.style_preset || '').trim();
+  const presetKey = _detectAiVisualPreset(s, evt, requestedPreset === 'auto' ? '' : requestedPreset);
+  if (!presetKey) return jsonErr('缺少 AI 主視覺風格設定');
+
+  const jobId = genId('AIJ');
+  const createdAt = nowIso();
+  const visualThemeNote = String(b.visualThemeNote || b.visual_theme_note || '').trim();
+  const prompt1 = _buildAiVisualPrompt(s, evt, presetKey, 1, visualThemeNote);
+  const model = String(env.OPENAI_IMAGE_MODEL || AI_VISUAL_DEFAULT_MODEL).trim();
+  const quality = String(env.OPENAI_IMAGE_QUALITY || AI_VISUAL_DEFAULT_QUALITY).trim();
+
+  try {
+    await dbInsert(env, 'ai_visual_jobs', {
+      id: jobId, tenant_id:TENANT, session_id:sessionId, job_type:'session_main_visual',
+      status:'processing', style_preset:presetKey, aspect_ratio:'1:1', size:AI_VISUAL_SIZE,
+      title_snapshot:title, date_snapshot:dateText, location_snapshot:location,
+      description_snapshot:String(s.description||'').slice(0,2000),
       prompt_text:prompt1, requested_count:AI_VISUAL_COUNT, completed_count:0,
       model, quality, created_by:b.email||'', created_at:createdAt,
     });
@@ -5457,6 +9953,7 @@ function icsDate(date,start){return String(date||'').replace(/-/g,'')+'T'+String
 async function hBookingCalendarIcs(env,p){
  const T=p._tenantId,calendarId=String(p.calendarId||'');if(!await verifyStaff(env,p.email,p.token,T))return jsonErr('無權限');const regs=await dbGet(env,'registrations',`tenant_id=eq.${T}&select=id,session_id,booking_calendar_id,name,brand_name,selected_dates_json,custom_fields_json,review_status,transfer_status`);const sessions=await dbGet(env,'sessions',`tenant_id=eq.${T}&select=id,name,venue`);const sm=Object.fromEntries(sessions.map(x=>[x.id,x]));const slotIds=[...new Set(regs.flatMap(registrationTimeslotIds))];let slots=[];if(slotIds.length)slots=await dbGet(env,'timeslots',`tenant_id=eq.${T}&id=in.(${slotIds.map(x=>encodeURIComponent(x)).join(',')})&select=*`).catch(()=>[]);const sl=Object.fromEntries(slots.map(x=>[x.id,x]));let out=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//DOING//Booking Calendar//ZH-TW','CALSCALE:GREGORIAN'];for(const r of regs){if(['已取消','不錄取'].includes(String(r.review_status||''))||['已退費','已退款'].includes(String(r.transfer_status||'')))continue;for(const id of registrationTimeslotIds(r)){const x=sl[id],s=sm[r.session_id]||{};if(!x||calendarId&&String(r.booking_calendar_id||x.booking_calendar_id||'')!==calendarId)continue;out.push('BEGIN:VEVENT','UID:'+r.id+'-'+id+'@doing','DTSTART;TZID=Asia/Taipei:'+icsDate(x.date_key,x.start_text),'DTEND;TZID=Asia/Taipei:'+icsDate(x.date_key,x.end_text||x.start_text),'SUMMARY:'+icsEscape((s.name||'預約')+'｜'+(r.brand_name||r.name||'')),'LOCATION:'+icsEscape(s.venue||''),'END:VEVENT')}}out.push('END:VCALENDAR');return new Response(out.join('\r\n'),{status:200,headers:{...corsHeaders(),'Content-Type':'text/calendar; charset=utf-8','Content-Disposition':'inline; filename="doing-bookings.ics"'}})}
 async function routeGet(env, action, p, req) {
+  if (action==='getPlatformMemberProfile') return await hGetPlatformMemberProfile(env,p);
   // 不需要 tenant 的路由
   if (action==='publicDiscovery') return await hPublicDiscovery(env,p);
   if (action==='publicExposureFeed') return await hPublicExposureFeed(env,p);
@@ -5616,6 +10113,7 @@ async function enforceSessionModuleForAction(env,T,action,b){
 
 async function routePost(env, action, b, ctx, req) {
   // 平台層動作不綁 Tenant。
+  if(action==='savePlatformMemberProfile')return hSavePlatformMemberProfile(env,b);
   if(action==='createOrganizerApplicationDraft')return hCreateOrganizerApplicationDraft(env,b);
   if(action==='approveApply')return hApproveApply(env,b);
   if(action==='requestApplySupplement')return hRequestApplySupplement(env,b);
@@ -5822,6 +10320,12 @@ export default {
       }
       if (request.method==='GET' && pathname.endsWith('/auth/google/callback')) {
         return await hGoogleCallback(env, url);
+      }
+      if (request.method==='GET' && pathname.endsWith('/auth/line/start')) {
+        return await hLineStart(env, url);
+      }
+      if (request.method==='GET' && pathname.endsWith('/auth/line/callback')) {
+        return await hLineCallback(env, url);
       }
       // 舊 unified OAuth 僅做相容轉址；正式流程只有 /auth/google/start + /auth/google/callback。
       if (request.method==='GET' && pathname.endsWith('/auth/google/unified/start')) {

@@ -196,6 +196,7 @@ function renderActivities(items,query=''){
     el.onclick=go;
     el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};
   });
+  stage.querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{const cover=img.closest('.doing-card-cover'),card=img.closest('.doing-activity-card');if(cover){img.remove();cover.innerHTML=`<span>${['市','課','體','親','約'][Number(card?.dataset.i||0)%5]}</span>`}},{once:true}));
   carouselIndex=0;
   const dots=$('doingActivityDots');
   if(dots){
@@ -233,8 +234,20 @@ function renderActivityList(items,query=''){
   if(!host)return;
   const rows=Array.isArray(items)?items:[];
   if(!rows.length){host.innerHTML=`<div class="doing-list-empty"><b>${query?'找不到符合的活動':'目前沒有開放中的活動'}</b><span>${query?'換個活動名稱、類型或地點試試看。':'有新活動時會顯示在這裡。'}</span></div>`;return}
-  host.innerHTML=rows.map((x,i)=>`<article class="doing-list-card" data-i="${i}" tabindex="0" role="link"><div class="doing-list-cover doing-cover-${(i%5)+1}">${x.cover?`<img src="${esc(x.cover)}" alt="" loading="lazy">`:`<span>${['市','課','體','親','約'][i%5]}</span>`}</div><div class="doing-list-copy"><small>${esc(itemType(x))}</small><h3>${esc(x.sessionName||x.eventTitle||'活動')}</h3><p>${esc(dateText(x.dates))}${x.venue?' · '+esc(x.venue):''}</p><span>查看活動 <b>→</b></span></div></article>`).join('');
+  host.innerHTML=rows.map((x,i)=>`<article class="doing-list-card" data-i="${i}" tabindex="0" role="link"><div class="doing-list-cover doing-cover-${(i%5)+1}">${x.cover?`<img src="${esc(x.cover)}" alt="" loading="lazy">`:`<span>${['市','課','體','親','約'][i%5]}</span>`}</div><div class="doing-list-copy"><small>${esc(itemType(x))}</small><h3>${esc(x.sessionName||x.eventTitle||'活動')}</h3><p>${esc(dateText(x.dates))}${x.venue?' · '+esc(x.venue):''}</p><span data-default-label="查看活動">${host.classList.contains('is-first-use')?'選擇這場並建立資料':'查看活動'} <b>→</b></span></div></article>`).join('');
+  host.querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{const cover=img.closest('.doing-list-cover');if(cover){img.remove();cover.innerHTML=`<span>${['市','課','體','親','約'][Number(cover.closest('.doing-list-card')?.dataset.i||0)%5]}</span>`}},{once:true}));
   host.querySelectorAll('.doing-list-card').forEach(card=>{const go=()=>openActivity(rows[Number(card.dataset.i)]);card.onclick=go;card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}}});
+  setupInfiniteActivityStrip(host,rows);
+}
+
+function setupInfiniteActivityStrip(host,rows){
+  if(!host||!matchMedia('(max-width:600px)').matches||host.children.length<2)return;
+  const originals=[...host.children],count=originals.length;
+  originals.forEach((card,i)=>{const clone=card.cloneNode(true);clone.dataset.i=String(i);clone.dataset.loopClone='true';host.appendChild(clone)});
+  host.querySelectorAll('[data-loop-clone]').forEach(card=>{const go=()=>openActivity(rows[Number(card.dataset.i)]);card.onclick=go;card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}}});
+  let wrapping=false;
+  const reset=()=>{const firstClone=host.querySelector('[data-loop-clone]');if(!firstClone)return;const start=firstClone.offsetLeft-host.offsetLeft;if(host.scrollLeft>=start-4&&!wrapping){wrapping=true;host.classList.add('loop-restarted');host.scrollTo({left:0,behavior:'auto'});setTimeout(()=>{host.classList.remove('loop-restarted');wrapping=false},700)}};
+  let timer;host.addEventListener('scroll',()=>{clearTimeout(timer);timer=setTimeout(reset,90)},{passive:true});
 }
 
 function restartCarousel(stage,rows){
@@ -335,7 +348,7 @@ function publicAppHTML(){
     </section>
 
     <section class="doing-my-highlight" aria-label="快速報名功能亮點">
-      <div class="doing-my-highlight-copy"><span class="doing-kicker">快速報名</span><h2>基本資料填一次，下一場不用重新來。</h2><p>第一次報名時完成會員資料，之後參加同一主辦的其他活動，即可帶入既有資料；自己的報名紀錄、付款狀態與行前資訊也能集中查看。</p><div class="doing-my-highlight-actions"><button type="button" data-my-action="apply">首次申請</button><button type="button" class="secondary" data-my-action="login">登入我的報名</button></div></div>
+      <div class="doing-my-highlight-copy"><span class="doing-kicker">快速報名</span><h2>會員資料填一次，之後不用重新來。</h2><p>先使用 LINE 或 Google 登入；第一次使用會一次完成會員資料，之後才能報名任何活動。付款、審核與行前資訊也能集中查看。</p><div class="doing-my-highlight-actions"><button type="button" data-my-action="apply">首次申請</button><button type="button" class="secondary" data-my-action="login">登入會員</button></div></div>
       <div class="doing-my-highlight-points"><span><b>資料不用重填</b><small>後續報名快速帶入</small></span><span><b>付款與審核</b><small>最新狀態一次看</small></span><span><b>行前資訊</b><small>時間、地點與提醒集中查看</small></span></div>
     </section>
 
@@ -371,8 +384,8 @@ function publicAppHTML(){
     <div id="doingMyEntryModal" class="doing-my-entry-modal" hidden>
       <div class="doing-my-entry-dialog" role="dialog" aria-modal="true" aria-labelledby="doingMyEntryTitle">
         <button type="button" class="doing-my-entry-close" aria-label="關閉">×</button>
-        <span class="doing-kicker">我的報名</span><h2 id="doingMyEntryTitle">登入，或從第一次報名開始。</h2><p>已經報名過可直接登入查看紀錄；第一次使用請先選擇活動，完成報名資料後便能在後續報名時快速帶入。</p>
-        <div><button type="button" data-my-action="login">登入我的報名</button><button type="button" class="secondary" data-my-action="apply">首次申請</button></div>
+        <span class="doing-kicker">DOING 會員</span><h2 id="doingMyEntryTitle">登入會員，或完成首次申請。</h2><p>所有活動都必須先登入；若尚未建立完整資料，登入後會進入首次申請，一次填完再繼續報名。</p>
+        <div><button type="button" data-my-action="login">登入會員</button><button type="button" class="secondary" data-my-action="apply">首次申請</button></div>
       </div>
     </div>
   </div>`;
@@ -431,8 +444,46 @@ function buildPublicApp(){
 
 function openMyEntry(){const modal=$('doingMyEntryModal');if(modal){modal.hidden=false;document.body.style.overflow='hidden';modal.querySelector('[data-my-action="login"]')?.focus()}}
 function closeMyEntry(){const modal=$('doingMyEntryModal');if(modal){modal.hidden=true;document.body.style.overflow=''}}
-function openMyLogin(){closeMyEntry();const panel=$('doingHomeMy');if(panel){panel.hidden=false;panel.classList.add('is-open');smoothTo(panel,$('myEmail'))}}
-function startFirstApplication(){closeMyEntry();smoothTo($('doingPublicSearch'),$('doingPublicSearchInput'));if(typeof toast==='function')toast('請先選擇一場活動；完成第一次報名後，後續即可快速帶入會員資料。')}
+function openMyLogin(){closeMyEntry();if(memberAuth.complete)showMemberProfile();else openMemberGate()}
+function startFirstApplication(){closeMyEntry();openMemberGate()}
+
+const memberAuth={token:'',profile:null,complete:false,resume:null};
+function isLineBrowser(){return /\bLine\//i.test(navigator.userAgent)||/LIFF/i.test(navigator.userAgent)}
+function memberReturnUrl(){const u=new URL(location.href);['member_token','member_status','member_login_error'].forEach(k=>u.searchParams.delete(k));return u.toString()}
+function authStart(provider){
+  const path=provider==='line'?'/auth/line/start':'/auth/google/start';
+  const u=new URL(API+path);u.searchParams.set('return_url',memberReturnUrl());if(provider==='google')u.searchParams.set('mode','member');location.href=u.toString();
+}
+function memberGateHTML(){return `<div id="doingMemberGate" class="doing-member-gate" hidden><div class="doing-member-dialog" role="dialog" aria-modal="true"><button type="button" class="doing-member-close">×</button><section data-member-view="login"><span class="doing-kicker">DOING 會員</span><h2>登入後才能報名活動</h2><p>登入後會先查詢正式會員資料；第一次使用只需完整填寫一次。</p><button type="button" class="doing-line-login">使用 LINE 登入</button><button type="button" class="doing-google-login">使用 Google 登入</button><small class="doing-line-warning" hidden>LINE 內建瀏覽器無法直接使用 Google 登入；請使用 LINE 登入，或改用 Safari／Chrome 開啟。</small></section><form data-member-view="profile" hidden><span class="doing-kicker">首次申請</span><h2>一次完成會員資料</h2><p>基本資料完成後才能報名；攤商登錄及系統申請可依需要一併建立。</p><fieldset><legend>一、基本資料（活動報名用）</legend><label>姓名 *<input name="name" required></label><label>Email *<input name="email" type="email" required></label><label>手機 *<input name="phone" inputmode="tel" required></label><label>LINE 帳號<input name="lineId"></label><label>所在縣市<input name="city"></label></fieldset><fieldset><legend><label><input type="checkbox" name="enableVendor"> 二、攤商登錄（品牌或公司）</label></legend><div data-vendor-fields hidden><label>品牌／公司名稱 *<input name="brandName"></label><label>品牌介紹 *<textarea name="brandIntro"></textarea></label><label>類別<input name="category"></label><label>主要品項<input name="items"></label><label>Facebook<input name="facebook" type="url"></label><label>Instagram<input name="instagram" type="url"></label><label>作品／介紹網址<input name="photoUrl" type="url"></label><label>公司登記名稱<input name="company"></label><label>統一編號<input name="taxId"></label></div></fieldset><fieldset><legend><label><input type="checkbox" name="enableSystem"> 三、系統申請（品牌或服務）</label></legend><div data-system-fields hidden><label>營運單位名稱 *<input name="unitName"></label><p class="doing-check-title">產業類別（可複選）*</p><div class="doing-check-grid">${['市集展售','活動展演','課程講座','手作體驗','美業工作室','場地／攝影棚','導覽戶外','專業服務預約','其他'].map(x=>`<label><input type="checkbox" name="industry" value="${x}">${x}</label>`).join('')}</div><p class="doing-check-title">想使用的功能（可複選）*</p><div class="doing-check-grid">${['活動報名','審核付款','攤位設備','選位排位','課程預約','會員管理','通知報到','財務結案'].map(x=>`<label><input type="checkbox" name="useCase" value="${x}">${x}</label>`).join('')}</div></div></fieldset><button type="submit" class="doing-member-save">完成首次申請</button><div class="doing-member-error" aria-live="polite"></div></form></div></div>`}
+function ensureMemberGate(){
+  if($('doingMemberGate'))return $('doingMemberGate');
+  document.body.insertAdjacentHTML('beforeend',memberGateHTML());const modal=$('doingMemberGate'),form=modal.querySelector('form');
+  modal.querySelector('.doing-member-close').onclick=()=>{modal.hidden=true;document.body.style.overflow=''};
+  modal.querySelector('.doing-line-login').onclick=()=>authStart('line');modal.querySelector('.doing-google-login').onclick=()=>authStart('google');
+  if(isLineBrowser()){modal.querySelector('.doing-line-warning').hidden=false;modal.querySelector('.doing-google-login').textContent='改用外部瀏覽器登入 Google'}
+  form.elements.enableVendor.onchange=e=>form.querySelector('[data-vendor-fields]').hidden=!e.target.checked;
+  form.elements.enableSystem.onchange=e=>form.querySelector('[data-system-fields]').hidden=!e.target.checked;
+  form.onsubmit=saveMemberProfile;return modal;
+}
+function showMemberView(view){const modal=ensureMemberGate();modal.hidden=false;document.body.style.overflow='hidden';modal.querySelectorAll('[data-member-view]').forEach(x=>x.hidden=x.dataset.memberView!==view)}
+function showMemberProfile(){const modal=ensureMemberGate(),form=modal.querySelector('form'),p=memberAuth.profile||{};for(const key of ['name','email','phone','lineId','city'])if(form.elements[key])form.elements[key].value=p[key]||'';const vendor=!!(p.brand||p.brand_name);form.elements.enableVendor.checked=vendor;form.querySelector('[data-vendor-fields]').hidden=!vendor;if(vendor){form.elements.brandName.value=p.brand||p.brand_name||'';form.elements.brandIntro.value=p.brandIntro||'';form.elements.category.value=p.sellCat||'';form.elements.items.value=p.sellItem||'';form.elements.facebook.value=p.fb||'';form.elements.instagram.value=p.ig||'';form.elements.photoUrl.value=p.photo||'';form.elements.company.value=p.company||'';form.elements.taxId.value=p.taxId||''}form.querySelector('.doing-member-save').textContent='儲存會員資料';showMemberView('profile')}
+function openMemberGate(resume){if(resume)memberAuth.resume=resume;if(memberAuth.complete){const fn=memberAuth.resume;memberAuth.resume=null;if(fn)fn();return true}showMemberView(memberAuth.token?'profile':'login');return false}
+async function saveMemberProfile(e){
+  e.preventDefault();const form=e.currentTarget,fd=new FormData(form),vendorOn=fd.has('enableVendor'),systemOn=fd.has('enableSystem'),error=form.querySelector('.doing-member-error'),btn=form.querySelector('.doing-member-save');error.textContent='';btn.disabled=true;
+  const payload={member_token:memberAuth.token,name:fd.get('name'),email:fd.get('email'),phone:fd.get('phone'),lineId:fd.get('lineId'),city:fd.get('city'),vendor:vendorOn?{brandName:fd.get('brandName'),brandIntro:fd.get('brandIntro'),category:fd.get('category'),items:fd.get('items'),facebook:fd.get('facebook'),instagram:fd.get('instagram'),photoUrl:fd.get('photoUrl'),company:fd.get('company'),taxId:fd.get('taxId')}:{},systemApplication:systemOn?{enabled:true,unitName:fd.get('unitName'),industryCategories:fd.getAll('industry'),useCases:fd.getAll('useCase')}:{enabled:false}};
+  if(vendorOn&&(!String(payload.vendor.brandName).trim()||!String(payload.vendor.brandIntro).trim())){error.textContent='攤商登錄請完整填寫品牌名稱與介紹';btn.disabled=false;return}
+  try{const d=await apiPost('savePlatformMemberProfile',payload),fresh=await apiGet('getPlatformMemberProfile',{member_token:memberAuth.token});memberAuth.complete=!!fresh.complete;memberAuth.profile=fresh.profile||null;localStorage.setItem('doing_member_token',memberAuth.token);ensureMemberGate().hidden=true;document.body.style.overflow='';if(typeof toast==='function')toast(d.applicationId?'會員與系統申請已完成':'會員資料已建立');const fn=memberAuth.resume;memberAuth.resume=null;if(fn)fn()}catch(err){error.textContent=err.message||'儲存失敗'}finally{btn.disabled=false}
+}
+async function initMemberAuth(){
+  const u=new URL(location.href),incoming=u.searchParams.get('member_token');memberAuth.token=incoming||localStorage.getItem('doing_member_token')||'';
+  if(incoming){localStorage.setItem('doing_member_token',incoming);['member_token','member_status'].forEach(k=>u.searchParams.delete(k));history.replaceState({},'',u.pathname+u.search+u.hash)}
+  const loginError=u.searchParams.get('member_login_error');if(loginError){u.searchParams.delete('member_login_error');history.replaceState({},'',u.pathname+u.search+u.hash);setTimeout(()=>{showMemberView('login');const x=ensureMemberGate().querySelector('.doing-member-error');if(x)x.textContent=loginError==='email_link_requires_existing_login'?'此 Email 已由 LINE 會員使用，請先以 LINE 登入；系統不會只憑相同 Email 自動合併帳號。':'登入未完成，請重新嘗試。'},20)}
+  if(!memberAuth.token)return;
+  try{const d=await apiGet('getPlatformMemberProfile',{member_token:memberAuth.token});memberAuth.profile=d.profile||null;memberAuth.complete=!!d.complete;if(!memberAuth.complete)setTimeout(showMemberProfile,20)}catch(e){memberAuth.token='';localStorage.removeItem('doing_member_token')}
+}
+window.doingRequireMember=async resume=>{if(memberAuth.complete)return true;openMemberGate(resume);return false};
+window.doingMemberToken=()=>memberAuth.token||'';
+window.doingMemberProfile=()=>memberAuth.profile||null;
 
 function wireNav(){
   const p=navParts();
@@ -466,6 +517,7 @@ function wireSearch(){
 }
 
 function wire(){
+  ensureMemberGate();initMemberAuth();
   if(!isGlobal)return;
   buildHeader();
   buildPublicApp();
