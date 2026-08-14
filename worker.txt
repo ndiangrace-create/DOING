@@ -2965,7 +2965,11 @@ async function hGetPlatformMemberProfile(env,p){
   const verified=await verifiedPlatformMember(env,p.member_token||p.token);
   if(!verified)return jsonErr('會員登入已失效，請重新登入');
   const v=safeJson(verified.row.vendor_json,{});
-  return jsonOk({profile:{email:verified.row.email||'',name:verified.row.name||verified.row.display_name||'',phone:verified.row.phone||'',lineId:verified.row.line_id||'',city:verified.row.city||'',brand:v.brandName||'',brand_name:v.brandName||'',brandIntro:v.brandIntro||'',sellCat:v.category||'',sellItem:v.items||'',fb:v.facebook||'',ig:v.instagram||'',photo:v.photoUrl||'',company:v.company||'',taxId:v.taxId||''},complete:platformMemberComplete(verified.row),provider:verified.row._identity?.provider||''});
+  const email=normEmail(verified.row.email),memberId=String(verified.row.id||'');
+  const applications=email?await dbGet(env,'tenant_apply_logs',`contact_email=ilike.${encodeURIComponent(email)}&select=id,brand_name,status,created_at,application_json&order=created_at.desc&limit=20`).catch(()=>[]):[];
+  const workspaces=email?await dbGet(env,'tenants',`notify_email=ilike.${encodeURIComponent(email)}&select=id,name,status&order=created_at.desc&limit=20`).catch(()=>[]):[];
+  const roles=['participant'];if(v.brandName)roles.push('vendor');if(applications.length)roles.push('organizer_applicant');if(workspaces.length)roles.push('organizer');
+  return jsonOk({profile:{id:memberId,email:verified.row.email||'',name:verified.row.name||verified.row.display_name||'',phone:verified.row.phone||'',lineId:verified.row.line_id||'',city:verified.row.city||'',brand:v.brandName||'',brand_name:v.brandName||'',brandIntro:v.brandIntro||'',sellCat:v.category||'',sellItem:v.items||'',fb:v.facebook||'',ig:v.instagram||'',photo:v.photoUrl||'',company:v.company||'',taxId:v.taxId||''},complete:platformMemberComplete(verified.row),provider:verified.row._identity?.provider||'',roles,applications:applications.map(x=>({id:x.id,unitName:x.brand_name||'',status:x.status||'pending',createdAt:x.created_at||''})),workspaces:workspaces.map(x=>({id:x.id,name:x.name||x.id,status:x.status||''}))});
 }
 
 async function hSavePlatformMemberProfile(env,b){
@@ -2978,7 +2982,10 @@ async function hSavePlatformMemberProfile(env,b){
   const duplicate=await dbGet(env,'platform_members',`email=ilike.${encodeURIComponent(email)}&id=neq.${encodeURIComponent(verified.row.id)}&select=id`).catch(()=>[]);
   if(duplicate.length)return jsonErr('此 Email 已連結另一個會員，請先使用原登入方式登入後再綁定');
   const vendor=b.vendor&&typeof b.vendor==='object'?b.vendor:{};
-  const vendorJson={brandName:String(vendor.brandName||'').trim(),brandIntro:String(vendor.brandIntro||'').trim(),category:String(vendor.category||'').trim(),items:String(vendor.items||'').trim(),facebook:String(vendor.facebook||'').trim(),instagram:String(vendor.instagram||'').trim(),photoUrl:String(vendor.photoUrl||'').trim(),company:String(vendor.company||'').trim(),taxId:String(vendor.taxId||'').trim()};
+  const allowedVendorCategories=['餐飲美食','手作設計','文創選物','服飾配件','生活用品','親子兒童','寵物相關','收藏娛樂','美業服務','體驗／服務','其他'];
+  const vendorCategory=String(vendor.category||'').trim();
+  if(vendorCategory&&!allowedVendorCategories.includes(vendorCategory))return jsonErr('請重新選擇正式品牌類別');
+  const vendorJson={brandName:String(vendor.brandName||'').trim(),brandIntro:String(vendor.brandIntro||'').trim(),category:vendorCategory,items:String(vendor.items||'').trim(),facebook:String(vendor.facebook||'').trim(),instagram:String(vendor.instagram||'').trim(),photoUrl:String(vendor.photoUrl||'').trim(),company:String(vendor.company||'').trim(),taxId:String(vendor.taxId||'').trim()};
   const update={email,phone,name,line_id:String(b.lineId||'').trim(),city:String(b.city||'').trim(),vendor_json:vendorJson,completed_at:nowIso(),updated_at:nowIso()};
   await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(verified.row.id)}`,update);
   let applicationId='';
@@ -3256,12 +3263,13 @@ async function hRejectApply(env,b){
 // BUG-B FIX 2025-06
 async function hGetPlatformDashboard(env,p){
   const pay=await verifyAdminJwt(p.token,env);if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限');
-  const [tenants,sessions,units,regs,logs]=await Promise.all([
+  const [tenants,sessions,units,regs,logs,members]=await Promise.all([
     dbGet(env,'tenants','select=id,status,is_locked,created_at').catch(()=>[]),
     dbGet(env,'sessions','select=id,tenant_id,status,created_at').catch(()=>[]),
     dbGet(env,'operation_units','select=id,tenant_id,status,unit_type,created_at').catch(()=>[]),
     dbGet(env,'registrations','select=id,tenant_id,operation_unit_id,created_at').catch(()=>[]),
-    dbGet(env,'billing_logs','status=eq.confirmed&select=billing_type,amount,total,created_at').catch(()=>[])
+    dbGet(env,'billing_logs','status=eq.confirmed&select=billing_type,amount,total,created_at').catch(()=>[]),
+    dbGet(env,'platform_members','select=id,completed_at,vendor_json,created_at').catch(()=>[])
   ]);
   const now=Date.now(),monthAgo=now-30*86400000,activeTenantIds=new Set();
   for(const x of sessions)if(new Date(x.created_at||0).getTime()>=monthAgo)activeTenantIds.add(String(x.tenant_id||''));
@@ -3269,7 +3277,15 @@ async function hGetPlatformDashboard(env,p){
   const revenueLogs=logs.filter(x=>{const t=String(x.billing_type||'');return t==='booking_monthly'||t.startsWith('activity_publish:')||t.startsWith('activity_unit:')||t.startsWith('setup_feature:')||t.startsWith('exposure:')});
   const revenue=revenueLogs.reduce((n,x)=>n+Math.max(0,safeNum(x.total||x.amount)),0);
   const startupGranted=logs.filter(x=>String(x.billing_type)==='startup_credit_grant').reduce((n,x)=>n+Math.max(0,safeNum(x.amount)),0);
-  return jsonOk({tenantCount:tenants.length,activeTenant30d:activeTenantIds.size,lockedTenantCount:tenants.filter(x=>x.is_locked===true).length,sessionCount:sessions.length,operationUnitCount:units.length,registrationCount:regs.length,platformRevenue:revenue,startupCreditGranted:startupGranted,bookingUnitCount:units.filter(x=>String(x.unit_type)==='booking').length,openUnitCount:units.filter(x=>['open','active','published'].includes(String(x.status||''))).length});
+  return jsonOk({tenantCount:tenants.length,memberCount:members.length,completedMemberCount:members.filter(x=>!!x.completed_at).length,vendorMemberCount:members.filter(x=>!!safeJson(x.vendor_json,{}).brandName).length,activeTenant30d:activeTenantIds.size,lockedTenantCount:tenants.filter(x=>x.is_locked===true).length,sessionCount:sessions.length,operationUnitCount:units.length,registrationCount:regs.length,platformRevenue:revenue,startupCreditGranted:startupGranted,bookingUnitCount:units.filter(x=>String(x.unit_type)==='booking').length,openUnitCount:units.filter(x=>['open','active','published'].includes(String(x.status||''))).length});
+}
+
+async function hGetPlatformMembersAdmin(env,p){
+  const pay=await verifyAdminJwt(p.token,env);if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限');
+  const members=await dbGet(env,'platform_members','select=id,email,name,phone,display_name,vendor_json,completed_at,created_at,updated_at&order=updated_at.desc&limit=500').catch(()=>[]);
+  const identities=await dbGet(env,'platform_member_identities','select=member_id,provider,last_login_at').catch(()=>[]);
+  const idMap={};for(const x of identities){if(!idMap[x.member_id])idMap[x.member_id]=[];idMap[x.member_id].push({provider:x.provider,lastLoginAt:x.last_login_at})}
+  return jsonOk({members:members.map(x=>{const v=safeJson(x.vendor_json,{});const roles=['participant'];if(v.brandName)roles.push('vendor');return {id:x.id,email:x.email||'',name:x.name||x.display_name||'',phone:x.phone||'',brand:v.brandName||'',category:v.category||'',roles,providers:idMap[x.id]||[],complete:!!x.completed_at,createdAt:x.created_at||'',updatedAt:x.updated_at||''}})});
 }
 
 async function hGetTenantsAdmin(env, p) {
@@ -9967,6 +9983,7 @@ async function routeGet(env, action, p, req) {
   if (action==='applyList') return await hApplyList(env, p);
   if (action==='getTenantsAdmin') return await hGetTenantsAdmin(env, p);
   if (action==='getPlatformDashboard') return await hGetPlatformDashboard(env,p);
+  if (action==='getPlatformMembersAdmin') return await hGetPlatformMembersAdmin(env,p);
   if (action==='getPlatformBillingPolicy') return await hGetPlatformBillingPolicy(env,p);
   if (action==='getPublicBillingPolicy') return await hGetPublicBillingPolicy(env);
   if (action==='getPlatformSupportThreads') return await hGetPlatformSupportThreads(env,p);
