@@ -3,6 +3,14 @@
   document.body.classList.add('doing-about-refresh');
   document.title='DOING｜功能、費用與營運帳號申請';
 
+  const params=new URL(location.href).searchParams;
+  if(params.get('embed')==='1'){
+    document.body.classList.add('doing-about-embed');
+    const keep=$('#apply');
+    $$('body > header, main > section, .quick-nav, .footer').forEach(el=>{if(el!==keep&&!el.contains(keep))el.style.display='none'});
+    if(keep){keep.style.display='block';keep.style.paddingTop='12px';}
+  }
+
   const hero=$('#about .hero-main');
   if(hero){
     const eyebrow=hero.querySelector('.eyebrow'); if(eyebrow)eyebrow.textContent='給正在辦活動、開課、做體驗或接預約的人';
@@ -37,32 +45,15 @@
       const note=document.createElement('div');note.className='doing-audience-note';note.innerHTML='<b>一般參加者不用申請帳號。</b><span>下面的費用只跟主辦、品牌、工作室或服務提供者有關。</span>';sh?.after(note);
     }
     const cards=pricing.querySelectorAll('.price-card');
-    if(cards[0]){
-      const h=cards[0].querySelector('h3'),p=cards[0].querySelector('p');
-      if(h)h.textContent='單次活動／場次';
-      if(p)p.textContent='適合市集、講座、展演、單次工作坊。每個可以獨立報名的場次，開通一次 NT$200。';
-    }
-    if(cards[1]){
-      const h=cards[1].querySelector('h3'),p=cards[1].querySelector('p');
-      if(h)h.textContent='持續接預約';
-      if(p)p.textContent='適合工作室、美業、導覽、場地或固定時段服務。啟用後 NT$888／月。';
-    }
-    const nb=pricing.querySelector('.notebox');
-    if(nb)nb.innerHTML='<b>先設定，確定要開放再啟用。</b><br>活動延期可以沿用原本的啟用資格；如果主辦自己取消，已啟用的平台服務費不退。';
+    if(cards[0]){const h=cards[0].querySelector('h3'),p=cards[0].querySelector('p');if(h)h.textContent='單次活動／場次';if(p)p.textContent='適合市集、講座、展演、單次工作坊。每個可以獨立報名的場次，開通一次 NT$200。';}
+    if(cards[1]){const h=cards[1].querySelector('h3'),p=cards[1].querySelector('p');if(h)h.textContent='持續接預約';if(p)p.textContent='適合工作室、美業、導覽、場地或固定時段服務。啟用後 NT$888／月。';}
+    const nb=pricing.querySelector('.notebox');if(nb)nb.innerHTML='<b>先設定，確定要開放再啟用。</b><br>活動延期可以沿用原本的啟用資格；如果主辦自己取消，已啟用的平台服務費不退。';
   }
 
   const apply=$('#apply');
   if(apply){
     const side=apply.querySelector('.side-panel');
-    if(side){
-      const h=side.querySelector('h3'),p=side.querySelector('p'),lis=side.querySelectorAll('li'),mini=side.querySelector('.mini');
-      if(h)h.textContent='你是營運者，才需要申請';
-      if(p)p.textContent='如果你是主辦、品牌、工作室、老師、服務提供者，想用 DOING 管理自己的活動或預約，再從這裡申請營運帳號。';
-      if(lis[0])lis[0].textContent='填基本資料，讓我們知道你是誰、在經營什麼。';
-      if(lis[1])lis[1].textContent='審核通過後，就會開啟你的營運帳號。';
-      if(lis[2])lis[2].textContent='資料不夠時會請你補充，不需要重新申請。';
-      if(mini)mini.textContent='只是來找活動、報名或預約的人，不需要填這份申請。';
-    }
+    if(side){const h=side.querySelector('h3'),p=side.querySelector('p'),lis=side.querySelectorAll('li'),mini=side.querySelector('.mini');if(h)h.textContent='你是營運者，才需要申請';if(p)p.textContent='如果你是主辦、品牌、工作室、老師、服務提供者，想用 DOING 管理自己的活動或預約，再從這裡申請營運帳號。';if(lis[0])lis[0].textContent='填基本資料，讓我們知道你是誰、在經營什麼。';if(lis[1])lis[1].textContent='審核通過後，就會開啟你的營運帳號。';if(lis[2])lis[2].textContent='資料不夠時會請你補充，不需要重新申請。';if(mini)mini.textContent='只是來找活動、報名或預約的人，不需要填這份申請。';}
     const fh=apply.querySelector('.form-head');if(fh){const h=fh.querySelector('h2'),p=fh.querySelector('p');if(h)h.textContent='申請 DOING 營運帳號';if(p)p.textContent='填完送出即可。審核通過後才能進入營運工作台。';}
   }
 })();
