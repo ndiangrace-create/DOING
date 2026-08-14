@@ -114,6 +114,7 @@ html.doing-public-refactor body>.top,html.doing-public-refactor body>.bottom-nav
 .doing-console-card{width:100%!important;max-width:100%!important;margin-left:0!important;margin-right:0!important}
 .doing-nav-logo{position:relative!important;width:94px!important;height:40px!important;overflow:hidden!important}
 .doing-nav-logo img{position:absolute!important;width:111px!important;height:auto!important;max-width:none!important;left:-9px!important;top:-17px!important;object-fit:initial!important}
+.doing-nav-logo.fallback:after{content:'DOING'!important;position:absolute;inset:0;display:grid;place-items:center;color:#77c8e6;font-size:17px;font-weight:1000;letter-spacing:.08em;-webkit-text-stroke:1px #fff}
 .doing-list-section{overflow:hidden!important;background:linear-gradient(135deg,#fff,#f5fbfd 50%,#fbf1f7)!important}
 .doing-list-head{margin:0 0 20px!important;align-items:flex-end!important}.doing-list-head h2{margin:10px 0 0!important;color:#4b4452;font-size:clamp(30px,4vw,46px);line-height:1.15}.doing-list-head>span{padding-bottom:5px}
 .doing-public-activity-list{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:18px!important;overflow:visible!important}
