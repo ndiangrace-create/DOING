@@ -1,6 +1,6 @@
 (()=>{
   const byId=id=>document.getElementById(id);
-  const esc2=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const esc2=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[m]));
   let searchStageTimer=null,searchStageIndex=0,searchPaused=false,searchTouchY=null;
 
   function navParts(){
@@ -23,6 +23,22 @@
   function smoothTo(el,focusEl){if(!el)return;const top=window.scrollY+el.getBoundingClientRect().top-88;window.scrollTo({top:Math.max(0,top),behavior:'smooth'});if(focusEl)setTimeout(()=>focusEl.focus({preventScroll:true}),450)}
   function getSearchOverlay(){return document.querySelector('.doing-search-overlay')}
   function goToSearch(){smoothTo(getSearchOverlay(),byId('doingGlobalSearchInput'))}
+
+  function suppressTenantOnlyToastOnGlobalHome(){
+    if(new URL(location.href).searchParams.get('tenant'))return;
+    const toast=byId('toast');if(!toast)return;
+    const clean=()=>{
+      const text=String(toast.textContent||'');
+      if(/無法辨識主辦空間|請從主辦提供的活動連結進入|主辦提供的活動連結/.test(text)){
+        toast.classList.remove('show');
+        toast.textContent='';
+        toast.style.display='none';
+        setTimeout(()=>{toast.style.display=''},50);
+      }
+    };
+    clean();
+    new MutationObserver(clean).observe(toast,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
+  }
 
   function realRows(){let a=[],b=[];try{a=Array.isArray(state.discoveryItems)?state.discoveryItems:[];b=Array.isArray(state.exposureItems)?state.exposureItems:[]}catch(e){}const seen=new Set(),out=[];[...a,...b].forEach(x=>{const k=String(x.sessionId||x.id||'');if(!k||seen.has(k))return;seen.add(k);out.push(x)});return out}
   function dateText(rows){const a=Array.isArray(rows)?rows:[];if(!a.length)return '日期待公告';const d=a[0];return String((d&&typeof d==='object'?(d.label||d.date):d)||'日期待公告')}
@@ -47,6 +63,21 @@
     const applyBtn=byId('doingInlineApplyBtn');if(applyBtn)applyBtn.onclick=()=>{const fw=byId('doingInlineApplyFrameWrap'),fr=byId('doingInlineApplyFrame');if(fr&&!fr.src)fr.src='about.html?embed=1#apply';fw?.classList.remove('hidden');applyBtn.classList.add('hidden');setTimeout(()=>smoothTo(fw),80)};return wrap;
   }
   function wireSinglePageNav(){const p=navParts();if(p.search)p.search.onclick=goToSearch;if(p.my)p.my.onclick=()=>smoothTo(byId('doingHomeMy'));if(p.support)p.support.onclick=()=>smoothTo(byId('doingHomeSupport'));if(p.pricing){p.pricing.removeAttribute('href');p.pricing.setAttribute('role','button');p.pricing.onclick=e=>{e.preventDefault();smoothTo(byId('doingHomePricing'))}}if(p.apply){p.apply.removeAttribute('href');p.apply.setAttribute('role','button');p.apply.onclick=e=>{e.preventDefault();smoothTo(byId('doingHomeApply'))}}}
-  function wire(){preserveOriginalNavOrder();createSinglePageSections();wireSinglePageNav();const input=byId('doingGlobalSearchInput');if(input){input.placeholder='搜尋活動、課程、體驗或地點';input.setAttribute('autocomplete','off');input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();runHomeSearch()}}}const go=byId('doingGlobalSearchGo');if(go)go.onclick=runHomeSearch;const modal=byId('globalSearchModal');if(modal){modal.classList.remove('show');modal.setAttribute('aria-hidden','true')}}
+  function wire(){
+    preserveOriginalNavOrder();
+    createSinglePageSections();
+    wireSinglePageNav();
+    suppressTenantOnlyToastOnGlobalHome();
+    const input=byId('doingGlobalSearchInput');
+    if(input){
+      input.placeholder='';
+      input.removeAttribute('placeholder');
+      input.setAttribute('aria-label','搜尋活動、課程、體驗或地點');
+      input.setAttribute('autocomplete','off');
+      input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();runHomeSearch()}};
+    }
+    const go=byId('doingGlobalSearchGo');if(go)go.onclick=runHomeSearch;
+    const modal=byId('globalSearchModal');if(modal){modal.classList.remove('show');modal.setAttribute('aria-hidden','true')}
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wire,{once:true});else wire();
 })();
