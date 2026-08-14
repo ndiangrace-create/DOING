@@ -40,7 +40,7 @@ function buildHeader(){
     brand=document.createElement('button');
     brand.type='button';
     brand.className='doing-nav-brand';
-    brand.innerHTML='<span class="doing-nav-logo">D</span><span><b>DOING</b><small>活動營運管理系統</small></span>';
+    brand.innerHTML='<span class="doing-nav-logo"><img src="doing-logo-header.png?v=20260815" alt="DOING"></span><span><b>活動營運管理系統</b></span>';
     brand.onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
     p.nav.prepend(brand);
   }
@@ -319,15 +319,6 @@ function publicAppHTML(){
       <div id="doingPublicActivityList" class="doing-public-activity-list" aria-live="polite"></div>
     </section>
 
-    <section class="doing-proof-section" aria-label="DOING 系統亮點">
-      <header><span class="doing-kicker">為什麼主辦需要 DOING</span><h2>真正麻煩的，從來不是做一張報名表。</h2><p>而是報名送出以後，名單、款項、異動與現場資訊開始出現不同版本。DOING 把這些工作接成一條完整流程。</p></header>
-      <div class="doing-proof-story">
-        <article><span>01</span><div><small>一筆資料，跑完整場</small><h3>不再從表單搬到 Excel、付款表、位置表與簽到表。</h3><p>報名、審核、付款、設備、選位、通知、報到與結案都沿用同一筆正式資料；打開系統看到的，就是現在正確的版本。</p></div><b>少整理<br>多完成</b></article>
-        <article><span>02</span><div><small>活動有變，也不用全部重來</small><h3>延期、取消、改期與退款，都接著原本紀錄處理。</h3><p>名單、付款、設備和位置不必重新複製，主辦可以沿著原資料完成通知與後續安排。</p></div><b>不怕異動<br>不漏處理</b></article>
-        <article><span>03</span><div><small>不同工作方式，一個營運後台</small><h3>市集、課程、體驗、導覽與工作室預約，不必各養一套工具。</h3><p>流程可以不同，會員、日曆、通知、付款與財務仍集中管理；下一場也不用重新開始。</p></div><b>活動多元<br>營運不亂</b></article>
-      </div>
-    </section>
-
     <section class="doing-public-section doing-activities-section" id="doingPublicActivities" aria-label="活動快訊輪播">
       <div class="doing-section-title row">
         <div><span class="doing-kicker">活動快訊</span><h2 id="doingActivityLabel">近期精選活動</h2><p>看看最近有哪些活動、課程與體驗正在開放，點進去即可查看完整內容。</p></div>
@@ -342,7 +333,21 @@ function publicAppHTML(){
       </div>
     </section>
 
+    <section class="doing-my-highlight" aria-label="我的報名功能亮點">
+      <div class="doing-my-highlight-copy"><span class="doing-kicker">我的報名</span><h2>報名之後，不必再回頭翻訊息。</h2><p>付款、審核、改期、位置與行前通知都集中在自己的報名紀錄；需要查看時，從右上角「我的報名」進入即可。</p></div>
+      <div class="doing-my-highlight-points"><span><b>付款與審核</b><small>最新狀態一次看</small></span><span><b>改期與退款</b><small>異動選擇不漏接</small></span><span><b>位置與提醒</b><small>出發前資訊帶著走</small></span></div>
+    </section>
+
     <div id="doingMyMount"></div>
+
+    <section class="doing-proof-section" aria-label="DOING 系統亮點">
+      <header><span class="doing-kicker">為什麼主辦需要 DOING</span><h2>真正麻煩的，從來不是做一張報名表。</h2><p>而是報名送出以後，名單、款項、異動與現場資訊開始出現不同版本。DOING 把這些工作接成一條完整流程。</p></header>
+      <div class="doing-proof-story">
+        <article><span>01</span><div><small>一筆資料，跑完整場</small><h3>不再從表單搬到 Excel、付款表、位置表與簽到表。</h3><p>報名、審核、付款、設備、選位、通知、報到與結案都沿用同一筆正式資料；打開系統看到的，就是現在正確的版本。</p></div><b>少整理<br>多完成</b></article>
+        <article><span>02</span><div><small>活動有變，也不用全部重來</small><h3>延期、取消、改期與退款，都接著原本紀錄處理。</h3><p>名單、付款、設備和位置不必重新複製，主辦可以沿著原資料完成通知與後續安排。</p></div><b>不怕異動<br>不漏處理</b></article>
+        <article><span>03</span><div><small>不同工作方式，一個營運後台</small><h3>市集、課程、體驗、導覽與工作室預約，不必各養一套工具。</h3><p>流程可以不同，會員、日曆、通知、付款與財務仍集中管理；下一場也不用重新開始。</p></div><b>活動多元<br>營運不亂</b></article>
+      </div>
+    </section>
 
     <section class="doing-public-section doing-organizer-section">
       <div class="doing-organizer-icon">D</div>
@@ -404,7 +409,7 @@ function buildPublicApp(){
   const oldArt=$('doingGlobalArtHome');if(oldArt)oldArt.classList.add('doing-legacy-public-hidden');
   const my=$('pageMy');
   if(my){
-    my.classList.remove('page');my.classList.add('doing-public-native-panel','doing-my-panel');my.id='doingHomeMy';
+    my.classList.remove('page');my.classList.add('doing-public-native-panel','doing-my-panel');my.classList.remove('active');my.id='doingHomeMy';my.hidden=true;
     $('doingMyMount')?.replaceWith(my);
   }
   const support=$('pageSupport');
@@ -419,7 +424,7 @@ function buildPublicApp(){
 function wireNav(){
   const p=navParts();
   if(p.search)p.search.onclick=()=>smoothTo($('doingPublicSearch'),$('doingPublicSearchInput'));
-  if(p.my)p.my.onclick=()=>smoothTo($('doingHomeMy'));
+  if(p.my)p.my.onclick=()=>{const panel=$('doingHomeMy');if(panel){panel.hidden=false;panel.classList.add('is-open');smoothTo(panel)}};
   if(p.support)p.support.onclick=()=>smoothTo($('doingHomeSupport'));
   document.querySelectorAll('[data-go="search"]').forEach(x=>x.onclick=()=>smoothTo($('doingPublicSearch'),$('doingPublicSearchInput')));
   document.querySelectorAll('[data-go="my"]').forEach(x=>x.onclick=()=>smoothTo($('doingHomeMy')));

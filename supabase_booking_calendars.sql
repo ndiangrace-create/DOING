@@ -60,3 +60,32 @@ where t.booking_calendar_id is null and c.tenant_id=t.tenant_id and c.operation_
 update public.registrations r set booking_calendar_id=c.id
 from public.booking_calendars c
 where r.booking_calendar_id is null and c.tenant_id=r.tenant_id and c.operation_unit_id=r.operation_unit_id;
+
+create or replace function public.prevent_booking_calendar_overlap()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+declare overlap_id text;
+begin
+  if new.status <> 'open' or new.booking_calendar_id is null or btrim(new.booking_calendar_id) = '' then return new; end if;
+  if new.date_key !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+     or new.start_text !~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'
+     or new.end_text !~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'
+     or new.end_text <= new.start_text then
+    raise exception using message = '預約日期或時間格式不正確';
+  end if;
+  select t.id into overlap_id from public.timeslots t
+   where t.tenant_id=new.tenant_id and t.booking_calendar_id=new.booking_calendar_id
+     and t.date_key=new.date_key and t.status='open' and t.id<>new.id
+     and t.start_text<new.end_text and t.end_text>new.start_text limit 1;
+  if overlap_id is not null then raise exception using message = '同一位老師或空間的預約時段不可重疊'; end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists timeslots_prevent_booking_calendar_overlap on public.timeslots;
+create trigger timeslots_prevent_booking_calendar_overlap
+before insert or update of tenant_id,booking_calendar_id,date_key,start_text,end_text,status
+on public.timeslots for each row execute function public.prevent_booking_calendar_overlap();
+revoke all on function public.prevent_booking_calendar_overlap() from public, anon, authenticated;
