@@ -5,17 +5,26 @@
 
   function navParts(){
     const nav=byId('doingGlobalFixedNav');if(!nav)return{};
-    return{nav,search:byId('globalSearchNavBtn'),my:byId('globalMyNavBtn'),support:byId('globalSupportNavBtn'),pricing:nav.querySelector('a[href*="#pricing"]'),apply:nav.querySelector('a[href*="#apply"]')};
+    const links=[...nav.querySelectorAll('a,button')];
+    const search=byId('globalSearchNavBtn');
+    const my=byId('globalMyNavBtn');
+    const support=byId('globalSupportNavBtn');
+    const pricing=links.find(x=>/費用|功能/.test((x.textContent||'').trim())||/pricing/.test(x.getAttribute('href')||''));
+    const apply=links.find(x=>/營運帳號申請/.test((x.textContent||'').trim())||/apply/.test(x.getAttribute('href')||''));
+    if(pricing)pricing.classList.add('doing-nav-pricing');
+    if(apply)apply.classList.add('doing-nav-apply');
+    return{nav,search,my,support,pricing,apply};
   }
-  function reorderNav(){const p=navParts();[p.search,p.my,p.support,p.pricing,p.apply].filter(Boolean).forEach(x=>p.nav.appendChild(x))}
+  function preserveOriginalNavOrder(){
+    const p=navParts();if(!p.nav)return;
+    /* Canva 原始順序：營運帳號申請｜搜尋活動｜費用／功能｜客服中心｜我的報名 */
+    [p.apply,p.search,p.pricing,p.support,p.my].filter(Boolean).forEach(x=>p.nav.appendChild(x));
+  }
   function smoothTo(el,focusEl){if(!el)return;const top=window.scrollY+el.getBoundingClientRect().top-88;window.scrollTo({top:Math.max(0,top),behavior:'smooth'});if(focusEl)setTimeout(()=>focusEl.focus({preventScroll:true}),450)}
   function getSearchOverlay(){return document.querySelector('.doing-search-overlay')}
   function goToSearch(){smoothTo(getSearchOverlay(),byId('doingGlobalSearchInput'))}
 
-  function realRows(){
-    let a=[],b=[];try{a=Array.isArray(state.discoveryItems)?state.discoveryItems:[];b=Array.isArray(state.exposureItems)?state.exposureItems:[]}catch(e){}
-    const seen=new Set(),out=[];[...a,...b].forEach(x=>{const k=String(x.sessionId||x.id||'');if(!k||seen.has(k))return;seen.add(k);out.push(x)});return out;
-  }
+  function realRows(){let a=[],b=[];try{a=Array.isArray(state.discoveryItems)?state.discoveryItems:[];b=Array.isArray(state.exposureItems)?state.exposureItems:[]}catch(e){}const seen=new Set(),out=[];[...a,...b].forEach(x=>{const k=String(x.sessionId||x.id||'');if(!k||seen.has(k))return;seen.add(k);out.push(x)});return out}
   function dateText(rows){const a=Array.isArray(rows)?rows:[];if(!a.length)return '日期待公告';const d=a[0];return String((d&&typeof d==='object'?(d.label||d.date):d)||'日期待公告')}
   function searchCardPos(stage,items){if(!stage||!items.length)return;stage.querySelectorAll('.doing-search-3d-card').forEach((el,i)=>{let d=i-searchStageIndex,n=items.length;if(d>n/2)d-=n;if(d<-n/2)d+=n;let c='off';if(d===0)c='pos0';else if(d===-1)c='posm1';else if(d===1)c='pos1';else if(d===-2)c='posm2';else if(d===2)c='pos2';el.className='doing-search-3d-card '+c})}
   function renderSearchStage(items,q){
@@ -32,40 +41,12 @@
     const sessions=byId('pageSessions'),art=byId('doingGlobalArtHome');if(!sessions||!art)return;
     let wrap=byId('doingSinglePageSections');if(wrap)return wrap;
     wrap=document.createElement('div');wrap.id='doingSinglePageSections';wrap.className='doing-single-page-sections';
-    wrap.innerHTML=`
-      <section id="doingHomePricing" class="doing-home-section doing-home-pricing">
-        <div class="doing-section-kicker">費用／功能</div><h2>要正式開放時，再啟用就好。</h2><p class="doing-section-lead">只是來找活動、報名或預約的人完全不用付這些費用。這裡是給主辦、品牌、工作室與服務提供者看的。</p>
-        <div class="doing-price-grid"><article><span>單次活動／場次</span><strong>NT$200</strong><p>市集、講座、展演、單次工作坊。每個可獨立報名的場次開通一次。</p></article><article><span>持續接預約</span><strong>NT$888／月</strong><p>工作室、美業、導覽、場地或固定時段服務。</p></article></div>
-        <div class="doing-rule-note"><b>先設定，確定要開放再啟用。</b> 活動延期可沿用原本的啟用資格；主辦自行取消時，已啟用的平台服務費不退。</div>
-      </section>
-      <section id="doingHomeApply" class="doing-home-section doing-home-apply">
-        <div class="doing-section-kicker">給營運者</div><h2>你正在辦活動、開課、做體驗或接預約嗎？</h2><p class="doing-section-lead">只有想用 DOING 經營自己活動或服務的人才需要申請。一般參加者不用申請營運帳號。</p>
-        <div class="doing-apply-flow"><span>① 填基本資料</span><span>② DOING 審核</span><span>③ 通過後開始設定</span><span>④ 要開放時再啟用</span></div>
-        <button type="button" class="doing-main-action" id="doingInlineApplyBtn">開始申請營運帳號</button>
-        <div id="doingInlineApplyFrameWrap" class="doing-inline-frame-wrap hidden"><iframe id="doingInlineApplyFrame" title="DOING 營運帳號申請" loading="lazy"></iframe></div>
-      </section>`;
+    wrap.innerHTML=`<section id="doingHomePricing" class="doing-home-section doing-home-pricing"><div class="doing-section-kicker">費用／功能</div><h2>要正式開放時，再啟用就好。</h2><p class="doing-section-lead">只是來找活動、報名或預約的人完全不用付這些費用。這裡是給主辦、品牌、工作室與服務提供者看的。</p><div class="doing-price-grid"><article><span>單次活動／場次</span><strong>NT$200</strong><p>市集、講座、展演、單次工作坊。每個可獨立報名的場次開通一次。</p></article><article><span>持續接預約</span><strong>NT$888／月</strong><p>工作室、美業、導覽、場地或固定時段服務。</p></article></div><div class="doing-rule-note"><b>先設定，確定要開放再啟用。</b> 活動延期可沿用原本的啟用資格；主辦自行取消時，已啟用的平台服務費不退。</div></section><section id="doingHomeApply" class="doing-home-section doing-home-apply"><div class="doing-section-kicker">給營運者</div><h2>你正在辦活動、開課、做體驗或接預約嗎？</h2><p class="doing-section-lead">只有想用 DOING 經營自己活動或服務的人才需要申請。一般參加者不用申請營運帳號。</p><div class="doing-apply-flow"><span>① 填基本資料</span><span>② DOING 審核</span><span>③ 通過後開始設定</span><span>④ 要開放時再啟用</span></div><button type="button" class="doing-main-action" id="doingInlineApplyBtn">開始申請營運帳號</button><div id="doingInlineApplyFrameWrap" class="doing-inline-frame-wrap hidden"><iframe id="doingInlineApplyFrame" title="DOING 營運帳號申請" loading="lazy"></iframe></div></section>`;
     art.after(wrap);
-
-    const my=byId('pageMy'),support=byId('pageSupport');
-    if(my){my.classList.remove('page');my.classList.add('doing-home-section','doing-public-panel');my.id='doingHomeMy';wrap.appendChild(my)}
-    if(support){support.classList.remove('page');support.classList.add('doing-home-section','doing-public-panel');support.id='doingHomeSupport';wrap.appendChild(support)}
-
-    const applyBtn=byId('doingInlineApplyBtn');if(applyBtn)applyBtn.onclick=()=>{const fw=byId('doingInlineApplyFrameWrap'),fr=byId('doingInlineApplyFrame');if(fr&&!fr.src)fr.src='about.html?embed=1#apply';fw?.classList.remove('hidden');applyBtn.classList.add('hidden');setTimeout(()=>smoothTo(fw),80)};
-    return wrap;
+    const my=byId('pageMy'),support=byId('pageSupport');if(my){my.classList.remove('page');my.classList.add('doing-home-section','doing-public-panel');my.id='doingHomeMy';wrap.appendChild(my)}if(support){support.classList.remove('page');support.classList.add('doing-home-section','doing-public-panel');support.id='doingHomeSupport';wrap.appendChild(support)}
+    const applyBtn=byId('doingInlineApplyBtn');if(applyBtn)applyBtn.onclick=()=>{const fw=byId('doingInlineApplyFrameWrap'),fr=byId('doingInlineApplyFrame');if(fr&&!fr.src)fr.src='about.html?embed=1#apply';fw?.classList.remove('hidden');applyBtn.classList.add('hidden');setTimeout(()=>smoothTo(fw),80)};return wrap;
   }
-  function wireSinglePageNav(){
-    const p=navParts();
-    if(p.search)p.search.onclick=goToSearch;
-    if(p.my)p.my.onclick=()=>smoothTo(byId('doingHomeMy'));
-    if(p.support)p.support.onclick=()=>smoothTo(byId('doingHomeSupport'));
-    if(p.pricing){p.pricing.removeAttribute('href');p.pricing.setAttribute('role','button');p.pricing.onclick=e=>{e.preventDefault();smoothTo(byId('doingHomePricing'))}}
-    if(p.apply){p.apply.removeAttribute('href');p.apply.setAttribute('role','button');p.apply.onclick=e=>{e.preventDefault();smoothTo(byId('doingHomeApply'))}}
-  }
-  function wire(){
-    reorderNav();createSinglePageSections();wireSinglePageNav();
-    const input=byId('doingGlobalSearchInput');if(input){input.placeholder='搜尋活動、課程、體驗或地點';input.setAttribute('autocomplete','off');input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();runHomeSearch()}}}
-    const go=byId('doingGlobalSearchGo');if(go)go.onclick=runHomeSearch;
-    const modal=byId('globalSearchModal');if(modal){modal.classList.remove('show');modal.setAttribute('aria-hidden','true')}
-  }
+  function wireSinglePageNav(){const p=navParts();if(p.search)p.search.onclick=goToSearch;if(p.my)p.my.onclick=()=>smoothTo(byId('doingHomeMy'));if(p.support)p.support.onclick=()=>smoothTo(byId('doingHomeSupport'));if(p.pricing){p.pricing.removeAttribute('href');p.pricing.setAttribute('role','button');p.pricing.onclick=e=>{e.preventDefault();smoothTo(byId('doingHomePricing'))}}if(p.apply){p.apply.removeAttribute('href');p.apply.setAttribute('role','button');p.apply.onclick=e=>{e.preventDefault();smoothTo(byId('doingHomeApply'))}}}
+  function wire(){preserveOriginalNavOrder();createSinglePageSections();wireSinglePageNav();const input=byId('doingGlobalSearchInput');if(input){input.placeholder='搜尋活動、課程、體驗或地點';input.setAttribute('autocomplete','off');input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();runHomeSearch()}}}const go=byId('doingGlobalSearchGo');if(go)go.onclick=runHomeSearch;const modal=byId('globalSearchModal');if(modal){modal.classList.remove('show');modal.setAttribute('aria-hidden','true')}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wire,{once:true});else wire();
 })();
