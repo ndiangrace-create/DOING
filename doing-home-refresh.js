@@ -334,9 +334,9 @@ function publicAppHTML(){
       </div>
     </section>
 
-    <section class="doing-my-highlight" aria-label="我的報名功能亮點">
-      <div class="doing-my-highlight-copy"><span class="doing-kicker">我的報名</span><h2>報名之後，不必再回頭翻訊息。</h2><p>付款、審核、改期、位置與行前通知都集中在自己的報名紀錄；需要查看時，從右上角「我的報名」進入即可。</p></div>
-      <div class="doing-my-highlight-points"><span><b>付款與審核</b><small>最新狀態一次看</small></span><span><b>改期與退款</b><small>異動選擇不漏接</small></span><span><b>位置與提醒</b><small>出發前資訊帶著走</small></span></div>
+    <section class="doing-my-highlight" aria-label="快速報名功能亮點">
+      <div class="doing-my-highlight-copy"><span class="doing-kicker">快速報名</span><h2>基本資料填一次，下一場不用重新來。</h2><p>第一次報名時完成會員資料，之後參加同一主辦的其他活動，即可帶入既有資料；自己的報名紀錄、付款狀態與行前資訊也能集中查看。</p><div class="doing-my-highlight-actions"><button type="button" data-my-action="apply">首次申請</button><button type="button" class="secondary" data-my-action="login">登入我的報名</button></div></div>
+      <div class="doing-my-highlight-points"><span><b>資料不用重填</b><small>後續報名快速帶入</small></span><span><b>付款與審核</b><small>最新狀態一次看</small></span><span><b>行前資訊</b><small>時間、地點與提醒集中查看</small></span></div>
     </section>
 
     <div id="doingMyMount"></div>
@@ -356,10 +356,10 @@ function publicAppHTML(){
       </div>
     </section>
 
-    <details id="doingOrganizerDetails" class="doing-organizer-details">
-      <summary><div>主辦方案與營運情境<span>情境、功能、費用與申請都在這一頁展開</span></div></summary>
+    <section id="doingOrganizerDetails" class="doing-organizer-details">
+      <header class="doing-organizer-heading"><h2>主辦方案與營運情境</h2><p>情境、功能、費用與申請都直接顯示在這一頁。</p></header>
       <div id="doingOrganizerContent" class="doing-organizer-content"><div class="doing-organizer-loading">準備主辦方案…</div></div>
-    </details>
+    </section>
 
     <div id="doingSupportMount"></div>
 
@@ -368,21 +368,27 @@ function publicAppHTML(){
       <nav><a href="#doingOrganizerDetails" data-organizer-target="scenes">關於 DOING</a><a href="#doingOrganizerDetails" data-organizer-target="pricing">主辦方案</a><a href="#doingOrganizerDetails" data-organizer-target="apply">申請營運帳號</a><a href="mailto:Ndiangrace@gmail.com">Email 客服</a></nav>
       <small>兔彼樂共創活動有限公司</small>
     </footer>
+    <div id="doingMyEntryModal" class="doing-my-entry-modal" hidden>
+      <div class="doing-my-entry-dialog" role="dialog" aria-modal="true" aria-labelledby="doingMyEntryTitle">
+        <button type="button" class="doing-my-entry-close" aria-label="關閉">×</button>
+        <span class="doing-kicker">我的報名</span><h2 id="doingMyEntryTitle">登入，或從第一次報名開始。</h2><p>已經報名過可直接登入查看紀錄；第一次使用請先選擇活動，完成報名資料後便能在後續報名時快速帶入。</p>
+        <div><button type="button" data-my-action="login">登入我的報名</button><button type="button" class="secondary" data-my-action="apply">首次申請</button></div>
+      </div>
+    </div>
   </div>`;
 }
 
 let organizerLoadPromise=null;
-async function loadOrganizerDetails(target='scenes'){
+async function loadOrganizerDetails(target='scenes',shouldScroll=true){
   const details=$('doingOrganizerDetails'),content=$('doingOrganizerContent');
   if(!details||!content)return;
-  details.open=true;
   if(!organizerLoadPromise){
     organizerLoadPromise=fetch('about.html?fragment=1',{cache:'no-store'}).then(async response=>{
       if(!response.ok)throw new Error('主辦方案讀取失敗');
       const html=await response.text(),doc=new DOMParser().parseFromString(html,'text/html');
       const ids=['scenes','workflow','features','pricing','apply','support'];
       content.replaceChildren(...ids.map(id=>doc.getElementById(id)?.cloneNode(true)).filter(Boolean));
-      content.querySelectorAll('a[href="index.html"]').forEach(a=>{a.href='#doingOrganizerDetails';a.onclick=e=>{e.preventDefault();details.open=false;smoothTo(details)}});
+      content.querySelectorAll('a[href="index.html"]').forEach(a=>{a.href='#doingOrganizerDetails';a.onclick=e=>{e.preventDefault();smoothTo(details)}});
       const signupSource=[...doc.scripts].find(s=>s.textContent.includes("const API='https://tobeloved-api.ndiangrace.workers.dev'"));
       if(signupSource){const script=document.createElement('script');script.textContent=signupSource.textContent;document.body.appendChild(script);script.remove()}
       await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='doing-about-refresh.js?v=20260815c';script.onload=resolve;script.onerror=reject;document.body.appendChild(script)});
@@ -390,7 +396,7 @@ async function loadOrganizerDetails(target='scenes'){
   }
   await organizerLoadPromise;
   const section=content.querySelector('#'+CSS.escape(target))||content.querySelector('#scenes');
-  setTimeout(()=>smoothTo(section||details),60);
+  if(shouldScroll)setTimeout(()=>smoothTo(section||details),60);
 }
 window.openDoingOrganizerDetails=loadOrganizerDetails;
 
@@ -420,18 +426,29 @@ function buildPublicApp(){
   }
   const oldSingle=$('doingSinglePageSections');if(oldSingle)oldSingle.remove();
   const oldModal=$('globalSearchModal');if(oldModal)oldModal.classList.remove('show');
+  loadOrganizerDetails('scenes',false);
 }
+
+function openMyEntry(){const modal=$('doingMyEntryModal');if(modal){modal.hidden=false;document.body.style.overflow='hidden';modal.querySelector('[data-my-action="login"]')?.focus()}}
+function closeMyEntry(){const modal=$('doingMyEntryModal');if(modal){modal.hidden=true;document.body.style.overflow=''}}
+function openMyLogin(){closeMyEntry();const panel=$('doingHomeMy');if(panel){panel.hidden=false;panel.classList.add('is-open');smoothTo(panel,$('myEmail'))}}
+function startFirstApplication(){closeMyEntry();smoothTo($('doingPublicSearch'),$('doingPublicSearchInput'));if(typeof toast==='function')toast('請先選擇一場活動；完成第一次報名後，後續即可快速帶入會員資料。')}
 
 function wireNav(){
   const p=navParts();
   if(p.search)p.search.onclick=()=>smoothTo($('doingPublicSearch'),$('doingPublicSearchInput'));
-  if(p.my)p.my.onclick=()=>{const panel=$('doingHomeMy');if(panel){panel.hidden=false;panel.classList.add('is-open');smoothTo(panel)}};
+  if(p.my)p.my.onclick=openMyEntry;
   if(p.support)p.support.onclick=()=>smoothTo($('doingHomeSupport'));
   document.querySelectorAll('[data-go="search"]').forEach(x=>x.onclick=()=>smoothTo($('doingPublicSearch'),$('doingPublicSearchInput')));
-  document.querySelectorAll('[data-go="my"]').forEach(x=>x.onclick=()=>smoothTo($('doingHomeMy')));
+  document.querySelectorAll('[data-go="my"]').forEach(x=>x.onclick=openMyEntry);
+  document.querySelectorAll('[data-my-action="login"]').forEach(x=>x.onclick=openMyLogin);
+  document.querySelectorAll('[data-my-action="apply"]').forEach(x=>x.onclick=startFirstApplication);
+  const myModal=$('doingMyEntryModal');
+  myModal?.querySelector('.doing-my-entry-close')?.addEventListener('click',closeMyEntry);
+  myModal?.addEventListener('click',e=>{if(e.target===myModal)closeMyEntry()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!myModal?.hidden)closeMyEntry()});
   document.querySelectorAll('[data-go="support"]').forEach(x=>x.onclick=()=>smoothTo($('doingHomeSupport')));
   document.querySelectorAll('[data-organizer-target]').forEach(x=>x.onclick=e=>{e.preventDefault();loadOrganizerDetails(x.dataset.organizerTarget||'scenes')});
-  $('doingOrganizerDetails')?.addEventListener('toggle',e=>{if(e.currentTarget.open&&!organizerLoadPromise)loadOrganizerDetails('scenes')});
   const initial=(location.hash||'').slice(1);
   if(['about','scenes','workflow','features','pricing','apply','support','terms','privacy'].includes(initial))loadOrganizerDetails(initial==='about'?'scenes':initial);
 }

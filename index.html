@@ -299,7 +299,7 @@ body.doing-global-mode>.top,body.doing-global-mode>.bottom-nav{display:none!impo
 </style>
 
 <link rel="stylesheet" href="doing-system.css?v=20260814b">
-<link rel="stylesheet" href="doing-home-refresh.css?v=20260815k">
+<link rel="stylesheet" href="doing-home-refresh.css?v=20260815m">
 </head>
 <body>
 <nav id="doingGlobalFixedNav" class="doing-global-fixed-nav hidden" aria-label="DOING 快速功能">
@@ -354,14 +354,14 @@ body.doing-global-mode>.top,body.doing-global-mode>.bottom-nav{display:none!impo
   <div class="section-title"><div><h2>客服與常見問題</h2><p>先選擇你遇到的情況，就能更快找到答案。</p></div></div>
   <div class="doing-faq-groups">
     <section><span class="pill pink">我是報名者</span>
-      <details open><summary>報名後要去哪裡看進度？</summary><p>從右上角「我的報名」登入，即可查看審核、付款、位置、改期、退款與行前資訊。</p></details>
-      <details><summary>付款、位置或退款有問題，要找誰？</summary><p>單一活動的收款、設備、位置與退款由該活動主辦處理，請優先使用下方「聯絡本場主辦」。</p></details>
-      <details><summary>收不到通知怎麼辦？</summary><p>先到「我的報名」確認最新狀態，並檢查垃圾郵件與報名時填寫的 Email；仍有問題再聯絡活動主辦。</p></details>
+      <article><b>報名後要去哪裡看進度？</b><p>從右上角「我的報名」登入，即可查看審核、付款、位置、改期、退款與行前資訊。</p></article>
+      <article><b>付款、位置或退款有問題，要找誰？</b><p>單一活動的收款、設備、位置與退款由該活動主辦處理，請優先使用下方「聯絡本場主辦」。</p></article>
+      <article><b>收不到通知怎麼辦？</b><p>先到「我的報名」確認最新狀態，並檢查垃圾郵件與報名時填寫的 Email；仍有問題再聯絡活動主辦。</p></article>
     </section>
     <section><span class="pill blue">我是主辦／營運者</span>
-      <details open><summary>DOING 可以管理哪些工作？</summary><p>可管理活動或預約的名單、審核、收付款、改期退款、通知、現場報到及財務紀錄。</p></details>
-      <details><summary>工作室可以分開查看老師行程嗎？</summary><p>可以查看全部預約，也能切換指定老師或空間，並可匯出至 Google Calendar。目前可查看收款、退款與營收紀錄，尚未提供依老師比例自動計算抽成。</p></details>
-      <details><summary>費用怎麼計算？</summary><p>收費活動不用先繳月費，收到活動款項後才依實收計算；持續接預約的工作室可使用固定月費。完整規則請展開「主辦方案」。</p></details>
+      <article><b>DOING 可以管理哪些工作？</b><p>可管理活動或預約的名單、審核、收付款、改期退款、通知、現場報到及財務紀錄。</p></article>
+      <article><b>工作室可以分開查看老師行程嗎？</b><p>可以查看全部預約，也能切換指定老師或空間，並可匯出至 Google Calendar。目前可查看收款、退款與營收紀錄，尚未提供依老師比例自動計算抽成。</p></article>
+      <article><b>費用怎麼計算？</b><p>收費活動不用先繳月費，收到活動款項後才依實收計算；持續接預約的工作室可使用固定月費。完整規則會直接顯示在下方「主辦方案與營運情境」。</p></article>
     </section>
   </div>
   <div class="doing-support-actions"><a id="supportLineBtn" class="btn hidden" target="_blank" rel="noopener">聯絡本場主辦</a><a class="btn outline" href="mailto:Ndiangrace@gmail.com?subject=DOING 系統客服">聯絡 DOING 客服</a></div>
@@ -844,6 +844,6 @@ if(oauthLoginError){
   const clean=new URL(location.href);clean.searchParams.delete('login_error');history.replaceState({},'',clean.pathname+clean.search+clean.hash);
 }
 </script>
-<script src="doing-home-refresh.js?v=20260815l"></script>
+<script src="doing-home-refresh.js?v=20260815m"></script>
 </body>
 </html>
