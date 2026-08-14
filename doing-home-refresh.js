@@ -273,46 +273,59 @@ function watchActivities(){
 function publicAppHTML(){
   return `
   <div id="doingPublicApp" class="doing-public-app">
-    <section class="doing-art-home" id="doingPublicHero" aria-label="DOING 活動首頁">
-      <img class="doing-art-background" src="doing-mobile-home.jpg" alt="DOING 活動預約營運管理系統">
-      <button class="doing-art-hotspot doing-art-search-hotspot" type="button" data-go="search" aria-label="搜尋活動、課程、體驗或地點"></button>
-
-      <div class="doing-art-carousel" id="doingPublicActivities" aria-label="活動快訊輪播">
-        <button id="doingActivityPrev" class="doing-carousel-arrow prev" type="button" aria-label="上一個活動">‹</button>
-        <div id="doingPublicActivityStage" class="doing-public-carousel" aria-live="polite">
-          <div class="doing-empty-state"><b>正在讀取活動…</b></div>
+    <section class="doing-public-hero" id="doingPublicHero" aria-label="DOING 活動首頁">
+      <span class="doing-hero-blob blob-a" aria-hidden="true"></span><span class="doing-hero-blob blob-b" aria-hidden="true"></span>
+      <span class="doing-bee" aria-hidden="true"><i></i></span><span class="doing-bunny" aria-hidden="true"><i></i><b></b></span>
+      <div class="doing-hero-copy" id="doingPublicSearch">
+        <span class="doing-eyebrow">活動預約營運管理系統</span>
+        <div class="doing-wordmark" aria-label="DOING"><span>D</span><span class="doing-check-o"><b>✓</b></span><span>I</span><span>N</span><span>G</span></div>
+        <p class="doing-hero-tagline">先做就對了！美好從這裡開始。</p>
+        <h1>把週末，安排成喜歡的樣子。</h1>
+        <p class="doing-hero-desc">逛市集、看展演、上課、做體驗，或替自己預約一段喜歡的時間。所有主辦的公開活動，都從 DOING 開始。</p>
+        <div class="doing-search-box">
+          <span class="doing-search-icon" aria-hidden="true"></span>
+          <input id="doingPublicSearchInput" type="search" placeholder="搜尋活動、課程、體驗或地點" aria-label="搜尋活動、課程、體驗或地點" autocomplete="off">
+          <button id="doingPublicSearchGo" type="button">搜尋</button>
         </div>
-        <button id="doingActivityNext" class="doing-carousel-arrow next" type="button" aria-label="下一個活動">›</button>
-        <div class="doing-carousel-footer">
-          <div id="doingActivityDots" class="doing-activity-dots" aria-label="活動頁數"></div>
-          <span id="doingActivityCount">1 / 5</span>
+        <div class="doing-quick-tags" aria-label="活動快速分類">
+          <button type="button" data-q="市集">市集</button><button type="button" data-q="課程">課程</button><button type="button" data-q="體驗">體驗</button><button type="button" data-q="預約">預約</button><button type="button" data-q="高雄">高雄</button>
         </div>
       </div>
-
-      <button class="doing-art-hotspot doing-art-line" type="button" data-go="support" aria-label="LINE 客服"></button>
-      <a class="doing-art-hotspot doing-art-terms" href="about.html#support" aria-label="使用條款"></a>
-      <a class="doing-art-hotspot doing-art-privacy" href="about.html#support" aria-label="隱私權政策"></a>
-      <a class="doing-art-hotspot doing-art-email" href="mailto:Ndiangrace@gmail.com" aria-label="Email 客服"></a>
-      <a class="doing-art-hotspot doing-art-apply" href="about.html#apply" aria-label="申請 DOING 營運帳號"></a>
+      <div class="doing-hero-console" aria-label="DOING 系統服務">
+        <div class="doing-console-top"><span></span><span></span><span></span><b>DOING</b></div>
+        <div class="doing-console-card main"><small>一個入口完成</small><b>找活動 → 報名 → 付款</b><span>我的報名隨時查看進度</span></div>
+        <div class="doing-console-grid">
+          <div><i>♡</i><b>活動探索</b><span>跨主辦搜尋</span></div>
+          <div><i>✓</i><b>報名紀錄</b><span>狀態集中管理</span></div>
+          <div><i>✦</i><b>行前提醒</b><span>資訊不漏接</span></div>
+          <div><i>→</i><b>直接出發</b><span>時間地點一次看</span></div>
+        </div>
+        <button type="button" data-go="my">查看我的報名</button>
+      </div>
     </section>
 
-    <section class="doing-public-section doing-search-section" id="doingPublicSearch">
-      <div class="doing-section-title">
-        <span class="doing-kicker">探索活動</span>
-        <h2 id="doingActivityLabel">搜尋想參加的活動</h2>
-        <p>輸入活動、課程、體驗、主辦品牌或地點。</p>
+    <section class="doing-public-section doing-activities-section" id="doingPublicActivities" aria-label="活動快訊輪播">
+      <div class="doing-section-title row">
+        <div><span class="doing-kicker">活動快訊</span><h2 id="doingActivityLabel">全平台精選活動</h2><p>首頁曝光依租戶購買資格、期間與排序顯示；活動內容永遠讀取正式場次資料。</p></div>
+        <span class="doing-ad-label">全租戶曝光版位</span>
       </div>
-      <div class="doing-search-box">
-        <span class="doing-search-icon" aria-hidden="true"></span>
-        <input id="doingPublicSearchInput" type="search" placeholder="搜尋活動、課程、體驗或地點" aria-label="搜尋活動、課程、體驗或地點" autocomplete="off">
-        <button id="doingPublicSearchGo" type="button">搜尋</button>
-      </div>
-      <div class="doing-quick-tags" aria-label="活動快速分類">
-        <button type="button" data-q="市集">市集</button><button type="button" data-q="課程">課程</button><button type="button" data-q="體驗">體驗</button><button type="button" data-q="預約">預約</button><button type="button" data-q="高雄">高雄</button>
+      <div class="doing-carousel-frame">
+        <span class="doing-frame-title">DOING NOW</span>
+        <button id="doingActivityPrev" class="doing-carousel-arrow prev" type="button" aria-label="上一個活動">‹</button>
+        <div id="doingPublicActivityStage" class="doing-public-carousel" aria-live="polite"><div class="doing-empty-state"><b>正在讀取活動…</b></div></div>
+        <button id="doingActivityNext" class="doing-carousel-arrow next" type="button" aria-label="下一個活動">›</button>
+        <div class="doing-carousel-footer"><div id="doingActivityDots" class="doing-activity-dots" aria-label="活動頁數"></div><span id="doingActivityCount">1 / 5</span></div>
       </div>
     </section>
 
     <div id="doingMyMount"></div>
+
+    <section class="doing-public-section doing-organizer-section">
+      <div class="doing-organizer-icon">D</div>
+      <div><span class="doing-kicker yellow">給主辦／營運者</span><h2>你不只參加，也正在做自己的事？</h2><p>DOING 把報名、會員、付款、預約、通知與現場管理整理在同一套系統。功能依申請問卷核准開通，需要新增功能時可直接向系統客服提出申請。</p></div>
+      <div class="doing-organizer-actions"><a href="about.html#apply">申請營運帳號</a><a class="secondary" href="about.html#pricing">查看主辦方案</a></div>
+    </section>
+
     <div id="doingSupportMount"></div>
 
     <footer class="doing-public-footer">

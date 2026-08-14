@@ -1711,6 +1711,7 @@ table{width:100%!important}
 }
 </style>
 
+<link rel="stylesheet" href="doing-system.css?v=20260814b">
 </head>
 <body>
 <section id="loginPage" class="login-wrap">
@@ -1728,7 +1729,7 @@ table{width:100%!important}
 <section id="adminPage" class="hidden">
   <header class="topbar"><div class="topbar-in">
     <div class="brand"><div class="logo doing-logo" aria-hidden="true"></div><div><div class="brand-title">DOING 活動營運管理系統</div><div id="whoText" class="brand-sub">尚未登入</div></div></div>
-    <div class="actions"><button class="btn secondary small hide-sm" onclick="refreshCurrentPage()">重新整理</button><button class="btn secondary small" onclick="openOnsiteWorkerPage()">現場入口</button><button class="btn gray small" onclick="logout()">登出</button></div>
+    <div class="actions"><button class="btn secondary small" onclick="openSupportCenter()">系統客服 <span id="supportUnreadBadge" class="doing-unread">0</span></button><button class="btn secondary small hide-sm" onclick="refreshCurrentPage()">重新整理</button><button class="btn secondary small" onclick="openOnsiteWorkerPage()">現場入口</button><button class="btn gray small" onclick="logout()">登出</button></div>
   </div></header>
   <main class="app">
     <nav class="tabs" aria-label="DOING 後台主選單">
@@ -1972,6 +1973,9 @@ async function enterAdmin(){
   $('loginPage').classList.add('hidden');
   $('adminPage').classList.remove('hidden');
   $('whoText').textContent=(AdminState.name||AdminState.email||'主辦管理者');
+  installDoingSettingsTiles();
+  loadTenantTheme().catch(()=>{});
+  startSupportUnreadPolling();
   await refreshSessionsOverview();
   const saved=readAdminPageState();
   if(saved&&saved.page){
@@ -3305,7 +3309,7 @@ function genericTenantModules(){return {registration:true,review:false,workshopS
 function normalizeTenantModuleProfile(v){
   const p=(v&&typeof v==='object')?v:{};
   const d=normalizeBusinessModules(p.defaults||{});
-  return {configured:!!p.configured,useType:String(p.useType||'generic'),defaults:d,updatedAt:p.updatedAt||''};
+  return {configured:!!p.configured,useType:String(p.useType||'generic'),defaults:d,approvedFlags:(p.approvedFlags&&typeof p.approvedFlags==='object')?p.approvedFlags:{},updatedAt:p.updatedAt||''};
 }
 function tenantModulePreset(type){
   const m=genericTenantModules();
@@ -3335,7 +3339,7 @@ function syncTenantPresetUI(type){
 function applyTenantModulePreset(type){
   const m=tenantModulePreset(type);
   const use=$('tm_useType');if(use)use.value=type;
-  for(const k of TENANT_MODULE_KEYS){const e=$('tm_'+k);if(e)e.checked=k==='i18n'?!!m.i18n?.enabled:!!m[k];}
+  for(const k of TENANT_MODULE_KEYS){const e=$('tm_'+k);if(e)e.checked=e.disabled?false:(k==='i18n'?!!m.i18n?.enabled:!!m[k]);}
   if($('tm_quantityMode'))$('tm_quantityMode').value=m.quantityMode||'booking';
   if($('tm_depositKind'))$('tm_depositKind').value=m.depositKind||'none';
   if($('tm_operatingMode'))$('tm_operatingMode').value=m.operatingMode||'activity';
@@ -3391,9 +3395,10 @@ function renderTenantModuleSettings(profile){
   const presetButtons=Object.entries(TENANT_PRESET_META).map(([k,v])=>
     '<button type="button" data-preset="'+k+'" class="module-preset-btn '+(k===type?'active':'')+'" onclick="applyTenantModulePreset(\''+k+'\')">'+v.title+'</button>'
   ).join('');
-  const toggle=(k,title,help)=>'<label class="module-toggle detail"><input type="checkbox" id="tm_'+k+'" '+ck(k)+'><span><b>'+title+'</b><small>'+help+'</small></span></label>';
+  const approved=k=>p.approvedFlags[k]!==false;
+  const toggle=(k,title,help)=>'<label class="module-toggle detail '+(approved(k)?'':'locked')+'"><input type="checkbox" id="tm_'+k+'" '+(approved(k)?ck(k):'')+' '+(approved(k)?'':'disabled')+'><span><b>'+title+(approved(k)?'':'｜尚未開通')+'</b><small>'+help+(approved(k)?'':'　需要時可向系統客服提出申請。')+'</small></span></label>';
   return ''
-   +'<div class="notice"><b>先設定「你通常怎麼營運」</b><br>這裡是建立新活動／新場次時的預設。之後每一場仍可依實際需求增減，不會把主辦永久鎖定成某一種類型。</div>'
+   +'<div class="notice"><b>先設定「你通常怎麼營運」</b><br>這裡只會顯示申請問卷已核准的功能；你可以調整新場次的常用預設，但不能自行開啟尚未核准的模組。</div><div class="card-actions"><button type="button" class="btn secondary" onclick="openModuleRequest()">申請其他功能</button></div>'
    +'<div class="report-card module-config-card">'
    +'<div class="report-title">① 選擇最接近的營運情境</div><div class="sub">點一個情境，系統會先帶入常用設定；選中的項目會保持明顯標示。</div>'
    +'<div class="module-preset-grid">'+presetButtons+'</div>'
@@ -3477,6 +3482,62 @@ async function maybeOpenInitialModuleSetup(){
   sessionStorage.setItem(key,'1');
   try{const p=await loadTenantModuleProfile(true);if(!p.configured)setTimeout(()=>openModuleSettings(),180);}catch(e){console.warn('首次功能模組設定檢查失敗',e);}
 }
+
+const DOING_TENANT_THEMES=[
+  {key:'cute_pastel',name:'可愛粉彩',desc:'柔和馬卡龍、貼紙浮雕與童趣點綴',cls:'theme-cute'},
+  {key:'fresh_minimal',name:'清新簡約',desc:'留白清楚、柔和綠藍與安靜節奏',cls:'theme-fresh'},
+  {key:'mono_anime',name:'黑白二次元',desc:'漫畫黑線、網點感與俐落對比',cls:'theme-mono'},
+  {key:'warm_handmade',name:'自然手作',desc:'米杏、陶土與溫暖紙張質感',cls:'theme-warm'},
+  {key:'vivid_pop',name:'活力潮流',desc:'高彩撞色、貼紙感與明快節奏',cls:'theme-pop'}
+];
+let DoingTenantTheme='cute_pastel',SupportThreads=[],SupportMessages=[],ActiveSupportThread='',SupportPollTimer=null,SupportDraft=null;
+function installDoingSettingsTiles(){
+  const grid=document.querySelector('#page-settings .settings-grid');if(!grid||grid.querySelector('[data-doing-setting]'))return;
+  const wrap=document.createElement('div');wrap.style.display='contents';wrap.innerHTML='<button class="settings-tile" data-doing-setting="theme" onclick="openTenantThemeSettings()"><div class="ico">🎨</div><b>品牌風格</b><span>五種版型，一鍵套用相同功能</span></button><button class="settings-tile" data-doing-setting="support" onclick="openSupportCenter()"><div class="ico">💌</div><b>系統客服</b><span>直接與 DOING 平台對話</span></button>';grid.prepend(...wrap.children);
+}
+async function loadTenantTheme(){
+  const t=await api({action:'getTenantTheme'});DoingTenantTheme=String(t?.key||'cute_pastel');document.documentElement.dataset.doingTheme=DoingTenantTheme;return t;
+}
+function renderTenantThemeSettings(){
+  $('panelBody').innerHTML='<div class="notice"><b>選一個最像你的空間</b><br>版型只改顏色、裝飾與氣氛；報名、付款、會員、通知與客服功能的位置和操作都不會改變。</div><div class="doing-theme-grid">'+DOING_TENANT_THEMES.map(t=>'<button type="button" class="doing-theme-card '+t.cls+' '+(DoingTenantTheme===t.key?'active':'')+'" onclick="saveTenantTheme(\''+t.key+'\',this)"><span class="preview"><i></i><span></span></span><span><b>'+safe(t.name)+'</b><small>'+safe(t.desc)+'</small></span></button>').join('')+'</div>';
+}
+async function openTenantThemeSettings(){
+  openPanel('品牌風格','五種套版共用同一套功能與操作骨架','<div class="loading">正在準備你的風格選單…</div>');
+  try{await loadTenantTheme();renderTenantThemeSettings()}catch(e){$('panelBody').innerHTML='<div class="empty">風格載入失敗：'+safe(e.message)+'</div>'}
+}
+async function saveTenantTheme(key,btn){
+  const old=btn.textContent;btn.disabled=true;
+  try{const t=await apiPost({action:'saveTenantTheme',themeKey:key});DoingTenantTheme=String(t?.key||key);document.documentElement.dataset.doingTheme=DoingTenantTheme;renderTenantThemeSettings();toast('品牌風格已套用，功能與資料都保持不變')}
+  catch(e){toast('套用失敗：'+e.message,7000);btn.disabled=false;btn.textContent=old}
+}
+function supportUnreadTotal(){return SupportThreads.reduce((n,t)=>n+Number(t.tenant_unread_count||0),0)}
+function paintSupportBadge(){const n=supportUnreadTotal(),el=$('supportUnreadBadge');if(!el)return;el.textContent=String(n>99?'99+':n);el.classList.toggle('show',n>0)}
+async function loadSupportUnread(){const d=await api({action:'getSupportThreads'});SupportThreads=Array.isArray(d?.threads)?d.threads:[];paintSupportBadge();return d}
+function startSupportUnreadPolling(){if(SupportPollTimer)return;loadSupportUnread().catch(()=>{});SupportPollTimer=setInterval(()=>loadSupportUnread().catch(()=>{}),20000)}
+function supportDate(v){try{return new Date(v).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})}catch(e){return ''}}
+function renderSupportCenter(){
+  const active=SupportThreads.find(t=>String(t.id)===String(ActiveSupportThread));
+  const list=SupportThreads.length?SupportThreads.map(t=>'<button type="button" class="doing-thread '+(String(t.id)===String(ActiveSupportThread)?'active':'')+'" onclick="selectSupportThread(\''+attr(t.id)+'\')"><b>'+safe(t.subject||'系統客服')+'</b><small>'+safe(t.kind==='module_request'?'功能申請':'客服對話')+' ・ '+safe(supportDate(t.last_message_at))+'</small>'+(Number(t.tenant_unread_count||0)>0?'<span class="doing-unread show">'+Number(t.tenant_unread_count||0)+'</span>':'')+'</button>').join(''):'<div class="empty">還沒有對話，寫下第一則訊息就可以開始。</div>';
+  const messages=active?(SupportMessages.length?SupportMessages.map(m=>'<div class="doing-message '+(m.sender_scope==='tenant'?'mine':'')+'"><div>'+safe(m.body)+'</div><small>'+(m.sender_scope==='tenant'?'你':'DOING 客服')+'・'+safe(supportDate(m.created_at))+'</small></div>').join(''):'<div class="empty">正在讀取訊息…</div>'):'<div class="empty">從左邊選一段對話，或先建立新問題。</div>';
+  $('panelBody').innerHTML='<div class="report-card"><div class="report-title">開始一段新對話</div><div class="form-grid"><div class="form-field"><label>主旨</label><input id="supportNewSubject" placeholder="例如：想申請選位功能"></div><div class="form-field full"><label>想告訴我們什麼？</label><textarea id="supportNewBody" placeholder="把遇到的狀況或想申請的功能寫在這裡，我們會在平台回覆你。"></textarea></div></div><div class="card-actions"><button class="btn" onclick="createSupportConversation(this)">送出給 DOING 客服</button></div></div><div class="doing-support-layout"><div class="doing-thread-list">'+list+'</div><div class="doing-chat"><div id="supportMessages" class="doing-messages">'+messages+'</div>'+(active?'<div class="doing-composer"><textarea id="supportReplyBody" placeholder="輸入回覆…"></textarea><button class="btn" onclick="sendSupportReply(this)">送出</button></div>':'')+'</div></div>';
+  if(SupportDraft){$('supportNewSubject').value=SupportDraft.subject||'';$('supportNewBody').value=SupportDraft.body||''}
+  setTimeout(()=>{const box=$('supportMessages');if(box)box.scrollTop=box.scrollHeight},0);
+}
+async function openSupportCenter(){
+  openPanel('系統客服','租戶與 DOING 平台的正式對話會保留在這裡','<div class="loading">正在打開客服信箱…</div>');
+  try{await loadSupportUnread();if(!ActiveSupportThread&&SupportThreads[0])ActiveSupportThread=SupportThreads[0].id;renderSupportCenter();if(ActiveSupportThread)await selectSupportThread(ActiveSupportThread)}catch(e){$('panelBody').innerHTML='<div class="empty">客服載入失敗：'+safe(e.message)+'</div>'}
+}
+async function selectSupportThread(id){
+  ActiveSupportThread=id;renderSupportCenter();
+  try{const d=await api({action:'getSupportMessages',threadId:id});SupportMessages=Array.isArray(d?.messages)?d.messages:[];await apiPost({action:'markSupportRead',threadId:id});await loadSupportUnread();renderSupportCenter()}catch(e){toast('訊息載入失敗：'+e.message,7000)}
+}
+async function createSupportConversation(btn){
+  const subject=$('supportNewSubject')?.value.trim()||'',body=$('supportNewBody')?.value.trim()||'';if(!body)return toast('請先寫下想詢問的內容');btn.disabled=true;
+  try{const d=await apiPost({action:'createSupportThread',kind:SupportDraft?.kind||'support',moduleKey:SupportDraft?.moduleKey||'',subject,body});SupportDraft=null;ActiveSupportThread=d?.thread?.id||'';await loadSupportUnread();await selectSupportThread(ActiveSupportThread);toast('訊息已送到 DOING 平台')}
+  catch(e){toast('送出失敗：'+e.message,7000);btn.disabled=false}
+}
+async function sendSupportReply(btn){const body=$('supportReplyBody')?.value.trim()||'';if(!body)return;btn.disabled=true;try{await apiPost({action:'sendSupportMessage',threadId:ActiveSupportThread,body});await selectSupportThread(ActiveSupportThread)}catch(e){toast('送出失敗：'+e.message,7000);btn.disabled=false}}
+function openModuleRequest(){SupportDraft={kind:'module_request',subject:'申請新增營運功能',body:'我想申請開通：\n使用情境：\n預計開始時間：',moduleKey:''};openSupportCenter()}
 const DOING_MODULE_KEYS=['review','workshopSlots','service','resource','participants','equipment','seatSelection','addons','agreement','invoice','payment','checkin'];
 // sessions.modules_json 是場次模組唯一正式來源；只做欄位相容解析，不建立預設業務資料。
 function sessionModules(session){

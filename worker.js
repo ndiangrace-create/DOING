@@ -8,8 +8,8 @@
 // ================================================================
 // DOING｜活動營運管理系統 Cloudflare Worker
 // 正式主線檔案：worker.js
-// Worker 正式交付只提供 worker.js，不再產出 worker.txt。
-// Cloudflare Workers 請直接部署本檔內容。
+// GitHub 正式主線保留 worker.js；另同步產出 worker.txt 供人工下載與部署。
+// Cloudflare Workers 請部署 worker.txt／worker.js 的相同內容。
 // 更新日期：2026-06-28（版本殘留清理版）
 // ================================================================
 // 環境變數 (Cloudflare Workers 設定)：
@@ -1816,8 +1816,22 @@ async function getTenantModuleProfileValue(env, tenantId){
   const cfg=safeJson(rows[0]?.config_json,{});
   return normalizeTenantModuleProfileValue(cfg.moduleProfile||{});
 }
+async function getTenantSettingsRow(env, tenantId){
+  const tid=String(tenantId||'').trim().toLowerCase();
+  if(!tid)return null;
+  const rows=await dbGet(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(tid)}&select=tenant_id,module_flags_json,theme_json`).catch(()=>[]);
+  return rows[0]||null;
+}
 async function getTenantModuleFlags(env, tenantId) {
   try {
+    const settings=await getTenantSettingsRow(env,tenantId);
+    if(settings){
+      const raw=safeJson(settings.module_flags_json,{});
+      const flags={};
+      for(const key of Object.keys(DEFAULT_TENANT_MODULE_FLAGS))flags[key]=raw[key]===true;
+      for(const [key,value] of Object.entries(raw))if(typeof value!=='boolean')flags[key]=value;
+      return flags;
+    }
     const p=await getTenantModuleProfileValue(env,tenantId);
     if(!p.configured) return {...DEFAULT_TENANT_MODULE_FLAGS};
     return {...DEFAULT_TENANT_MODULE_FLAGS,...p.defaults};
@@ -1826,17 +1840,104 @@ async function getTenantModuleFlags(env, tenantId) {
 
 async function hGetTenantModuleProfile(env,p){
   const T=p._tenantId; if(!await verifyStaff(env,p.email,p.token,T)) return jsonErr('無權限');
-  return jsonOk(await getTenantModuleProfileValue(env,T));
+  const [profile,approvedFlags]=await Promise.all([getTenantModuleProfileValue(env,T),getTenantModuleFlags(env,T)]);
+  return jsonOk({...profile,approvedFlags});
 }
 async function hSaveTenantModuleProfile(env,b){
   const T=b._tenantId; if(!await verifyStaff(env,b.email,b.token,T)) return jsonErr('無權限');
   const rows=await dbGet(env,'tenants',`id=eq.${encodeURIComponent(T)}&select=config_json`); if(!rows.length)return jsonErr('找不到主辦空間');
   const cfg=safeJson(rows[0].config_json,{});
-  const profile={configured:true,useType:String(b.useType||'generic'),defaults:normalizeSessionModules(b.defaults||{}),updatedAt:nowIso()};
+  const approvedFlags=await getTenantModuleFlags(env,T);
+  const defaults=normalizeSessionModules(b.defaults||{});
+  for(const key of Object.keys(DEFAULT_TENANT_MODULE_FLAGS))if(approvedFlags[key]===false)defaults[key]=false;
+  const profile={configured:true,useType:String(b.useType||'generic'),defaults,updatedAt:nowIso()};
   cfg.moduleProfile=profile;
   await dbUpdate(env,'tenants',`id=eq.${encodeURIComponent(T)}`,{config_json:JSON.stringify(cfg)});
   await writeAuditLog(env,T,b.email||'','organizer','save_module_profile','tenants',T,null,profile).catch(()=>{});
-  return jsonOk(profile);
+  return jsonOk({...profile,approvedFlags});
+}
+
+const TENANT_THEME_KEYS=new Set(['cute_pastel','fresh_minimal','mono_anime','warm_handmade','vivid_pop']);
+function normalizeTenantTheme(raw){
+  const v=(raw&&typeof raw==='object'&&!Array.isArray(raw))?raw:safeJson(raw,{});
+  const key=TENANT_THEME_KEYS.has(String(v.key||''))?String(v.key):'cute_pastel';
+  return {key,updatedAt:String(v.updatedAt||'')};
+}
+async function getTenantTheme(env,tenantId){
+  const row=await getTenantSettingsRow(env,tenantId);
+  return normalizeTenantTheme(row&&row.theme_json);
+}
+async function hGetTenantTheme(env,p){
+  const T=p._tenantId;if(!await verifyStaff(env,p.email,p.token,T))return jsonErr('無權限');
+  return jsonOk(await getTenantTheme(env,T));
+}
+async function hSaveTenantTheme(env,b){
+  const T=b._tenantId;if(!await verifyStaff(env,b.email,b.token,T,'settings'))return jsonErr('無權限');
+  const key=String(b.themeKey||b.key||'').trim();if(!TENANT_THEME_KEYS.has(key))return jsonErr('不支援的品牌風格');
+  const value={key,updatedAt:nowIso()};
+  const row=await getTenantSettingsRow(env,T);
+  if(row)await dbUpdate(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(T)}`,{theme_json:JSON.stringify(value),updated_at:nowIso()});
+  else await dbInsert(env,'tenant_settings',{tenant_id:T,module_flags_json:await getTenantModuleFlags(env,T),theme_json:value});
+  await writeAuditLog(env,T,b.email||'','organizer','save_tenant_theme','tenant_settings',T,null,value).catch(()=>{});
+  return jsonOk(value);
+}
+async function hGetPlatformTenantModules(env,p){
+  if(!await platformSupportAuth(env,p))return jsonErr('無權限');const T=String(p.target_tenant_id||'').trim().toLowerCase();if(!T)return jsonErr('請選擇主辦');return jsonOk({flags:await getTenantModuleFlags(env,T)});
+}
+async function hSavePlatformTenantModules(env,b){
+  const jwt=await platformSupportAuth(env,b);if(!jwt)return jsonErr('無權限');const T=String(b.target_tenant_id||'').trim().toLowerCase();if(!T)return jsonErr('請選擇主辦');
+  const incoming=(b.flags&&typeof b.flags==='object')?b.flags:{},current=await getTenantModuleFlags(env,T),flags={...current};
+  for(const key of Object.keys(DEFAULT_TENANT_MODULE_FLAGS))if(Object.prototype.hasOwnProperty.call(incoming,key))flags[key]=incoming[key]===true;
+  flags.registration=true;
+  const row=await getTenantSettingsRow(env,T);
+  if(row)await dbUpdate(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(T)}`,{module_flags_json:JSON.stringify(flags),updated_at:nowIso()});
+  else await dbInsert(env,'tenant_settings',{tenant_id:T,module_flags_json:flags,theme_json:{key:'cute_pastel',updatedAt:nowIso()}});
+  await writeAuditLog(env,T,jwt.email||'','platform_super_admin','approve_tenant_modules','tenant_settings',T,current,flags).catch(()=>{});return jsonOk({flags});
+}
+
+function cleanSupportText(value,max){return String(value||'').trim().slice(0,max)}
+async function tenantSupportAuth(env,p,T){return await verifyStaff(env,p.email,p.token,T)}
+async function platformSupportAuth(env,p){const jwt=await verifyAdminJwt(p.token,env);return jwt&&jwt.normalized_role==='platform_super_admin'?jwt:null}
+async function hGetSupportThreads(env,p){
+  const T=p._tenantId;if(!await tenantSupportAuth(env,p,T))return jsonErr('無權限');
+  const rows=await dbGet(env,'support_threads',`tenant_id=eq.${encodeURIComponent(T)}&select=*&order=last_message_at.desc`).catch(()=>[]);
+  return jsonOk({threads:rows,unread:rows.reduce((n,x)=>n+safeNum(x.tenant_unread_count),0)});
+}
+async function hGetSupportMessages(env,p){
+  const T=p._tenantId;if(!await tenantSupportAuth(env,p,T))return jsonErr('無權限');const id=cleanSupportText(p.threadId,80);if(!id)return jsonErr('缺少對話');
+  const threads=await dbGet(env,'support_threads',`id=eq.${encodeURIComponent(id)}&tenant_id=eq.${encodeURIComponent(T)}&select=id`).catch(()=>[]);if(!threads.length)return jsonErr('找不到對話');
+  return jsonOk({messages:await dbGet(env,'support_messages',`thread_id=eq.${encodeURIComponent(id)}&tenant_id=eq.${encodeURIComponent(T)}&select=*&order=created_at.asc`).catch(()=>[])});
+}
+async function hCreateSupportThread(env,b){
+  const T=b._tenantId;if(!await tenantSupportAuth(env,b,T))return jsonErr('無權限');
+  const body=cleanSupportText(b.body,4000),subject=cleanSupportText(b.subject,120);if(!body)return jsonErr('請輸入訊息');
+  const kind=['support','module_request'].includes(String(b.kind||''))?String(b.kind):'support';const id=crypto.randomUUID(),now=nowIso();
+  const thread=await dbInsert(env,'support_threads',{id,tenant_id:T,kind,subject:subject||(kind==='module_request'?'申請新增功能':'系統客服'),status:'open',priority:'normal',requested_module_key:kind==='module_request'?cleanSupportText(b.moduleKey,80):null,metadata_json:{},created_by_email:cleanSupportText(b.email,320),last_message_at:now,created_at:now,updated_at:now});
+  await dbInsert(env,'support_messages',{id:crypto.randomUUID(),thread_id:id,tenant_id:T,sender_scope:'tenant',sender_email:cleanSupportText(b.email,320),body,created_at:now});
+  return jsonOk({thread});
+}
+async function hSendSupportMessage(env,b){
+  const T=b._tenantId;if(!await tenantSupportAuth(env,b,T))return jsonErr('無權限');const id=cleanSupportText(b.threadId,80),body=cleanSupportText(b.body,4000);if(!id||!body)return jsonErr('請選擇對話並輸入訊息');
+  const threads=await dbGet(env,'support_threads',`id=eq.${encodeURIComponent(id)}&tenant_id=eq.${encodeURIComponent(T)}&select=id`).catch(()=>[]);if(!threads.length)return jsonErr('找不到對話');
+  const message=await dbInsert(env,'support_messages',{id:crypto.randomUUID(),thread_id:id,tenant_id:T,sender_scope:'tenant',sender_email:cleanSupportText(b.email,320),body,created_at:nowIso()});return jsonOk({message});
+}
+async function hMarkSupportRead(env,b){
+  const T=b._tenantId;if(!await tenantSupportAuth(env,b,T))return jsonErr('無權限');const id=cleanSupportText(b.threadId,80);if(!id)return jsonErr('缺少對話');
+  await dbUpdate(env,'support_threads',`id=eq.${encodeURIComponent(id)}&tenant_id=eq.${encodeURIComponent(T)}`,{tenant_unread_count:0,updated_at:nowIso()});return jsonOk({ok:true});
+}
+async function hGetPlatformSupportThreads(env,p){
+  if(!await platformSupportAuth(env,p))return jsonErr('無權限');const rows=await dbGet(env,'support_threads','select=*&order=last_message_at.desc').catch(()=>[]);return jsonOk({threads:rows,unread:rows.reduce((n,x)=>n+safeNum(x.platform_unread_count),0)});
+}
+async function hGetPlatformSupportMessages(env,p){
+  if(!await platformSupportAuth(env,p))return jsonErr('無權限');const id=cleanSupportText(p.threadId,80);if(!id)return jsonErr('缺少對話');return jsonOk({messages:await dbGet(env,'support_messages',`thread_id=eq.${encodeURIComponent(id)}&select=*&order=created_at.asc`).catch(()=>[])});
+}
+async function hSendPlatformSupportMessage(env,b){
+  const jwt=await platformSupportAuth(env,b);if(!jwt)return jsonErr('無權限');const id=cleanSupportText(b.threadId,80),body=cleanSupportText(b.body,4000);if(!id||!body)return jsonErr('請選擇對話並輸入訊息');
+  const threads=await dbGet(env,'support_threads',`id=eq.${encodeURIComponent(id)}&select=id,tenant_id`).catch(()=>[]);if(!threads.length)return jsonErr('找不到對話');
+  const message=await dbInsert(env,'support_messages',{id:crypto.randomUUID(),thread_id:id,tenant_id:threads[0].tenant_id,sender_scope:'platform',sender_email:cleanSupportText(jwt.email,320),body,created_at:nowIso()});return jsonOk({message});
+}
+async function hMarkPlatformSupportRead(env,b){
+  if(!await platformSupportAuth(env,b))return jsonErr('無權限');const id=cleanSupportText(b.threadId,80);if(!id)return jsonErr('缺少對話');await dbUpdate(env,'support_threads',`id=eq.${encodeURIComponent(id)}`,{platform_unread_count:0,updated_at:nowIso()});return jsonOk({ok:true});
 }
 
 const TENANT_FEATURE_ACTIONS = {
@@ -1894,9 +1995,10 @@ async function enforceTenantFeature(env, tenantId, action) {
 // 取得租戶 context（品牌資料、信件設定、SaaS 功能旗標）
 async function getTenantCtx(env, tenantId) {
   const tid = tenantId ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
-  const [rows, moduleFlags] = await Promise.all([
+  const [rows, moduleFlags, theme] = await Promise.all([
     dbGet(env, 'tenants', `id=eq.${tid}&select=id,name,slug,config_json,line_url,bank_info,email_from,email_reply_to,footer_text,site_url,default_refund_rules_json,payment_config_json`),
     getTenantModuleFlags(env, tid),
+    getTenantTheme(env, tid),
   ]);
   const t = rows[0] || {};
   const cfg = safeJson(t.config_json, {});
@@ -1916,6 +2018,7 @@ async function getTenantCtx(env, tenantId) {
     defaultRefundRules: safeJson(t.default_refund_rules_json, DEFAULT_REFUND_RULES),
     paymentConfig: safeJson(t.payment_config_json, {}),
     moduleFlags,
+    theme,
     businessType: moduleFlags.businessType || '',
     i18n:(cfg.i18n&&typeof cfg.i18n==='object')?cfg.i18n:{enabled:false,defaultLanguage:'zh-TW',languages:['zh-TW']},
   };
@@ -2601,6 +2704,7 @@ async function hFrontBootstrap(env, p) {
       color:    tc.color,
       paymentConfig: tc.paymentConfig,
       moduleFlags: tc.moduleFlags,
+      theme: tc.theme,
       businessType: tc.businessType,
       i18n:tc.i18n,
     },
@@ -2992,11 +3096,19 @@ async function hApproveApply(env,b){
   for(let i=0;i<30;i++){
     const hit=await dbGet(env,'tenants',`id=eq.${encodeURIComponent(tid)}&select=id`).catch(()=>[]);
     if(!hit.length)break;
-    tid=base+'-'+Math.random().toString(36).slice(2,6);
+    tid=base+'-'+crypto.randomUUID().replace(/-/g,'').slice(0,4);
   }
   const now=nowIso(),app=safeJson(apply.application_json,{});
   const mp=safeJson(app.moduleProfile,{});
   const defaults=normalizeSessionModules(mp.defaults||{});
+  const requested=safeJson(app.needFlags,{});
+  const approvedFlags={registration:true};
+  for(const key of Object.keys(DEFAULT_TENANT_MODULE_FLAGS)){
+    if(key==='registration')continue;
+    const requestKey=key==='googleCalendar'?'calendar':key;
+    approvedFlags[key]=requested[requestKey]===true||defaults[key]===true;
+  }
+  approvedFlags.businessType=String(mp.useType||'generic');
   const profile={configured:true,useType:String(mp.useType||'generic'),useCases:Array.isArray(mp.useCases)?mp.useCases.map(String).slice(0,12):[],defaults,updatedAt:now};
   try{
     await dbInsert(env,'tenants',{
@@ -3013,6 +3125,7 @@ async function hApproveApply(env,b){
         limit_sessions:'',created_at:now,updated_at:now
       });
     }catch(e){await dbDelete(env,'tenants',`id=eq.${encodeURIComponent(tid)}`).catch(()=>{});throw e}
+    await dbInsert(env,'tenant_settings',{tenant_id:tid,module_flags_json:approvedFlags,theme_json:{key:'cute_pastel',updatedAt:now}});
     await grantStartupCreditIfEligible(env,tid);
     await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applyId)}`,{
       status:'approved',tenant_id:tid,approved_at:now,approved_by:pay.email,rejection_reason:null,rejected_at:null,rejected_by:null
@@ -3025,6 +3138,7 @@ async function hApproveApply(env,b){
   }catch(e){
     await dbDelete(env,'billing_logs',`tenant_id=eq.${encodeURIComponent(tid)}&billing_type=eq.startup_credit_grant&confirmed_by=eq.system_onboarding`).catch(()=>{});
     await dbDelete(env,'staff',`tenant_id=eq.${encodeURIComponent(tid)}&email=eq.${encodeURIComponent(email)}`).catch(()=>{});
+    await dbDelete(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(tid)}`).catch(()=>{});
     await dbDelete(env,'tenants',`id=eq.${encodeURIComponent(tid)}`).catch(()=>{});
     return jsonErr('開通失敗：'+(e&&e.message?e.message:'資料建立失敗'));
   }
@@ -9686,6 +9800,9 @@ async function routeGet(env, action, p, req) {
   if (action==='applyList') return await hApplyList(env, p);
   if (action==='getTenantsAdmin') return await hGetTenantsAdmin(env, p);
   if (action==='getPlatformDashboard') return await hGetPlatformDashboard(env,p);
+  if (action==='getPlatformSupportThreads') return await hGetPlatformSupportThreads(env,p);
+  if (action==='getPlatformSupportMessages') return await hGetPlatformSupportMessages(env,p);
+  if (action==='getPlatformTenantModules') return await hGetPlatformTenantModules(env,p);
   if (action==='platformTenantOwnerStatus') return await hPlatformTenantOwnerStatus(env, p);
   if (action==='platformTenantSessions') return await hPlatformTenantSessions(env,p);
   if (action==='platformTenantOperationUnits') return await hPlatformTenantOperationUnits(env,p);
@@ -9783,6 +9900,9 @@ async function routeGet(env, action, p, req) {
     case 'getMemberHistory': return hGetMemberHistory(env,p);
     case 'getCompanySettings': return hGetCompanySettings(env,p);
     case 'getTenantModuleProfile': return hGetTenantModuleProfile(env,p);
+    case 'getTenantTheme': return hGetTenantTheme(env,p);
+    case 'getSupportThreads': return hGetSupportThreads(env,p);
+    case 'getSupportMessages': return hGetSupportMessages(env,p);
     case 'downloadSession':     return hDownloadSession(env,p);
     case 'getRegs':             return hGetRegs(env,p);
     case 'getRegsBySession':    return hGetRegsBySession(env,p);
@@ -9827,6 +9947,9 @@ async function routePost(env, action, b, ctx, req) {
   if(action==='requestApplySupplement')return hRequestApplySupplement(env,b);
   if(action==='rejectApply')return hRejectApply(env,b);
   if(action==='applyTrial')return hApplyTrial(env,b);
+  if(action==='sendPlatformSupportMessage')return hSendPlatformSupportMessage(env,b);
+  if(action==='markPlatformSupportRead')return hMarkPlatformSupportRead(env,b);
+  if(action==='savePlatformTenantModules')return hSavePlatformTenantModules(env,b);
   // DOING：寫入操作的租戶由 JWT / 場次 / 報名關聯解析；正式 handler 仍會做權限與 tenant 驗證。
   const TENANT = await resolveTenantForRequest(env, b, req);
   if (!TENANT) {
@@ -9960,6 +10083,10 @@ async function routePost(env, action, b, ctx, req) {
     case 'setFastPass':         return hSetFastPass(env,b);
     case 'saveSiteConfig':      return hSaveSiteConfig(env,b);
     case 'saveTenantModuleProfile': return hSaveTenantModuleProfile(env,b);
+    case 'saveTenantTheme': return hSaveTenantTheme(env,b);
+    case 'createSupportThread': return hCreateSupportThread(env,b);
+    case 'sendSupportMessage': return hSendSupportMessage(env,b);
+    case 'markSupportRead': return hMarkSupportRead(env,b);
     case 'saveOperationUnit': return hSaveOperationUnit(env,b);
     case 'deleteOperationUnit': return hDeleteOperationUnit(env,b);
     case 'savePromotionRule': return hSavePromotionRule(env,b);

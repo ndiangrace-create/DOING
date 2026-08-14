@@ -298,8 +298,8 @@ body.doing-global-mode>.top,body.doing-global-mode>.bottom-nav{display:none!impo
 @media(max-width:760px){.doing-global-fixed-nav{left:8px;right:8px;transform:none;top:7px;overflow-x:auto;justify-content:flex-start;border-radius:18px;padding:6px;scrollbar-width:none}.doing-global-fixed-nav::-webkit-scrollbar{display:none}.g-pill{font-size:16px!important;padding:8px 13px;min-height:44px;flex:0 0 auto}.doing-global-art-home{padding-top:66px}.doing-svg-stage{width:100vw}.doing-search-overlay input{font-size:16px!important}.doing-exposure-stage{left:2.5%;width:46%;}.exposure-3d-card{height:88px;margin-top:-44px;border-radius:16px}.exposure-3d-card .x-body{padding:7px 8px}.exposure-3d-card .x-brand{font-size:16px}.exposure-3d-card .x-title{font-size:17px}.exposure-3d-card .x-meta,.exposure-3d-card .x-cta{font-size:16px}.exposure-3d-card.posm1{transform:translate3d(0,-73px,-65px) scale(.76)}.exposure-3d-card.pos1{transform:translate3d(0,73px,-65px) scale(.76)}.exposure-3d-card.posm2{transform:translate3d(0,-126px,-120px) scale(.55)}.exposure-3d-card.pos2{transform:translate3d(0,126px,-120px) scale(.55)}}
 </style>
 
-<link rel="stylesheet" href="doing-original-nav.css?v=20260814">
-<link rel="stylesheet" href="doing-home-refresh.css?v=20260814d">
+<link rel="stylesheet" href="doing-system.css?v=20260814b">
+<link rel="stylesheet" href="doing-home-refresh.css?v=20260814f">
 </head>
 <body>
 <nav id="doingGlobalFixedNav" class="doing-global-fixed-nav hidden" aria-label="DOING 快速功能">
@@ -314,7 +314,7 @@ body.doing-global-mode>.top,body.doing-global-mode>.bottom-nav{display:none!impo
 <section id="pageSessions" class="page active">
 <div id="doingGlobalArtHome" class="doing-global-art-home hidden">
   <div class="doing-svg-stage">
-    <img src="DOING-home.webp" alt="DOING 活動預約營運管理系統">
+    <span class="legacy-art-retired" aria-hidden="true"></span>
     <div class="doing-search-overlay"><input id="doingGlobalSearchInput" type="search" placeholder="搜尋活動、課程、體驗、地點……" aria-label="搜尋活動"><button id="doingGlobalSearchGo" type="button" aria-label="搜尋">⌕</button></div>
     <div id="doingExposureStage" class="doing-exposure-stage" aria-label="活動快訊"><div class="doing-exposure-empty">活動快訊載入中…</div></div>
     <button type="button" class="svg-hotspot svg-line" id="svgLineHotspot" aria-label="官方 LINE"></button>
@@ -498,6 +498,7 @@ async function bootstrap(){
     const sessionId=entrySessionId();
     const urlTenant=String(new URL(location.href).searchParams.get('tenant')||'').trim().toLowerCase();
     if(!urlTenant){
+      document.documentElement.dataset.doingTheme='cute_pastel';
       const [d,x,pi]=await Promise.all([apiGet('publicDiscovery'),apiGet('publicExposureFeed'),apiGet('publicPlatformProfile')]);
       state.isDiscovery=true;state.tenant='';state.tenantData=null;
       state.discoveryItems=Array.isArray(d.items)?d.items:[];state.exposureItems=Array.isArray(x.items)?x.items:[];state.platformInfo=pi||{};
@@ -511,6 +512,7 @@ async function bootstrap(){
     const d=await r.json().catch(()=>({error:'伺服器回應格式錯誤'}));
     if(!r.ok||d.error)throw new Error(d.error||'讀取失敗');
     state.isDiscovery=false;state.tenantData=d.tenant||{};state.tenant=String(state.tenantData.id||'').trim();
+    document.documentElement.dataset.doingTheme=String(state.tenantData.theme?.key||'cute_pastel');
     state.events=Array.isArray(d.events)?d.events:[];state.sessions=Array.isArray(d.sessions)?d.sessions:[];
     setupLanguages();renderTenant();renderAnnouncements(d.announcements||[]);renderEvents();renderSessions();
     if(sessionId){const hit=state.sessions.find(x=>String(x.id)===sessionId);if(hit)setTimeout(()=>openSession(hit),50)}
@@ -833,6 +835,6 @@ if(oauthLoginError){
   const clean=new URL(location.href);clean.searchParams.delete('login_error');history.replaceState({},'',clean.pathname+clean.search+clean.hash);
 }
 </script>
-<script src="doing-home-refresh.js?v=20260814d"></script>
+<script src="doing-home-refresh.js?v=20260814f"></script>
 </body>
 </html>
