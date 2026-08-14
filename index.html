@@ -303,9 +303,9 @@ body.doing-global-mode>.top,body.doing-global-mode>.bottom-nav{display:none!impo
 </head>
 <body>
 <nav id="doingGlobalFixedNav" class="doing-global-fixed-nav hidden" aria-label="DOING 快速功能">
-  <a href="about.html#apply" class="g-pill purple">營運帳號申請</a>
+  <a href="#doingOrganizerDetails" data-organizer-target="apply" class="g-pill purple">營運帳號申請</a>
   <button type="button" class="g-pill green" id="globalSearchNavBtn">搜尋活動</button>
-  <a href="about.html#pricing" class="g-pill yellow">費用／功能</a>
+  <a href="#doingOrganizerDetails" data-organizer-target="pricing" class="g-pill yellow">費用／功能</a>
   <button type="button" class="g-pill pink" id="globalSupportNavBtn">客服中心</button>
   <button type="button" class="g-pill blue" id="globalMyNavBtn">我的報名</button>
 </nav>
@@ -319,9 +319,9 @@ body.doing-global-mode>.top,body.doing-global-mode>.bottom-nav{display:none!impo
     <div id="doingExposureStage" class="doing-exposure-stage" aria-label="活動快訊"><div class="doing-exposure-empty">活動快訊載入中…</div></div>
     <button type="button" class="svg-hotspot svg-line" id="svgLineHotspot" aria-label="官方 LINE"></button>
     <a href="mailto:Ndiangrace@gmail.com" class="svg-hotspot svg-email" aria-label="Email"></a>
-    <a href="about.html#privacy" class="svg-hotspot svg-privacy" aria-label="隱私權政策"></a>
-    <a href="about.html#terms" class="svg-hotspot svg-terms" aria-label="使用條款"></a>
-    <a href="about.html#apply" class="svg-hotspot svg-operate" aria-label="用 DOING 開始經營"></a>
+    <a href="#doingOrganizerDetails" data-organizer-target="privacy" class="svg-hotspot svg-privacy" aria-label="隱私權政策"></a>
+    <a href="#doingOrganizerDetails" data-organizer-target="terms" class="svg-hotspot svg-terms" aria-label="使用條款"></a>
+    <a href="#doingOrganizerDetails" data-organizer-target="apply" class="svg-hotspot svg-operate" aria-label="用 DOING 開始經營"></a>
   </div>
 </div>
   <div id="hero" class="hero"><div class="hero-copy"><h2 id="heroTitle">找活動、報名、預約，都在 DOING</h2><p id="heroText">瀏覽近期活動與可預約內容，選擇主辦與場次後直接完成報名；登入「我的報名」即可查看付款、審核、改期、位置與行前通知。</p><div class="actions"><button class="btn" id="heroMyBtn">查看我的報名</button><a id="lineBtn" class="btn outline hidden" target="_blank" rel="noopener">聯繫主辦</a></div></div><div id="heroArt" class="hero-art"><div class="hero-mark"></div></div></div>
@@ -362,13 +362,13 @@ body.doing-global-mode>.top,body.doing-global-mode>.bottom-nav{display:none!impo
 
 <footer class="site-footer" aria-label="DOING 系統資訊">
   <nav class="footer-links">
-    <a href="about.html#about">關於 DOING</a>
-    <a href="about.html#features">功能說明</a>
-    <a href="about.html#pricing">收費方式</a>
-    <a href="about.html#organizer">主辦申請</a>
-    <a href="about.html#terms">使用條款</a>
-    <a href="about.html#privacy">隱私權政策</a>
-    <a href="about.html#support">客服</a>
+    <a href="#doingOrganizerDetails" data-organizer-target="scenes">關於 DOING</a>
+    <a href="#doingOrganizerDetails" data-organizer-target="features">功能說明</a>
+    <a href="#doingOrganizerDetails" data-organizer-target="pricing">收費方式</a>
+    <a href="#doingOrganizerDetails" data-organizer-target="apply">主辦申請</a>
+    <a href="#doingOrganizerDetails" data-organizer-target="terms">使用條款</a>
+    <a href="#doingOrganizerDetails" data-organizer-target="privacy">隱私權政策</a>
+    <a href="#doingOrganizerDetails" data-organizer-target="support">客服</a>
   </nav>
   <p class="footer-note">DOING｜活動營運管理系統</p>
 </footer>
@@ -803,7 +803,9 @@ $('adminGoogleBtn').onclick=()=>{
   location.href=u.toString();
 };
 $('adminSignupBtn').onclick=()=>{
-  location.href='about.html#organizer';
+  $('adminEntryModal').classList.remove('show');
+  if(typeof window.openDoingOrganizerDetails==='function')window.openDoingOrganizerDetails('apply');
+  else location.href='index.html#apply';
 };
 async function enterSelectedWorkspace(workspaceToken,tenantId,btn){
   const old=btn?btn.textContent:'';if(btn){btn.disabled=true;btn.textContent='進入中…'}

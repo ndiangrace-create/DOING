@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>DOING｜DOING 營運帳號申請</title>
+<script>if(new URL(location.href).searchParams.get('fragment')!=='1'){const target=(location.hash||'#scenes').slice(1);location.replace('index.html'+location.search+'#'+encodeURIComponent(target))}</script>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>DOING｜活動、預約與營運怎麼用</title>
 <meta name="description" content="DOING 是一套整合活動、課程、體驗、預約與現場營運的管理系統。可管理報名、付款、通知、日曆、會員、報到與財務，並提供正式的 DOING 營運帳號申請入口。">
 <style>
 :root{
@@ -70,10 +74,10 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
 @media(max-width:1100px){.hero{grid-template-columns:1fr}.hero-points,.feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.flow{grid-template-columns:repeat(3,minmax(0,1fr))}.apply-wrap{grid-template-columns:1fr}.topin,.shell{width:min(100%,calc(100vw - 28px))}}
 @media(max-width:760px){body{font-size:17px}.topin,.shell{width:100%;padding-left:12px;padding-right:12px}.topin{min-height:64px}.brand-title{font-size:22px}.top-actions .link{display:none}.hero-main,.apply-form,.side-panel,.side-card,.card,.step,.price-card{border-radius:22px}.hero-points,.grid-3,.feature-grid,.field-grid,.choice-grid,.pricing{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.quick-nav{top:64px}}
 </style>
-<link rel="stylesheet" href="doing-about-refresh.css?v=20260814b">
 <link rel="stylesheet" href="doing-system.css?v=20260814b">
+<link rel="stylesheet" href="doing-about-refresh.css?v=20260815b">
 </head>
-<body>
+<body class="doing-about-refresh">
 <header class="top">
   <div class="topin">
     <a class="brand" href="index.html" aria-label="回到 DOING 公開活動入口">
@@ -81,108 +85,119 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
       <div><div class="brand-title">DOING</div><div class="brand-sub">活動營運管理系統</div></div>
     </a>
     <div class="top-actions">
-      <a class="link" href="index.html">公開活動入口</a>
+      <a class="link" href="index.html">找活動</a>
       <a class="link" href="index.html#my">我的報名</a>
-      <a class="btn secondary" href="#apply">營運帳號申請</a>
+      <a class="btn secondary" href="#apply" data-open-apply>申請營運帳號</a>
     </div>
   </div>
 </header>
 <main class="shell">
   <section class="hero" id="about">
     <div class="hero-main">
-      <span class="eyebrow">DOING｜一套系統，管理活動、預約與現場營運</span>
-      <h1>經營市集、活動、課程、體驗、預約，不該再靠一堆 Google 表單。</h1>
-      <p class="lead">DOING 把公開活動、報名與預約入口、我的報名、主辦後台、付款紀錄、會員資料、通知、日曆與現場作業整合成同一套正式系統。對外是漂亮的活動入口，對內是可以真的營運的工作台。</p>
+      <span class="eyebrow">不是多一張表單，是把整場營運接起來</span>
+      <h1>你專心把活動做好，報名到現場，交給 DOING 跟著走。</h1>
+      <p class="lead">從公開頁、報名與預約、審核收款、名單通知，到現場報到與活動結案，DOING 讓每一筆資料沿著同一條流程前進。少一點重複整理，多一點時間照顧真正來參加的人。</p>
       <div class="hero-actions">
-        <a class="btn primary" href="index.html">先逛公開活動入口</a>
-        <a class="btn secondary" href="#apply">申請 DOING 營運帳號</a>
+        <a class="btn primary" href="#scenes">看看我的情境怎麼用</a>
+        <a class="btn secondary" href="#pricing">先看費用</a>
       </div>
       <div class="hero-points">
-        <div class="point"><b>同一套帳號</b><span>可同時經營市集、課程、體驗、預約與活動，不必拆成很多系統。</span></div>
-        <div class="point"><b>正式資料流</b><span>正式資料由資料庫與 Worker 管理，不靠前端假資料或手動拼接。</span></div>
-        <div class="point"><b>漂亮公開入口</b><span>對外是可參加、可預約、可查詢的活動平台，不像工程測試頁。</span></div>
+        <div class="point"><b>有人報名，就開始整理</b><span>會員資料、報名內容與付款狀態不必再一筆一筆搬。</span></div>
+        <div class="point"><b>每個階段都接得起來</b><span>審核、通知、改期、退款與現場紀錄都有下一步。</span></div>
+        <div class="point"><b>參加者也看得懂</b><span>從找活動到查看自己的紀錄，都有清楚入口。</span></div>
       </div>
     </div>
     <div class="hero-side">
-      <article class="side-card">
-        <h3>你可以怎麼用 DOING？</h3>
-        <p>適合活動主辦、品牌、工作室、講師、美業、體驗服務、導覽、場地與各種需要報名／預約／通知／現場管理的營運型態。</p>
-        <div class="side-metrics">
-          <div class="metric"><b>1 套</b><span>整合公開入口＋後台</span></div>
-          <div class="metric"><b>多角色</b><span>主辦、品牌、工作室都能用</span></div>
-          <div class="metric"><b>NT$200</b><span>活動場次開通</span></div>
-          <div class="metric"><b>NT$888</b><span>預約型月費</span></div>
-        </div>
-      </article>
-      <article class="side-card">
-        <h3>審核方式</h3>
-        <p>營運帳號不是送出就立即開通。你先填寫完整營運資料並完成 Google 驗證，DOING 審核後才建立正式帳號；必要時可要求補件。</p>
+      <article class="side-card doing-day-card">
+        <span class="side-kicker">今天，DOING 幫你顧著</span>
+        <h3>08:30 新報名進來</h3><p>名額、應收與參加者資料一起建立。</p>
+        <h3>12:10 完成付款</h3><p>付款狀態更新，名單與通知同步跟上。</p>
+        <h3>活動前 7 天</h3><p>行前提醒、位置與現場資訊準備完成。</p>
+        <h3>活動當天</h3><p>手機報到、現場狀態與後續紀錄接著走。</p>
       </article>
     </div>
   </section>
 
   <nav class="quick-nav" aria-label="DOING 頁面導覽">
-    <a href="#about">關於 DOING</a>
-    <a href="#workflow">使用流程</a>
-    <a href="#features">核心功能</a>
-    <a href="#scenes">適用情境</a>
-    <a href="#pricing">收費方式</a>
-    <a href="#apply">營運帳號申請</a>
-    <a href="#support">客服與條款</a>
+    <a href="#scenes">情境模擬</a>
+    <a href="#workflow">營運流程</a>
+    <a href="#features">系統能做什麼</a>
+    <a href="#pricing">1% 怎麼算</a>
+    <a href="#apply" data-open-apply>申請營運帳號</a>
+    <a href="#support">客服與資料</a>
   </nav>
 
+  <section id="scenes">
+    <div class="section-head"><span class="section-kicker">多情境模擬</span><h2>先選一個最像你的工作，看看 DOING 怎麼接手。</h2><p>不用先研究功能名稱。從你每天真的會遇到的狀況開始，會比較快知道這套系統能不能幫上忙。</p></div>
+    <div class="scenario-shell">
+      <div class="scenario-tabs" role="tablist" aria-label="選擇營運情境">
+        <button type="button" role="tab" data-scene="market" aria-selected="true"><span>🧺</span>市集招募</button>
+        <button type="button" role="tab" data-scene="event" aria-selected="false"><span>🎤</span>講座課程</button>
+        <button type="button" role="tab" data-scene="workshop" aria-selected="false"><span>🎨</span>手作體驗</button>
+        <button type="button" role="tab" data-scene="beauty" aria-selected="false"><span>✨</span>工作室預約</button>
+        <button type="button" role="tab" data-scene="resource_booking" aria-selected="false"><span>🏡</span>場地資源</button>
+        <button type="button" role="tab" data-scene="guide" aria-selected="false"><span>🌿</span>導覽戶外</button>
+        <button type="button" role="tab" data-scene="hybrid" aria-selected="false"><span>🎪</span>複合型活動</button>
+      </div>
+      <article class="scenario-stage" id="scenarioStage" aria-live="polite">
+        <div class="scenario-heading"><span id="scenarioBadge">市集主辦｜終於不用被表單追著跑</span><h3 id="scenarioTitle">不同場一張表、設備又一張表……辦活動已經夠忙了，真的不要再整理到半夜。</h3><p id="scenarioStory">舉辦市集本來應該是一件開心的事，卻常常卡在攤商報名、日期、設備、審核、付款與排位。來 DOING 輕鬆做、開心做，把時間留給好好辦活動。</p></div>
+        <div class="scenario-compare">
+          <div class="scenario-before"><b>原本最容易卡住</b><ul id="scenarioBefore"></ul></div>
+          <div class="scenario-doing"><b>交給 DOING 之後</b><ol id="scenarioFlow"></ol></div>
+        </div>
+        <div class="scenario-result"><div><small>最後你得到</small><strong id="scenarioResult"></strong></div><a class="btn primary" id="scenarioApply" href="#apply" data-open-apply data-scene-apply="market">用這個情境申請</a></div>
+      </article>
+    </div>
+  </section>
+
   <section id="workflow">
-    <div class="section-head"><h2>從申請到正式營運，是一條完整流程</h2><p>不是一張表單結束，而是從資料收集、審核、開通、設定到正式對外營運的閉環流程。</p></div>
+    <div class="section-head"><span class="section-kicker blue">一條接得起來的流程</span><h2>不是報名送出就結束，而是每一步都有下一步。</h2><p>設定一次，後續的名單、金額、通知與現場狀態會跟著正式紀錄前進。</p></div>
     <div class="flow">
-      <div class="step"><b>STEP 01</b><strong>填寫營運帳號資料</strong><span>收集品牌／單位、負責人、聯絡人、營運類型、公開資訊與實際需求。</span></div>
-      <div class="step"><b>STEP 02</b><strong>Google 驗證 Email</strong><span>確認主要登入與通知信箱，避免資料錯誤或找不到申請人。</span></div>
-      <div class="step"><b>STEP 03</b><strong>DOING 審核／必要時補件</strong><span>可通過、請補件或不通過；補件後不必重建一個新申請。</span></div>
-      <div class="step"><b>STEP 04</b><strong>建立正式營運帳號</strong><span>通過後才建立帳號、Owner 與創業金，進入後台開始設定內容。</span></div>
-      <div class="step"><b>STEP 05</b><strong>發布活動或啟用預約</strong><span>設定完成後，正式開通對外報名／預約，開始營運。</span></div>
+      <div class="step"><b>01｜建立內容</b><strong>活動、日期、時段與規則</strong><span>設定名額、價格、報名問題、設備、服務或可預約資源。</span></div>
+      <div class="step"><b>02｜公開營運</b><strong>分享連結，開始報名</strong><span>參加者從公開頁進入，會員資料可帶入，降低重複填寫。</span></div>
+      <div class="step"><b>03｜審核收款</b><strong>錄取、付款與異動</strong><span>處理審核、應收實收、訂金押金、取消退款與候補狀態。</span></div>
+      <div class="step"><b>04｜通知準備</b><strong>名單、位置與行前提醒</strong><span>依正式資料整理通知、日曆、短網址、設備與現場資訊。</span></div>
+      <div class="step"><b>05｜現場結案</b><strong>報到、財務與後續紀錄</strong><span>手機核銷、現場狀態、Excel 匯出與活動收支接續完成。</span></div>
     </div>
   </section>
 
   <section id="features">
-    <div class="section-head"><h2>核心功能</h2><p>DOING 的核心不是單一活動客製一張表單，而是給你一套可重複使用、正式資料驅動的營運模組。</p></div>
-    <div class="feature-grid">
-      <div class="feature"><b>公開活動入口</b><span>顯示所有近期公開活動與主辦，點進去再進入該主辦專屬頁面。</span></div>
-      <div class="feature"><b>我的報名</b><span>參加者可查自己跨主辦的報名與預約，但主辦之間資料不互串。</span></div>
-      <div class="feature"><b>會員與報名資料</b><span>一次填資料，後續可帶入；正式紀錄由 DB／Worker 管理。</span></div>
-      <div class="feature"><b>審核與錄取</b><span>可依場次或項目設定先審核、先繳費或直接成立。</span></div>
-      <div class="feature"><b>付款／押金／訂金</b><span>支援活動場次、預約方案、押金與可退費用等正式計算。</span></div>
-      <div class="feature"><b>日期／時段／資源</b><span>適用時段預約、老師、場地、人員、服務項目與資源配置。</span></div>
-      <div class="feature"><b>設備／選位／加購</b><span>市集與複合活動可處理設備租借、加價選位與附加項目。</span></div>
-      <div class="feature"><b>通知／日曆／現場</b><span>通知、Google Calendar、報到、簽退與現場狀態可在同一套系統內完成。</span></div>
-    </div>
-  </section>
-
-  <section id="scenes">
-    <div class="section-head"><h2>適用情境</h2><p>不是只有市集。DOING 是給「需要營運流程」的人，不論你是活動方、工作室、品牌還是服務提供者。</p></div>
-    <div class="grid-3">
-      <article class="card"><h3>市集與招募</h3><p>攤商招募、品牌資料、審核、付款、設備、選位、報到、退押金與單場財務。</p></article>
-      <article class="card"><h3>活動／課程／講座</h3><p>民眾報名、名額控管、付款、通知、名單管理與現場簽到。</p></article>
-      <article class="card"><h3>體驗／工作室預約</h3><p>日期、時段、方案、資源、服務人員、訂金、改期、取消與後續通知。</p></article>
+    <div class="section-head"><span class="section-kicker pink">最新系統能力</span><h2>前台讓人好報名，後台讓你真的管得動。</h2><p>依你申請時填寫的營運方式，DOING 會協助確認適合開通的工作流程；未來需要增加其他能力，可直接從系統客服提出申請。</p></div>
+    <div class="capability-grid">
+      <article class="capability"><span>01</span><h3>活動與公開入口</h3><p>活動／場次、品牌專頁、公開搜尋、曝光版位、短網址、會員與我的報名。</p></article>
+      <article class="capability"><span>02</span><h3>報名與預約</h3><p>自訂問題、審核錄取、日期時段、服務項目、人員、場地、資源與剩餘名額。</p></article>
+      <article class="capability"><span>03</span><h3>收付款與異動</h3><p>應收實收、付款確認、訂金押金、取消退款、不可抗力延期與場次完整轉移。</p></article>
+      <article class="capability"><span>04</span><h3>市集與現場</h3><p>設備租借、加購、攤位／座位、位置管理、QR 核銷、手機報到與工作人員協作。</p></article>
+      <article class="capability"><span>05</span><h3>通知與營運紀錄</h3><p>Email 通知、行前提醒、Google Calendar、名單、CSV／Excel、財務與結案資料。</p></article>
+      <article class="capability"><span>06</span><h3>品牌與系統客服</h3><p>專屬名稱與風格、權限隔離、訊息未讀提醒，以及新增需求的客服申請紀錄。</p></article>
     </div>
   </section>
 
   <section id="pricing">
-    <div class="section-head"><h2>收費方式</h2><p>所有正式功能可先設定；真正對外開放報名／預約時，才依營運型態正式開通。</p></div>
-    <div class="pricing">
-      <article class="price-card">
-        <h3>活動場次開通</h3>
-        <div class="price">NT$200 <small>／獨立場次</small></div>
-        <p>適合市集、講座、展演、單次工作坊與一般活動。可獨立報名的日期／場次分別計費。</p>
-      </article>
-      <article class="price-card primary">
-        <h3>持續預約營運</h3>
-        <div class="price">NT$888 <small>／月</small></div>
-        <p>適合美業、工作室、導覽、場地與持續時段預約；從啟用日起到次月相對應日到期。</p>
-      </article>
+    <div class="section-head"><span class="section-kicker yellow">簡單、透明，不用先猜方案</span><h2>活動跟著實收走；持續預約用固定月費。</h2><p>活動依正式營運結果計費，工作室則不抽營業額、不看人數，讓每一種經營方式都能清楚預估成本。</p></div>
+    <div class="pricing pricing-three">
+      <article class="price-card soft"><span class="price-label">免費活動</span><h3>免費活動營運啟用</h3><div class="price">NT$<span id="publicFreeActivityFee">200</span> <small>／場</small></div><p>不按參加人數增加費用；必須一次報名完整多日的活動視為一場，可分日選擇則依獨立場次計算。</p></article>
+      <article class="price-card primary"><span class="price-label">收費活動</span><h3>依實際已收金額</h3><div class="price"><span id="publicPaidActivityRate">1</span>% <small>／實收</small></div><p>不含可退押金；收費活動不另外加收免費活動的營運啟用費。</p></article>
+      <article class="price-card cap"><span class="price-label">持續預約／工作室</span><h3>每個營運帳號固定月費</h3><div class="price">NT$<span id="publicBookingMonthlyFee">688</span> <small>／月</small></div><p>不限工作人員進出、不抽預約營業額；獨立品牌或分店使用另一個營運帳號。</p></article>
     </div>
-    <div class="notebox">建立內容、問卷設定、模組選擇與預覽可先完成；真正對外開放營運時才取得正式營運權。活動延期可沿用原發布權；平台服務一經正式啟用，不因主辦自行取消而退回平台服務費。</div>
+    <div class="fee-examples">
+      <article><span>🎤 20 人課程</span><b>20 × NT$500＝實收 NT$10,000</b><strong id="publicPaidExampleSmall">系統費 NT$100</strong></article>
+      <article><span>🧺 50 攤市集</span><b>實收攤位費 NT$50,000</b><strong id="publicPaidExampleLarge">系統費 NT$500</strong></article>
+      <article><span>🌿 免費導覽</span><b>參加者不需付款</b><strong id="publicFreeActivityExample">系統費 NT$200／場</strong></article>
+      <article><span>✨ 工作室持續接預約</span><b>當月不限預約營業額</b><strong id="publicBookingExample">固定 NT$688／月</strong></article>
+    </div>
+    <div class="notebox"><b>計費以正式資料為準。</b> 收費活動依實際已收且不含可退押金的金額計算，不設月費上限；退款依正式退款紀錄回沖。同一活動延期不重複計費。建立內容與預覽不會先產生費用，正式對外開放後才進入計費流程。</div>
   </section>
 
   <section id="apply">
+    <div class="apply-gate">
+      <span class="section-kicker pink">準備把營運整理起來了嗎？</span>
+      <h2>告訴我們你正在做什麼，DOING 會從你的工作方式開始。</h2>
+      <p>申請入口會用幾個實際問題了解你的活動、預約與現場需求。送出前都不會直接開通或產生費用。</p>
+      <button class="btn primary" type="button" id="openApplication">開始申請營運帳號</button>
+      <small>只是來找活動、報名或預約的人，不需要申請營運帳號。</small>
+    </div>
+    <div id="applicationPanel" hidden>
     <div id="applicationPendingBanner" class="banner"><b>申請已送出，等待 DOING 審核。</b><br>審核通過後才會建立正式營運帳號；若需要補件，系統也會另外通知。</div>
     <div class="apply-wrap">
       <div class="apply-side">
@@ -256,8 +271,8 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
         </div>
 
         <div class="group">
-          <h3>四、你需要哪些功能模組？</h3>
-          <div class="desc">這些勾選會作為你的初始功能需求，讓 DOING 更快判斷你適合的模組。</div>
+          <h3>四、你希望 DOING 幫你處理哪些工作？</h3>
+          <div class="desc">依照你真正在跑的流程勾選就好；這會作為申請審核與初始開通內容的依據。</div>
           <div id="signupNeeds" class="choice-grid">
             <label class="choice"><input type="checkbox" data-module="review"><span><b>報名需審核</b><span>例如攤商審核、資格審核、錄取名單。</span></span></label>
             <label class="choice"><input type="checkbox" data-module="payment"><span><b>收款／付款確認</b><span>需要應收、實收、付款回報與核帳。</span></span></label>
@@ -304,12 +319,13 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
         <div id="signupErr" class="error"></div>
       </form>
     </div>
+    </div>
   </section>
 
   <section id="support">
     <div class="grid-3">
-      <article class="card"><h3>平台條款</h3><p>實際活動的報名、付款、取消、退款與現場規則，以各主辦公告的正式內容為準；DOING 平台服務條款將於正式商用時同步公告。</p></article>
-      <article class="card"><h3>隱私與資料</h3><p>申請與報名資料僅用於審核、營運、通知、客服與必要的帳務處理；主辦間資料維持 Tenant 隔離，不會互相串接。</p></article>
+      <article class="card" id="terms"><h3>平台條款</h3><p>實際活動的報名、付款、取消、退款與現場規則，以各主辦公告的正式內容為準；DOING 平台服務條款將於正式商用時同步公告。</p></article>
+      <article class="card" id="privacy"><h3>隱私與資料</h3><p>申請與報名資料僅用於審核、營運、通知、客服與必要的帳務處理；主辦間資料維持 Tenant 隔離，不會互相串接。</p></article>
       <article class="card"><h3>聯絡與客服</h3><p>DOING 系統合作與平台問題可寄信至 <b>Ndiangrace@gmail.com</b>；單一活動的付款、位置、設備或退款請優先聯絡該活動主辦。</p></article>
     </div>
   </section>
@@ -431,6 +447,6 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
   }
 })();
 </script>
-<script src="doing-about-refresh.js?v=20260814b"></script>
+<script src="doing-about-refresh.js?v=20260815b"></script>
 </body>
 </html>

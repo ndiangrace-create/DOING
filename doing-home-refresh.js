@@ -54,12 +54,14 @@ function buildHeader(){
   if(p.support)p.support.textContent='客服';
   if(p.pricing){
     p.pricing.textContent='主辦方案';
-    p.pricing.href='about.html#pricing';
+    p.pricing.href='#doingOrganizerDetails';
+    p.pricing.dataset.organizerTarget='pricing';
     p.pricing.classList.add('doing-organizer-nav');
   }
   if(p.apply){
     p.apply.textContent='申請營運帳號';
-    p.apply.href='about.html#apply';
+    p.apply.href='#doingOrganizerDetails';
+    p.apply.dataset.organizerTarget='apply';
     p.apply.classList.add('doing-organizer-nav','primary');
   }
   [p.search,p.my,p.support,p.pricing,p.apply].filter(Boolean).forEach(x=>{
@@ -323,18 +325,46 @@ function publicAppHTML(){
     <section class="doing-public-section doing-organizer-section">
       <div class="doing-organizer-icon">D</div>
       <div><span class="doing-kicker yellow">給主辦／營運者</span><h2>你不只參加，也正在做自己的事？</h2><p>DOING 把報名、會員、付款、預約、通知與現場管理整理在同一套系統。功能依申請問卷核准開通，需要新增功能時可直接向系統客服提出申請。</p></div>
-      <div class="doing-organizer-actions"><a href="about.html#apply">申請營運帳號</a><a class="secondary" href="about.html#pricing">查看主辦方案</a></div>
+      <div class="doing-organizer-actions"><a href="#doingOrganizerDetails" data-organizer-target="apply">申請營運帳號</a><a class="secondary" href="#doingOrganizerDetails" data-organizer-target="pricing">查看主辦方案</a></div>
     </section>
+
+    <details id="doingOrganizerDetails" class="doing-organizer-details">
+      <summary><div>主辦方案與營運情境<span>情境、功能、費用與申請都在這一頁展開</span></div></summary>
+      <div id="doingOrganizerContent" class="doing-organizer-content"><div class="doing-organizer-loading">準備主辦方案…</div></div>
+    </details>
 
     <div id="doingSupportMount"></div>
 
     <footer class="doing-public-footer">
       <div><b>DOING</b><span>活動營運管理系統</span></div>
-      <nav><a href="about.html#about">關於 DOING</a><a href="about.html#pricing">主辦方案</a><a href="about.html#apply">申請營運帳號</a><a href="mailto:Ndiangrace@gmail.com">Email 客服</a></nav>
+      <nav><a href="#doingOrganizerDetails" data-organizer-target="scenes">關於 DOING</a><a href="#doingOrganizerDetails" data-organizer-target="pricing">主辦方案</a><a href="#doingOrganizerDetails" data-organizer-target="apply">申請營運帳號</a><a href="mailto:Ndiangrace@gmail.com">Email 客服</a></nav>
       <small>兔彼樂共創活動有限公司</small>
     </footer>
   </div>`;
 }
+
+let organizerLoadPromise=null;
+async function loadOrganizerDetails(target='scenes'){
+  const details=$('doingOrganizerDetails'),content=$('doingOrganizerContent');
+  if(!details||!content)return;
+  details.open=true;
+  if(!organizerLoadPromise){
+    organizerLoadPromise=fetch('about.html?fragment=1',{cache:'no-store'}).then(async response=>{
+      if(!response.ok)throw new Error('主辦方案讀取失敗');
+      const html=await response.text(),doc=new DOMParser().parseFromString(html,'text/html');
+      const ids=['scenes','workflow','features','pricing','apply','support'];
+      content.replaceChildren(...ids.map(id=>doc.getElementById(id)?.cloneNode(true)).filter(Boolean));
+      content.querySelectorAll('a[href="index.html"]').forEach(a=>{a.href='#doingOrganizerDetails';a.onclick=e=>{e.preventDefault();details.open=false;smoothTo(details)}});
+      const signupSource=[...doc.scripts].find(s=>s.textContent.includes("const API='https://tobeloved-api.ndiangrace.workers.dev'"));
+      if(signupSource){const script=document.createElement('script');script.textContent=signupSource.textContent;document.body.appendChild(script);script.remove()}
+      await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='doing-about-refresh.js?v=20260815c';script.onload=resolve;script.onerror=reject;document.body.appendChild(script)});
+    }).catch(error=>{content.innerHTML='<div class="doing-organizer-loading">'+esc(error.message||'主辦方案讀取失敗，請稍後再試。')+'</div>';organizerLoadPromise=null});
+  }
+  await organizerLoadPromise;
+  const section=content.querySelector('#'+CSS.escape(target))||content.querySelector('#scenes');
+  setTimeout(()=>smoothTo(section||details),60);
+}
+window.openDoingOrganizerDetails=loadOrganizerDetails;
 
 function buildPublicApp(){
   if(!isGlobal)return;
@@ -372,6 +402,10 @@ function wireNav(){
   document.querySelectorAll('[data-go="search"]').forEach(x=>x.onclick=()=>smoothTo($('doingPublicSearch'),$('doingPublicSearchInput')));
   document.querySelectorAll('[data-go="my"]').forEach(x=>x.onclick=()=>smoothTo($('doingHomeMy')));
   document.querySelectorAll('[data-go="support"]').forEach(x=>x.onclick=()=>smoothTo($('doingHomeSupport')));
+  document.querySelectorAll('[data-organizer-target]').forEach(x=>x.onclick=e=>{e.preventDefault();loadOrganizerDetails(x.dataset.organizerTarget||'scenes')});
+  $('doingOrganizerDetails')?.addEventListener('toggle',e=>{if(e.currentTarget.open&&!organizerLoadPromise)loadOrganizerDetails('scenes')});
+  const initial=(location.hash||'').slice(1);
+  if(['about','scenes','workflow','features','pricing','apply','support','terms','privacy'].includes(initial))loadOrganizerDetails(initial==='about'?'scenes':initial);
 }
 
 function wireSearch(){

@@ -1,59 +1,22 @@
 (()=>{
-  const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+  'use strict';
   document.body.classList.add('doing-about-refresh');
-  document.title='DOING｜功能、費用與營運帳號申請';
-
-  const params=new URL(location.href).searchParams;
-  if(params.get('embed')==='1'){
-    document.body.classList.add('doing-about-embed');
-    const keep=$('#apply');
-    $$('body > header, main > section, .quick-nav, .footer').forEach(el=>{if(el!==keep&&!el.contains(keep))el.style.display='none'});
-    if(keep){keep.style.display='block';keep.style.paddingTop='12px';}
-  }
-
-  const hero=$('#about .hero-main');
-  if(hero){
-    const eyebrow=hero.querySelector('.eyebrow'); if(eyebrow)eyebrow.textContent='給正在辦活動、開課、做體驗或接預約的人';
-    const h1=hero.querySelector('h1'); if(h1)h1.textContent='把報名、預約、付款、名單和現場工作，放在同一個地方。';
-    const lead=hero.querySelector('.lead'); if(lead)lead.textContent='DOING 是一套活動與預約營運工具。你先把內容設定好，需要正式對外開放時再啟用；參加者則直接找活動、報名、預約，不需要申請營運帳號。';
-    const actions=hero.querySelectorAll('.hero-actions a');
-    if(actions[0]){actions[0].textContent='先去找活動';actions[0].href='index.html';}
-    if(actions[1])actions[1].textContent='我是營運者，想了解怎麼用';
-    const pts=hero.querySelectorAll('.point');
-    if(pts[0])pts[0].innerHTML='<b>不用一直開新表單</b><span>活動、課程、體驗和預約都在同一套系統管理。</span>';
-    if(pts[1])pts[1].innerHTML='<b>資料會跟著流程走</b><span>報名、付款、會員、通知與現場紀錄不用手動拼來拼去。</span>';
-    if(pts[2])pts[2].innerHTML='<b>參加者直接使用</b><span>找活動、報名、預約、查自己的紀錄，都從公開入口完成。</span>';
-  }
-
-  const topLinks=$$('.top-actions a');
-  if(topLinks[0])topLinks[0].textContent='找活動';
-  if(topLinks[1])topLinks[1].textContent='我的報名';
-  if(topLinks[2])topLinks[2].textContent='我是營運者';
-
-  const q=$$('.quick-nav a');
-  const qText=['DOING 是什麼','怎麼開始','可以做什麼','適合哪些營運','費用','申請營運帳號','客服'];
-  q.forEach((x,i)=>{if(qText[i])x.textContent=qText[i]});
-
-  const workflow=$('#workflow .section-head');
-  if(workflow){const h=workflow.querySelector('h2'),p=workflow.querySelector('p');if(h)h.textContent='要開始很簡單';if(p)p.textContent='申請營運帳號通過後，建立活動或預約內容，確認沒問題，再正式對外開放。';}
-
-  const pricing=$('#pricing');
-  if(pricing){
-    const sh=pricing.querySelector('.section-head');
-    if(sh){const h=sh.querySelector('h2'),p=sh.querySelector('p');if(h)h.textContent='費用怎麼算？';if(p)p.textContent='先設定不用付費；真正要讓外面的人開始報名或預約時，再選擇適合的開通方式。';}
-    if(!pricing.querySelector('.doing-audience-note')){
-      const note=document.createElement('div');note.className='doing-audience-note';note.innerHTML='<b>一般參加者不用申請帳號。</b><span>下面的費用只跟主辦、品牌、工作室或服務提供者有關。</span>';sh?.after(note);
-    }
-    const cards=pricing.querySelectorAll('.price-card');
-    if(cards[0]){const h=cards[0].querySelector('h3'),p=cards[0].querySelector('p');if(h)h.textContent='單次活動／場次';if(p)p.textContent='適合市集、講座、展演、單次工作坊。每個可以獨立報名的場次，開通一次 NT$200。';}
-    if(cards[1]){const h=cards[1].querySelector('h3'),p=cards[1].querySelector('p');if(h)h.textContent='持續接預約';if(p)p.textContent='適合工作室、美業、導覽、場地或固定時段服務。啟用後 NT$888／月。';}
-    const nb=pricing.querySelector('.notebox');if(nb)nb.innerHTML='<b>先設定，確定要開放再啟用。</b><br>活動延期可以沿用原本的啟用資格；如果主辦自己取消，已啟用的平台服務費不退。';
-  }
-
-  const apply=$('#apply');
-  if(apply){
-    const side=apply.querySelector('.side-panel');
-    if(side){const h=side.querySelector('h3'),p=side.querySelector('p'),lis=side.querySelectorAll('li'),mini=side.querySelector('.mini');if(h)h.textContent='你是營運者，才需要申請';if(p)p.textContent='如果你是主辦、品牌、工作室、老師、服務提供者，想用 DOING 管理自己的活動或預約，再從這裡申請營運帳號。';if(lis[0])lis[0].textContent='填基本資料，讓我們知道你是誰、在經營什麼。';if(lis[1])lis[1].textContent='審核通過後，就會開啟你的營運帳號。';if(lis[2])lis[2].textContent='資料不夠時會請你補充，不需要重新申請。';if(mini)mini.textContent='只是來找活動、報名或預約的人，不需要填這份申請。';}
-    const fh=apply.querySelector('.form-head');if(fh){const h=fh.querySelector('h2'),p=fh.querySelector('p');if(h)h.textContent='申請 DOING 營運帳號';if(p)p.textContent='填完送出即可。審核通過後才能進入營運工作台。';}
-  }
+  const scenes={
+    market:{badge:'市集主辦｜終於不用被表單追著跑',title:'不同場一張表、設備又一張表……辦活動已經夠忙了，真的不要再整理到半夜。',story:'舉辦市集本來應該是一件開心的事，卻常常卡在攤商報名、日期、設備、審核、付款與排位。來 DOING 輕鬆做、開心做，把時間留給好好辦活動。',before:['每一場又開一張新表單','桌椅設備和報名資料對不起來','付款、攤位與現場名單各有一個版本'],flow:['攤商一次填好品牌與本場需求','主辦直接審核、核款與確認設備','安排攤位並依正式名單通知','現場報到、結案與財務一路接著走'],result:'少追幾張表、少回幾次私訊，把心力留給活動內容與現場。',needs:['review','payment','equipment','seatSelection','checkin','notifications']},
+    event:{badge:'講師／自由工作者｜偶爾開課也不必養兩套工具',title:'備課已經很花心力，報名、收款、候補與提醒，就別再自己一筆一筆搬。',story:'你可能平常接案，這個月想開一堂收費課，下個月又辦一場免費分享。收費活動按實收 1%，免費活動 NT$200／場；沒有日常預約，就不必付預約月費。',before:['報名名單和匯款紀錄分開看','候補、取消、退款容易漏掉','活動前還要逐一傳集合資訊'],flow:['建立這次課程與名額','學員報名、付款或進入候補','依正式狀態發出行前提醒','活動當天報到，結束後保留紀錄'],result:'偶爾開課就付這次活動的費用，不用為用不到的預約系統持續付月費。',needs:['payment','notifications','checkin','calendar']},
+    workshop:{badge:'手作老師｜把時間留給作品，不是留給對名單',title:'多個梯次、不同材料、親子人數和加購，光看訊息就快要眼花。',story:'客人選日期、時段與體驗方案，材料與加購跟著同一筆報名留下來。你不用在開課前一天，還拿著聊天紀錄重新算一次要準備幾份。',before:['每個時段剩幾位要人工計算','材料、加購和參加人數分開記','改期後又要重做一份名單'],flow:['先排好日期、梯次與方案','客人選時段、材料與人數','系統整理付款、改期與剩餘名額','依每個梯次直接準備材料'],result:'開課前打開該梯次，就知道人數、款項與該準備什麼。',needs:['workshopSlots','service','addons','payment','calendar']},
+    beauty:{badge:'美甲／美業｜服務與開課，一個系統就好',title:'平常接預約，偶爾還想開課；你的疲累我知道，真的不需要再多一堆表單。',story:'日常服務用預約月費，A 老師、B 老師可以分開看，也能切到「全部」掌握整間工作室。想另外開收費課程，該課程才按實收 1%；開免費分享課則是 NT$200／場。',before:['服務預約、課程報名各用不同工具','不同老師的時段與客人名單混在一起','人員來去，帳號與歷史紀錄很難接續'],flow:['每位老師或空間建立自己的日曆','平常只看自己的客人與時段','需要時切回「全部」看整店安排','開課時另建活動，報名與收款仍在同一後台'],result:'NT$688／月不按人頭、不抽服務營業額；服務與開課都能在 DOING 輕鬆管理。',needs:['workshopSlots','service','resource','calendar','notifications']},
+    resource_booking:{badge:'場地／攝影棚｜不再擔心同一時段答應兩組客人',title:'教室、攝影棚和器材都有自己的行程，但你仍需要一眼看懂今天整體忙不忙。',story:'每個空間都能分開看預約，也能切到「全部」檢查整天安排。訂金、押金與使用紀錄接在同一筆預約後面，不必再到對話裡找答案。',before:['場地與器材用不同表格管理','撞期常常等客人問了才發現','押金收了沒、退了沒要重新翻紀錄'],flow:['建立每個空間的預約日曆','開放可租時段與價格','確認訂金、押金與客人資料','使用完成後接著處理退押與結案'],result:'空間各自清楚，管理者又能一次看全場，不再害怕漏單或撞期。',needs:['workshopSlots','resource','deposit','payment','calendar']},
+    guide:{badge:'導覽員／帶團工作者｜帶團空檔，讓自己好好吃個飯',title:'一邊帶導覽、一邊回客人，還要看天吃飯；忙起來真的很容易 miss 訊息。',story:'有人報名就留下正式紀錄，可依你的方式設定「先審核再錄取」或「繳費就錄取」。遇到天候改期，也能沿著原名單處理通知、轉場或退款，不必整團重新問一次。',before:['集合時間與問題散在好多對話裡','錄取、繳費與人數一直人工確認','下雨改期時，要逐一詢問每個人'],flow:['建立日期、名額與錄取方式','客人報名，系統整理審核或付款狀態','自動準備集合與行前提醒','遇到天候異動時統一改期或退款'],result:'少漏一則訊息、少重問一次名單；帶團空檔可以真的休息一下。',needs:['workshopSlots','payment','notifications','calendar']},
+    hybrid:{badge:'複合活動經營者｜不同玩法，不等於要開不同系統',title:'市集、課程、體驗一起做，每個客人看到適合自己的入口，你只需要管一個後台。',story:'今天招募攤商、明天開手作課，週末又有民眾體驗。流程可以不同，會員、付款、通知、日曆與財務仍留在同一個營運空間裡。',before:['每種活動各開一套工具','同一位客人的資料重複建立','結案時很難拼回整體收入與現場紀錄'],flow:['依每次工作方式建立入口','分別設定審核、付款、時段與設備','從總日曆掌握全部活動','回到同一後台完成現場與財務結案'],result:'你的活動可以很多元，營運卻不用跟著變得混亂。',needs:['review','payment','workshopSlots','equipment','checkin','calendar']}
+  };
+  const $=id=>document.getElementById(id);
+  function renderScene(key){const s=scenes[key]||scenes.market;$('scenarioBadge').textContent=s.badge;$('scenarioTitle').textContent=s.title;$('scenarioStory').textContent=s.story;$('scenarioBefore').innerHTML=s.before.map(x=>'<li>'+x+'</li>').join('');$('scenarioFlow').innerHTML=s.flow.map(x=>'<li>'+x+'</li>').join('');$('scenarioResult').textContent=s.result;$('scenarioApply').dataset.sceneApply=key;document.querySelectorAll('[data-scene]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.scene===key)));}
+  function openApplication(scene,scroll=true){const panel=$('applicationPanel'),gate=document.querySelector('.apply-gate');if(panel)panel.hidden=false;if(gate)gate.hidden=true;if(scene&&scenes[scene]){const use=document.querySelector('#signupUseCases input[value="'+scene+'"]')||document.querySelector('#signupUseCases input[value="general"]');if(use)use.checked=true;scenes[scene].needs.forEach(n=>{const el=document.querySelector('#signupNeeds input[data-module="'+n+'"]');if(el)el.checked=true});const usage=$('signupUsagePlan');if(usage&&!usage.value)usage.value='我想用 DOING 處理「'+scenes[scene].badge+'」的營運流程。';}if(scroll)$('apply')?.scrollIntoView({behavior:'smooth',block:'start'});}
+  document.querySelectorAll('[data-scene]').forEach(b=>b.addEventListener('click',()=>renderScene(b.dataset.scene)));
+  document.querySelectorAll('[data-open-apply]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();openApplication(a.dataset.sceneApply||'',true)}));
+  $('openApplication')?.addEventListener('click',()=>openApplication('',true));
+  renderScene('market');
+  fetch('https://tobeloved-api.ndiangrace.workers.dev?action=getPublicBillingPolicy',{cache:'no-store'}).then(r=>r.json()).then(p=>{if(!p||p.error)return;const free=Math.max(0,Number(p.freeActivityFee||0)),booking=Math.max(0,Number(p.bookingMonthlyFee||0)),rate=Math.max(0,Number(p.paidActivityRatePercent||0));$('publicFreeActivityFee').textContent=free.toLocaleString('zh-TW');$('publicBookingMonthlyFee').textContent=booking.toLocaleString('zh-TW');$('publicPaidActivityRate').textContent=String(rate);$('publicPaidExampleSmall').textContent='系統費 NT$'+Math.round(10000*rate/100).toLocaleString('zh-TW');$('publicPaidExampleLarge').textContent='系統費 NT$'+Math.round(50000*rate/100).toLocaleString('zh-TW');$('publicFreeActivityExample').textContent='系統費 NT$'+free.toLocaleString('zh-TW')+'／場';$('publicBookingExample').textContent='固定 NT$'+booking.toLocaleString('zh-TW')+'／月';scenes.event.story=`你可能平常接案，這個月想開一堂收費課，下個月又辦一場免費分享。收費活動按實收 ${rate}%，免費活動 NT$${free.toLocaleString('zh-TW')}／場；沒有日常預約，就不必付預約月費。`;scenes.beauty.story=`日常服務用預約月費，A 老師、B 老師可以分開看，也能切到「全部」掌握整間工作室。想另外開收費課程，該課程才按實收 ${rate}%；開免費分享課則是 NT$${free.toLocaleString('zh-TW')}／場。`;scenes.beauty.result=`NT$${booking.toLocaleString('zh-TW')}／月不按人頭、不抽服務營業額；服務與開課都能在 DOING 輕鬆管理。`;const active=document.querySelector('[data-scene][aria-selected="true"]')?.dataset.scene;if(active)renderScene(active)}).catch(()=>{});
+  const url=new URL(location.href);if(url.searchParams.get('embed')==='1'){document.querySelectorAll('body>header,.hero,.quick-nav,#scenes,#workflow,#features,#pricing,#support,.footer,.apply-gate').forEach(x=>x?.classList.add('hidden'));openApplication('',false)}else if(location.hash==='#apply'||url.searchParams.has('application_status')||url.searchParams.has('login_error'))openApplication('',false);
 })();
