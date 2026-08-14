@@ -1,0 +1,54 @@
+name: Apply DOING public refresh
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-public-refresh.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Link public refresh assets
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          changes=[]
+          specs={
+            'index.html':(
+              '<link rel="stylesheet" href="doing-home-refresh.css?v=20260814b">',
+              '<script src="doing-home-refresh.js?v=20260814b"></script>'
+            ),
+            'about.html':(
+              '<link rel="stylesheet" href="doing-about-refresh.css?v=20260814b">',
+              '<script src="doing-about-refresh.js?v=20260814b"></script>'
+            )
+          }
+          for fn,(css,js) in specs.items():
+            p=Path(fn);s=p.read_text(encoding='utf-8');old=s
+            if css not in s:
+              if '</head>' not in s: raise SystemExit(f'{fn}: missing </head>')
+              s=s.replace('</head>',css+'\n</head>',1)
+            if js not in s:
+              if '</body>' not in s: raise SystemExit(f'{fn}: missing </body>')
+              s=s.replace('</body>',js+'\n</body>',1)
+            if s!=old:
+              p.write_text(s,encoding='utf-8');changes.append(fn)
+          print('changed',changes)
+          PY
+          grep -q 'doing-home-refresh.css' index.html
+          grep -q 'doing-home-refresh.js' index.html
+          grep -q 'doing-about-refresh.css' about.html
+          grep -q 'doing-about-refresh.js' about.html
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name 'DOING Automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html about.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'fix: unify public homepage and about experience'
+            git push
+          fi
