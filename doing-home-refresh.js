@@ -280,8 +280,7 @@ function publicAppHTML(){
       <span class="doing-bee" aria-hidden="true"><i></i></span>
       <div class="doing-hero-copy" id="doingPublicSearch">
         <span class="doing-eyebrow">活動預約營運管理系統</span>
-        <div class="doing-wordmark" aria-label="DOING"><span>D</span><span class="doing-check-o"><b>✓</b></span><span>I</span><span>N</span><span>G</span></div>
-        <p class="doing-hero-tagline">先做就對了！美好從這裡開始。</p>
+        <div class="doing-hero-logo" aria-label="DOING 活動預約營運管理系統"><img src="doing-logo.png?v=20260815" alt="DOING 活動預約營運管理系統"></div>
         <h1>表單只收到報名，<br>DOING 幫你把活動做完。</h1>
         <p class="doing-hero-desc">從找活動、報名與付款，到主辦端的審核、通知、選位、現場報到、退款與財務結案，每一步都沿用同一筆正式資料，不必再整理五張表。</p>
         <div class="doing-search-box">
@@ -290,7 +289,7 @@ function publicAppHTML(){
           <button id="doingPublicSearchGo" type="button">搜尋</button>
         </div>
         <div class="doing-quick-tags" aria-label="活動快速分類">
-          <button type="button" data-q="市集">市集</button><button type="button" data-q="課程">課程</button><button type="button" data-q="體驗">體驗</button><button type="button" data-q="預約">預約</button><button type="button" data-q="高雄">高雄</button>
+          <button type="button" data-q="市集">市集</button><button type="button" data-q="課程">課程</button><button type="button" data-q="體驗">體驗</button><button type="button" data-q="預約">預約</button><button type="button" data-q="地點">地點</button>
         </div>
       </div>
       <div class="doing-hero-console" aria-label="DOING 系統服務">
