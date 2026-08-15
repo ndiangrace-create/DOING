@@ -2987,7 +2987,7 @@ async function hGetPlatformMemberProfile(env,p){
   const applications=email?await dbGet(env,'tenant_apply_logs',`contact_email=ilike.${encodeURIComponent(email)}&select=id,brand_name,status,created_at,application_json&order=created_at.desc&limit=20`).catch(()=>[]):[];
   const workspaces=email?await dbGet(env,'tenants',`notify_email=ilike.${encodeURIComponent(email)}&select=id,name,status&order=created_at.desc&limit=20`).catch(()=>[]):[];
   const roles=['participant'];if(v.brandName)roles.push('vendor');if(applications.length)roles.push('organizer_applicant');if(workspaces.length)roles.push('organizer');
-  return jsonOk({profile:{id:memberId,email:verified.row.email||'',name:verified.row.name||verified.row.display_name||'',phone:verified.row.phone||'',lineId:verified.row.line_id||'',city:verified.row.city||'',brand:v.brandName||'',brand_name:v.brandName||'',brandIntro:v.brandIntro||'',sellCat:v.category||'',sellItem:v.items||'',fb:v.facebook||'',ig:v.instagram||'',photo:v.photoUrl||'',company:v.company||'',taxId:v.taxId||''},complete:platformMemberComplete(verified.row),provider:verified.row._identity?.provider||'',roles,applications:applications.map(x=>({id:x.id,unitName:x.brand_name||'',status:x.status||'pending',createdAt:x.created_at||''})),workspaces:workspaces.map(x=>({id:x.id,name:x.name||x.id,status:x.status||''}))});
+  return jsonOk({profile:{id:memberId,email:verified.row.email||'',name:verified.row.name||verified.row.display_name||'',phone:verified.row.phone||'',lineId:verified.row.line_id||'',city:verified.row.city||'',brand:v.brandName||'',brand_name:v.brandName||'',brandIntro:v.brandIntro||'',sellCat:v.category||'',sellItem:v.items||'',fb:v.facebook||'',ig:v.instagram||'',photo:v.photoUrl||'',company:v.company||'',taxId:v.taxId||''},complete:platformMemberComplete(verified.row),provider:verified.row._identity?.provider||'',roles,applications:applications.map(x=>{const a=safeJson(x.application_json,{});return{id:x.id,unitName:a.unitName||x.brand_name||'',industryCategories:Array.isArray(a.industryCategories)?a.industryCategories:[],useCases:Array.isArray(a.useCases)?a.useCases:[],status:x.status||'pending',createdAt:x.created_at||''}}),workspaces:workspaces.map(x=>({id:x.id,name:x.name||x.id,status:x.status||''}))});
 }
 
 async function hSavePlatformMemberProfile(env,b){
@@ -3013,9 +3013,10 @@ async function hSavePlatformMemberProfile(env,b){
     const industries=Array.isArray(sys.industryCategories)?sys.industryCategories.map(String).filter(Boolean):[];
     const useCases=Array.isArray(sys.useCases)?sys.useCases.map(String).filter(Boolean):[];
     if(!unitName||!industries.length||!useCases.length)return jsonErr('系統申請請完整填寫單位名稱、產業類別與使用功能');
+    const applicationJson={unitName,ownerName:name,phone,industryCategories:industries,useCases,publicLinks:[vendor.facebook,vendor.instagram,vendor.photoUrl].filter(Boolean),memberId:verified.row.id,loginProvider:verified.row._identity?.provider||''};
     const existing=await dbGet(env,'tenant_apply_logs',`contact_email=eq.${encodeURIComponent(email)}&brand_name=eq.${encodeURIComponent(unitName)}&status=in.(pending,supplement_required)&select=id`).catch(()=>[]);
-    if(existing[0])applicationId=existing[0].id;
-    else{applicationId=genId('APL');await dbInsert(env,'tenant_apply_logs',{id:applicationId,brand_name:unitName,contact_name:name,contact_email:email,contact_phone:phone,event_type:useCases.join(','),plan_type:'review',note:'由已驗證 DOING 會員送出',status:'pending',application_json:{unitName,ownerName:name,phone,industryCategories:industries,useCases,publicLinks:[vendor.facebook,vendor.instagram,vendor.photoUrl].filter(Boolean),memberId:verified.row.id,loginProvider:verified.row._identity?.provider||''},created_at:nowIso()})}
+    if(existing[0]){applicationId=existing[0].id;await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{contact_name:name,contact_phone:phone,event_type:useCases.join(','),application_json:applicationJson})}
+    else{applicationId=genId('APL');await dbInsert(env,'tenant_apply_logs',{id:applicationId,brand_name:unitName,contact_name:name,contact_email:email,contact_phone:phone,event_type:useCases.join(','),plan_type:'review',note:'由已驗證 DOING 會員送出',status:'pending',application_json:applicationJson,created_at:nowIso()})}
   }
   return jsonOk({ok:true,complete:true,applicationId});
 }

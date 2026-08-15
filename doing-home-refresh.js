@@ -459,6 +459,8 @@ function memberGateHTML(){const vendorCats=['餐飲美食','手作設計','文�
 function ensureMemberGate(){
   if($('doingMemberGate'))return $('doingMemberGate');
   document.body.insertAdjacentHTML('beforeend',memberGateHTML());const modal=$('doingMemberGate'),form=modal.querySelector('form');
+  const useCaseGrid=form.querySelector('[name="useCase"]')?.closest('.doing-check-grid');
+  if(useCaseGrid&&!form.querySelector('[name="useCase"][value="預約管理"]'))useCaseGrid.insertAdjacentHTML('beforeend','<label><input type="checkbox" name="useCase" value="預約管理">預約管理</label>');
   modal.querySelector('.doing-member-close').onclick=()=>{modal.hidden=true;document.body.style.overflow=''};
   modal.querySelector('.doing-line-login').onclick=()=>authStart('line');
   form.elements.enableVendor.onchange=e=>form.querySelector('[data-vendor-fields]').hidden=!e.target.checked;
@@ -468,7 +470,7 @@ function ensureMemberGate(){
   form.onsubmit=saveMemberProfile;return modal;
 }
 function showMemberView(view){const modal=ensureMemberGate();modal.hidden=false;document.body.style.overflow='hidden';modal.querySelectorAll('[data-member-view]').forEach(x=>x.hidden=x.dataset.memberView!==view)}
-function showMemberProfile(){const modal=ensureMemberGate(),form=modal.querySelector('form'),p=memberAuth.profile||{};for(const key of ['name','email','phone','lineId','city'])if(form.elements[key])form.elements[key].value=p[key]||'';const vendor=!!(p.brand||p.brand_name);form.elements.enableVendor.checked=vendor;form.querySelector('[data-vendor-fields]').hidden=!vendor;if(vendor){form.elements.brandName.value=p.brand||p.brand_name||'';form.elements.brandIntro.value=p.brandIntro||'';form.elements.category.value=p.sellCat||'';form.elements.items.value=p.sellItem||'';form.elements.facebook.value=p.fb||'';form.elements.instagram.value=p.ig||'';form.elements.photoUrl.value=p.photo||'';form.elements.company.value=p.company||'';form.elements.taxId.value=p.taxId||''}form.querySelector('.doing-member-save').textContent='儲存會員資料';showMemberView('profile')}
+function showMemberProfile(){const modal=ensureMemberGate(),form=modal.querySelector('form'),p=memberAuth.profile||{},app=(memberAuth.applications||[])[0]||{};for(const key of ['name','email','phone','lineId','city'])if(form.elements[key])form.elements[key].value=p[key]||'';const vendor=!!(p.brand||p.brand_name);form.elements.enableVendor.checked=vendor;form.querySelector('[data-vendor-fields]').hidden=!vendor;if(vendor){form.elements.brandName.value=p.brand||p.brand_name||'';form.elements.brandIntro.value=p.brandIntro||'';form.elements.category.value=p.sellCat||'';form.elements.items.value=p.sellItem||'';form.elements.facebook.value=p.fb||'';form.elements.instagram.value=p.ig||'';form.elements.photoUrl.value=p.photo||'';form.elements.company.value=p.company||'';form.elements.taxId.value=p.taxId||''}const system=!!(app.id||memberAuth.workspaces?.length);form.elements.enableSystem.checked=system;form.querySelector('[data-system-fields]').hidden=!system;form.elements.unitName.value=app.unitName||memberAuth.workspaces?.[0]?.name||'';const industries=new Set(app.industryCategories||[]),useCases=new Set(app.useCases||[]);form.querySelectorAll('[name="industry"]').forEach(x=>x.checked=industries.has(x.value));form.querySelectorAll('[name="useCase"]').forEach(x=>x.checked=useCases.has(x.value));form.querySelector('.doing-member-save').textContent='儲存會員資料';showMemberView('profile')}
 function memberStatusLabel(s){return ({pending:'審核中',approved:'已通過',active:'使用中',supplement_required:'待補件',rejected:'未通過'}[s]||s||'尚未申請')}
 function memberTreeHTML(){const p=memberAuth.profile||{},apps=memberAuth.applications||[],spaces=memberAuth.workspaces||[];return `<article class="is-done"><b>① 基本會員</b><span>已完成</span><small>${esc(p.name||'')}｜${esc(p.phone||'')}</small></article><article class="${p.brand?'is-done':''}"><b>② 攤商品牌</b><span>${p.brand?'已建立':'尚未建立'}</span><small>${p.brand?`${esc(p.brand)}｜${esc(p.sellCat||'未分類')}`:'需要擺攤時再建立'}</small></article><article class="${apps.length||spaces.length?'is-done':''}"><b>③ 主辦／系統</b><span>${spaces.length?'已啟用':apps.length?memberStatusLabel(apps[0].status):'尚未申請'}</span><small>${esc(spaces[0]?.name||apps[0]?.unitName||'需要開設系統時再申請')}</small></article><article class="is-done"><b>④ 我的活動</b><span>可使用</span><small>錄取、付款、位置、退款與行前提醒</small></article>`}
 function showMemberTree(){showMemberPage()}
@@ -486,10 +488,22 @@ async function saveMemberProfile(e){
 function setMemberState(d){memberAuth.complete=!!d.complete;memberAuth.profile=d.profile||null;memberAuth.provider=d.provider||'';memberAuth.roles=Array.isArray(d.roles)?d.roles:[];memberAuth.applications=Array.isArray(d.applications)?d.applications:[];memberAuth.workspaces=Array.isArray(d.workspaces)?d.workspaces:[];updateMemberAuthUi()}
 async function initMemberAuth(){
   const u=new URL(location.href),incoming=u.searchParams.get('member_token');memberAuth.token=incoming||localStorage.getItem('doing_member_token')||'';
-  if(incoming){localStorage.setItem('doing_member_token',incoming);['member_token','member_status'].forEach(k=>u.searchParams.delete(k));history.replaceState({},'',u.pathname+u.search+u.hash)}
+  if(incoming)localStorage.setItem('doing_member_token',incoming);
   const loginError=u.searchParams.get('member_login_error');if(loginError){u.searchParams.delete('member_login_error');history.replaceState({},'',u.pathname+u.search+u.hash);setTimeout(()=>{showMemberView('login');const x=ensureMemberGate().querySelector('.doing-member-error');if(x)x.textContent=loginError==='email_link_requires_existing_login'?'此 Email 已由 LINE 會員使用，請先以 LINE 登入；系統不會只憑相同 Email 自動合併帳號。':loginError==='line_only'?'目前會員端只開放 LINE 登入。':'登入未完成，請重新嘗試。'},20)}
   if(!memberAuth.token)return;
-  try{const d=await apiGet('getPlatformMemberProfile',{member_token:memberAuth.token});setMemberState(d);if(!memberAuth.complete)setTimeout(showMemberProfile,20);else if(incoming&&isGlobal)setTimeout(showMemberPage,20)}catch(e){memberAuth.token='';localStorage.removeItem('doing_member_token');updateMemberAuthUi()}
+  let lastError=null;
+  for(let attempt=0;attempt<(incoming?3:1);attempt++){
+    try{
+      if(attempt)await new Promise(resolve=>setTimeout(resolve,500*attempt));
+      const d=await apiGet('getPlatformMemberProfile',{member_token:memberAuth.token});setMemberState(d);
+      if(incoming){['member_token','member_status'].forEach(k=>u.searchParams.delete(k));history.replaceState({},'',u.pathname+u.search+u.hash)}
+      if(!memberAuth.complete)setTimeout(showMemberProfile,20);
+      else if(incoming){window.scrollTo({top:0,behavior:'auto'});if(typeof toast==='function')toast('LINE 登入成功')}
+      return;
+    }catch(e){lastError=e}
+  }
+  memberAuth.token='';localStorage.removeItem('doing_member_token');updateMemberAuthUi();
+  if(incoming){['member_token','member_status'].forEach(k=>u.searchParams.delete(k));history.replaceState({},'',u.pathname+u.search+u.hash);setTimeout(()=>{showMemberView('login');const x=ensureMemberGate().querySelector('.doing-member-error');if(x)x.textContent=lastError?.message||'登入資料讀取失敗，請稍後再試'},20)}
 }
 window.doingRequireMember=async resume=>{if(memberAuth.complete)return true;openMemberGate(resume);return false};
 window.doingMemberToken=()=>memberAuth.token||'';
