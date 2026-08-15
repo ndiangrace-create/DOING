@@ -962,6 +962,7 @@ function formatSession(s) {
     needReview: s.need_review === true || s.need_review === 'true',
     modules: normalizeSessionModules(safeJson(s.modules_json,{})),
     customFields: safeJson(s.custom_fields_json, []),
+    equip: safeJson(s.equip_json, {}),
     addons: safeJson(s.addons_json, []),
     invoiceTax: safeJson(s.invoice_tax_json, {stall:true,equip:false,extra:false}),
     refundRules: safeJson(s.refund_rules_json, null),
@@ -2707,7 +2708,7 @@ async function hGetMyNotifications(env,p){const T=p._tenantId,verified=await ver
 async function hGetNotificationsAdmin(env,p){const T=p._tenantId,sid=String(p.sessionId||'');if(!await verifyStaff(env,p.email,p.token,T,'announce',sid||undefined)&&!await verifyStaff(env,p.email,p.token,T,'sessions',sid||undefined))return jsonErr('無權限');let q=`tenant_id=eq.${encodeURIComponent(T)}&select=*&order=created_at.desc&limit=200`;if(sid)q=`tenant_id=eq.${encodeURIComponent(T)}&session_id=eq.${encodeURIComponent(sid)}&select=*&order=created_at.desc&limit=200`;return jsonOk(await dbGet(env,'notifications',q).catch(()=>[]))}
 
 async function getPlatformSetting(env,key,fallback={}){const rows=await dbGet(env,'platform_settings',`setting_key=eq.${encodeURIComponent(key)}&select=value_json`).catch(()=>[]);return rows.length?safeJson(rows[0].value_json,fallback):fallback}
-const DEFAULT_PLATFORM_BILLING_POLICY=Object.freeze({freeActivityFee:200,bookingMonthlyFee:688,paidActivityRatePercent:1,noCap:true});
+const DEFAULT_PLATFORM_BILLING_POLICY=Object.freeze({freeActivityFee:100,bookingMonthlyFee:688,paidActivityRatePercent:1,noCap:true});
 function normalizePlatformBillingPolicy(raw={}){return {freeActivityFee:Math.max(0,Math.round(safeNum(raw.freeActivityFee??DEFAULT_PLATFORM_BILLING_POLICY.freeActivityFee))),bookingMonthlyFee:Math.max(0,Math.round(safeNum(raw.bookingMonthlyFee??DEFAULT_PLATFORM_BILLING_POLICY.bookingMonthlyFee))),paidActivityRatePercent:Math.max(0,Math.min(100,Math.round(safeNum(raw.paidActivityRatePercent??DEFAULT_PLATFORM_BILLING_POLICY.paidActivityRatePercent)*10000)/10000)),noCap:true}}
 async function platformBillingPolicy(env){return normalizePlatformBillingPolicy(await getPlatformSetting(env,'platform_billing_policy',DEFAULT_PLATFORM_BILLING_POLICY))}
 
@@ -7959,7 +7960,7 @@ async function ensureOperatingEntitlement(env,T,s){
 
 function _validateSessionForOpenRow(s){
   const mods=normalizeSessionModules(safeJson(s&&s.modules_json,{})),dateRows=safeJson(s&&s.dates_json,[]);
-  if(mods.operatingMode==='activity' && Array.isArray(dateRows) && dateRows.length>1 && !mods.activityDatesTogether)return '此活動有多個日期。若參加者可分別選擇日期，請拆成獨立場次（每場 NT$200）；若必須一次報名全部日期，請勾選「多日期為同一完整活動」。';
+  if(mods.operatingMode==='activity' && Array.isArray(dateRows) && dateRows.length>1 && !mods.activityDatesTogether)return '此活動有多個日期。若參加者可分別選擇日期，請拆成獨立場次（每場 NT$100）；若必須一次報名全部日期，請勾選「多日期為同一完整活動」。';
 
   const status=String(s&&s.status||'關閉');
   const dates=_sessionDateRows(s&&s.dates_json);
