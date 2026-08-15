@@ -64,11 +64,12 @@ function buildHeader(){
     p.apply.dataset.organizerTarget='apply';
     p.apply.classList.add('doing-organizer-nav','primary');
   }
-  [p.my,p.search,p.support,p.pricing,p.apply].filter(Boolean).forEach(x=>{
+  [p.search,p.support,p.pricing,p.apply].filter(Boolean).forEach(x=>{
     x.classList.add('doing-nav-action');
     if(x.tagName==='BUTTON')x.type='button';
     actions.appendChild(x);
   });
+  if(p.my){p.my.classList.add('doing-nav-action','doing-nav-member');p.my.type='button';p.nav.appendChild(p.my)}
 }
 
 function smoothTo(el,focus){
