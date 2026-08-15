@@ -443,9 +443,9 @@ function buildPublicApp(){
   loadOrganizerDetails('scenes',false);
 }
 
-function openMyEntry(){if(memberAuth.complete){showMemberPage();return}const modal=$('doingMyEntryModal');if(modal){modal.hidden=false;document.body.style.overflow='hidden';modal.querySelector('[data-my-action="login"]')?.focus()}}
+function openMyEntry(){if(memberAuth.complete){location.href='member.html';return}const modal=$('doingMyEntryModal');if(modal){modal.hidden=false;document.body.style.overflow='hidden';modal.querySelector('[data-my-action="login"]')?.focus()}}
 function closeMyEntry(){const modal=$('doingMyEntryModal');if(modal){modal.hidden=true;document.body.style.overflow=''}}
-function openMyLogin(){closeMyEntry();if(memberAuth.complete)showMemberPage();else openMemberGate()}
+function openMyLogin(){closeMyEntry();if(memberAuth.complete)location.href='member.html';else openMemberGate()}
 function startFirstApplication(){closeMyEntry();openMemberGate()}
 
 const memberAuth={token:'',profile:null,complete:false,resume:null,provider:'',roles:[],applications:[],workspaces:[]};
@@ -497,7 +497,7 @@ async function initMemberAuth(){
       if(attempt)await new Promise(resolve=>setTimeout(resolve,500*attempt));
       const d=await apiGet('getPlatformMemberProfile',{member_token:memberAuth.token});setMemberState(d);
       if(incoming){['member_token','member_status'].forEach(k=>u.searchParams.delete(k));history.replaceState({},'',u.pathname+u.search+u.hash)}
-      if(!memberAuth.complete)setTimeout(showMemberProfile,20);
+      if(!memberAuth.complete||u.searchParams.get('openMemberProfile')==='1'){u.searchParams.delete('openMemberProfile');history.replaceState({},'',u.pathname+u.search+u.hash);setTimeout(showMemberProfile,20)}
       else if(incoming){window.scrollTo({top:0,behavior:'auto'});if(typeof toast==='function')toast('LINE 登入成功')}
       return;
     }catch(e){lastError=e}
