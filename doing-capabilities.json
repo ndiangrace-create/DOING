@@ -740,6 +740,38 @@
           "evidence": "index.html long press"
         }
       ]
+    },
+    {
+      "id": "future-roadmap",
+      "area": "未來擴充",
+      "title": "已登記、現在先不做",
+      "summary": "保留方向，但先完成第一個租戶營運與收入閉環。",
+      "features": [
+        {
+          "label": "一個會員管理多個獨立品牌",
+          "status": "later"
+        },
+        {
+          "label": "租戶自有網域與代設定",
+          "status": "later"
+        },
+        {
+          "label": "自動候補與遞補期限",
+          "status": "later"
+        },
+        {
+          "label": "套票、次數券與會員方案",
+          "status": "later"
+        },
+        {
+          "label": "AI活動主視覺生成",
+          "status": "later"
+        },
+        {
+          "label": "自動化行銷流程",
+          "status": "later"
+        }
+      ]
     }
   ]
 }
