@@ -40,7 +40,9 @@ function buildHeader(){
     brand=document.createElement('button');
     brand.type='button';
     brand.className='doing-nav-brand';
+    brand.dataset.hiddenAdminTarget='true';
     brand.innerHTML='<span class="doing-nav-logo"><img src="doing-logo.png?v=20260815k" alt="DOING" onerror="this.hidden=true;this.parentElement.classList.add(\'fallback\')"></span><span><b>活動營運管理系統</b></span>';
+    brand.querySelector('img')?.setAttribute('draggable','false');
     brand.onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
     p.nav.prepend(brand);
   }
