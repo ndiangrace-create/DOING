@@ -148,13 +148,13 @@
         },
         {
           "label": "協助設定服務收款紀錄",
-          "status": "later",
-          "note": "本次建立"
+          "status": "done",
+          "evidence": "billing_logs setup_feature:setup"
         },
         {
           "label": "專業模組購買與開通紀錄",
-          "status": "later",
-          "note": "本次建立"
+          "status": "done",
+          "evidence": "billing_logs setup_feature:module"
         }
       ]
     },
@@ -171,28 +171,28 @@
         },
         {
           "label": "記錄一次性設定服務",
-          "status": "later",
-          "note": "本次建立"
+          "status": "done",
+          "evidence": "recordPlatformServiceSale"
         },
         {
           "label": "記錄專業模組購買",
-          "status": "later",
-          "note": "本次建立"
+          "status": "done",
+          "evidence": "recordPlatformServiceSale"
         },
         {
           "label": "保存應收、實收與備註",
-          "status": "later",
-          "note": "本次建立"
+          "status": "done",
+          "evidence": "recordPlatformServiceSale"
         },
         {
           "label": "付款後同步開通租戶模組",
-          "status": "later",
-          "note": "本次建立"
+          "status": "done",
+          "evidence": "recordPlatformServiceSale"
         },
         {
           "label": "保留平台收款稽核紀錄",
-          "status": "later",
-          "note": "本次建立"
+          "status": "done",
+          "evidence": "recordPlatformServiceSale audit"
         }
       ]
     },
@@ -317,8 +317,9 @@
         },
         {
           "label": "視覺與DOING首頁完整一致",
-          "status": "issue",
-          "note": "本次重設"
+          "status": "verify",
+          "note": "已完成品牌化重設，待手機與桌機正式畫面確認",
+          "evidence": "member.html member-brand-refresh"
         }
       ]
     },
@@ -709,33 +710,34 @@
       "features": [
         {
           "label": "所有模組集中在平台總管",
-          "status": "later",
-          "note": "本次建立"
+          "status": "done",
+          "evidence": "doing-capabilities.json / platform.html"
         },
         {
           "label": "每個模組直接顯示全部功能",
-          "status": "later",
-          "note": "本次建立"
+          "status": "done",
+          "evidence": "doing-capabilities.json / platform.html"
         },
         {
           "label": "自動計算完成數",
-          "status": "later",
-          "note": "本次建立"
+          "status": "done",
+          "evidence": "doing-capabilities.json / platform.html"
         },
         {
           "label": "手機可直接閱讀",
-          "status": "later",
-          "note": "本次建立"
+          "status": "verify",
+          "note": "已完成響應式版面，待真機確認",
+          "evidence": "doing-capabilities.json / platform.html"
         },
         {
           "label": "開發PR同步更新功能紀錄",
-          "status": "later",
-          "note": "本次建立"
+          "status": "done",
+          "evidence": "doing-capabilities.json / platform.html"
         },
         {
           "label": "首頁LOGO長按3秒進入平台總管",
-          "status": "later",
-          "note": "本次建立"
+          "status": "done",
+          "evidence": "index.html long press"
         }
       ]
     }
