@@ -1808,8 +1808,19 @@ async function getSessionType(){ return '活動場次'; }
 const DEFAULT_TENANT_MODULE_FLAGS = {
   registration: true, review: true, payment: true, equipment: true, seatSelection: true,
   checkin: true, invoice: true, workshopSlots: true, service: true, resource: true,
-  participants: true, addons: true, agreement: true, i18n: true, googleCalendar: true
+  participants: true, customFields: true, addons: true, agreement: true, i18n: true, googleCalendar: true
 };
+
+function normalizeApprovedModuleFlags(raw,fallback={}){
+  const src=(raw&&typeof raw==='object'&&!Array.isArray(raw))?raw:{};
+  const base=(fallback&&typeof fallback==='object'&&!Array.isArray(fallback))?fallback:{};
+  const out={registration:true};
+  for(const key of Object.keys(DEFAULT_TENANT_MODULE_FLAGS)){
+    if(key==='registration')continue;
+    out[key]=Object.prototype.hasOwnProperty.call(src,key)?src[key]===true:base[key]===true;
+  }
+  return out;
+}
 
 function normalizeTenantModuleProfileValue(raw){
   const obj=(raw&&typeof raw==='object'&&!Array.isArray(raw))?raw:safeJson(raw,{});
@@ -3185,6 +3196,8 @@ async function hCreateOrganizerApplicationDraft(env,b){
   if(!industries.length)return jsonErr('請至少選擇一個產業類別');
   if(!useCases.length)return jsonErr('請至少選擇一個 DOING 使用情境');
   if(!publicLinks.length&&app.noPublicLink!==true)return jsonErr('請至少提供一項公開資訊');
+  const confirmations=(app.confirmations&&typeof app.confirmations==='object')?app.confirmations:{};
+  if(confirmations.confirmReal!==true||confirmations.confirmUse!==true||confirmations.confirmReview!==true)return jsonErr('請先完成送出前確認');
   const id=genId('APL');
   const applicationJson={...app,ownerName,contactName:ownerName,billingName:ownerName,industryCategories:industries,useCases,publicLinks};
   await dbInsert(env,'tenant_apply_logs',{
@@ -3228,13 +3241,15 @@ async function hApproveApply(env,b){
   const mp=safeJson(app.moduleProfile,{});
   const defaults=normalizeSessionModules(mp.defaults||{});
   const requested=safeJson(app.needFlags,{});
-  const approvedFlags={registration:true};
+  const suggestedFlags={registration:true};
   for(const key of Object.keys(DEFAULT_TENANT_MODULE_FLAGS)){
     if(key==='registration')continue;
     const requestKey=key==='googleCalendar'?'calendar':key;
-    approvedFlags[key]=requested[requestKey]===true||defaults[key]===true;
+    suggestedFlags[key]=requested[requestKey]===true||defaults[key]===true;
   }
+  const approvedFlags=normalizeApprovedModuleFlags(b.module_flags,suggestedFlags);
   approvedFlags.businessType=String(mp.useType||'generic');
+  for(const key of Object.keys(DEFAULT_TENANT_MODULE_FLAGS))if(approvedFlags[key]===false)defaults[key]=false;
   const profile={configured:true,useType:String(mp.useType||'generic'),useCases:Array.isArray(mp.useCases)?mp.useCases.map(String).slice(0,12):[],defaults,updatedAt:now};
   try{
     await dbInsert(env,'tenants',{
@@ -3254,13 +3269,14 @@ async function hApproveApply(env,b){
     await dbInsert(env,'tenant_settings',{tenant_id:tid,module_flags_json:approvedFlags,theme_json:{key:'cute_pastel',updatedAt:now}});
     await grantStartupCreditIfEligible(env,tid);
     await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applyId)}`,{
-      status:'approved',tenant_id:tid,approved_at:now,approved_by:pay.email,rejection_reason:null,rejected_at:null,rejected_by:null
+      status:'approved',tenant_id:tid,approved_at:now,approved_by:pay.email,rejection_reason:null,rejected_at:null,rejected_by:null,
+      application_json:{...app,approvedModuleFlags:approvedFlags,approvedModuleFlagsAt:now}
     });
     try{
       const baseUrl=String(env.DOING_SITE_URL||env.FRONTEND_SITE_URL||'https://ndiangrace-create.github.io/DOING/').replace(/\/+$/,'/');
       await sendEmail(env,email,'【DOING】營運帳號申請已通過',emailWrap(`<p>${contact} 您好：</p><p>您的 DOING 營運帳號申請已通過，可以開始使用主辦工作台。</p><p><a href="${baseUrl}">前往 DOING</a></p>`));
     }catch(e){}
-    return jsonOk({ok:true,tenantId:tid});
+    return jsonOk({ok:true,tenantId:tid,moduleFlags:approvedFlags,adminUrl:`admin.html?tenant=${encodeURIComponent(tid)}`});
   }catch(e){
     await dbDelete(env,'billing_logs',`tenant_id=eq.${encodeURIComponent(tid)}&billing_type=eq.startup_credit_grant&confirmed_by=eq.system_onboarding`).catch(()=>{});
     await dbDelete(env,'staff',`tenant_id=eq.${encodeURIComponent(tid)}&email=eq.${encodeURIComponent(email)}`).catch(()=>{});

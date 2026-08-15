@@ -3522,9 +3522,9 @@ async function loadTenantModuleProfile(force=false){
 async function maybeOpenInitialModuleSetup(){
   if(String(AdminState.role||'')!=='organizer_owner')return;
   const key='doing_module_setup_seen_'+String(AdminState.tenantId||'');
-  if(sessionStorage.getItem(key)==='1')return;
-  sessionStorage.setItem(key,'1');
-  try{const p=await loadTenantModuleProfile(true);if(!p.configured)setTimeout(()=>openModuleSettings(),180);}catch(e){console.warn('首次功能模組設定檢查失敗',e);}
+  if(localStorage.getItem(key)==='1')return;
+  localStorage.setItem(key,'1');
+  try{const p=await loadTenantModuleProfile(true);if(!p.configured||!(AdminState.sessions||[]).length)setTimeout(()=>openModuleSettings(),180);}catch(e){console.warn('首次功能模組設定檢查失敗',e);}
 }
 
 const DOING_TENANT_THEMES=[
@@ -4759,7 +4759,7 @@ async function uploadCoverFile(input){
 }
 function newSessionFull(){
   const eventOpts=['<option value="">不指定主題</option>'].concat((AdminState.events||[]).map(e=>'<option value="'+attr(e.id)+'">'+safe(e.title||e.name||e.id)+'</option>')).join('');
-  openPanel('建立新場次','先建立基本資料；建立後再自由開啟需要的功能模組。','<div class="report-card"><div class="form-grid"><div class="form-field full"><label>場次名稱</label><input id="new_name" placeholder="請輸入場次名稱"></div><div class="form-field"><label>所屬主題（可不選）</label><select id="new_eventId">'+eventOpts+'</select></div><div class="form-field"><label>地點</label><input id="new_venue"></div><div class="form-field"><label>基本費用</label><input id="new_fee" type="number" min="0" value="0"></div><div class="form-field full"><label>活動說明</label><textarea id="new_desc"></textarea></div></div><div class="notice">新場次預設關閉，不套用活動分類或預設流程。建立後由你開啟審核、付款、設備、選位、時段等模組。</div><div class="card-actions"><button class="btn" onclick="createSession(this)">建立場次</button></div></div>');
+  openPanel('建立新場次','先建立基本資料；系統會直接帶入已核准的常用功能。','<div class="report-card"><div class="form-grid"><div class="form-field full"><label>場次名稱</label><input id="new_name" placeholder="請輸入場次名稱"></div><div class="form-field"><label>所屬主題（可不選）</label><select id="new_eventId">'+eventOpts+'</select></div><div class="form-field"><label>地點</label><input id="new_venue"></div><div class="form-field"><label>基本費用</label><input id="new_fee" type="number" min="0" value="0"></div><div class="form-field full"><label>活動說明</label><textarea id="new_desc"></textarea></div></div><div class="notice">新場次會套用「營運功能設定」中的常用預設，而且只會開啟平台已核准的功能；建立後仍可調整本場設定。</div><div class="card-actions"><button class="btn" onclick="createSession(this)">建立場次</button></div></div>');
 }
 
 function openSessionBundleModal(sid){
