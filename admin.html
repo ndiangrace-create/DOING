@@ -1765,7 +1765,7 @@ html,body{max-width:100%;overflow-x:hidden!important}
 .doing-admin #page-todos .doing-command-copy h3{font-size:25px!important;color:#20242b!important}
 .doing-admin #page-todos .doing-kpis{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:10px!important;padding:12px!important;background:#f6fafb!important}
 .doing-admin #page-todos .doing-kpi{min-height:112px!important;padding:13px 12px!important;border:2px solid #d7e3e8!important;border-radius:20px!important;background:#fff!important;color:#20242b!important;text-align:center!important;box-shadow:none!important}
-.doing-admin #page-todos .doing-kpi:nth-child(2n){background:#fff5fa!important;border-color:#e8c8da!important}
+.doing-admin #page-todos .doing-kpi:nth-child(2n){background:#f7f2e5!important;border-color:#dfd3b8!important}
 .doing-admin #page-todos .doing-kpi:nth-child(3n){background:#eef9fb!important;border-color:#c5e1e7!important}
 .doing-admin #page-todos .doing-kpi span{font-size:17px!important;line-height:1.35!important;color:#343b45!important;font-weight:950!important}
 .doing-admin #page-todos .doing-kpi b{font-size:30px!important;line-height:1.2!important;color:#171a20!important;font-weight:950!important}
@@ -1787,6 +1787,94 @@ html,body{max-width:100%;overflow-x:hidden!important}
   .doing-admin #page-todos .doing-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   .doing-admin #page-todos .doing-kpi{min-height:104px!important}
   .doing-admin #page-todos #todoList.cards{grid-template-columns:1fr!important}
+}
+/* 主辦後台共用視覺：場次頁的清楚密度、無粉紅、高對比、同尺寸元件。 */
+.doing-admin{
+  --pink:#dcebf0!important;--pink2:#eef6f7!important;--doing-pink:#e8f1f3!important;
+  --main:#3f7782!important;--main2:#315f68!important;--doing-primary:#3f7782!important;
+  background:#f7f6f1!important;
+  color:#242832!important
+}
+.doing-admin .topbar,.doing-admin .topbar-in,.doing-admin .tabs,.doing-admin .session-card,.doing-admin .session-head,
+.doing-admin .settings-tile,.doing-admin .doing-command,.doing-admin .finance-report-banner,.doing-admin .finance-period-bar,
+.doing-admin .report-card,.doing-admin .card,.doing-admin .panel-head,.doing-admin .panel-bottom,.doing-admin .btn,
+.doing-admin .login-wrap,.doing-admin .login-info,.doing-admin .filter-row,.doing-admin .session3-info,
+.doing-admin .session3-thumb,.doing-admin .todo-card,.doing-admin .module-config-card,.doing-admin .module-current{
+  background-image:none!important
+}
+.doing-admin .topbar,.doing-admin .topbar-in{background-color:#fffdf9!important}
+.doing-admin .tabs{background:#e8f1f3!important}
+.doing-admin .tabs .tab{background:#fffdf9!important;border:1px solid #cbdadd!important;border-radius:12px!important;color:#28343a!important}
+.doing-admin .tabs .tab,.doing-admin .btn,.doing-admin button{font-size:17px!important;font-weight:850!important}
+.doing-admin button,.doing-admin .btn,.doing-admin .chip,.doing-admin .pill,.doing-admin .tag,.doing-admin .settings-tile{
+  box-sizing:border-box!important;max-width:100%!important;min-width:0!important;white-space:normal!important;
+  overflow-wrap:anywhere!important;word-break:normal!important;line-height:1.3!important;text-overflow:clip!important
+}
+.doing-admin .tabs .tab.active{background:#3f7782!important;color:#fff!important}
+.doing-admin .btn:not(.secondary):not(.gray):not(.danger),
+.doing-admin .chip.active,.doing-admin .calendar-filter.active{background:#3f7782!important;color:#fff!important;border-color:#3f7782!important}
+.doing-admin .btn.secondary,.doing-admin .chip,.doing-admin .calendar-filter{background:#f6fbfc!important;color:#26343b!important;border-color:#c7dce2!important}
+.doing-admin .btn.gray{background:#edf1f2!important;color:#26343b!important}
+.doing-admin .pill.pink,.doing-admin .chip.pink,.doing-admin .stat.pink,.doing-admin .tag.bad{background:#e7f1f3!important;color:#26343b!important;border-color:#c7dce2!important}
+.doing-admin .btn{border-radius:14px!important;min-height:46px!important;padding:9px 14px!important}
+.doing-admin .topbar .actions{display:flex!important;justify-content:flex-end!important;align-items:center!important;gap:8px!important;flex-wrap:wrap!important}
+.doing-admin .topbar .actions .btn{width:auto!important;min-width:112px!important;max-width:150px!important;min-height:46px!important;border-radius:12px!important;padding:8px 12px!important}
+.doing-admin .settings-tile,.doing-admin .card,.doing-admin .report-card{background:#fffdf9!important;border-color:#d7e1e2!important}
+.doing-admin .settings-tile:nth-child(3n+2),.doing-admin .session-card:nth-child(3n+2){background:#edf7f8!important}
+.doing-admin .settings-tile:nth-child(3n),.doing-admin .session-card:nth-child(3n){background:#f7f2e5!important}
+.doing-admin .settings-tile b,.doing-admin .settings-tile strong,.doing-admin .settings-tile span{color:#273138!important;text-shadow:none!important}
+.doing-admin .session-card .btn:not(.secondary):not(.danger),
+.doing-admin .session-card button:not(.secondary):not(.danger){background:#3f7782!important;color:#fff!important;border-color:#3f7782!important}
+.doing-admin #sessionList .session-card.theme-none{background:#f7f2e5!important;border-color:#d9cfb8!important}
+.doing-admin #sessionList .session-card:nth-child(3n+1){background:#f7f2e5!important}
+.doing-admin #sessionList .session-card:nth-child(3n+2){background:#edf7f8!important}
+.doing-admin #sessionList .session-card:nth-child(3n){background:#eef3f7!important}
+.doing-admin #sessionList .session3-info{background:#f8faf8!important}
+.doing-admin #sessionList .session3-thumb{background:#e3f0f2!important}
+.doing-admin #page-todos .todo-card{background:#fffdf9!important}
+.doing-admin .module-config-card{background:#f4f8f7!important}
+.doing-admin .module-current{background:#3f7782!important;color:#fff!important}
+.doing-admin #sessionList .session3-main,.doing-admin #sessionList .session3-finance{min-width:0!important}
+.doing-admin #sessionList .session3-main .chip,.doing-admin #sessionList .session3-finance .chip{overflow:hidden!important}
+.doing-admin #sessionList .session3-main .chip b,.doing-admin #sessionList .session3-finance .chip b,
+.doing-admin #sessionList .session3-main .m-label,.doing-admin #sessionList .session3-finance .m-label{display:block!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important}
+.doing-admin #sessionList .session3-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;width:100%!important}
+.doing-admin #sessionList .session3-actions .btn{width:100%!important;min-height:48px!important;padding:8px 6px!important;font-size:16px!important}
+.doing-admin .sub,.doing-admin .help{font-size:16px!important;line-height:1.55!important;color:#4b5961!important}
+.doing-admin .page-title h2,.doing-admin .report-title{color:#25343b!important}
+/* 月曆按鈕不能繼承膠囊樣式；每一天固定同高同寬。 */
+.doing-admin #page-calendar .calendar-grid{overflow-x:auto!important;padding:4px 2px 10px!important}
+.doing-admin #page-calendar .cal-week,.doing-admin #page-calendar .cal-days{grid-template-columns:repeat(7,minmax(112px,1fr))!important;gap:8px!important;min-width:820px!important}
+.doing-admin #page-calendar .cal-days{grid-auto-rows:126px!important;align-items:stretch!important}
+.doing-admin #page-calendar .cal-week b{font-size:18px!important;color:#31444c!important;padding:8px!important}
+.doing-admin #page-calendar .cal-cell{
+  appearance:none!important;box-sizing:border-box!important;width:100%!important;height:126px!important;min-height:126px!important;
+  margin:0!important;padding:10px!important;border:1px solid #cad8dc!important;border-radius:14px!important;
+  background:#fffdf9!important;color:#202930!important;box-shadow:none!important;text-align:left!important;
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:6px!important
+}
+.doing-admin #page-calendar .cal-cell:hover{border-color:#5d8991!important;box-shadow:0 4px 14px rgba(43,83,91,.12)!important}
+.doing-admin #page-calendar .cal-cell.muted{visibility:hidden!important;pointer-events:none!important}
+.doing-admin #page-calendar .cal-cell.today{outline:3px solid #e2c56f!important;outline-offset:-3px!important}
+.doing-admin #page-calendar .cal-cell.selected{border:3px solid #3f7782!important;padding:8px!important}
+.doing-admin #page-calendar .cal-daynum{font-size:20px!important;line-height:1!important;color:#202930!important;font-weight:950!important}
+.doing-admin #page-calendar .cal-item{display:block!important;min-height:30px!important;padding:5px 7px!important;border-radius:8px!important;background:#e6f1f3!important;color:#24343a!important;font-size:15px!important;line-height:1.3!important;font-weight:800!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.doing-admin #page-calendar .cal-item.booking{border-left:5px solid var(--cal-color,#3f7782)!important}
+.doing-admin #page-calendar .cal-more{font-size:15px!important;color:#365c64!important;font-weight:850!important}
+/* 財務先顯示每場；共用資訊格與場次頁一致。 */
+.doing-admin #page-finance .finance-section,.doing-admin #page-finance .finance-panel,.doing-admin #page-finance .finance-summary-block{background:#fffdf9!important;border-color:#d7e1e2!important}
+.doing-admin #page-finance .finance-company-table th{background:#e7f1f3!important;color:#26343b!important;font-size:16px!important}
+.doing-admin #page-finance .finance-company-table td{font-size:16px!important;color:#26343b!important}
+.doing-admin #page-finance .finance-period-bar{align-items:end!important;background:#fffdf9!important}
+.doing-admin #page-finance #financeRefreshBtn{width:auto!important;min-width:132px!important;max-width:180px!important;height:52px!important;min-height:52px!important;align-self:end!important;border-radius:14px!important;justify-self:start!important;padding:8px 16px!important}
+.doing-admin #page-finance .finance-head-actions .btn{width:auto!important;min-width:138px!important;border-radius:14px!important}
+@media(max-width:620px){
+  .doing-admin #sessionList .session3-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .doing-admin #sessionList .session3-actions .btn{font-size:16px!important}
+  .doing-admin #page-calendar .cal-week,.doing-admin #page-calendar .cal-days{grid-template-columns:repeat(7,96px)!important;min-width:712px!important;gap:6px!important}
+  .doing-admin #page-calendar .cal-days{grid-auto-rows:108px!important}
+  .doing-admin #page-calendar .cal-cell{height:108px!important;min-height:108px!important;padding:8px!important}
+  .doing-admin #page-calendar .cal-item{font-size:14px!important;min-height:28px!important}
 }
 </style>
 </head>
@@ -1822,7 +1910,7 @@ html,body{max-width:100%;overflow-x:hidden!important}
     <section id="page-calendar" class="hidden"><div class="page-title"><div><h2>營運總日曆</h2><div class="sub">「全部」合併顯示；點 A 老師、B 老師或空間日曆，就只看該日曆的時段與預約名單。</div></div><div class="page-actions"><button class="btn secondary" onclick="calendarShift(-1)">← 上個月</button><button class="btn secondary" onclick="calendarToday()">今天</button><button class="btn secondary" onclick="calendarShift(1)">下個月 →</button><button class="btn" onclick="loadUnifiedCalendar()">重新整理</button></div></div><div class="report-card"><div class="report-title" id="calendarMonthTitle">營運總日曆</div><div id="calendarFilters" class="calendar-filters" aria-label="切換預約日曆"><button class="calendar-filter active">全部</button></div><div class="calendar-manager"><button class="btn secondary small" onclick="addBookingCalendar()">＋ 新增預約日曆</button><button class="btn secondary small" onclick="editCurrentBookingCalendar()">設定目前日曆</button></div><div id="calendarGrid" class="calendar-grid"><div class="loading">載入日曆中…</div></div></div><div id="calendarDayDetail" class="report-card"><div class="empty">點選日期查看活動、營運項目、預約時段與名單。</div></div></section>
     <section id="page-finance" class="hidden">
       <div class="finance-center-head">
-        <div><div class="finance-eyebrow">FINANCE CENTER</div><h2>財務中心</h2><p>先看這段期間實際收到多少、支出多少、剩多少，再追到每一筆明細。</p></div>
+        <div><div class="finance-eyebrow">FINANCE CENTER</div><h2>場次財務中心</h2><p>先算清楚每一場的完整收入、支出、退款與損益，再依場次日期彙總成月、季、年。</p></div>
         <div class="finance-head-actions">
           <button class="btn secondary" onclick="openFinanceEntryForm('收入')">＋ 新增收入</button>
           <button class="btn" onclick="openFinanceEntryForm('支出')">＋ 新增支出</button>
@@ -1830,11 +1918,11 @@ html,body{max-width:100%;overflow-x:hidden!important}
         </div>
       </div>
       <div class="finance-period-bar">
-        <label>報表期間<select id="financeReportPeriod" onchange="financePeriodChanged()"><option value="week">本週</option><option value="month" selected>本月</option><option value="quarter">本季</option><option value="year">本年</option><option value="all">全部期間</option><option value="custom">自訂期間</option></select></label>
-        <label id="financeAnchorWrap">選擇月份<input id="financeReportDate" type="month" onchange="refreshFinanceCenter()"></label>
-        <label id="financeStartWrap" class="hidden">開始日期<input id="financeReportStart" type="date" onchange="refreshFinanceCenter()"></label>
-        <label id="financeEndWrap" class="hidden">結束日期<input id="financeReportEnd" type="date" onchange="refreshFinanceCenter()"></label>
-        <label>活動範圍<select id="financeReportEvent" onchange="refreshFinanceCenter()"><option value="">全部活動</option></select></label>
+        <label>場次日期範圍<select id="financeReportPeriod" onchange="financePeriodChanged()"><option value="week">本週場次</option><option value="month" selected>本月場次</option><option value="quarter">本季場次</option><option value="year">本年場次</option><option value="all">全部場次</option><option value="custom">自訂場次日期</option></select></label>
+        <label id="financeAnchorWrap">選擇場次月份<input id="financeReportDate" type="month" onchange="refreshFinanceCenter()"></label>
+        <label id="financeStartWrap" class="hidden">場次開始日<input id="financeReportStart" type="date" onchange="refreshFinanceCenter()"></label>
+        <label id="financeEndWrap" class="hidden">場次結束日<input id="financeReportEnd" type="date" onchange="refreshFinanceCenter()"></label>
+        <label>營運項目<select id="financeReportEvent" onchange="refreshFinanceCenter()"><option value="">全部營運項目</option></select></label>
         <button id="financeRefreshBtn" class="btn secondary" onclick="refreshFinanceCenter(this)">重新整理</button>
       </div>
       <div id="financeReportRoot"><div class="loading">財務中心載入中…</div></div>
@@ -2196,7 +2284,22 @@ function filteredCalendarEntries(){return UnifiedCalendar.filter==='all'?Unified
 function renderCalendarFilters(){const box=$('calendarFilters');if(!box)return;box.innerHTML='<button type="button" class="calendar-filter '+(UnifiedCalendar.filter==='all'?'active':'')+'" onclick="setCalendarFilter(\'all\')"><span class="calendar-filter-dot" style="--cal-color:#777"></span>全部</button>'+UnifiedCalendar.calendars.map(c=>'<button type="button" class="calendar-filter '+(UnifiedCalendar.filter===c.id?'active':'')+'" onclick="setCalendarFilter(\''+attr(c.id)+'\')"><span class="calendar-filter-dot" style="--cal-color:'+attr(c.color)+'"></span>'+safe(c.name)+(c.status!=='active'?'<small>已停用</small>':'')+'</button>').join('')}
 function setCalendarFilter(id){UnifiedCalendar.filter=id||'all';UnifiedCalendar.selected='';renderCalendarFilters();renderUnifiedCalendar()}
 async function loadUnifiedCalendar(){const root=$('calendarGrid');if(root)root.innerHTML='<div class="loading">正在整合活動、各預約日曆與正式預約名單…</div>';try{const [rows,calendarResult]=await Promise.all([api({action:'getOperationUnitsAdmin'}),api({action:'getBookingCalendarAdmin'}).catch(()=>({calendars:[],bookings:[]}))]);UnifiedCalendar.units=Array.isArray(rows)?rows:[];UnifiedCalendar.calendars=Array.isArray(calendarResult?.calendars)?calendarResult.calendars:[];UnifiedCalendar.bookings=Array.isArray(calendarResult?.bookings)?calendarResult.bookings:[];if(UnifiedCalendar.filter!=='all'&&!UnifiedCalendar.calendars.some(c=>c.id===UnifiedCalendar.filter))UnifiedCalendar.filter='all';const entries=[];(AdminState.sessions||[]).forEach(s=>{const sid=sessionId(s),name=sessionName(s);sessionDateRows(s).forEach(raw=>{const date=calDateKey(raw);if(date)entries.push({date,time:'',kind:'session',title:name,sub:'活動／場次',sid,calendarId:''})})});UnifiedCalendar.units.forEach(u=>{const ses=calendarSessionById(u.sessionId),sname=ses?sessionName(ses):u.sessionId;(u.timeslots||[]).forEach(t=>{const date=calDateKey(t.date);if(date)entries.push({date,time:t.start||'',kind:'timeslot',title:u.name,sub:(t.start||'')+(t.end?'–'+t.end:'')+'｜'+sname+(t.calendarName?'｜'+t.calendarName:''),sid:u.sessionId,uid:u.id,calendarId:t.calendarId||''})})});UnifiedCalendar.bookings.forEach(b=>{const date=calDateKey(b.date);if(date)entries.push({date,time:b.time||'',kind:'booking',title:b.name||'預約',sub:[b.end?b.time+'–'+b.end:'',b.reviewStatus,b.paymentStatus].filter(Boolean).join('｜'),sid:b.sessionId,uid:b.operationUnitId,calendarId:b.calendarId||'',email:b.email||'',phone:b.phone||''})});UnifiedCalendar.entries=entries;renderCalendarFilters();renderUnifiedCalendar()}catch(e){if(root)root.innerHTML='<div class="empty">日曆載入失敗：'+safe(e.message)+'</div>'}}
-function renderUnifiedCalendar(){const root=$('calendarGrid'),title=$('calendarMonthTitle');if(!root)return;const d=UnifiedCalendar.month,y=d.getFullYear(),m=d.getMonth(),first=new Date(y,m,1),days=new Date(y,m+1,0).getDate(),start=first.getDay(),all=filteredCalendarEntries(),current=UnifiedCalendar.filter==='all'?'全部日曆':UnifiedCalendar.calendars.find(c=>c.id===UnifiedCalendar.filter)?.name||'預約日曆';if(title)title.textContent=y+' 年 '+String(m+1).padStart(2,'0')+' 月｜'+current;let html='<div class="cal-week">'+['日','一','二','三','四','五','六'].map(x=>'<b>'+x+'</b>').join('')+'</div><div class="cal-days">';for(let i=0;i<start;i++)html+='<div class="cal-cell muted"></div>';for(let day=1;day<=days;day++){const key=y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'),rows=all.filter(x=>x.date===key),today=key===new Date().toLocaleDateString('sv-SE'),sel=key===UnifiedCalendar.selected;html+='<button type="button" class="cal-cell'+(today?' today':'')+(sel?' selected':'')+'" onclick="openCalendarDay(\''+key+'\')"><span class="cal-daynum">'+day+'</span>'+rows.slice(0,4).map(x=>'<span class="cal-item '+(x.kind==='booking'?'booking':'')+'" style="--cal-color:'+attr(calendarColor(x.calendarId))+'">'+safe((x.time?x.time+' ':'')+x.title)+'</span>').join('')+(rows.length>4?'<span class="cal-more">＋'+(rows.length-4)+' 項</span>':'')+'</button>'}html+='</div>';root.innerHTML=html;if(UnifiedCalendar.selected)openCalendarDay(UnifiedCalendar.selected,true);else if($('calendarDayDetail'))$('calendarDayDetail').innerHTML='<div class="empty">點選日期查看這個篩選範圍的時段與預約名單。</div>'}
+function renderUnifiedCalendar(){
+  const root=$('calendarGrid'),title=$('calendarMonthTitle');if(!root)return;
+  const d=UnifiedCalendar.month,y=d.getFullYear(),m=d.getMonth(),first=new Date(y,m,1),days=new Date(y,m+1,0).getDate(),start=first.getDay(),all=filteredCalendarEntries();
+  const current=UnifiedCalendar.filter==='all'?'全部日曆':UnifiedCalendar.calendars.find(c=>c.id===UnifiedCalendar.filter)?.name||'預約日曆';
+  if(title)title.textContent=y+' 年 '+String(m+1).padStart(2,'0')+' 月｜'+current;
+  let html='<div class="cal-week">'+['日','一','二','三','四','五','六'].map(x=>'<b>'+x+'</b>').join('')+'</div><div class="cal-days">';
+  for(let i=0;i<start;i++)html+='<div class="cal-cell muted" aria-hidden="true"></div>';
+  for(let day=1;day<=days;day++){
+    const key=y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'),rows=all.filter(x=>x.date===key),today=key===new Date().toLocaleDateString('sv-SE'),sel=key===UnifiedCalendar.selected;
+    html+='<button type="button" data-date="'+key+'" aria-label="'+String(m+1)+' 月 '+day+' 日，共 '+rows.length+' 項" class="cal-cell'+(today?' today':'')+(sel?' selected':'')+'" onclick="openCalendarDay(\''+key+'\')"><span class="cal-daynum">'+day+'</span>'+rows.slice(0,3).map(x=>'<span class="cal-item '+(x.kind==='booking'?'booking':'')+'" style="--cal-color:'+attr(calendarColor(x.calendarId))+'">'+safe((x.time?x.time+' ':'')+x.title)+'</span>').join('')+(rows.length>3?'<span class="cal-more">＋'+(rows.length-3)+' 項</span>':'')+'</button>';
+  }
+  const totalCells=Math.ceil((start+days)/7)*7;
+  for(let i=start+days;i<totalCells;i++)html+='<div class="cal-cell muted" aria-hidden="true"></div>';
+  html+='</div>';root.innerHTML=html;
+  if(UnifiedCalendar.selected)openCalendarDay(UnifiedCalendar.selected,true);else if($('calendarDayDetail'))$('calendarDayDetail').innerHTML='<div class="empty">點選日期查看這個篩選範圍的時段與預約名單。</div>';
+}
 function openCalendarDay(key,noRerender){UnifiedCalendar.selected=key;const rows=filteredCalendarEntries().filter(x=>x.date===key).sort((a,b)=>String(a.time).localeCompare(String(b.time))||String(a.kind).localeCompare(String(b.kind)));const box=$('calendarDayDetail');if(box)box.innerHTML='<div class="report-title">'+safe(key)+'｜當日營運與預約</div>'+(rows.length?rows.map(x=>'<div class="notice" style="margin-top:8px;border-left:6px solid '+attr(calendarColor(x.calendarId))+'"><b>'+safe((x.time?x.time+' ':'')+x.title)+'</b><div class="sub">'+safe(x.sub||'')+(x.kind==='booking'&&x.email?'｜'+safe(x.email):'')+(x.kind==='booking'&&x.phone?'｜'+safe(x.phone):'')+'</div>'+(x.sid?'<div class="card-actions"><button class="btn secondary small" onclick="switchPage(\'sessions\');setTimeout(()=>openSessionSettings(\''+attr(x.sid)+'\'),60)">開啟正式紀錄</button></div>':'')+'</div>').join(''):'<div class="empty">這一天目前沒有活動或預約。</div>');if(!noRerender)renderUnifiedCalendar()}
 async function addBookingCalendar(){const name=(prompt('新增預約日曆名稱（例如：A 老師、攝影棚、教室一）')||'').trim();if(!name)return;const colors=['#8bbfd1','#e99aba','#a99ad8','#9ac47a','#e1b85c'],color=colors[UnifiedCalendar.calendars.length%colors.length];try{await apiPost({action:'saveBookingCalendar',name,color,status:'active',sortOrder:UnifiedCalendar.calendars.length});toast('預約日曆已新增');await loadUnifiedCalendar()}catch(e){toast('新增失敗：'+e.message,7000)}}
 async function editCurrentBookingCalendar(){if(UnifiedCalendar.filter==='all'){toast('請先點選一個預約日曆');return}const c=UnifiedCalendar.calendars.find(x=>x.id===UnifiedCalendar.filter);if(!c)return;const name=(prompt('日曆名稱',c.name)||'').trim();if(!name)return;const inactive=confirm('按「確定」將此日曆設為停用；按「取消」維持啟用。\n停用不會刪除舊預約。');try{await apiPost({action:'saveBookingCalendar',id:c.id,name,color:c.color,status:inactive?'inactive':'active',operationUnitId:c.operationUnitId||''});toast(inactive?'日曆已停用，歷史紀錄保留':'日曆設定已更新');await loadUnifiedCalendar()}catch(e){toast('更新失敗：'+e.message,7000)}}
@@ -4070,7 +4173,7 @@ function financeEsc(v){return safe(v==null?'':v)}
 function financePeriodChanged(){const p=$('financeReportPeriod').value;$('financeStartWrap').classList.toggle('hidden',p!=='custom');$('financeEndWrap').classList.toggle('hidden',p!=='custom');$('financeAnchorWrap').classList.toggle('hidden',p==='custom'||p==='all');const i=$('financeReportDate');i.type=p==='week'?'date':'month';if(!i.value)i.value=p==='week'?financeToday():financeDateDefault();refreshFinanceCenter()}
 function financeSourceLabel(v){const m={'報名款分配紀錄':'系統確認收款','系統確認收款':'系統確認收款','主辦手動登錄':'主辦手動登錄','退款／押金／延期帳本':'退款／押金／延期紀錄','payment_allocation':'系統確認收款','payment':'系統確認收款','finance_item':'主辦手動登錄','finance_ledger':'退款／押金／延期紀錄'};return m[String(v||'')]||String(v||'系統紀錄')}
 function financeSummaryBlock(title,rows,totalLabel,totalValue){return '<div class="finance-summary-block"><h3>'+title+'</h3><div class="finance-summary-list">'+rows.map(x=>'<div class="finance-summary-row"><span>'+financeEsc(x[0])+'</span><strong>'+money(x[1]||0)+'</strong></div>').join('')+'<div class="finance-summary-row total"><span>'+financeEsc(totalLabel)+'</span><strong class="'+(Number(totalValue)<0?'finance-negative':'')+'">'+money(totalValue||0)+'</strong></div></div></div>'}
-function financeTrendChart(rows){const d=Array.isArray(rows)?rows:[];if(!d.length)return '<div class="finance-empty">這段期間還沒有收入或支出紀錄</div>';const W=820,H=280,P=48,max=Math.max(1,...d.flatMap(x=>[Number(x.income||0),Number(x.expense||0)])),g=(W-P*2)/d.length,b=Math.max(7,Math.min(22,g*.28));let o='<svg viewBox="0 0 '+W+' '+H+'">';for(let i=0;i<=4;i++){const y=P+(H-P*2)*i/4;o+='<line x1="'+P+'" y1="'+y+'" x2="'+(W-P)+'" y2="'+y+'" stroke="#e7eef0"/><text x="4" y="'+(y+4)+'" font-size="11">'+Math.round(max*(4-i)/4).toLocaleString('zh-TW')+'</text>'}d.forEach((x,i)=>{const c=P+g*i+g/2,ih=(H-P*2)*Number(x.income||0)/max,eh=(H-P*2)*Number(x.expense||0)/max;o+='<rect x="'+(c-b-2)+'" y="'+(H-P-ih)+'" width="'+b+'" height="'+ih+'" rx="4" fill="#1aa1a6"/><rect x="'+(c+2)+'" y="'+(H-P-eh)+'" width="'+b+'" height="'+eh+'" rx="4" fill="#d9867e"/><text x="'+c+'" y="'+(H-10)+'" text-anchor="middle" font-size="11">'+financeEsc(x.label)+'</text>'});return o+'</svg><div class="finance-legend"><span><i style="background:#1aa1a6"></i>現金流入</span><span><i style="background:#d9867e"></i>現金流出</span></div>'}
+function financeTrendChart(rows){const d=Array.isArray(rows)?rows:[];if(!d.length)return '<div class="finance-empty">這段場次日期範圍還沒有收入或支出紀錄</div>';const W=820,H=280,P=48,max=Math.max(1,...d.flatMap(x=>[Number(x.income||0),Number(x.expense||0)])),g=(W-P*2)/d.length,b=Math.max(7,Math.min(22,g*.28));let o='<svg viewBox="0 0 '+W+' '+H+'">';for(let i=0;i<=4;i++){const y=P+(H-P*2)*i/4;o+='<line x1="'+P+'" y1="'+y+'" x2="'+(W-P)+'" y2="'+y+'" stroke="#e7eef0"/><text x="4" y="'+(y+4)+'" font-size="11">'+Math.round(max*(4-i)/4).toLocaleString('zh-TW')+'</text>'}d.forEach((x,i)=>{const c=P+g*i+g/2,ih=(H-P*2)*Number(x.income||0)/max,eh=(H-P*2)*Number(x.expense||0)/max;o+='<rect x="'+(c-b-2)+'" y="'+(H-P-ih)+'" width="'+b+'" height="'+ih+'" rx="4" fill="#3f7782"/><rect x="'+(c+2)+'" y="'+(H-P-eh)+'" width="'+b+'" height="'+eh+'" rx="4" fill="#d3ad47"/><text x="'+c+'" y="'+(H-10)+'" text-anchor="middle" font-size="11">'+financeEsc(x.label)+'</text>'});return o+'</svg><div class="finance-legend"><span><i style="background:#3f7782"></i>場次收入</span><span><i style="background:#d3ad47"></i>場次支出與退款</span></div>'}
 function financeCategoryBars(rows){const d=Array.isArray(rows)?rows:[];if(!d.length)return '<div class="finance-empty">這段期間尚未登錄支出</div>';const max=Math.max(1,...d.map(x=>Number(x.amount||0)));return '<div class="finance-category-list">'+d.map(x=>{const details=(x.sessions||[]).map(s=>'<button class="info-line click" onclick="openFinancePanel(\''+attr(s.id)+'\')"><b>'+financeEsc(s.name||'未命名場次')+'</b><span>'+financeEsc(s.date||'日期未設定')+'｜'+money(s.amount||0)+'</span></button>').join('');return '<div class="finance-category-block"><div class="finance-category-row"><span>'+financeEsc(x.name)+'</span><div class="finance-category-track"><div class="finance-category-fill" style="width:'+Math.max(2,Number(x.amount||0)/max*100)+'%"></div></div><b>'+money(x.amount||0)+'</b></div><div class="finance-category-details">'+details+'</div></div>'}).join('')+'</div>'}
 function financeSessionComparison(rows){
   const d=Array.isArray(rows)?rows:[];if(!d.length)return '<div class="finance-empty">沒有可比較的場次</div>';
@@ -4101,14 +4204,14 @@ async function loadFinanceReports(opts={}){
     const st=d.statements||{},t=d.totals||{};
     root.innerHTML='<div class="finance-report-banner"><h3>'+financeEsc(d.reportTitle||'財務報表')+'</h3><p>統計期間：'+financeEsc((d.bounds&&d.bounds.startDate)||'最早紀錄')+' ～ '+financeEsc((d.bounds&&d.bounds.endDate)||'目前')+'。'+financeEsc(d.accountingBasis||'')+'</p></div>'
       +((d.alerts||[]).length?'<details class="finance-section finance-check-details"><summary><b>資料提醒（'+(d.alerts||[]).length+'）</b><span class="help">需要時展開查看，不影響報表使用</span></summary><div class="finance-info-list">'+d.alerts.map(x=>'<div class="finance-info-item">'+financeEsc(String(x.label||'').replace('損益為負數','目前支出高於收入').replace('發現同名場次；報表以場次 ID 分開，不會自行合併。','同名活動已依場次分開計算。'))+'</div>').join('')+'</div></details>':'')
+      +'<div class="finance-section"><div class="finance-section-head"><div><h3>第一步：先看每一場賺多少</h3><p>每場收入－支出－退款＝活動損益；月份只負責依場次日期加總，不會拆散單場帳目。</p></div></div>'+financeSessionComparison(d.bySession||[])+'</div>'
       +'<div class="finance-summary-grid finance-accounting-grid">'
         +financeStatement('現金流量',st.cashFlow,'回答實際有多少錢進出；押金收退也列入現金流。')
         +financeStatement('活動損益',st.profitLoss,'回答活動實際賺賠；押金不列收入或支出。')
         +financeStatement('應收帳款',st.receivables,'顯示報表期末正式應收、未收及溢收。')
         +financeStatement('押金',st.deposits,'押金不列入活動收入；扣除後才計入收入。')
       +'</div>'
-      +'<div class="finance-panel-grid"><div class="finance-panel"><h3>現金流入與流出變化</h3><div class="help">依實際收付日期顯示，包含押金收取與退還；不是活動損益圖。</div>'+financeTrendChart(d.timeline||[])+'</div><div class="finance-panel"><h3>每筆支出歸屬</h3><div class="help">按支出分類展開到場次與日期，點場次即可核對帳本。</div>'+financeCategoryBars(d.expenseCategories||[])+'</div></div>'
-      +'<div class="finance-section"><div class="finance-section-head"><div><h3>每場活動的損益、現金與未收款</h3><p>營業收入、活動損益、現金變動與押金分開顯示，避免把押金誤認為獲利。</p></div></div>'+financeSessionComparison(d.bySession||[])+'</div>'
+      +'<div class="finance-panel-grid"><div class="finance-panel"><h3>場次收入與支出分布</h3><div class="help">依場次日期顯示該場完整收入、支出與退款，不受實際收付款日拆散。</div>'+financeTrendChart(d.timeline||[])+'</div><div class="finance-panel"><h3>每筆支出歸屬</h3><div class="help">按支出分類展開到場次與日期，點場次即可核對帳本。</div>'+financeCategoryBars(d.expenseCategories||[])+'</div></div>'
       +'<details class="finance-section finance-detail-section"><summary><b>收支紀錄（'+((d.transactions||[]).length)+' 筆）</b><span>展開查看每一筆收款、支出、退款與押金</span></summary><div class="finance-section-body">'+financeTransactions(d.transactions||[])+'</div></details>'
       +'<details class="finance-section finance-detail-section"><summary><b>需要確認的帳目（'+((d.anomalies||[]).length)+' 筆）</b><span>只有需要核對時再展開</span></summary><div class="finance-section-body">'+financeAnomalyTable(d.anomalies||[])+'</div></details>'
       +'<div class="finance-mini-note">最後更新：'+financeEsc(new Date(d.generatedAt||Date.now()).toLocaleString('zh-TW'))+'｜'+financeEsc((d.counts&&d.counts.sessions)||0)+' 個場次｜'+financeEsc((d.counts&&d.counts.transactions)||0)+' 筆流水｜'+financeEsc((d.counts&&d.counts.anomalies)||0)+' 筆待核對。</div>';
