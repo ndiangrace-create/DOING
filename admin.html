@@ -1757,6 +1757,37 @@ html,body{max-width:100%;overflow-x:hidden!important}
   .doing-admin .page-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;justify-content:stretch!important}
   .doing-admin .page-actions .btn{width:100%!important;min-width:0!important}
 }
+/* 老花優先：待辦營運中心不得用小字、淡字或低對比色。 */
+.doing-admin #page-todos .page-title .sub,
+.doing-admin #doingCommandText{font-size:18px!important;line-height:1.65!important;color:#3f4650!important;font-weight:750!important}
+.doing-admin #page-todos .doing-command{border:2px solid #d8e3e8!important;background:#fff!important}
+.doing-admin #page-todos .doing-command-copy small{font-size:17px!important;color:#176f78!important;letter-spacing:.08em!important}
+.doing-admin #page-todos .doing-command-copy h3{font-size:25px!important;color:#20242b!important}
+.doing-admin #page-todos .doing-kpis{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:10px!important;padding:12px!important;background:#f6fafb!important}
+.doing-admin #page-todos .doing-kpi{min-height:112px!important;padding:13px 12px!important;border:2px solid #d7e3e8!important;border-radius:20px!important;background:#fff!important;color:#20242b!important;text-align:center!important;box-shadow:none!important}
+.doing-admin #page-todos .doing-kpi:nth-child(2n){background:#fff5fa!important;border-color:#e8c8da!important}
+.doing-admin #page-todos .doing-kpi:nth-child(3n){background:#eef9fb!important;border-color:#c5e1e7!important}
+.doing-admin #page-todos .doing-kpi span{font-size:17px!important;line-height:1.35!important;color:#343b45!important;font-weight:950!important}
+.doing-admin #page-todos .doing-kpi b{font-size:30px!important;line-height:1.2!important;color:#171a20!important;font-weight:950!important}
+.doing-admin #page-todos .doing-kpi em{font-size:16px!important;line-height:1.35!important;color:#315d63!important;font-weight:850!important}
+.doing-admin #page-todos #todoList.cards{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))!important;gap:14px!important}
+.doing-admin #page-todos .todo-card-lite{padding:16px!important;gap:10px!important;overflow:visible!important}
+.doing-admin #page-todos .todo-card-lite .todo-stage-badge,
+.doing-admin #page-todos .todo-next-mini,
+.doing-admin #page-todos .todo-session-title,
+.doing-admin #page-todos .todo-brand-name,
+.doing-admin #page-todos .todo-contact-line,
+.doing-admin #page-todos .card-fixed-block .fixed-row span,
+.doing-admin #page-todos .card-fixed-block .fixed-pay{font-size:17px!important;line-height:1.5!important;color:#252a31!important}
+.doing-admin #page-todos .todo-next-mini,.doing-admin #page-todos .todo-contact-line{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+.doing-admin #page-todos .todo-action-row{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;flex-wrap:wrap!important}
+.doing-admin #page-todos .todo-action-row .btn{min-height:48px!important;padding:10px 9px!important;font-size:17px!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+@media(max-width:1100px){.doing-admin #page-todos .doing-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:620px){
+  .doing-admin #page-todos .doing-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .doing-admin #page-todos .doing-kpi{min-height:104px!important}
+  .doing-admin #page-todos #todoList.cards{grid-template-columns:1fr!important}
+}
 </style>
 </head>
 <body class="doing-app doing-admin">
@@ -1994,6 +2025,8 @@ function saveSession(s){
   if(s.tenantId) AdminState.tenantId=s.tenantId;
 }
 function readSession(){ try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch(e){return null} }
+const ADMIN_HASH_PAGES=new Set(['sessions','calendar','finance','todos','onsite','members','settings']);
+function adminPageFromHash(){const page=String(location.hash||'').replace(/^#/,'');return ADMIN_HASH_PAGES.has(page)?page:'';}
 function saveAdminPageState(page){
   try{
     const p=page||AdminState.currentPage||'sessions', L=AdminState.currentLayer||'root';
@@ -2018,12 +2051,14 @@ function logout(){
 async function enterAdmin(){
   $('loginPage').classList.add('hidden');
   $('adminPage').classList.remove('hidden');
-  $('whoText').textContent=(AdminState.name||AdminState.email||'主辦管理者');
+  const workspaceTenant=currentTenantFromUrl();
+  $('whoText').textContent=(workspaceTenant?workspaceTenant.toUpperCase()+'｜':'')+'主辦工作台';
   installDoingSettingsTiles();
   loadTenantTheme().catch(()=>{});
   startSupportUnreadPolling();
   await refreshSessionsOverview();
-  const saved=readAdminPageState();
+  const linkedPage=adminPageFromHash();
+  const saved=linkedPage?{page:linkedPage}:readAdminPageState();
   if(saved&&saved.page){
     if(saved.page!==AdminState.currentPage) switchPage(saved.page,{restore:true});
     else saveAdminPageState(saved.page);
@@ -2040,6 +2075,7 @@ function switchPage(page,opts={}){
   if(!opts||!opts.noSave) saveAdminPageState(page);
   const pages=['sessions','calendar','finance','todos','onsite','members','settings'];
   pages.forEach(p=>{const pg=$('page-'+p);if(pg)pg.classList.toggle('hidden',p!==page)});
+  if(!opts.restore && location.hash!=='#'+page) history.replaceState({},'',location.pathname+location.search+'#'+page);
   const mainMap={sessions:'sessions',calendar:'calendar',finance:'finance',todos:'todos',members:'members',onsite:'onsite',settings:'settings'};
   ['sessions','calendar','finance','todos','members','onsite','people','settings'].forEach(p=>{const tb=$('tab-'+p);if(tb)tb.classList.toggle('active',mainMap[page]===p)});
   if(page==='sessions'){renderSessions();ensureThemeEventsData();}
@@ -2051,6 +2087,7 @@ function switchPage(page,opts={}){
   if(page==='members')loadMembers();
   if(page==='leads')loadLeads();
 }
+window.addEventListener('hashchange',()=>{const page=adminPageFromHash();if(page&&!$('adminPage')?.classList.contains('hidden')&&page!==AdminState.currentPage)switchPage(page,{restore:true});});
 function loadOnsite(){
   const sel=$('onsiteSession');
   if(sel){
@@ -2260,13 +2297,22 @@ function renderThemeFilter(){
 }
 function setThemeFilter(id){ AdminState.themeFilter=String(id||''); renderThemeFilter(); renderSessions(); }
 
-function renderDoingCommandCenter(){
+function renderDoingCommandCenter(todoRows){
   const box=$('doingKpis'),txt=$('doingCommandText'); if(!box)return;
   const rows=(AdminState.sessions||[]).filter(s=>!isArchived(s));
-  let total=0,pending=0,payPending=0,unpaid=0,refund=0,received=0;
-  rows.forEach(s=>{const st=getStats(s),f=getFinance(s); total+=Number(st.total||0);pending+=Number(st.pending||0);payPending+=Number(st.paymentPending||0);unpaid+=Number(st.unpaid||0);refund+=Number(st.refund||0);received+=Number(f.received||0)});
-  const k=(label,value,note,filter)=>'<button type="button" class="doing-kpi" '+(filter!==undefined?'onclick="setTodoFilter(\''+filter+'\')"':'')+'><span>'+safe(label)+'</span><b>'+safe(value)+'</b><em>'+safe(note||'')+'</em></button>';
-  box.innerHTML=k('進行中場次',rows.length,'跨場次')+k('全部待辦',pending+payPending+unpaid+refund,'點擊查看','all')+k('待審核',pending,pending?'點擊處理':'已清空','pending')+k('付款待確認',payPending,payPending?'點擊核帳':'已清空','paymentPending')+k('實際已收',money(received),'依實際收款紀錄');
+  let pending=0,payPending=0,unpaid=0,refund=0,received=0;
+  rows.forEach(s=>{const st=getStats(s),f=getFinance(s);pending+=Number(st.pending||0);payPending+=Number(st.paymentPending||0);unpaid+=Number(st.unpaid||0);refund+=Number(st.refund||0);received+=Number(f.received||0)});
+  const actual=Array.isArray(todoRows)?todoRows.map(normalizeTodoRow).filter(r=>hasTodoRegId(r)&&todoKindFromRow(r)!=='done'):null;
+  const countKind=kind=>actual?actual.filter(r=>todoKindFromRow(r)===kind).length:({pending,paymentPending:payPending,unpaid,refund}[kind]||0);
+  const allCount=actual?actual.length:(pending+payPending+unpaid+refund);
+  const paymentCount=countKind('paymentPending')+countKind('unpaid');
+  const k=(label,value,note,action)=>'<button type="button" class="doing-kpi" onclick="'+action+'"><span>'+safe(label)+'</span><b>'+safe(value)+'</b><em>'+safe(note||'')+'</em></button>';
+  box.innerHTML=k('進行中場次',rows.length,'查看場次','switchPage(\'sessions\')')
+    +k('全部待辦',allCount,allCount?'逐項處理':'已清空','setTodoFilter(\'all\')')
+    +k('待審核',countKind('pending'),countKind('pending')?'立即審核':'已清空','setTodoFilter(\'pending\')')
+    +k('付款處理',paymentCount,paymentCount?'核帳或提醒':'已清空','setTodoFilter(\'payment\')')
+    +k('退款處理',countKind('refund'),countKind('refund')?'完成退費':'已清空','setTodoFilter(\'refund\')')
+    +k('實際已收',money(received),'查看正式帳務','switchPage(\'finance\')');
   if(txt)txt.textContent=rows.length?('目前 '+rows.length+' 個進行中場次；系統把需要審核、核帳與退款的工作集中在這裡。'):'目前沒有進行中的場次，可先建立新場次。';
 }
 function renderSessions(){ renderDoingCommandCenter(); const box=$('sessionList'); const kw=($('sessionSearch')?.value||'').trim().toLowerCase(); const mode=$('sessionStatusFilter')?.value||'current'; const list=[]; for(const s of AdminState.sessions){ if(mode==='current' && isArchived(s)) continue; if(mode==='archived' && !isArchived(s)) continue; if(kw && ![sessionName(s),s.eventName,s.organizer,s.coorg,s.venue,s.location].join(' ').toLowerCase().includes(kw)) continue; const tf=AdminState.themeFilter||''; if(tf && String(s.eventId||s.event_id||'')!==String(tf)) continue; list.push(s); } if(!list.length){box.innerHTML='<div class="empty">目前沒有符合條件的場次</div>';return;} const sorted=sortNearestFirst(list, sessionSortTs); let out=''; for(const s of sorted) out += renderSessionCard(s); box.innerHTML=out; }
@@ -4152,7 +4198,7 @@ async function buildTodoRowsFromSessions(){
     try{ const rows=await api({action:'getSessionDashboard'}); AdminState.sessions=Array.isArray(rows)?rows:[]; }catch(e){}
   }
   AdminState.currentLayer='todos';
-  const wanted=[['pending','待審核'],['paymentPending','付款待確認'],['unpaid','待付款'],['refund','退費待處理']];
+  const wanted=[['pending','待審核'],['paymentPending','付款待確認'],['unpaid','待付款'],['refund','退費待處理'],['checkin','待報到'],['equipment','設備待確認']];
   const out=[]; const seen=new Set();
   for(const s of AdminState.sessions){
     const sid=sessionId(s); if(!sid) continue;
@@ -4222,8 +4268,9 @@ function renderTodoRows(rows){
   let out='';
   AdminTodoAllRows=Array.isArray(rows)?rows:[];
   const all=sortNearestFirst(AdminTodoAllRows.map(normalizeTodoRow).filter(r=>hasTodoRegId(r) && todoKindFromRow(r)!=='done'), regSortTs);
-  let list=(AdminTodoFilter==='all')?all:all.filter(r=>todoKindFromRow(r)===AdminTodoFilter); if(AdminTodoSessionFilter)list=list.filter(r=>String(r.sessionId||'')===AdminTodoSessionFilter);
+  let list=(AdminTodoFilter==='all')?all:all.filter(r=>AdminTodoFilter==='payment'?['paymentPending','unpaid'].includes(todoKindFromRow(r)):todoKindFromRow(r)===AdminTodoFilter); if(AdminTodoSessionFilter)list=list.filter(r=>String(r.sessionId||'')===AdminTodoSessionFilter);
   AdminState.currentList=list;
+  renderDoingCommandCenter(all);
   const fb=$('todoFilterBar'); if(fb) fb.innerHTML=todoFilterBarHtml(all);
   for(const r of list){
     const sid=r.sessionId||'';
