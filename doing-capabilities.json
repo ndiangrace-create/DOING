@@ -19,6 +19,7 @@
       "area": "平台總管",
       "title": "租戶申請與開通",
       "summary": "從會員提出申請，到平台核准並建立正式營運空間。",
+      "route": "platform.html#platform-applications",
       "features": [
         {
           "label": "會員提出營運帳號申請",
@@ -67,6 +68,7 @@
       "area": "平台總管",
       "title": "租戶與權限管理",
       "summary": "平台查看、進入與管理所有正式租戶。",
+      "route": "platform.html#platform-tenants",
       "features": [
         {
           "label": "查看全部租戶",
@@ -110,6 +112,7 @@
       "area": "平台總管",
       "title": "平台收費與創業金",
       "summary": "DOING向租戶收取的正式系統費。",
+      "route": "platform.html#platform-billing",
       "features": [
         {
           "label": "免費活動每場 NT$100",
@@ -163,6 +166,7 @@
       "area": "平台總管",
       "title": "設定服務與專業模組",
       "summary": "記錄租戶購買的設定協助、加購模組、金額與開通結果。",
+      "route": "platform.html#platform-billing",
       "features": [
         {
           "label": "選擇租戶",
@@ -201,6 +205,7 @@
       "area": "平台總管",
       "title": "首頁曝光推廣",
       "summary": "租戶購買首頁活動快訊曝光後，由平台確認與排程。",
+      "route": "platform.html#platform-exposure",
       "features": [
         {
           "label": "建立曝光方案",
@@ -238,6 +243,7 @@
       "area": "平台總管",
       "title": "平台客服",
       "summary": "集中處理租戶操作問題與新功能申請。",
+      "route": "platform.html#platform-support",
       "features": [
         {
           "label": "租戶建立客服對話",
@@ -275,6 +281,7 @@
       "area": "會員中心",
       "title": "我的 DOING",
       "summary": "同一個會員集中管理活動、品牌與營運空間。",
+      "route": "member.html#home",
       "features": [
         {
           "label": "LINE會員登入",
@@ -328,6 +335,7 @@
       "area": "租戶後台",
       "title": "營運項目與場次",
       "summary": "租戶建立市集、活動、課程、體驗與預約。",
+      "route": "admin.html?tenant=doing#sessions",
       "features": [
         {
           "label": "市集／攤商營運",
@@ -370,6 +378,7 @@
       "area": "租戶後台",
       "title": "報名、審核與通知",
       "summary": "從公開報名到主辦錄取、付款及行前通知。",
+      "route": "admin.html?tenant=doing#todos",
       "features": [
         {
           "label": "會員完成報名",
@@ -407,6 +416,21 @@
           "evidence": "email templates"
         },
         {
+          "label": "跨場次待辦依真實狀態集中分類",
+          "status": "done",
+          "evidence": "admin.html / loadTodos / todoKindFromRow"
+        },
+        {
+          "label": "待審核、付款與退款數字直接開啟處理名單",
+          "status": "done",
+          "evidence": "admin.html / renderDoingCommandCenter / setTodoFilter"
+        },
+        {
+          "label": "待辦卡可直接完成錄取、核帳、退款與現場狀態",
+          "status": "done",
+          "evidence": "admin.html / todoStageButtons / runRegAction"
+        },
+        {
           "label": "新租戶前台到後台完整報名",
           "status": "verify"
         }
@@ -417,6 +441,7 @@
       "area": "租戶後台",
       "title": "財務與結案",
       "summary": "依正式收款、退款與支出形成場次財務。",
+      "route": "admin.html?tenant=doing#finance",
       "features": [
         {
           "label": "正式收款與退款彙整",
@@ -459,6 +484,7 @@
       "area": "租戶後台",
       "title": "會員與工作人員",
       "summary": "租戶管理會員關係及工作人員授權。",
+      "route": "admin.html?tenant=doing#members",
       "features": [
         {
           "label": "會員與品牌資料庫",
@@ -496,6 +522,7 @@
       "area": "租戶後台",
       "title": "現場工作台",
       "summary": "活動現場搜尋、報到、押金與工作交接。",
+      "route": "admin.html?tenant=doing#onsite",
       "features": [
         {
           "label": "現場人員登入",
@@ -533,6 +560,7 @@
       "area": "專業模組",
       "title": "視覺化排位",
       "summary": "攤位編號、地圖拖曳、方向與分享名單。",
+      "route": "admin.html?tenant=doing#sessions",
       "features": [
         {
           "label": "底圖上傳",
@@ -579,6 +607,7 @@
       "area": "專業模組",
       "title": "攤商業績與保證金",
       "summary": "攤商回報營業額後，進入保證金退還流程。",
+      "route": "admin.html?tenant=doing#onsite",
       "features": [
         {
           "label": "攤商填寫當日營業額",
@@ -608,6 +637,7 @@
       "area": "專業模組",
       "title": "寄賣與 POS",
       "summary": "寄賣檔期、商品、條碼與銷售管理。",
+      "route": "admin.html?tenant=doing#settings",
       "features": [
         {
           "label": "寄賣檔期設定",
@@ -636,6 +666,7 @@
       "area": "專業模組",
       "title": "拍照框活動",
       "summary": "手機拍照或選圖、套框及輸出活動照片。",
+      "route": "admin.html?tenant=doing#settings",
       "features": [
         {
           "label": "相機拍照與相簿選圖",
@@ -668,6 +699,7 @@
       "area": "品牌外觀",
       "title": "租戶五套視覺模板",
       "summary": "同一套功能與資料，切換不同品牌視覺。",
+      "route": "admin.html?tenant=doing#settings",
       "features": [
         {
           "label": "可愛粉彩 cute_pastel",
@@ -710,6 +742,7 @@
       "area": "平台總管",
       "title": "DOING 系統世界地圖",
       "summary": "一眼查看所有模組、實際功能及缺口。",
+      "route": "platform.html#platform-world",
       "features": [
         {
           "label": "所有模組集中在平台總管",
@@ -720,6 +753,11 @@
           "label": "每個模組直接顯示全部功能",
           "status": "done",
           "evidence": "doing-capabilities.json / platform.html"
+        },
+        {
+          "label": "世界地圖功能直接連到對應操作頁",
+          "status": "done",
+          "evidence": "doing-capabilities.json route / platform.html world-feature"
         },
         {
           "label": "自動計算完成數",

@@ -64,4 +64,18 @@ for(const marker of [
   'top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;',
   'clear:both!important;'
 ])requireText(adminPage,marker,`主辦後台導覽與內容不重疊 ${marker}`);
+for(const marker of [
+  'font-size:17px!important',
+  'font-size:18px!important',
+  'min-height:48px!important',
+  "setTodoFilter(\\'payment\\')",
+  "switchPage(\\'finance\\')",
+  'renderDoingCommandCenter(all)',
+  'adminPageFromHash()'
+])requireText(adminPage,marker,`主辦營運待辦可讀可操作 ${marker}`);
+const capabilityMap=JSON.parse(read('doing-capabilities.json'));
+for(const module of capabilityMap.modules||[]){
+  if(module.area!=='未來擴充'&&!module.route)fail(`世界地圖模組缺少對應操作頁：${module.title}`);
+}
+requireText(platformPage,'title="開啟對應功能"','世界地圖可直接進入相應功能');
 console.log(`全系統靜態驗收通過：${pages.length} 頁、${frontendActions.size} 個前端 API 動作、後台按鈕函式完整。`);
