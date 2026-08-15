@@ -804,7 +804,7 @@ async function refundReg(r){if(!confirm(r.bundleGroupId?'此為兩場組合，�
 $('myEmail').value=localStorage.getItem('doing_my_email')||'';
 let holdTimer=null,holdStart=0;
 function cancelAdminHold(){if(holdTimer){clearTimeout(holdTimer);holdTimer=null}holdStart=0;$('brandHoldTarget')?.classList.remove('holding')}
-function startAdminHold(e){if(e&&e.type==='mousedown'&&e.button!==0)return;holdStart=Date.now();$('brandHoldTarget')?.classList.add('holding');holdTimer=setTimeout(()=>{cancelAdminHold();openModal('adminEntryModal')},3000)}
+function startAdminHold(e){if(e&&e.type==='mousedown'&&e.button!==0)return;holdStart=Date.now();$('brandHoldTarget')?.classList.add('holding');holdTimer=setTimeout(()=>{const tenant=String(state.tenant||new URL(location.href).searchParams.get('tenant')||'').trim().toLowerCase();cancelAdminHold();if(navigator.vibrate)navigator.vibrate(70);if(!tenant){const u=new URL(API+'/auth/google/start');u.searchParams.set('tenant','platform');location.href=u.toString();return}openModal('adminEntryModal')},3000)}
 ['mousedown','touchstart'].forEach(ev=>$('brandHoldTarget')?.addEventListener(ev,startAdminHold,{passive:true}));
 ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=>$('brandHoldTarget')?.addEventListener(ev,cancelAdminHold,{passive:true}));
 $('adminGoogleBtn').onclick=()=>{
