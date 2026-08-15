@@ -58,6 +58,12 @@ for(const field of ['approvedAt','paymentReportedAt','paidAt','checkinAt','refun
 for(const marker of ['application_created','application_submitted','application_approved','supplement_requested','application_rejected'])if(!worker.includes(marker))fail(`申請時間軸缺少事件：${marker}`);
 if(!adminPage.includes('admin-final-responsive-fix'))fail('主辦後台缺少最終響應式修正');
 for(const marker of [
+  'position:sticky!important;top:0!important;z-index:90!important;',
+  'top:var(--admin-topbar-height)!important;z-index:80!important;',
+  'function keepAdminNavigationPinned()',
+  "new ResizeObserver(sync).observe(topbar)"
+])requireText(adminPage,marker,`主辦後台頂部操作列固定 ${marker}`);
+for(const marker of [
   '.doing-admin .tabs{\n    position:relative!important;',
   'position:relative!important;',
   'inset:auto!important;',

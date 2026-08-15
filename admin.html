@@ -1896,6 +1896,7 @@ body.doing-admin{
   --admin-green:#d7efa9;
   --admin-yellow:#f7e5a5;
   --admin-purple:#e4cff4;
+  --admin-topbar-height:82px;
   margin:0!important;background:#fff!important;color:#38333f!important;
   font-family:Inter,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif!important
 }
@@ -1911,6 +1912,7 @@ body.doing-admin .page-title,body.doing-admin .finance-center-head{
   background:#fff!important;background-image:none!important
 }
 body.doing-admin .topbar{
+  position:sticky!important;top:0!important;z-index:90!important;
   border:0!important;border-bottom:1px solid #dedede!important;
   box-shadow:none!important;backdrop-filter:none!important
 }
@@ -1923,7 +1925,7 @@ body.doing-admin .doing-logo::after{background:#d5e8ec!important}
 
 body.doing-admin .app{padding:0 24px 48px!important}
 body.doing-admin .tabs{
-  position:sticky!important;top:0!important;z-index:20!important;
+  position:sticky!important;top:var(--admin-topbar-height)!important;z-index:80!important;
   display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;
   gap:0!important;width:100%!important;margin:0 0 20px!important;padding:0!important;
   border:0!important;border-bottom:1px solid #dedede!important;border-radius:0!important;
@@ -2048,6 +2050,7 @@ body.doing-admin .toast{border-radius:8px!important;background:#222!important;co
   body.doing-admin .page-actions .btn{width:100%!important;min-width:0!important}
 }
 @media(max-width:620px){
+  body.doing-admin{--admin-topbar-height:68px}
   body.doing-admin .topbar-in{min-height:68px!important}
   body.doing-admin .brand-title{font-size:20px!important}
   body.doing-admin .actions{gap:6px!important}
@@ -5430,6 +5433,17 @@ async function saveHomepageSettings(btn){ const old=btn.textContent; btn.disable
       showLoginError('登入已失效，請重新使用 Google 登入。');
     }
   }
+})();
+</script>
+<script>
+/* 依實際高度固定後台雙層導覽，避免手機換行後遮住內容。 */
+(function keepAdminNavigationPinned(){
+  const topbar=document.querySelector('.doing-admin .topbar');
+  if(!topbar)return;
+  const sync=()=>{const height=Math.ceil(topbar.getBoundingClientRect().height);if(height>0)document.body.style.setProperty('--admin-topbar-height',height+'px')};
+  sync();
+  if('ResizeObserver' in window)new ResizeObserver(sync).observe(topbar);
+  window.addEventListener('resize',sync,{passive:true});
 })();
 </script>
 </body>
