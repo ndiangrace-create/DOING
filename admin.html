@@ -1734,13 +1734,26 @@ html,body{max-width:100%;overflow-x:hidden!important}
 .doing-admin .page-actions .btn:not(.secondary){color:#fff!important}
 @media(min-width:901px){
   .doing-admin .topbar-in{padding-left:18px!important;padding-right:18px!important}
-  .doing-admin .app{width:100%!important;max-width:100%!important;margin:0!important;padding:14px 18px 42px!important}
-  .doing-admin .tabs{position:sticky!important;left:auto!important;top:74px!important;bottom:auto!important;transform:none!important;width:100%!important;display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;margin:0!important;border-radius:0 0 20px 20px!important}
+  .doing-admin .app{position:relative!important;width:100%!important;max-width:100%!important;margin:0!important;padding:0 18px 42px!important;overflow:visible!important}
+  .doing-admin .tabs{
+    position:relative!important;
+    inset:auto!important;
+    top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;
+    transform:none!important;
+    z-index:1!important;
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(7,minmax(0,1fr))!important;
+    margin:0 0 14px!important;
+    border-radius:0 0 20px 20px!important;
+  }
   .doing-admin .tabs .tab{min-width:0!important;width:100%!important}
   .doing-admin .settings-grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))!important}
-  .doing-admin section[id^="page-"]{width:100%!important;max-width:100%!important;overflow:visible!important}
+  .doing-admin section[id^="page-"]{position:relative!important;clear:both!important;z-index:0!important;width:100%!important;max-width:100%!important;overflow:visible!important;margin-top:0!important}
 }
 @media(max-width:900px){
+  .doing-admin .app{padding-top:0!important}
+  .doing-admin .tabs{position:sticky!important;top:0!important;bottom:auto!important;left:auto!important;transform:none!important;margin:0 0 12px!important}
   .doing-admin .page-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;justify-content:stretch!important}
   .doing-admin .page-actions .btn{width:100%!important;min-width:0!important}
 }
