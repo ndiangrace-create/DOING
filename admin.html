@@ -1897,6 +1897,7 @@ body.doing-admin{
   --admin-yellow:#f7e5a5;
   --admin-purple:#e4cff4;
   --admin-topbar-height:82px;
+  --admin-tabs-height:59px;
   margin:0!important;background:#fff!important;color:#38333f!important;
   font-family:Inter,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif!important
 }
@@ -1912,7 +1913,8 @@ body.doing-admin .page-title,body.doing-admin .finance-center-head{
   background:#fff!important;background-image:none!important
 }
 body.doing-admin .topbar{
-  position:sticky!important;top:0!important;z-index:90!important;
+  position:fixed!important;top:0!important;right:0!important;left:0!important;z-index:90!important;
+  width:100%!important;
   border:0!important;border-bottom:1px solid #dedede!important;
   box-shadow:none!important;backdrop-filter:none!important
 }
@@ -1923,11 +1925,11 @@ body.doing-admin .doing-logo{box-shadow:none!important;border:1px solid #dedede!
 body.doing-admin .doing-logo::before{background:#dceef2!important}
 body.doing-admin .doing-logo::after{background:#d5e8ec!important}
 
-body.doing-admin .app{padding:0 24px 48px!important}
+body.doing-admin .app{padding:calc(var(--admin-topbar-height) + var(--admin-tabs-height) + 20px) 24px 48px!important}
 body.doing-admin .tabs{
-  position:sticky!important;top:var(--admin-topbar-height)!important;z-index:80!important;
+  position:fixed!important;top:var(--admin-topbar-height)!important;right:24px!important;left:24px!important;z-index:80!important;
   display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;
-  gap:0!important;width:100%!important;margin:0 0 20px!important;padding:0!important;
+  gap:0!important;width:auto!important;margin:0!important;padding:0!important;
   border:0!important;border-bottom:1px solid #dedede!important;border-radius:0!important;
   background:#fff!important;background-image:none!important;box-shadow:none!important
 }
@@ -2004,7 +2006,7 @@ body.doing-admin .chip.yellow,body.doing-admin .chip.purple{
 }
 
 body.doing-admin #sessionList.session-list{
-  display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(460px,100%),1fr))!important;
+  display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))!important;
   gap:16px!important;width:100%!important
 }
 body.doing-admin #sessionList .session-card{min-width:0!important;width:100%!important}
@@ -2042,15 +2044,15 @@ body.doing-admin .toast{border-radius:8px!important;background:#222!important;co
 
 @media(max-width:900px){
   body.doing-admin .topbar-in{padding:10px 14px!important}
-  body.doing-admin .app{padding:0 12px 34px!important}
-  body.doing-admin .tabs{display:flex!important;overflow-x:auto!important;scroll-snap-type:x proximity!important}
+  body.doing-admin .app{padding:calc(var(--admin-topbar-height) + var(--admin-tabs-height) + 12px) 12px 34px!important}
+  body.doing-admin .tabs{right:12px!important;left:12px!important;display:flex!important;overflow-x:auto!important;scroll-snap-type:x proximity!important}
   body.doing-admin .tabs .tab{flex:0 0 104px!important;min-height:54px!important;font-size:17px!important;scroll-snap-align:start!important}
   body.doing-admin .page-title{align-items:stretch!important;flex-direction:column!important}
   body.doing-admin .page-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
   body.doing-admin .page-actions .btn{width:100%!important;min-width:0!important}
 }
 @media(max-width:620px){
-  body.doing-admin{--admin-topbar-height:68px}
+  body.doing-admin{--admin-topbar-height:68px;--admin-tabs-height:54px}
   body.doing-admin .topbar-in{min-height:68px!important}
   body.doing-admin .brand-title{font-size:20px!important}
   body.doing-admin .actions{gap:6px!important}
@@ -2080,8 +2082,7 @@ body.doing-admin .toast{border-radius:8px!important;background:#222!important;co
     <div class="brand"><div class="logo doing-logo" aria-hidden="true"></div><div><div class="brand-title">DOING 活動營運管理系統</div><div id="whoText" class="brand-sub">尚未登入</div></div></div>
     <div class="actions"><button class="btn secondary small" onclick="openSupportCenter()">系統客服 <span id="supportUnreadBadge" class="doing-unread">0</span></button><button class="btn secondary small hide-sm" onclick="refreshCurrentPage()">重新整理</button><button class="btn secondary small" onclick="openOnsiteWorkerPage()">現場入口</button><button class="btn gray small" onclick="logout()">登出</button></div>
   </div></header>
-  <main class="app">
-    <nav class="tabs" aria-label="DOING 後台主選單">
+  <nav class="tabs" aria-label="DOING 後台主選單">
       <button id="tab-todos" class="tab" onclick="switchPage('todos')">待辦</button>
       <button id="tab-sessions" class="tab active" onclick="switchPage('sessions')">場次</button>
       <button id="tab-calendar" class="tab" onclick="switchPage('calendar')">日曆</button>
@@ -2089,7 +2090,8 @@ body.doing-admin .toast{border-radius:8px!important;background:#222!important;co
       <button id="tab-members" class="tab" onclick="switchPage('members')">會員</button>
       <button id="tab-onsite" class="tab" onclick="switchPage('onsite')">現場</button>
       <button id="tab-settings" class="tab" onclick="switchPage('settings')">設定</button>
-    </nav>
+  </nav>
+  <main class="app">
     <section id="page-sessions"><div class="page-title"><div><h2>我的場次</h2><div class="sub">點進場次後，直接處理報名、付款、設備、選位、報到與本場金流。</div></div><div class="page-actions"><button class="btn secondary" onclick="refreshSessionsOverview()">重新整理</button><button class="btn" onclick="newSessionFull()">＋ 新增場次</button></div></div><div class="filter-row"><input id="sessionSearch" placeholder="搜尋場次、系列、合作單位、地點" oninput="renderSessions()"><select id="sessionStatusFilter" onchange="renderSessions()"><option value="current">進行中</option><option value="all">全部</option><option value="archived">封存</option></select></div><div id="themeFilterRow" class="filter-row" style="margin-top:0"></div><div id="sessionList" class="session-list"><div class="loading">載入場次中…</div></div></section>
     <section id="page-calendar" class="hidden"><div class="page-title"><div><h2>營運總日曆</h2><div class="sub">「全部」合併顯示；點 A 老師、B 老師或空間日曆，就只看該日曆的時段與預約名單。</div></div><div class="page-actions"><button class="btn secondary" onclick="calendarShift(-1)">← 上個月</button><button class="btn secondary" onclick="calendarToday()">今天</button><button class="btn secondary" onclick="calendarShift(1)">下個月 →</button><button class="btn" onclick="loadUnifiedCalendar()">重新整理</button></div></div><div class="report-card"><div class="report-title" id="calendarMonthTitle">營運總日曆</div><div id="calendarFilters" class="calendar-filters" aria-label="切換預約日曆"><button class="calendar-filter active">全部</button></div><div class="calendar-manager"><button class="btn secondary small" onclick="addBookingCalendar()">＋ 新增預約日曆</button><button class="btn secondary small" onclick="editCurrentBookingCalendar()">設定目前日曆</button></div><div id="calendarGrid" class="calendar-grid"><div class="loading">載入日曆中…</div></div></div><div id="calendarDayDetail" class="report-card"><div class="empty">點選日期查看活動、營運項目、預約時段與名單。</div></div></section>
     <section id="page-finance" class="hidden">
@@ -5439,10 +5441,16 @@ async function saveHomepageSettings(btn){ const old=btn.textContent; btn.disable
 /* 依實際高度固定後台雙層導覽，避免手機換行後遮住內容。 */
 (function keepAdminNavigationPinned(){
   const topbar=document.querySelector('.doing-admin .topbar');
-  if(!topbar)return;
-  const sync=()=>{const height=Math.ceil(topbar.getBoundingClientRect().height);if(height>0)document.body.style.setProperty('--admin-topbar-height',height+'px')};
+  const tabs=document.querySelector('.doing-admin .tabs');
+  if(!topbar||!tabs)return;
+  const sync=()=>{
+    const topbarHeight=Math.ceil(topbar.getBoundingClientRect().height);
+    const tabsHeight=Math.ceil(tabs.getBoundingClientRect().height);
+    if(topbarHeight>0)document.body.style.setProperty('--admin-topbar-height',topbarHeight+'px');
+    if(tabsHeight>0)document.body.style.setProperty('--admin-tabs-height',tabsHeight+'px');
+  };
   sync();
-  if('ResizeObserver' in window)new ResizeObserver(sync).observe(topbar);
+  if('ResizeObserver' in window){const observer=new ResizeObserver(sync);observer.observe(topbar);observer.observe(tabs)}
   window.addEventListener('resize',sync,{passive:true});
 })();
 </script>
