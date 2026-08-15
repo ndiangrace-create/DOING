@@ -4357,21 +4357,21 @@ function _financePeriodBounds(period,date,startDate,endDate){
     const end=new Date(`${e}T00:00:00+08:00`);end.setDate(end.getDate()+1);
     return {start:`${s}T00:00:00+08:00`,end:end.toISOString(),label:`${s.replaceAll('-','/')}～${e.replaceAll('-','/')}`,startDate:s,endDate:e};
   }
-  if(period==='all')return {start:null,end:null,label:'全部期間',startDate:'',endDate:''};
+  if(period==='all')return {start:null,end:null,label:'全部場次損益',startDate:'',endDate:''};
   if(period==='week'){
     const base=/^\d{4}-\d{2}-\d{2}$/.test(raw)?new Date(`${raw}T12:00:00+08:00`):now;
     const day=(base.getDay()+6)%7,start=new Date(base);start.setDate(base.getDate()-day);
     const end=new Date(start);end.setDate(start.getDate()+7);
     const sd=start.toISOString().slice(0,10),ed=new Date(end.getTime()-86400000).toISOString().slice(0,10);
-    return {start:`${sd}T00:00:00+08:00`,end:end.toISOString(),label:`本週 ${sd.replaceAll('-','/')}～${ed.replaceAll('-','/')}`,startDate:sd,endDate:ed};
+    return {start:`${sd}T00:00:00+08:00`,end:end.toISOString(),label:`本週場次損益 ${sd.replaceAll('-','/')}～${ed.replaceAll('-','/')}`,startDate:sd,endDate:ed};
   }
-  if(period==='year')return {start:`${y}-01-01T00:00:00+08:00`,end:`${y+1}-01-01T00:00:00+08:00`,label:`${y} 年財務年報`,startDate:`${y}-01-01`,endDate:`${y}-12-31`};
+  if(period==='year')return {start:`${y}-01-01T00:00:00+08:00`,end:`${y+1}-01-01T00:00:00+08:00`,label:`${y} 年場次損益`,startDate:`${y}-01-01`,endDate:`${y}-12-31`};
   if(period==='quarter'){
     const q=Math.floor((m-1)/3),sm=q*3+1,ey=sm+3>12?y+1:y,em=(sm+2)%12+1,last=new Date(y,sm+2,0).getDate();
-    return {start:`${y}-${String(sm).padStart(2,'0')}-01T00:00:00+08:00`,end:`${ey}-${String(em).padStart(2,'0')}-01T00:00:00+08:00`,label:`${y} 年第 ${q+1} 季財務季報`,startDate:`${y}-${String(sm).padStart(2,'0')}-01`,endDate:`${y}-${String(sm+2).padStart(2,'0')}-${String(last).padStart(2,'0')}`};
+    return {start:`${y}-${String(sm).padStart(2,'0')}-01T00:00:00+08:00`,end:`${ey}-${String(em).padStart(2,'0')}-01T00:00:00+08:00`,label:`${y} 年第 ${q+1} 季場次損益`,startDate:`${y}-${String(sm).padStart(2,'0')}-01`,endDate:`${y}-${String(sm+2).padStart(2,'0')}-${String(last).padStart(2,'0')}`};
   }
   const ey=m===12?y+1:y,em=m===12?1:m+1,last=new Date(y,m,0).getDate();
-  return {start:`${y}-${String(m).padStart(2,'0')}-01T00:00:00+08:00`,end:`${ey}-${String(em).padStart(2,'0')}-01T00:00:00+08:00`,label:`${y} 年 ${m} 月財務月報`,startDate:`${y}-${String(m).padStart(2,'0')}-01`,endDate:`${y}-${String(m).padStart(2,'0')}-${String(last).padStart(2,'0')}`};
+  return {start:`${y}-${String(m).padStart(2,'0')}-01T00:00:00+08:00`,end:`${ey}-${String(em).padStart(2,'0')}-01T00:00:00+08:00`,label:`${y} 年 ${m} 月場次損益`,startDate:`${y}-${String(m).padStart(2,'0')}-01`,endDate:`${y}-${String(m).padStart(2,'0')}-${String(last).padStart(2,'0')}`};
 }
 function _finInRange(v,b){if(!b.start)return true;const t=new Date(v||0).getTime();return t>=new Date(b.start).getTime()&&t<new Date(b.end).getTime()}
 function _finBucket(v,period){
@@ -4405,6 +4405,8 @@ async function hFinanceReport(env,p){
 
   let sessions=Array.isArray(allowed)?sessionsRaw.filter(s=>allowed.includes(String(s.id))):sessionsRaw;
   if(eventId)sessions=sessions.filter(s=>String(s.event_id||'')===eventId);
+  // 報表期間篩選的是「場次日期」；選中的場次會納入完整生命週期收支，才能算出真實單場損益。
+  if(period!=='all')sessions=sessions.filter(s=>_finInRange(_sessionFirstDate(s),bounds));
   const ids=new Set(sessions.map(s=>String(s.id)));
   const sm={},regMap={},itemMap={};
   sessions.forEach(s=>sm[String(s.id)]=s);
@@ -4419,8 +4421,8 @@ async function hFinanceReport(env,p){
     internalTransferIn:0,internalTransferOut:0
   });
   const sessionRows={};sessions.forEach(s=>sessionRows[String(s.id)]=newRow(s));
-  const inPeriod=v=>_finInRange(v,bounds);
-  const beforeEnd=v=>{if(!bounds.end)return true;const t=new Date(v||0).getTime();return Number.isFinite(t)&&t<new Date(bounds.end).getTime()};
+  const inPeriod=()=>true;
+  const beforeEnd=()=>true;
   const timeline={},transactions=[],anomalies=[];
   const addTimeline=(at,side,amt)=>{if(!inPeriod(at))return;const b=_finBucket(at,period);if(!timeline[b])timeline[b]={label:b,income:0,expense:0,net:0};timeline[b][side]+=amt;timeline[b].net=timeline[b].income-timeline[b].expense};
   const addTx=x=>{transactions.push(x);addTimeline(x.date,x.side==='income'?'income':'expense',x.amount)};
@@ -4542,6 +4544,14 @@ async function hFinanceReport(env,p){
     x.cashNet=x.cashInflow-x.cashOutflow;
     return x;
   }).sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.name).localeCompare(String(b.name)));
+  const sessionTimeline={};
+  for(const row of bySession){
+    const bucket=_finBucket(row.date,period);if(!bucket)continue;
+    if(!sessionTimeline[bucket])sessionTimeline[bucket]={label:bucket,income:0,expense:0,net:0};
+    sessionTimeline[bucket].income+=safeNum(row.operatingIncome);
+    sessionTimeline[bucket].expense+=safeNum(row.operatingExpense)+safeNum(row.revenueRefunded);
+    sessionTimeline[bucket].net=sessionTimeline[bucket].income-sessionTimeline[bucket].expense;
+  }
 
   const keys=['revenueCash','otherIncome','operatingIncome','depositCollected','cashInflow','operatingExpense','revenueRefunded','depositRefunded','cashOutflow','cashNet','activityProfit','receivableClosing','outstanding','overpaid','depositDeducted','depositHeld','internalTransferIn','internalTransferOut'];
   const totals={};keys.forEach(k=>totals[k]=0);bySession.forEach(x=>keys.forEach(k=>totals[k]+=safeNum(x[k])));
@@ -4567,7 +4577,7 @@ async function hFinanceReport(env,p){
 
   return jsonOk({
     period,bounds,reportTitle:bounds.label,
-    accountingBasis:'現金流依實際收付日；活動損益不含代管押金；應收與代管押金為報表期末餘額；延期轉入／轉出僅做場次歸屬，不重複計入公司現金。',
+    accountingBasis:'先依每個場次彙整完整生命週期的收入、支出、退款與押金，再按照場次日期加總到所選月份；押金不列活動損益，延期轉入／轉出不重複計入。',
     counts:{transactions:transactions.length,sessions:bySession.length,anomalies:anomalies.length},alerts,anomalies,totals,
     statements:{
       cashFlow:[{label:'營業款實收',amount:totals.revenueCash},{label:'其他現金收入',amount:totals.otherIncome},{label:'押金收取',amount:totals.depositCollected},{label:'現金流入合計',amount:totals.cashInflow,total:true},{label:'營運支出',amount:totals.operatingExpense},{label:'營業退款',amount:totals.revenueRefunded},{label:'押金退還',amount:totals.depositRefunded},{label:'現金流出合計',amount:totals.cashOutflow,total:true},{label:'現金淨變動',amount:totals.cashNet,total:true,net:true}],
@@ -4575,7 +4585,7 @@ async function hFinanceReport(env,p){
       receivables:[{label:'期末正式應收',amount:totals.receivableClosing},{label:'期末尚未收到',amount:totals.outstanding},{label:'溢收／待釐清',amount:totals.overpaid}],
       deposits:[{label:'本期收取押金',amount:totals.depositCollected},{label:'本期退還押金',amount:totals.depositRefunded},{label:'本期扣款轉收入',amount:totals.depositDeducted},{label:'期末代管押金',amount:totals.depositHeld,total:true}]
     },
-    timeline:Object.values(timeline).sort((a,b)=>a.label.localeCompare(b.label)),expenseCategories,bySession,transactions,
+    timeline:Object.values(sessionTimeline).sort((a,b)=>a.label.localeCompare(b.label)),expenseCategories,bySession,transactions,
     events:events.map(e=>({id:e.id,title:e.title||e.id})),generatedAt:nowIso()
   });
 }

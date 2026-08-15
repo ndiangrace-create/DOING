@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-15",
+  "updatedAt": "2026-08-16",
   "statusLabels": {
     "done": "已完成",
     "verify": "已有功能，待實際確認",
@@ -368,6 +368,16 @@
           "evidence": "calendar"
         },
         {
+          "label": "固定尺寸七欄營運日曆",
+          "status": "done",
+          "evidence": "admin.html / renderUnifiedCalendar"
+        },
+        {
+          "label": "手機橫向滑動且日期格不壓縮",
+          "status": "done",
+          "evidence": "admin.html / calendar responsive CSS"
+        },
+        {
           "label": "新租戶從零建立第一個營運項目",
           "status": "verify"
         }
@@ -472,6 +482,16 @@
           "label": "財報唯讀分享",
           "status": "done",
           "evidence": "financeShare"
+        },
+        {
+          "label": "先結算每場完整收入、支出與退款",
+          "status": "done",
+          "evidence": "financeReport / bySession"
+        },
+        {
+          "label": "月份依場次日期加總單場損益",
+          "status": "done",
+          "evidence": "financeReport / sessionTimeline"
         },
         {
           "label": "以真實場次完成結案",
