@@ -1879,8 +1879,186 @@ html,body{max-width:100%;overflow-x:hidden!important}
   .doing-admin #page-calendar .cal-item{font-size:14px!important;min-height:28px!important}
 }
 </style>
+<style id="admin-refero-visual-reset-20260816">
+/*
+ * 後台視覺基準：依既有 Refero 參考的白色畫布、深色文字、細框與緊湊密度。
+ * 本區只處理視覺與響應式排版，不改資料、事件或業務流程。
+ */
+html{background:#fff!important}
+body.doing-admin{
+  --admin-canvas:#fff;
+  --admin-surface:#ffffff;
+  --admin-ink:#38333f;
+  --admin-muted:#756e7b;
+  --admin-line:#e8e3eb;
+  --admin-accent:#8bcbd3;
+  --admin-blue:#c9eef2;
+  --admin-green:#d7efa9;
+  --admin-yellow:#f7e5a5;
+  --admin-purple:#e4cff4;
+  margin:0!important;background:#fff!important;color:#38333f!important;
+  font-family:Inter,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif!important
+}
+body.doing-admin::before,body.doing-admin::after,
+body.doing-admin .app::before,body.doing-admin .app::after,
+body.doing-admin .tabs::before,body.doing-admin .tabs::after,
+body.doing-admin .tabs .tab::before,body.doing-admin .tabs .tab::after{
+  content:none!important;display:none!important;background:none!important
+}
+body.doing-admin .topbar,body.doing-admin .topbar-in,
+body.doing-admin .app,body.doing-admin section[id^="page-"],
+body.doing-admin .page-title,body.doing-admin .finance-center-head{
+  background:#fff!important;background-image:none!important
+}
+body.doing-admin .topbar{
+  border:0!important;border-bottom:1px solid #dedede!important;
+  box-shadow:none!important;backdrop-filter:none!important
+}
+body.doing-admin .topbar-in{min-height:82px!important;padding:12px 24px!important}
+body.doing-admin .brand-title{font-size:24px!important;line-height:1.25!important;color:#38333f!important}
+body.doing-admin .brand-sub{font-size:16px!important;line-height:1.45!important;color:#756e7b!important}
+body.doing-admin .doing-logo{box-shadow:none!important;border:1px solid #dedede!important;background:#fff!important}
+body.doing-admin .doing-logo::before{background:#dceef2!important}
+body.doing-admin .doing-logo::after{background:#d5e8ec!important}
+
+body.doing-admin .app{padding:0 24px 48px!important}
+body.doing-admin .tabs{
+  position:sticky!important;top:0!important;z-index:20!important;
+  display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;
+  gap:0!important;width:100%!important;margin:0 0 20px!important;padding:0!important;
+  border:0!important;border-bottom:1px solid #dedede!important;border-radius:0!important;
+  background:#fff!important;background-image:none!important;box-shadow:none!important
+}
+body.doing-admin .tabs .tab{
+  min-height:58px!important;margin:0!important;padding:13px 10px!important;
+  border:0!important;border-bottom:3px solid transparent!important;border-radius:0!important;
+  background:#fff!important;background-image:none!important;box-shadow:none!important;
+  color:#5f6368!important;font-size:18px!important;font-weight:800!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important
+}
+body.doing-admin .tabs .tab.active{
+  border-bottom-color:#8bcbd3!important;background:#c9eef2!important;background-image:none!important;
+  color:#38333f!important;box-shadow:none!important
+}
+
+body.doing-admin button,body.doing-admin .btn{
+  min-height:48px!important;padding:10px 16px!important;
+  border:1px solid rgba(100,92,111,.16)!important;border-radius:14px!important;
+  background:#c9eef2!important;background-image:none!important;
+  box-shadow:0 6px 14px rgba(85,72,96,.08)!important;
+  color:#4b4651!important;font-size:17px!important;font-weight:900!important;line-height:1.35!important;
+  white-space:normal!important;overflow-wrap:anywhere!important;text-overflow:clip!important
+}
+body.doing-admin button:hover,body.doing-admin .btn:hover{transform:translateY(-1px)!important;filter:brightness(.98)!important;border-color:#a9cbd1!important}
+body.doing-admin button:focus-visible,body.doing-admin .btn:focus-visible,
+body.doing-admin input:focus-visible,body.doing-admin select:focus-visible,body.doing-admin textarea:focus-visible{
+  outline:3px solid #b8dbe2!important;outline-offset:2px!important
+}
+body.doing-admin .btn.danger,body.doing-admin button.danger{
+  background:#fff!important;color:#a33b3b!important;border-color:#d7aaaa!important
+}
+body.doing-admin .topbar .actions .btn{width:132px!important;min-width:132px!important;background:#c9eef2!important}
+body.doing-admin .topbar .actions .btn:nth-child(2){background:#d7efa9!important}
+body.doing-admin .topbar .actions .btn:nth-child(3){background:#f7e5a5!important}
+body.doing-admin .topbar .actions .btn:nth-child(4){background:#e4cff4!important}
+body.doing-admin .page-title{align-items:flex-end!important;margin:20px 0 14px!important}
+body.doing-admin .page-title h2,body.doing-admin .finance-center-head h2{
+  color:#38333f!important;font-size:clamp(28px,2.4vw,36px)!important;line-height:1.2!important
+}
+body.doing-admin .page-title .sub,body.doing-admin .finance-center-head p,
+body.doing-admin .sub,body.doing-admin .muted,body.doing-admin .meta{
+  color:#756e7b!important;font-size:16px!important;line-height:1.55!important
+}
+body.doing-admin .page-actions{gap:8px!important}
+body.doing-admin .page-actions .btn{min-width:132px!important}
+
+body.doing-admin input,body.doing-admin select,body.doing-admin textarea{
+  min-height:48px!important;border:1px solid #cfcfcf!important;border-radius:8px!important;
+  background:#fff!important;background-image:none!important;box-shadow:none!important;
+  color:#222!important;font-size:17px!important
+}
+body.doing-admin .filter-row,body.doing-admin .calendar-filters,
+body.doing-admin .finance-period-bar,body.doing-admin .finance-report-banner,
+body.doing-admin .report-card,body.doing-admin .card,body.doing-admin .session-card,
+body.doing-admin .settings-tile,body.doing-admin .doing-command,
+body.doing-admin .panel-head,body.doing-admin .panel-body,body.doing-admin .panel-bottom,
+body.doing-admin .login-card,body.doing-admin .login-info{
+  border:1px solid #e8e3eb!important;border-radius:20px!important;
+  background:#fff!important;background-image:none!important;
+  box-shadow:0 12px 30px rgba(89,74,99,.07)!important
+}
+body.doing-admin .filter-row{padding:10px!important}
+body.doing-admin .pill,body.doing-admin .chip,body.doing-admin .tag,
+body.doing-admin .calendar-filter,body.doing-admin .status{
+  border:1px solid #d7d7d7!important;border-radius:8px!important;
+  background:#fff!important;background-image:none!important;box-shadow:none!important;
+  color:#38333f!important
+}
+body.doing-admin .pill.pink,body.doing-admin .pill.blue,body.doing-admin .pill.green,
+body.doing-admin .pill.yellow,body.doing-admin .pill.purple,
+body.doing-admin .chip.pink,body.doing-admin .chip.blue,body.doing-admin .chip.green,
+body.doing-admin .chip.yellow,body.doing-admin .chip.purple{
+  background:#fff!important;color:#38333f!important
+}
+
+body.doing-admin #sessionList.session-list{
+  display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(460px,100%),1fr))!important;
+  gap:16px!important;width:100%!important
+}
+body.doing-admin #sessionList .session-card{min-width:0!important;width:100%!important}
+body.doing-admin #sessionList .session-head,body.doing-admin #sessionList .session3-info,
+body.doing-admin #sessionList .session3-content,body.doing-admin #sessionList .session3-thumb,
+body.doing-admin #sessionList .session-date-equip{
+  background:#fff!important;background-image:none!important;box-shadow:none!important
+}
+body.doing-admin #sessionList .session3-actions .btn{
+  min-width:0!important;padding:9px 8px!important;font-size:16px!important
+}
+body.doing-admin #sessionList .chip{min-height:64px!important;padding:10px!important}
+body.doing-admin #sessionList .chip b,body.doing-admin #sessionList .chip span{
+  color:#38333f!important;font-size:16px!important;line-height:1.35!important
+}
+body.doing-admin #sessionList .session-date-equip{
+  width:100%!important;max-width:100%!important;white-space:normal!important;overflow:visible!important
+}
+
+body.doing-admin #page-calendar .calendar-grid{background:#fff!important;border:1px solid #e8e3eb!important;border-radius:20px!important;padding:12px!important;box-shadow:0 12px 30px rgba(89,74,99,.07)!important}
+body.doing-admin #page-calendar .cal-week,body.doing-admin #page-calendar .cal-days{gap:6px!important}
+body.doing-admin #page-calendar .cal-cell{
+  border:1px solid #dedede!important;border-radius:8px!important;background:#fff!important;
+  background-image:none!important;box-shadow:none!important;color:#38333f!important
+}
+body.doing-admin #page-calendar .cal-cell.today{outline:2px solid #5f96a3!important}
+body.doing-admin #page-calendar .cal-cell.selected{border:2px solid #5f96a3!important}
+body.doing-admin #page-calendar .cal-item{background:#c9eef2!important;color:#38333f!important;border-radius:8px!important}
+
+body.doing-admin .settings-grid{gap:12px!important}
+body.doing-admin .settings-tile{text-align:left!important;min-height:108px!important;padding:16px!important}
+body.doing-admin .settings-tile b{color:#38333f!important;font-size:18px!important}
+body.doing-admin .settings-tile span{color:#756e7b!important;font-size:16px!important;line-height:1.45!important}
+body.doing-admin .toast{border-radius:8px!important;background:#222!important;color:#fff!important;box-shadow:none!important}
+
+@media(max-width:900px){
+  body.doing-admin .topbar-in{padding:10px 14px!important}
+  body.doing-admin .app{padding:0 12px 34px!important}
+  body.doing-admin .tabs{display:flex!important;overflow-x:auto!important;scroll-snap-type:x proximity!important}
+  body.doing-admin .tabs .tab{flex:0 0 104px!important;min-height:54px!important;font-size:17px!important;scroll-snap-align:start!important}
+  body.doing-admin .page-title{align-items:stretch!important;flex-direction:column!important}
+  body.doing-admin .page-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.doing-admin .page-actions .btn{width:100%!important;min-width:0!important}
+}
+@media(max-width:620px){
+  body.doing-admin .topbar-in{min-height:68px!important}
+  body.doing-admin .brand-title{font-size:20px!important}
+  body.doing-admin .actions{gap:6px!important}
+  body.doing-admin .topbar .actions .btn{width:auto!important;min-width:0!important;padding:8px 10px!important;font-size:16px!important}
+  body.doing-admin #sessionList.session-list{grid-template-columns:1fr!important}
+  body.doing-admin #sessionList .session3-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.doing-admin #page-calendar .calendar-grid{overflow-x:auto!important}
+}
+</style>
 </head>
-<body class="doing-app doing-admin">
+<body class="doing-admin doing-public-refactor-body">
 <section id="loginPage" class="login-wrap">
   <div class="login-card">
     <div class="login-mark doing-mark" aria-hidden="true"></div>
