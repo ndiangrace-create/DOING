@@ -2673,6 +2673,40 @@ async function getPlatformSetting(env,key,fallback={}){const rows=await dbGet(en
 const DEFAULT_PLATFORM_BILLING_POLICY=Object.freeze({freeActivityFee:200,bookingMonthlyFee:688,paidActivityRatePercent:1,noCap:true});
 function normalizePlatformBillingPolicy(raw={}){return {freeActivityFee:Math.max(0,Math.round(safeNum(raw.freeActivityFee??DEFAULT_PLATFORM_BILLING_POLICY.freeActivityFee))),bookingMonthlyFee:Math.max(0,Math.round(safeNum(raw.bookingMonthlyFee??DEFAULT_PLATFORM_BILLING_POLICY.bookingMonthlyFee))),paidActivityRatePercent:Math.max(0,Math.min(100,Math.round(safeNum(raw.paidActivityRatePercent??DEFAULT_PLATFORM_BILLING_POLICY.paidActivityRatePercent)*10000)/10000)),noCap:true}}
 async function platformBillingPolicy(env){return normalizePlatformBillingPolicy(await getPlatformSetting(env,'platform_billing_policy',DEFAULT_PLATFORM_BILLING_POLICY))}
+
+async function hGetPlatformServiceSales(env,p){
+  const pay=await verifyAdminJwt(p.token,env);
+  if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限',401);
+  const T=String(p.target_tenant_id||'').trim().toLowerCase();
+  if(!T)return jsonErr('請選擇主辦');
+  const rows=await dbGet(env,'billing_logs',`tenant_id=eq.${encodeURIComponent(T)}&status=eq.confirmed&select=id,billing_type,amount,total,note,confirmed_at,confirmed_by,created_at&order=created_at.desc&limit=100`).catch(()=>[]);
+  return jsonOk(rows.filter(x=>String(x.billing_type||'').startsWith('setup_feature:')).map(x=>{
+    const note=String(x.note||''),parts=note.split('｜');
+    return {id:x.id,billingType:x.billing_type,serviceName:parts.shift()||'平台服務',amount:safeNum(x.total||x.amount),note:parts.join('｜'),confirmedAt:x.confirmed_at||x.created_at,confirmedBy:x.confirmed_by||''};
+  }));
+}
+async function hRecordPlatformServiceSale(env,b){
+  const pay=await verifyAdminJwt(b.token,env);
+  if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限',401);
+  const T=String(b.target_tenant_id||'').trim().toLowerCase(),kind=['setup','module','custom'].includes(String(b.kind||''))?String(b.kind):'custom';
+  const name=String(b.name||'').trim().slice(0,100),amount=Math.max(0,Math.round(safeNum(b.amount))),moduleKey=String(b.moduleKey||'').trim(),note=String(b.note||'').trim().slice(0,500);
+  if(!T||!name)return jsonErr('請選擇主辦並填寫服務名稱');
+  const tenant=await dbGet(env,'tenants',`id=eq.${encodeURIComponent(T)}&select=id`).catch(()=>[]);
+  if(!tenant.length)return jsonErr('找不到主辦空間');
+  if(moduleKey&&!Object.prototype.hasOwnProperty.call(DEFAULT_TENANT_MODULE_FLAGS,moduleKey))return jsonErr('不支援的專業模組');
+  const now=nowIso(),id=genId('SVC'),code=(moduleKey||kind+'_'+id).replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80);
+  await dbInsert(env,'billing_logs',{id,tenant_id:T,billing_type:'setup_feature:'+kind+':'+code,amount,tax:0,total:amount,status:'confirmed',confirmed_at:now,confirmed_by:pay.email,period_start:now,period_end:null,note:name+(note?'｜'+note:''),created_at:now});
+  let flags=null;
+  if(moduleKey){
+    const current=await getTenantModuleFlags(env,T);flags={...current,[moduleKey]:true,registration:true};
+    const row=await getTenantSettingsRow(env,T);
+    if(row)await dbUpdate(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(T)}`,{module_flags_json:JSON.stringify(flags),updated_at:now});
+    else await dbInsert(env,'tenant_settings',{tenant_id:T,module_flags_json:flags,theme_json:{key:'cute_pastel',updatedAt:now}});
+  }
+  await writeAuditLog(env,T,pay.email||'','platform_super_admin','record_platform_service_sale','billing_logs',id,null,{kind,name,amount,moduleKey,note},{source:'platform.html'}).catch(()=>{});
+  return jsonOk({ok:true,id,flags});
+}
+
 async function hGetPlatformBillingPolicy(env,p){const pay=await verifyAdminJwt(p.token,env);if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限');return jsonOk(await platformBillingPolicy(env))}
 async function hGetPublicBillingPolicy(env){return jsonOk(await platformBillingPolicy(env))}
 async function hSavePlatformBillingPolicy(env,b){const pay=await verifyAdminJwt(b.token,env);if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限');const value=normalizePlatformBillingPolicy(b),now=nowIso(),rows=await dbGet(env,'platform_settings','setting_key=eq.platform_billing_policy&select=setting_key').catch(()=>[]);if(rows.length)await dbUpdate(env,'platform_settings','setting_key=eq.platform_billing_policy',{value_json:JSON.stringify(value),updated_by:pay.email,updated_at:now});else await dbInsert(env,'platform_settings',{setting_key:'platform_billing_policy',value_json:JSON.stringify(value),updated_by:pay.email,updated_at:now});await writeAuditLog(env,'platform',pay.email||'','platform_super_admin','save_platform_billing_policy','platform_settings','platform_billing_policy',null,value,{}).catch(()=>{});return jsonOk(value)}
@@ -9985,6 +10019,7 @@ async function routeGet(env, action, p, req) {
   if (action==='getPlatformDashboard') return await hGetPlatformDashboard(env,p);
   if (action==='getPlatformMembersAdmin') return await hGetPlatformMembersAdmin(env,p);
   if (action==='getPlatformBillingPolicy') return await hGetPlatformBillingPolicy(env,p);
+        if (action==='getPlatformServiceSales') return await hGetPlatformServiceSales(env,p);
   if (action==='getPublicBillingPolicy') return await hGetPublicBillingPolicy(env);
   if (action==='getPlatformSupportThreads') return await hGetPlatformSupportThreads(env,p);
   if (action==='getPlatformSupportMessages') return await hGetPlatformSupportMessages(env,p);
@@ -10139,6 +10174,7 @@ async function routePost(env, action, b, ctx, req) {
   if(action==='sendPlatformSupportMessage')return hSendPlatformSupportMessage(env,b);
   if(action==='markPlatformSupportRead')return hMarkPlatformSupportRead(env,b);
   if(action==='savePlatformTenantModules')return hSavePlatformTenantModules(env,b);
+      if(action==='recordPlatformServiceSale')return hRecordPlatformServiceSale(env,b);
   // DOING：寫入操作的租戶由 JWT / 場次 / 報名關聯解析；正式 handler 仍會做權限與 tenant 驗證。
   const TENANT = await resolveTenantForRequest(env, b, req);
   if (!TENANT) {
@@ -10407,6 +10443,7 @@ export default {
         if (act==='grantPartnerCredit') return await grantPartnerCredit(env, body);
         if (act==='saveStartupCreditPolicy') return await hSaveStartupCreditPolicy(env, body);
         if (act==='savePlatformBillingPolicy') return await hSavePlatformBillingPolicy(env, body);
+  if (act==='recordPlatformServiceSale') return await hRecordPlatformServiceSale(env, body);
         if (act==='confirmOperatingPayment') return await hConfirmOperatingPayment(env, body);
         if (act==='saveExposurePlanPlatform') return await hSaveExposurePlanPlatform(env, body);
         if (act==='savePlatformPublicProfile') return await hSavePlatformPublicProfile(env, body);
