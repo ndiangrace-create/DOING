@@ -301,7 +301,7 @@ body.doing-global-mode>.top,body.doing-global-mode>.bottom-nav{display:none!impo
 </style>
 
 <link rel="stylesheet" href="doing-system.css?v=20260814b">
-<link rel="stylesheet" href="doing-home-refresh.css?v=20260815r">
+<link rel="stylesheet" href="doing-home-refresh.css?v=20260815s">
 </head>
 <body>
 <nav id="doingGlobalFixedNav" class="doing-global-fixed-nav hidden" aria-label="DOING 快速功能">
@@ -496,6 +496,8 @@ async function apiGet(action,p={}){
   catch(e){if(e&&e.name==='AbortError')throw new Error('連線逾時（30 秒），請確認網路後重新操作。');throw e}finally{clearTimeout(timer)}
 }
 async function apiPost(action,b={}){
+  const memberToken=window.doingMemberToken&&window.doingMemberToken();
+  if(memberToken)b={...b,member_token:memberToken};
   const body={action,...b};if(state.tenant)body.tenant=state.tenant;
   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),30000);
   try{const resp=await fetch(API+'?action='+encodeURIComponent(action),{method:'POST',headers:{'Content-Type':'application/json;charset=UTF-8'},body:JSON.stringify(body),signal:ctl.signal});const d=await resp.json().catch(()=>({error:'伺服器回應格式錯誤'}));if(!resp.ok||d.error)throw new Error(d.error||'操作失敗');return d}
@@ -654,7 +656,7 @@ function setPage(p){
 document.querySelectorAll('.bottom-nav button').forEach(x=>x.onclick=()=>setPage(x.dataset.page));$('heroMyBtn').onclick=()=>setPage('my');$('memberLoginBtn').onclick=()=>setPage('my');
 $('globalMyNavBtn').onclick=()=>setPage('my');$('globalSupportNavBtn').onclick=()=>setPage('support');$('globalSearchNavBtn').onclick=()=>{setPage('sessions');setTimeout(()=>{$('doingGlobalSearchInput')?.focus();window.scrollTo({top:Math.max(0,($('doingGlobalArtHome')?.offsetTop||0)+window.innerHeight*.35),behavior:'smooth'})},30)};$('doingGlobalSearchGo').onclick=doGlobalSearch;$('doingGlobalSearchInput').onkeydown=e=>{if(e.key==='Enter')doGlobalSearch()};$('svgLineHotspot').onclick=()=>{const u=String(state.platformInfo?.officialLineUrl||'').trim();if(u)window.open(u,'_blank','noopener');else setPage('support')};
 $('payMethod').onchange=()=>{const bank=/ATM|銀行|轉帳|匯款/.test($('payMethod').value);$('payLast5').closest('.field').classList.toggle('hidden',!bank);};
-$('loadMyBtn').onclick=loadMy;async function loadMy(){const email=$('myEmail').value.trim(),phone=$('myPhone').value.trim();if(!email||!phone)return toast('請填 Email 與手機');state.myEmail=email;state.myPhone=phone;localStorage.setItem('doing_my_email',email);try{const rows=await apiGet(state.tenant?'getMyRegs':'getMyRegsGlobal',{email,phone});state.myRows=Array.isArray(rows)?rows:[];renderMy(state.myRows)}catch(e){$('myRecords').innerHTML='<div class="empty">'+esc(e.message)+'</div>';toast(e.message)}}
+$('loadMyBtn').onclick=loadMy;async function loadMy(){const profile=window.doingMemberProfile&&window.doingMemberProfile(),memberToken=window.doingMemberToken&&window.doingMemberToken();if(!profile||!memberToken)return window.doingRequireMember&&window.doingRequireMember(()=>loadMy());const email=String(profile.email||'').trim(),phone=String(profile.phone||'').trim();state.myEmail=email;state.myPhone=phone;try{const rows=await apiGet(state.tenant?'getMyRegs':'getMyRegsGlobal',{member_token:memberToken});state.myRows=Array.isArray(rows)?rows:[];renderMy(state.myRows)}catch(e){$('myRecords').innerHTML='<div class="empty">'+esc(e.message)+'</div>';toast(e.message)}}
 function bundleGroupRows(r,rows=state.myRows){
   const gid=String(r&&r.bundleGroupId||'');return gid?(rows||[]).filter(x=>String(x.bundleGroupId||'')===gid):[r];
 }
@@ -846,6 +848,6 @@ if(oauthLoginError && location.hash!=='#apply'){
   const clean=new URL(location.href);clean.searchParams.delete('login_error');history.replaceState({},'',clean.pathname+clean.search+clean.hash);
 }
 </script>
-<script src="doing-home-refresh.js?v=20260815r"></script>
+<script src="doing-home-refresh.js?v=20260815s"></script>
 </body>
 </html>

@@ -295,10 +295,17 @@ async function verifyAdminToken(token, email, tenantId, env) {
 function genId(prefix) {
   // 報名表 ID 縮短且可依時間排序（自行編排、不過長）；其餘 ID 維持原樣
   if (prefix === 'REG') {
-    return 'R' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2,4).toUpperCase();
+    return 'R' + Date.now().toString(36).toUpperCase() + crypto.randomUUID().replace(/-/g,'').slice(0,6).toUpperCase();
   }
   // H-04：改用 crypto.randomUUID，移除 4 碼尾碼碰撞風險
   return `${prefix}_${crypto.randomUUID().replace(/-/g, '').slice(0, 20)}`;
+}
+function secureRandomInt(min,max){
+  const lo=Math.ceil(Number(min)),hi=Math.floor(Number(max));
+  if(!Number.isFinite(lo)||!Number.isFinite(hi)||hi<lo)throw new Error('亂數範圍不正確');
+  const range=hi-lo+1,limit=Math.floor(0x100000000/range)*range,buf=new Uint32Array(1);
+  do{crypto.getRandomValues(buf)}while(buf[0]>=limit);
+  return lo+(buf[0]%range);
 }
 function isPaidStatus(v) {
   const s = String(v || '').trim();
@@ -1507,7 +1514,7 @@ async function hUndoPaymentReport(env, b){
   const rows=await dbGet(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.regId)}&select=*`);
   const reg=(rows||[])[0];
   if(!reg) return jsonErr('找不到報名紀錄');
-  const guard=regOwnerGuard(reg,b,'撤回付款回報'); if(guard) return guard;
+  const guard=await verifiedRegOwnerGuard(env,reg,b,'撤回付款回報'); if(guard) return guard;
   const ps=String(reg.payment_status||'');
   if(isPaidStatus(ps)) return jsonErr('主辦已確認入帳，無法撤回。若有問題請聯繫主辦');
   if(!/待確認|回報/.test(ps)) return jsonErr('目前狀態不需要撤回，可直接重新回報付款');
@@ -2362,10 +2369,11 @@ async function hPublicDiscovery(env,p){
 // 回傳的每一筆都必須是該本人自己的 registration。
 // 主辦後台完全不使用此 API，因此不會取得其他 Tenant 資料。
 async function hGetMyRegsGlobal(env,p){
-  const email=normEmail(p&&p.email),phone=normPhone(p&&p.phone);
-  if(!email||!phone)return jsonErr('請提供 Email 與手機，才能查詢我的報名／預約');
-  const candidates=await dbGet(env,'registrations',`email=ilike.${encodeURIComponent(email)}&select=*&order=created_at.desc&limit=500`).catch(()=>[]);
-  const regs=candidates.filter(r=>normEmail(r.email)===email&&phoneMatches(r.phone,phone));
+  const verified=await verifiedPlatformMember(env,p&&(p.member_token||p.memberToken||p.token));
+  if(!verified||!platformMemberComplete(verified.row))return jsonErr('會員登入已失效，請重新使用 LINE 登入');
+  const memberId=String(verified.row.id||'').trim();
+  if(!memberId)return jsonErr('找不到會員資料，請重新使用 LINE 登入');
+  const regs=await dbGet(env,'registrations',`platform_member_id=eq.${encodeURIComponent(memberId)}&select=*&order=created_at.desc&limit=500`).catch(()=>[]);
   if(!regs.length)return jsonOk([]);
   const tenantIds=[...new Set(regs.map(r=>String(r.tenant_id||'')).filter(Boolean))];
   const sessionIds=[...new Set(regs.map(r=>String(r.session_id||'')).filter(Boolean))];
@@ -2657,8 +2665,8 @@ async function hSavePromotionRule(env,b){
   return jsonOk({ok:true,id});
 }
 async function hDeletePromotionRule(env,b){const T=b._tenantId,id=String(b.id||'');const rows=await dbGet(env,'promotion_rules',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=session_id`).catch(()=>[]);if(!rows.length)return jsonErr('找不到優惠');if(!await verifyStaff(env,b.email,b.token,T,'sessions',String(rows[0].session_id||'')))return jsonErr('無權限');await dbDelete(env,'promotion_rules',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}`);return jsonOk({ok:true})}
-async function hGetMyRewards(env,p){const T=p._tenantId,email=normEmail(p.email),phone=normPhone(p.phone);if(!email||!phone)return jsonErr('請提供 Email 與手機');const m=await findVerifiedMemberByEmailPhone(env,T,email,phone);if(!m){const regs=await dbGet(env,'registrations',`tenant_id=eq.${encodeURIComponent(T)}&email=ilike.${encodeURIComponent(email)}&select=phone&limit=20`).catch(()=>[]);if(!regs.some(r=>phoneMatches(r.phone,phone)))return jsonErr('Email 或手機驗證失敗')}const rows=await dbGet(env,'reward_ledger',`tenant_id=eq.${encodeURIComponent(T)}&member_email=ilike.${encodeURIComponent(email)}&select=*&order=created_at.desc&limit=100`).catch(()=>[]);return jsonOk({balance:await rewardBalance(env,T,email),rows})}
-async function hGetMyNotifications(env,p){const T=p._tenantId,email=normEmail(p.email),phone=normPhone(p.phone);if(!email||!phone)return jsonErr('請提供 Email 與手機');const regs=await dbGet(env,'registrations',`tenant_id=eq.${encodeURIComponent(T)}&email=ilike.${encodeURIComponent(email)}&select=phone&limit=20`).catch(()=>[]);const m=await findVerifiedMemberByEmailPhone(env,T,email,phone).catch(()=>null);if(!m&&!regs.some(r=>phoneMatches(r.phone,phone)))return jsonErr('Email 或手機驗證失敗');return jsonOk(await dbGet(env,'notifications',`tenant_id=eq.${encodeURIComponent(T)}&member_email=ilike.${encodeURIComponent(email)}&select=*&order=created_at.desc&limit=100`).catch(()=>[]))}
+async function hGetMyRewards(env,p){const T=p._tenantId,verified=await verifiedPlatformMember(env,p&&(p.member_token||p.memberToken||p.token));if(!verified||!platformMemberComplete(verified.row))return jsonErr('會員登入已失效，請重新使用 LINE 登入');const email=normEmail(verified.row.email);const rows=await dbGet(env,'reward_ledger',`tenant_id=eq.${encodeURIComponent(T)}&member_email=ilike.${encodeURIComponent(email)}&select=*&order=created_at.desc&limit=100`).catch(()=>[]);return jsonOk({balance:await rewardBalance(env,T,email),rows})}
+async function hGetMyNotifications(env,p){const T=p._tenantId,verified=await verifiedPlatformMember(env,p&&(p.member_token||p.memberToken||p.token));if(!verified||!platformMemberComplete(verified.row))return jsonErr('會員登入已失效，請重新使用 LINE 登入');const email=normEmail(verified.row.email);return jsonOk(await dbGet(env,'notifications',`tenant_id=eq.${encodeURIComponent(T)}&member_email=ilike.${encodeURIComponent(email)}&select=*&order=created_at.desc&limit=100`).catch(()=>[]))}
 async function hGetNotificationsAdmin(env,p){const T=p._tenantId,sid=String(p.sessionId||'');if(!await verifyStaff(env,p.email,p.token,T,'announce',sid||undefined)&&!await verifyStaff(env,p.email,p.token,T,'sessions',sid||undefined))return jsonErr('無權限');let q=`tenant_id=eq.${encodeURIComponent(T)}&select=*&order=created_at.desc&limit=200`;if(sid)q=`tenant_id=eq.${encodeURIComponent(T)}&session_id=eq.${encodeURIComponent(sid)}&select=*&order=created_at.desc&limit=200`;return jsonOk(await dbGet(env,'notifications',q).catch(()=>[]))}
 
 async function getPlatformSetting(env,key,fallback={}){const rows=await dbGet(env,'platform_settings',`setting_key=eq.${encodeURIComponent(key)}&select=value_json`).catch(()=>[]);return rows.length?safeJson(rows[0].value_json,fallback):fallback}
@@ -2895,6 +2903,16 @@ function regOwnerGuard(reg, b, actionLabel){
   return null;
 }
 
+// 新版會員報名以 LINE 會員 Token 驗證；未回綁會員 ID 的歷史報名保留舊驗證。
+async function verifiedRegOwnerGuard(env, reg, b, actionLabel){
+  const memberId=String(reg&&reg.platform_member_id||'').trim();
+  if(!memberId)return regOwnerGuard(reg,b,actionLabel);
+  const verified=await verifiedPlatformMember(env,b&&(b.member_token||b.memberToken));
+  if(!verified)return jsonErr('會員登入已失效，請重新使用 LINE 登入');
+  if(String(verified.row&&verified.row.id||'').trim()!==memberId)return jsonErr('無權限'+actionLabel+'此報名');
+  return null;
+}
+
 async function findMemberByEmailOrPhone(env, tenantId, email, phone){
   const e = normEmail(email);
   const ph = normPhone(phone);
@@ -3005,44 +3023,17 @@ async function hSavePlatformMemberProfile(env,b){
 // getMyRegs
 async function hGetMyRegs(env, p) {
   const TENANT = (p && p._tenantId);
-  const email = normEmail(p && p.email);
-  const phone = normPhone(p && p.phone);
-  if (!email || !phone) return jsonErr('請提供 Email 與手機，才能查詢我的紀錄');
+  const verified=await verifiedPlatformMember(env,p&&(p.member_token||p.memberToken||p.token));
+  if(!verified||!platformMemberComplete(verified.row))return jsonErr('會員登入已失效，請重新使用 LINE 登入');
+  const platformMemberId=String(verified.row.id||'').trim();
+  const email=normEmail(verified.row.email);
+  if(!platformMemberId)return jsonErr('找不到會員資料，請重新使用 LINE 登入');
 
-  // 只用同一個 Email 的會員／報名進行驗證，避免「相同電話、不同 Email」被誤認為同一人。
-  const [memberRows, regsByEmail] = await Promise.all([
-    dbGet(env,'members',`tenant_id=eq.${TENANT}&email=ilike.${encodeURIComponent(email)}&select=*`),
-    dbGet(env,'registrations',`tenant_id=eq.${TENANT}&email=ilike.${encodeURIComponent(email)}&select=*&order=created_at.desc`),
-  ]);
-  let member = memberRows[0] || null;
-  const regMatched = regsByEmail.find(r=>phoneMatches(r.phone,phone));
-
-  if (member && !phoneMatches(member.phone,phone)) {
-    // 舊會員手機空白或格式不同時，可由自己既有報名紀錄完成補驗；真正不一致仍阻斷。
-    if (!regMatched) return jsonErr('Email 已存在，但手機與會員資料不一致，請確認報名時使用的手機號碼。');
-    try { await upsertMember(env,{_tenantId:TENANT,email,phone,name:regMatched.name||'',brand:regMatched.brand_name||'',brandIntro:regMatched.brand_intro||'',sellCat:regMatched.sell_category||'',photo:regMatched.photo_url||'',fb:regMatched.fb_url||'',ig:regMatched.ig_url||'',taxId:regMatched.tax_id||'',invoiceTitle:regMatched.invoice_title||'',invoiceEmail:regMatched.invoice_email||''}); } catch(e) {}
-  } else if (!member) {
-    if (regsByEmail.length && !regMatched) return jsonErr('查無符合 Email 與手機的報名紀錄，請確認是否與報名時一致。');
-    if (regMatched) {
-      try { await upsertMember(env,{_tenantId:TENANT,email,phone,name:regMatched.name||'',brand:regMatched.brand_name||'',brandIntro:regMatched.brand_intro||'',sellCat:regMatched.sell_category||'',photo:regMatched.photo_url||'',fb:regMatched.fb_url||'',ig:regMatched.ig_url||'',taxId:regMatched.tax_id||'',invoiceTitle:regMatched.invoice_title||'',invoiceEmail:regMatched.invoice_email||''}); } catch(e) {}
-    } else {
-      // 全新會員：建立最小會員紀錄，回傳空清單；「沒有舊報名」不是錯誤。
-      try { await upsertMember(env,{_tenantId:TENANT,email,phone,name:'',brand:'',brandIntro:'',sellCat:''}); }
-      catch(e) {
-        const again=await dbGet(env,'members',`tenant_id=eq.${TENANT}&email=ilike.${encodeURIComponent(email)}&select=phone`).catch(()=>[]);
-        if(again.length && !phoneMatches(again[0].phone,phone)) return jsonErr('Email 已存在，但手機與會員資料不一致。');
-      }
-    }
-  }
-
-  const [regsByMember, sessions, units] = await Promise.all([
-    dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&member_id=ilike.${encodeURIComponent(email)}&select=*&order=created_at.desc`).catch(()=>[]),
+  const [regs, sessions, units] = await Promise.all([
+    dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&platform_member_id=eq.${encodeURIComponent(platformMemberId)}&select=*&order=created_at.desc`).catch(()=>[]),
     dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&select=id,name,event_id,venue,dates_json,equip_json,basic_equip,seat_pricing_enabled,seat_hold_hours,seat_map_url,force_cancel,force_cancel_deadline,force_cancel_target_id,modules_json`),
     dbGet(env, 'operation_units', `tenant_id=eq.${TENANT}&select=*`).catch(()=>[]),
   ]);
-  const regMap = new Map();
-  [...regsByEmail, ...regsByMember].forEach(r=>{ if(r && r.id && phoneMatches(r.phone,phone)) regMap.set(String(r.id), r); });
-  const regs = Array.from(regMap.values()).sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
   const sMap = {}; sessions.forEach(s=>sMap[s.id]=s);const uMap={};units.forEach(u=>uMap[u.id]=u);
   return jsonOk(await Promise.all(regs.map(async r=>{
     const s = sMap[r.session_id]||{},u=uMap[r.operation_unit_id]||null;
@@ -3761,6 +3752,12 @@ async function hSelectLoginWorkspace(env, b) {
 
 // GET /auth/google/start
 async function hGoogleStart(env, url) {
+  // 會員端現階段只開放 LINE；Google 會員 OAuth 程式保留供未來啟用，不刪除也不從公開流程觸發。
+  if(String(url.searchParams.get('mode')||'').trim().toLowerCase()==='member'){
+    const target=new URL(url.searchParams.get('return_url')||frontSiteUrl(env));
+    target.searchParams.set('member_login_error','line_only');
+    return Response.redirect(target.toString(),302);
+  }
   const GOOGLE_CLIENT_ID = env.GOOGLE_CLIENT_ID;
   if (!GOOGLE_CLIENT_ID) {
     return new Response('Google OAuth 未設定：缺少 GOOGLE_CLIENT_ID', { status: 500 });
@@ -5531,8 +5528,8 @@ async function hOnsitePasscodeGenerate(env, b) {
   const existing = await dbGet(env, 'onsite_passcodes', `tenant_id=eq.${TENANT}&active=eq.true&select=code`).catch(() => []);
   const used = new Set(existing.map(x => String(x.code)));
   let code = '';
-  for (let i = 0; i < 60; i++) { const c = String(Math.floor(1000 + Math.random() * 9000)); if (!used.has(c)) { code = c; break; } }
-  if (!code) code = String(Math.floor(1000 + Math.random() * 9000));
+  for (let i = 0; i < 60; i++) { const c = String(secureRandomInt(1000,9999)); if (!used.has(c)) { code = c; break; } }
+  if (!code) code = String(secureRandomInt(1000,9999));
   await dbUpdate(env, 'onsite_passcodes', `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sessionId)}&active=eq.true`, { active: false, updated_at: nowIso() }).catch(() => {});
   const id = genId('PC');
   await dbInsert(env, 'onsite_passcodes', { id, tenant_id: TENANT, session_id: sessionId, code, open_from: openFrom, open_until: openUntil, active: true, created_at: nowIso(), updated_at: nowIso() });
@@ -6178,7 +6175,7 @@ async function prepareRegistration(env, b) {
   const row = {
     id, tenant_id:TENANT, bundle_id:b.bundleId||'', bundle_group_id:b.bundleGroupId||'',
     session_id:b.sessionId, operation_unit_id:operationUnit?operationUnit.id:null, booking_calendar_id:moduleSnapshot.bookingCalendarId||null, event_id:cleanEventId(ses.event_id),
-    email:b.email, member_id:b.email, name:b.name, phone:String(b.phone||''),
+    email:b.email, platform_member_id:b.platformMemberId||null, name:b.name, phone:String(b.phone||''),
     brand_name:b.brand||'', brand_intro:b.brandIntro||'',
     sell_category:b.sellCategory||b.sellCat||'', sell_items:b.sellItems||b.sellItem||'',
     sell_link:b.sellLink||'', photo_url:b.photo||'', fb_url:b.fb||'', ig_url:b.ig||'',
@@ -6276,6 +6273,7 @@ async function hRegisterBundle(env,b,ctx){
   const memberVerified=await verifiedPlatformMember(env,b.member_token||b.memberToken);
   if(!memberVerified||!platformMemberComplete(memberVerified.row))return jsonErr('請先登入並完成 DOING 會員資料');
   if(normEmail(memberVerified.row.email)!==b.email||!phoneMatches(memberVerified.row.phone,b.phone))return jsonErr('報名聯絡資料必須與登入中的會員資料一致');
+  b.platformMemberId=String(memberVerified.row.id||'');
   const bundleId=String(b.bundleId||'');
   const rows=await dbGet(env,'session_bundles',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(bundleId)}&active=eq.true&select=*`);
   if(!rows.length)return jsonErr('找不到兩場組合方案');
@@ -6363,6 +6361,7 @@ async function hRegister(env, b, ctx) {
   const memberVerified=await verifiedPlatformMember(env,b.member_token||b.memberToken);
   if(!memberVerified||!platformMemberComplete(memberVerified.row))return jsonErr('請先登入並完成 DOING 會員資料');
   if(normEmail(memberVerified.row.email)!==normEmail(b.email)||!phoneMatches(memberVerified.row.phone,b.phone))return jsonErr('報名聯絡資料必須與登入中的會員資料一致');
+  b.platformMemberId=String(memberVerified.row.id||'');
   const prep = await prepareRegistration(env, b);
   if (prep.error) return jsonErr(prep.error);
   const { ses, id, row, meta } = prep;
@@ -6599,7 +6598,7 @@ async function hCancelReg(env, b) {
   const rows = await dbGet(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.regId)}&select=*`);
   if(!rows.length) return jsonErr('找不到報名');
   const reg=rows[0];
-  const own=regOwnerGuard(reg,b,'取消'); if(own) return own;
+  const own=await verifiedRegOwnerGuard(env,reg,b,'取消'); if(own) return own;
   if(isPaidStatus(_payStatus(reg)) || safeNum(reg.paid_amount)>0) return jsonErr('已有實收金額，請走退款申請流程');
   if(isCapacityInactiveTransferStatus(reg.transfer_status)) return jsonErr('此報名已進入退款或退費完成流程，不能用取消流程處理');
   const group=await getBundleGroupRegs(env,TENANT,reg);
@@ -7072,7 +7071,7 @@ async function hClaimPaidSeat(env,b){
   const reg=regRows[0];
   if(isPaidSeatHoldExpired(reg)){ await releasePaidSeatHold(env,TENANT,reg,'expired_before_claim'); return jsonErr('原選位保留已逾期，位置已釋出，請重新整理後再選擇位置。'); }
   if(String(reg.session_id||'')!==String(b.sessionId||'')) return jsonErr('報名與場次不一致');
-  const own=regOwnerGuard(reg,b,'選擇位置的'); if(own) return own;
+  const own=await verifiedRegOwnerGuard(env,reg,b,'選擇位置的'); if(own) return own;
   if(String(reg.review_status||'')!=='已錄取') return jsonErr('尚未錄取，不能加價選位');
   if(String(reg.payment_status||'')==='免費') return jsonErr('免費報名不開放加價選位');
   if(String(reg.payment_status||'')==='待確認'||String(reg.payment_status||'')==='付款待確認') return jsonErr('付款正在確認中，請先等待主辦確認後再選位');
@@ -7275,7 +7274,7 @@ async function hSubmitPaymentBatch(env, b) {
     const reg = rows[0];
     // B-03：每一筆都要用同一組 b.email＋b.phone 驗；任一筆非本人，整批立即失敗。
     // 此迴圈只做驗證與試算，不寫入任何資料，所以不會出現「前幾筆已改、後面才失敗」。
-    const _ownBatch = regOwnerGuard(reg, b, '回報付款的'); if (_ownBatch) return _ownBatch;
+    const _ownBatch = await verifiedRegOwnerGuard(env,reg,b,'回報付款的'); if (_ownBatch) return _ownBatch;
     if (reg.review_status !== '已錄取') return jsonErr('有場次尚未錄取，無法合併繳費');
     const _totalAmount=Number(reg.total_amount)||Number(reg.amount)||0;
     const _paidAmount=Number(reg.paid_amount)||0;
@@ -7357,7 +7356,7 @@ async function hSubmitPayment(env, b) {
   const rows = await dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.regId)}&select=*`);
   if (!rows.length) return jsonErr('找不到報名紀錄');
   const reg = rows[0];
-  const _ownPay = regOwnerGuard(reg, b, '回報付款的'); if (_ownPay) return _ownPay;
+  const _ownPay = await verifiedRegOwnerGuard(env,reg,b,'回報付款的'); if (_ownPay) return _ownPay;
   if (reg.review_status!=='已錄取') return jsonErr('尚未錄取，無法回報繳費');
   const _totalDueBase=Number(reg.total_amount)||Number(reg.amount)||0;
   const _alreadyPaid=Number(reg.paid_amount)||0;
@@ -9150,7 +9149,7 @@ async function hAgreeTransfer(env, b) {
   await dbInsert(env,'registrations',{
     id:newRegId, tenant_id:TENANT,
     session_id:b.targetSessionId, event_id:cleanEventId(newSes.event_id),
-    email:reg.email, name:reg.name, phone:reg.phone,
+    email:reg.email, platform_member_id:reg.platform_member_id||null, name:reg.name, phone:reg.phone,
     brand_name:reg.brand_name||'', brand_intro:reg.brand_intro||'',
     sell_category:reg.sell_category||'', sell_items:reg.sell_items||'',
     sell_link:reg.sell_link||'', photo_url:reg.photo_url||'',
@@ -9253,7 +9252,7 @@ function _replaceDoingModuleSnapshot(reg, mutate){
 }
 async function hRescheduleBooking(env,b){
   const T=b._tenantId,rows=await dbGet(env,'registrations',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(b.regId)}&select=*`);if(!rows.length)return jsonErr('找不到預約');
-  const reg=rows[0],own=regOwnerGuard(reg,b,'改期的');if(own)return own;
+  const reg=rows[0],own=await verifiedRegOwnerGuard(env,reg,b,'改期的');if(own)return own;
   if(['已取消','不錄取'].includes(String(reg.review_status||''))||['已退費','已退款'].includes(String(reg.transfer_status||'')))return jsonErr('此預約已結束，不能改期');
   const sesRows=await dbGet(env,'sessions',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(reg.session_id)}&select=*`);if(!sesRows.length)return jsonErr('找不到預約場次');
   const ses=sesRows[0],unit=reg.operation_unit_id?await getOperationUnitRow(env,T,reg.operation_unit_id,reg.session_id):null,mods=normalizeSessionModules(unit?safeJson(unit.modules_json,{}):safeJson(ses.modules_json,{}));if(!mods.workshopSlots&&!String(mods.operatingMode||'').includes('booking'))return jsonErr('此報名不是時段預約型');
@@ -9300,7 +9299,7 @@ async function hApplyRefund(env, b) {
   const TENANT=(b&&b._tenantId);
   const rows=await dbGet(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.regId)}&select=*`);
   if(!rows.length)return jsonErr('找不到報名');
-  const reg=rows[0],own=regOwnerGuard(reg,b,'申請退款的');if(own)return own;
+  const reg=rows[0],own=await verifiedRegOwnerGuard(env,reg,b,'申請退款的');if(own)return own;
   if(['已退費','refunded'].includes(String(reg.transfer_status||'')))return jsonErr('此報名已完成退費');
 
   const group=await getBundleGroupRegs(env,TENANT,reg);
@@ -9648,7 +9647,7 @@ async function sourceConfirmedPaymentForTransfer(env,T,regId){
 async function hAgreeForceTransfer(env,b){
   const TENANT=b&&b._tenantId;if(!b.regId)return jsonErr('請提供報名編號');
   const rows=await dbGet(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.regId)}&select=*`);if(!rows.length)return jsonErr('找不到報名');
-  const reg=rows[0],own=regOwnerGuard(reg,b,'延期的');if(own)return own;
+  const reg=rows[0],own=await verifiedRegOwnerGuard(env,reg,b,'延期的');if(own)return own;
   const sesRows=await dbGet(env,'sessions',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(reg.session_id)}&select=*`);if(!sesRows.length)return jsonErr('找不到原場次');
   const ses=sesRows[0],targetSesId=ses.force_cancel_target_id;
   if(!ses.force_cancel)return jsonErr('此場次尚未啟動不可抗力處理');
@@ -9681,7 +9680,7 @@ async function hAgreeForceTransfer(env,b){
       id:newRegId,tenant_id:TENANT,
       bundle_id:reg.bundle_id||'',bundle_group_id:reg.bundle_group_id||'',
       session_id:targetSesId,event_id:cleanEventId(tgt.event_id),
-      email:reg.email,member_id:reg.member_id||reg.email,name:reg.name,phone:reg.phone||'',
+      email:reg.email,platform_member_id:reg.platform_member_id||null,name:reg.name,phone:reg.phone||'',
       brand_name:reg.brand_name||'',brand_intro:reg.brand_intro||'',
       sell_category:reg.sell_category||'',sell_items:reg.sell_items||'',sell_link:reg.sell_link||'',
       photo_url:reg.photo_url||'',fb_url:reg.fb_url||'',ig_url:reg.ig_url||'',
@@ -9780,7 +9779,7 @@ async function hAgreeForceTransfer(env,b){
 async function hApplyForceRefundFM(env,b){
   const TENANT=b&&b._tenantId;if(!b.regId)return jsonErr('請提供報名編號');
   const rows=await dbGet(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.regId)}&select=*`);if(!rows.length)return jsonErr('找不到報名');
-  const reg=rows[0],own=regOwnerGuard(reg,b,'申請不可抗力退費的');if(own)return own;
+  const reg=rows[0],own=await verifiedRegOwnerGuard(env,reg,b,'申請不可抗力退費的');if(own)return own;
   const sr=await dbGet(env,'sessions',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(reg.session_id)}&select=*`),ses=sr[0]||{};
   if(!ses.force_cancel)return jsonErr('此場次尚未啟動不可抗力處理');if(ses.force_cancel_deadline&&new Date()>new Date(ses.force_cancel_deadline))return jsonErr('選擇期限已過');
   if(String(reg.transfer_status||'')==='已延期')return jsonErr('此報名已完成延期，不能申請退費');
