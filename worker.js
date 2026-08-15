@@ -1865,9 +1865,16 @@ async function hSaveTenantModuleProfile(env,b){
 }
 
 const TENANT_THEME_KEYS=new Set(['cute_pastel','fresh_minimal','mono_anime','warm_handmade','vivid_pop']);
+function normalizeTenantFaqs(raw){
+  const rows=Array.isArray(raw)?raw:[];
+  return rows.slice(0,12).map(x=>({
+    question:String(x&&x.question||'').trim().slice(0,120),
+    answer:String(x&&x.answer||'').trim().slice(0,1200)
+  })).filter(x=>x.question&&x.answer);
+}
 function normalizeTenantTheme(raw){
   const v=(raw&&typeof raw==='object'&&!Array.isArray(raw))?raw:safeJson(raw,{});
-  const key=TENANT_THEME_KEYS.has(String(v.key||''))?String(v.key):'cute_pastel';
+  const key=TENANT_THEME_KEYS.has(String(v.key||''))?String(v.key):'fresh_minimal';
   return {key,updatedAt:String(v.updatedAt||'')};
 }
 async function getTenantTheme(env,tenantId){
@@ -1898,7 +1905,7 @@ async function hSavePlatformTenantModules(env,b){
   flags.registration=true;
   const row=await getTenantSettingsRow(env,T);
   if(row)await dbUpdate(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(T)}`,{module_flags_json:JSON.stringify(flags),updated_at:nowIso()});
-  else await dbInsert(env,'tenant_settings',{tenant_id:T,module_flags_json:flags,theme_json:{key:'cute_pastel',updatedAt:nowIso()}});
+  else await dbInsert(env,'tenant_settings',{tenant_id:T,module_flags_json:flags,theme_json:{key:'fresh_minimal',updatedAt:nowIso()}});
   await writeAuditLog(env,T,jwt.email||'','platform_super_admin','approve_tenant_modules','tenant_settings',T,current,flags).catch(()=>{});return jsonOk({flags});
 }
 
@@ -2020,8 +2027,10 @@ async function getTenantCtx(env, tenantId) {
     emailReplyTo: t.email_reply_to || FALLBACK_EMAIL_REPLY,
     footer:     t.footer_text || (t.name || FALLBACK_TENANT_NAME) + '　All rights reserved.',
     color:      cfg.brandColor || '#2d6a4f',
+    logoUrl:    cfg.logoUrl || '',
     heroImg:    cfg.heroImg  || '',
     infoText:   cfg.infoText || '',
+    faqs:       normalizeTenantFaqs(cfg.faqs),
     defaultRefundRules: safeJson(t.default_refund_rules_json, DEFAULT_REFUND_RULES),
     paymentConfig: safeJson(t.payment_config_json, {}),
     moduleFlags,
@@ -2774,6 +2783,8 @@ async function hFrontBootstrap(env, p) {
       slug:     tc.slug,
       heroImg:  tc.heroImg,
       infoText: tc.infoText,
+      faqs:     tc.faqs,
+      logoUrl:  tc.logoUrl,
       lineUrl:  tc.lineUrl,
       bankInfo: tc.bankInfo,
       color:    tc.color,
@@ -5925,6 +5936,7 @@ async function hGetSiteConfig(env, p) {
   const cfg = safeJson(rows[0].config_json, {});
   return jsonOk({
     heroImg:cfg.heroImg||'', logoUrl:cfg.logoUrl||'', infoText:cfg.infoText||'',
+    faqs:normalizeTenantFaqs(cfg.faqs),
     lineUrl:rows[0].line_url||'',
     bankInfo:rows[0].bank_info||'',
     i18n:(cfg.i18n&&typeof cfg.i18n==='object')?cfg.i18n:{enabled:false,defaultLanguage:'zh-TW',languages:['zh-TW']},
@@ -8720,6 +8732,7 @@ async function hSaveSiteConfig(env, b) {
   if ('heroImg' in b) config.heroImg = b.heroImg || '';
   if ('infoText' in b) config.infoText = b.infoText || '';
   if ('logoUrl' in b) config.logoUrl = b.logoUrl || '';
+  if ('faqs' in b) config.faqs = normalizeTenantFaqs(b.faqs);
   if ('i18n' in b && b.i18n && typeof b.i18n==='object') {
     const langs=Array.isArray(b.i18n.languages)?b.i18n.languages.map(String).filter(Boolean):['zh-TW'];
     if(!langs.includes('zh-TW'))langs.unshift('zh-TW');

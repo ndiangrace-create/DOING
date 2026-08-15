@@ -49,6 +49,8 @@ jobs:
           NODE
       - name: Validate capability world map
         run: node scripts/validate-capabilities.mjs
+      - name: Validate platform tenant member UX
+        run: node scripts/validate-platform-tenant-ux.mjs
       - name: Verify unified visual shell and private long press
         run: |
           for page in member.html admin.html onsite.html platform.html photo.html; do

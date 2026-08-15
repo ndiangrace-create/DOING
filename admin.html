@@ -1730,7 +1730,7 @@ table{width:100%!important}
 <section id="adminPage" class="hidden">
   <header class="topbar"><div class="topbar-in">
     <div class="brand"><div class="logo doing-logo" aria-hidden="true"></div><div><div class="brand-title">DOING 活動營運管理系統</div><div id="whoText" class="brand-sub">尚未登入</div></div></div>
-    <div class="actions"><button class="btn secondary small" onclick="openSupportCenter()">系統客服 <span id="supportUnreadBadge" class="doing-unread">0</span></button><button class="btn secondary small hide-sm" onclick="refreshCurrentPage()">重新整理</button><button class="btn secondary small" onclick="openOnsiteWorkerPage()">現場入口</button><button class="btn gray small" onclick="logout()">登出</button></div>
+    <div class="actions"><a class="btn secondary small hidden" id="platformReturnBtn" href="platform.html">回到平台總管</a><button class="btn secondary small" onclick="openSupportCenter()">系統客服 <span id="supportUnreadBadge" class="doing-unread">0</span></button><button class="btn secondary small hide-sm" onclick="refreshCurrentPage()">重新整理</button><button class="btn secondary small" onclick="openOnsiteWorkerPage()">現場入口</button><button class="btn gray small" onclick="logout()">登出</button></div>
   </div></header>
   <main class="app">
     <nav class="tabs" aria-label="DOING 後台主選單">
@@ -1974,6 +1974,7 @@ async function enterAdmin(){
   $('loginPage').classList.add('hidden');
   $('adminPage').classList.remove('hidden');
   $('whoText').textContent=(AdminState.name||AdminState.email||'主辦管理者');
+  $('platformReturnBtn')?.classList.toggle('hidden',!isPlatformSuperAdmin());
   installDoingSettingsTiles();
   loadTenantTheme().catch(()=>{});
   startSupportUnreadPolling();
@@ -3497,13 +3498,13 @@ const DOING_TENANT_THEMES=[
   {key:'warm_handmade',name:'自然手作',desc:'米杏、陶土與溫暖紙張質感',cls:'theme-warm'},
   {key:'vivid_pop',name:'活力潮流',desc:'高彩撞色、貼紙感與明快節奏',cls:'theme-pop'}
 ];
-let DoingTenantTheme='cute_pastel',SupportThreads=[],SupportMessages=[],ActiveSupportThread='',SupportPollTimer=null,SupportDraft=null;
+let DoingTenantTheme='fresh_minimal',SupportThreads=[],SupportMessages=[],ActiveSupportThread='',SupportPollTimer=null,SupportDraft=null;
 function installDoingSettingsTiles(){
   const grid=document.querySelector('#page-settings .settings-grid');if(!grid||grid.querySelector('[data-doing-setting]'))return;
-  const wrap=document.createElement('div');wrap.style.display='contents';wrap.innerHTML='<button class="settings-tile" data-doing-setting="theme" onclick="openTenantThemeSettings()"><div class="ico">🎨</div><b>品牌風格</b><span>五種版型，一鍵套用相同功能</span></button><button class="settings-tile" data-doing-setting="support" onclick="openSupportCenter()"><div class="ico">💌</div><b>系統客服</b><span>直接與 DOING 平台對話</span></button>';grid.prepend(...wrap.children);
+  const wrap=document.createElement('div');wrap.style.display='contents';wrap.innerHTML='<button class="settings-tile" data-doing-setting="theme" onclick="openTenantThemeSettings()"><div class="ico">🎨</div><b>品牌風格</b><span>五種版型，一鍵套用相同功能</span></button><button class="settings-tile" data-doing-setting="faq" onclick="openTenantFaqSettings()"><div class="ico">❓</div><b>前台客服／常見問題</b><span>由你提供給報名者的正式說明</span></button><button class="settings-tile" data-doing-setting="support" onclick="openSupportCenter()"><div class="ico">💌</div><b>系統客服</b><span>直接與 DOING 平台對話</span></button>';grid.prepend(...wrap.children);
 }
 async function loadTenantTheme(){
-  const t=await api({action:'getTenantTheme'});DoingTenantTheme=String(t?.key||'cute_pastel');document.documentElement.dataset.doingTheme=DoingTenantTheme;return t;
+  const t=await api({action:'getTenantTheme'});DoingTenantTheme=String(t?.key||'fresh_minimal');document.documentElement.dataset.doingTheme=DoingTenantTheme;return t;
 }
 function renderTenantThemeSettings(){
   $('panelBody').innerHTML='<div class="notice"><b>選一個最像你的空間</b><br>版型只改顏色、裝飾與氣氛；報名、付款、會員、通知與客服功能的位置和操作都不會改變。</div><div class="doing-theme-grid">'+DOING_TENANT_THEMES.map(t=>'<button type="button" class="doing-theme-card '+t.cls+' '+(DoingTenantTheme===t.key?'active':'')+'" onclick="saveTenantTheme(\''+t.key+'\',this)"><span class="preview"><i></i><span></span></span><span><b>'+safe(t.name)+'</b><small>'+safe(t.desc)+'</small></span></button>').join('')+'</div>';
@@ -3516,6 +3517,19 @@ async function saveTenantTheme(key,btn){
   const old=btn.textContent;btn.disabled=true;
   try{const t=await apiPost({action:'saveTenantTheme',themeKey:key});DoingTenantTheme=String(t?.key||key);document.documentElement.dataset.doingTheme=DoingTenantTheme;renderTenantThemeSettings();toast('品牌風格已套用，功能與資料都保持不變')}
   catch(e){toast('套用失敗：'+e.message,7000);btn.disabled=false;btn.textContent=old}
+}
+async function openTenantFaqSettings(){
+  openPanel('前台客服／常見問題','這些內容顯示在你的活動入口，只回答你自己的活動、付款、退款、位置與聯絡方式。','<div class="loading">正在讀取常見問題…</div>');
+  try{
+    const c=await api({action:'getSiteConfig'}),rows=Array.isArray(c.faqs)?c.faqs:[];
+    $('panelBody').innerHTML='<div class="notice"><b>這裡不是 DOING 系統客服。</b><br>請填寫報名者最常問你的問題；最多 8 題，空白項目不會顯示。</div><div id="tenantFaqEditor">'+Array.from({length:8},(_,i)=>{const x=rows[i]||{};return '<div class="report-card" style="margin-top:10px"><div class="report-title">問題 '+(i+1)+'</div><div class="form-grid"><div class="form-field full"><label>問題</label><input data-faq-question value="'+attr(x.question||'')+'" placeholder="例如：付款後多久會確認？"></div><div class="form-field full"><label>回答</label><textarea data-faq-answer placeholder="請填寫本主辦的正式處理方式">'+safe(x.answer||'')+'</textarea></div></div></div>'}).join('')+'</div><div class="card-actions"><button class="btn" onclick="saveTenantFaqSettings(this)">儲存前台常見問題</button></div>';
+  }catch(e){$('panelBody').innerHTML='<div class="empty">常見問題載入失敗：'+safe(e.message)+'</div>'}
+}
+async function saveTenantFaqSettings(btn){
+  const cards=[...document.querySelectorAll('#tenantFaqEditor .report-card')],faqs=cards.map(card=>({question:card.querySelector('[data-faq-question]')?.value.trim()||'',answer:card.querySelector('[data-faq-answer]')?.value.trim()||''})).filter(x=>x.question||x.answer);
+  if(faqs.some(x=>!x.question||!x.answer))return toast('每一題都要同時填寫問題與回答',6000);
+  const old=btn.textContent;btn.disabled=true;btn.textContent='儲存中…';
+  try{await apiPost({action:'saveSiteConfig',faqs});toast('前台常見問題已儲存');await openTenantFaqSettings()}catch(e){toast('儲存失敗：'+e.message,7000)}finally{btn.disabled=false;btn.textContent=old}
 }
 function supportUnreadTotal(){return SupportThreads.reduce((n,t)=>n+Number(t.tenant_unread_count||0),0)}
 function paintSupportBadge(){const n=supportUnreadTotal(),el=$('supportUnreadBadge');if(!el)return;el.textContent=String(n>99?'99+':n);el.classList.toggle('show',n>0)}

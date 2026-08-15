@@ -1,14 +1,15 @@
 /* DOING unified visual system — public, tenant admin, platform and utility pages */
 :root{
-  --doing-bg:#fff9f8;--doing-paper:#fffdfd;--doing-ink:#38333f;--doing-muted:#756e7b;
-  --doing-line:rgba(105,83,116,.16);--doing-primary:#df7db5;--doing-primary-dark:#bd5f95;
-  --doing-blue:#bfeaf7;--doing-pink:#ffd3e5;--doing-yellow:#ffe77f;--doing-green:#dff3b7;--doing-purple:#e4d2f7;
-  --doing-radius:24px;--doing-shadow:0 18px 48px rgba(95,73,108,.12);
+  --doing-bg:#f7fbfa;--doing-paper:#fff;--doing-ink:#24363a;--doing-muted:#6d7b7d;
+  --doing-line:#dbe8e6;--doing-primary:#65b9b4;--doing-primary-dark:#388e8b;
+  --doing-blue:#dff4f4;--doing-pink:#f7e9ed;--doing-yellow:#f4edcf;--doing-green:#e0f1e8;--doing-purple:#e9e7f2;
+  --doing-radius:18px;--doing-shadow:0 12px 34px rgba(45,77,78,.08);
   --bg:var(--doing-bg);--paper:var(--doing-paper);--ink:var(--doing-ink);--muted:var(--doing-muted);--line:var(--doing-line);
   --main:var(--doing-primary);--main2:var(--doing-primary-dark);--brand:var(--doing-primary);--brand-dark:var(--doing-primary-dark);
   --blue:var(--doing-blue);--pink:var(--doing-pink);--yellow:var(--doing-yellow);--green:var(--doing-green);--mint:var(--doing-green);--purple:var(--doing-purple);
   --shadow:var(--doing-shadow);--shadow2:0 26px 70px rgba(95,73,108,.2)
 }
+html[data-doing-theme="cute_pastel"]{--doing-bg:#fffafa;--doing-paper:#fff;--doing-ink:#3f3944;--doing-muted:#756f7a;--doing-line:#eadfe5;--doing-primary:#c982aa;--doing-primary-dark:#a85f88;--doing-blue:#d9eff5;--doing-pink:#f5dce7;--doing-yellow:#f5e9bd;--doing-green:#e4efcf;--doing-purple:#e8dcf0;--doing-radius:22px;--doing-shadow:0 14px 36px rgba(85,67,94,.09)}
 html[data-doing-theme="fresh_minimal"]{--doing-bg:#f7fbfa;--doing-paper:#fff;--doing-ink:#24363a;--doing-muted:#6d7b7d;--doing-line:#dbe8e6;--doing-primary:#65b9b4;--doing-primary-dark:#388e8b;--doing-blue:#dff4f4;--doing-pink:#f7e9ed;--doing-yellow:#f4edcf;--doing-green:#e0f1e8;--doing-purple:#e9e7f2;--doing-radius:18px;--doing-shadow:0 12px 34px rgba(45,77,78,.08)}
 html[data-doing-theme="mono_anime"]{--doing-bg:#f4f4f4;--doing-paper:#fff;--doing-ink:#171717;--doing-muted:#626262;--doing-line:#222;--doing-primary:#202020;--doing-primary-dark:#000;--doing-blue:#e8e8e8;--doing-pink:#f2f2f2;--doing-yellow:#dedede;--doing-green:#ededed;--doing-purple:#d9d9d9;--doing-radius:12px;--doing-shadow:7px 7px 0 #1b1b1b}
 html[data-doing-theme="warm_handmade"]{--doing-bg:#fbf6ed;--doing-paper:#fffdf7;--doing-ink:#493d33;--doing-muted:#7f6f60;--doing-line:#e3d2bc;--doing-primary:#cc8b61;--doing-primary-dark:#9a6849;--doing-blue:#dce9e2;--doing-pink:#efd9cd;--doing-yellow:#f3dfaa;--doing-green:#dce5c8;--doing-purple:#dfd3df;--doing-radius:20px;--doing-shadow:0 16px 36px rgba(100,73,51,.12)}
