@@ -524,7 +524,7 @@
         {
           "label": "主辦、財務、場次與現場角色",
           "status": "done",
-          "evidence": "staff roles"
+          "evidence": "ADMIN_ROLE_PAGES / TENANT_ROLE_ALLOW / validate-role-module-access"
         },
         {
           "label": "依系列或指定場次授權",
@@ -533,7 +533,8 @@
         },
         {
           "label": "停用人員後權限驗證",
-          "status": "verify"
+          "status": "done",
+          "evidence": "enforceTenantRole 回查 staff active 狀態"
         }
       ]
     },

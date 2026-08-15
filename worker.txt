@@ -1883,7 +1883,7 @@ async function hGetTenantModuleProfile(env,p){
   return jsonOk({...profile,approvedFlags});
 }
 async function hSaveTenantModuleProfile(env,b){
-  const T=b._tenantId; if(!await verifyStaff(env,b.email,b.token,T)) return jsonErr('無權限');
+  const T=b._tenantId; if(!await verifyStaff(env,b.email,b.token,T,'superadmin')) return jsonErr('只有租戶負責人可修改新場次預設');
   const rows=await dbGet(env,'tenants',`id=eq.${encodeURIComponent(T)}&select=config_json`); if(!rows.length)return jsonErr('找不到主辦空間');
   const cfg=safeJson(rows[0].config_json,{});
   const approvedFlags=await getTenantModuleFlags(env,T);
@@ -2028,6 +2028,46 @@ async function enforceTenantFeature(env, tenantId, action) {
       headers:corsHeaders(),
     });
   }
+  return null;
+}
+
+// 租戶後台角色是 API 的正式邊界，不只靠前端隱藏按鈕。
+const TENANT_ROLE_ACTIONS = {
+  owner: new Set(['saveTenantModuleProfile','addStaff','removeStaff','setStaffActive','setStaffScope','updateStaffPerms','updateStaffScope','updateStaffSessions']),
+  settingsRead: new Set(['getTenantModuleProfile','getTenantTheme','getStaff','getCompanySettings','getSiteConfig','getEmailTemplates','getPaymentSettings','getPaymentProfiles','getAgreementTemplate','getAgreementTemplates','listVenueMaps','listPhotoActivities']),
+  settings: new Set(['saveTenantTheme','saveCompanySettings','saveSiteConfig','saveEmailTemplate','testEmail','savePaymentSettings','savePaymentProfile','disablePaymentProfile','saveAgreementTemplate','saveAgreementTemplates','saveVenueMap','applyVenueMap','deleteVenueMap','savePhotoActivity','deletePhotoActivity','savePhotoActivityFrame','deletePhotoActivityFrame','savePromotionRule','deletePromotionRule']),
+  finance: new Set(['financeOverview','financeReport','adminFinanceAnomalies','getFinance','getPayments','getFinancePaymentGroups','getSessionCashbook','saveFinanceItem','deleteFinanceItem','saveSessionCashItem','deleteSessionCashItem','confirmPayment','confirmRefund','confirmForceRefund','refundDeposit','applyForceRefund','applyForceRefundFM','markPaymentScreenshot','sendPaymentReminder','getInvoiceList','updateInvoiceStatus','downloadSession']),
+  sessions: new Set(['getDashboard','adminBusinessOverview','getSessionDashboard','getAdminSessionsDashboard','getAdminSessionDashboard','getEventsAdmin','getSessionsAdmin','getOperationUnitsAdmin','getBookingCalendarAdmin','getPromotionRulesAdmin','createEvent','updateEvent','deleteEvent','createSession','updateSession','copySession','deleteSession','toggleSession','toggleSessionStatus','saveOperationUnit','deleteOperationUnit','saveAnnouncement','deleteAnnouncement','sendNotify','resendInvite','resendRegConfirm']),
+  review: new Set(['getSessionRegistrations','getRegs','getRegsBySession','approveReg','updateRegStatus','batchUpdateStatus','adminCancelReg','saveRegNote','saveMemberNote','updateRegistrationAction','setFastPass','previewForceCancelSession','forceCancelSession','runForceChoiceDeadline']),
+  members: new Set(['getMembers','getMemberHistory','saveMember','listContactLeads','listPhotoLeads']),
+  onsite: new Set(['onsiteSessions','onsiteRegs','onsitePasscodeList','onsitePasscodeGenerate','onsitePasscodeToggle','onsiteShiftList','onsiteShiftStart','onsiteShiftEnd','onsiteMark','checkin','markClear']),
+  seats: new Set(['adminSeatBoard','adminAssignSeat','adminUnassignSeat','adminUpdateSeatPositions','runBatchAssign','saveSeatMap','saveSeatMapImage'])
+};
+const TENANT_ROLE_ALLOW = {
+  owner:['organizer_owner','platform_super_admin'],
+  settingsRead:['organizer_owner','organizer_admin','session_admin','finance_admin','platform_super_admin'],
+  settings:['organizer_owner','organizer_admin','platform_super_admin'],
+  finance:['organizer_owner','organizer_admin','finance_admin','platform_super_admin'],
+  sessions:['organizer_owner','organizer_admin','session_admin','platform_super_admin'],
+  review:['organizer_owner','organizer_admin','session_admin','platform_super_admin'],
+  members:['organizer_owner','organizer_admin','session_admin','finance_admin','platform_super_admin'],
+  onsite:['organizer_owner','organizer_admin','session_admin','onsite_staff','platform_super_admin'],
+  seats:['organizer_owner','organizer_admin','session_admin','platform_super_admin']
+};
+function tenantRoleGroupForAction(action){for(const [group,actions] of Object.entries(TENANT_ROLE_ACTIONS))if(actions.has(action))return group;return ''}
+async function enforceTenantRole(env,tenantId,action,payload){
+  const group=tenantRoleGroupForAction(action);if(!group)return null;
+  const email=normEmail(payload&&payload.email),token=String(payload&&payload.token||'');
+  if(!email||!token)return jsonErr('此功能需要登入主辦工作台',401);
+  const jwt=await verifyAdminToken(token,email,tenantId,env);if(!jwt)return jsonErr('登入已失效，請重新登入',401);
+  let role=String(jwt.normalized_role||jwt.role||'').trim();
+  if(role!=='platform_super_admin'){
+    const rows=await dbGet(env,'staff',`tenant_id=eq.${encodeURIComponent(tenantId)}&email=eq.${encodeURIComponent(email)}&select=normalized_role,role,is_active,active&limit=1`).catch(()=>[]);
+    const staff=rows[0],active=staff&&(staff.is_active!==undefined?staff.is_active:staff.active);
+    if(!staff||active===false)return jsonErr('此帳號沒有有效的租戶權限',403);
+    role=String(staff.normalized_role||staff.role||role).trim();
+  }
+  if(!(TENANT_ROLE_ALLOW[group]||[]).includes(role))return jsonErr('你的角色不能執行這項操作',403);
   return null;
 }
 
@@ -10166,6 +10206,8 @@ async function routeGet(env, action, p, req) {
 
   const featureDenied = await enforceTenantFeature(env, TENANT, action);
   if (featureDenied) return featureDenied;
+  const roleDenied = await enforceTenantRole(env, TENANT, action, p);
+  if (roleDenied) return roleDenied;
 
   switch(action) {
     case 'frontBootstrap':      return hFrontBootstrap(env,p);
@@ -10289,6 +10331,8 @@ async function routePost(env, action, b, ctx, req) {
   }
   const featureDenied = await enforceTenantFeature(env, TENANT, action);
   if (featureDenied) return featureDenied;
+  const roleDenied = await enforceTenantRole(env, TENANT, action, b);
+  if (roleDenied) return roleDenied;
   const sessionModuleDenied=await enforceSessionModuleForAction(env,TENANT,action,b);
   if(sessionModuleDenied)return sessionModuleDenied;
 
