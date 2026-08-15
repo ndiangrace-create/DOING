@@ -28,10 +28,10 @@ h1,h2,h3,h4{margin:0}.muted{color:var(--muted);font-size:16px}.hidden{display:no
 @media(max-width:680px){.head h1{font-size:22px}.platform-nav{top:68px;margin-left:-4px;margin-right:-4px;border-radius:19px}.world-summary{grid-template-columns:repeat(2,minmax(0,1fr));min-width:100%}.world-modules{grid-template-columns:1fr}.world-module{padding:12px}.world-feature{font-size:15px}.wrap{padding-top:10px}}
 
 </style>
-<link rel="stylesheet" href="doing-system.css?v=20260814b">
+<link rel="stylesheet" href="doing-system.css?v=20260815-system">
 </head>
-<body>
-<header><div class="head"><div><h1>DOING 平台營運管理</h1><div class="muted">營運帳號審核・補件・平台收費・創業金</div></div><div class="actions"><button class="secondary hidden" id="platformSupportJump">系統訊息 <span id="platformUnreadBadge" class="doing-unread">0</span></button><button class="secondary hidden" id="logoutBtn">登出</button></div></div></header>
+<body class="doing-app doing-platform">
+<header><div class="head"><div class="doing-product-title"><img src="doing-logo.png" alt="DOING"><div><h1>DOING 平台營運管理</h1><div class="muted">營運帳號審核・補件・平台收費・創業金</div></div></div><div class="actions"><button class="secondary hidden" id="platformSupportJump">系統訊息 <span id="platformUnreadBadge" class="doing-unread">0</span></button><button class="secondary hidden" id="logoutBtn">登出</button></div></div></header>
 <div class="wrap">
 <nav class="platform-nav hidden" id="platformNav" aria-label="平台總管功能"><a href="#platformWorldMap">系統世界地圖</a><a href="#platformApplications">租戶申請</a><a href="#platformTenants">租戶管理</a><a href="#platformBillingPolicySection">收費設定</a><a href="#exposurePlatformSection">曝光管理</a><a href="#platformSupportSection">平台客服</a><a href="#platformMemberSection">會員</a></nav>
   <section class="card" id="loginCard"><h2>平台管理登入</h2><p class="muted">僅限 DOING 平台管理者。</p><button id="loginBtn">Google 登入</button><div id="loginErr" class="error"></div></section>
