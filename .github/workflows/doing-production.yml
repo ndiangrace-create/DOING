@@ -39,7 +39,7 @@ jobs:
           node --check doing-about-refresh.js
           node - <<'NODE'
           const fs=require('fs'),vm=require('vm');
-          for(const f of ['index.html','register.html','admin.html','onsite.html','platform.html','about.html','photo.html']){
+          for(const f of ['index.html','register.html','member.html','admin.html','onsite.html','platform.html','about.html','photo.html']){
             const source=fs.readFileSync(f,'utf8');let count=0;
             for(const match of source.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){
               if(!match[1].trim())continue;
@@ -47,6 +47,8 @@ jobs:
             }
           }
           NODE
+      - name: Validate capability world map
+        run: node scripts/validate-capabilities.mjs
       - name: Verify member and tenant safety invariants
         run: |
           grep -q "platform_member_id" worker.js
