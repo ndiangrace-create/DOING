@@ -36,3 +36,59 @@ body:not(.doing-public-refactor-body) h1,body:not(.doing-public-refactor-body) h
 html[data-doing-theme="mono_anime"] body:not(.doing-public-refactor-body) button,html[data-doing-theme="mono_anime"] body:not(.doing-public-refactor-body) .btn{border:2px solid #111!important;box-shadow:4px 4px 0 #111!important}html[data-doing-theme="mono_anime"] body:not(.doing-public-refactor-body) .card{border:2px solid #111!important}
 @media(max-width:980px){.doing-theme-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:720px){.doing-theme-grid{grid-template-columns:1fr}.doing-support-layout{grid-template-columns:1fr}.doing-thread-list{max-height:220px}.doing-chat{min-height:380px}.doing-messages{max-height:350px}}
+
+/* 2026-08-15 — DOING whole-product visual shell.
+   Keeps tenant theme tokens intact while making every operating surface feel
+   like the same finished product on desktop and mobile. */
+.doing-app{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at -5% -2%,color-mix(in srgb,var(--doing-pink) 72%,transparent),transparent 25rem),
+    radial-gradient(circle at 105% 4%,color-mix(in srgb,var(--doing-blue) 72%,transparent),transparent 27rem),
+    linear-gradient(180deg,#fff 0,var(--doing-bg) 44%,color-mix(in srgb,var(--doing-purple) 18%,#fff) 100%)!important;
+  color:var(--doing-ink)!important;
+}
+.doing-app:before{content:"";position:fixed;z-index:-1;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.72) 0 3px,transparent 4px);background-size:42px 42px;mask-image:linear-gradient(to bottom,#0005,transparent 42%)}
+.doing-app>header,.doing-app>.topbar,.doing-app .top{
+  border-top:5px solid transparent!important;
+  border-image:linear-gradient(90deg,var(--doing-pink),var(--doing-yellow),var(--doing-green),var(--doing-blue),var(--doing-purple)) 1!important;
+  background:rgba(255,255,255,.9)!important;
+  box-shadow:0 9px 30px rgba(89,65,104,.09)!important;
+  backdrop-filter:blur(20px)!important;
+}
+.doing-product-title{display:flex;align-items:center;gap:12px;min-width:0}.doing-product-title img{width:50px;height:50px;object-fit:contain;filter:drop-shadow(0 8px 13px rgba(92,68,108,.15))}.doing-product-title>div{min-width:0}.doing-product-title h1{font-size:clamp(22px,2vw,30px)!important;line-height:1.15!important}.doing-product-title .muted{margin-top:3px}
+.doing-app .wrap,.doing-app .shell,.doing-app main{position:relative}
+.doing-app .card,.doing-app .panel,.doing-app .session-card,.doing-app .report-card,.doing-app .login-card,.doing-app .loginbox,.doing-app .modal,.doing-app .modalbox{
+  border:3px solid rgba(255,255,255,.92)!important;
+  border-radius:26px!important;
+  background:rgba(255,255,255,.9)!important;
+  box-shadow:0 15px 42px rgba(88,66,103,.1)!important;
+}
+.doing-app .card:nth-of-type(4n+1),.doing-app .panel:nth-of-type(4n+1){background:linear-gradient(145deg,rgba(255,255,255,.98),color-mix(in srgb,var(--doing-pink) 45%,white))!important}
+.doing-app .card:nth-of-type(4n+2),.doing-app .panel:nth-of-type(4n+2){background:linear-gradient(145deg,rgba(255,255,255,.98),color-mix(in srgb,var(--doing-blue) 45%,white))!important}
+.doing-app .card:nth-of-type(4n+3),.doing-app .panel:nth-of-type(4n+3){background:linear-gradient(145deg,rgba(255,255,255,.98),color-mix(in srgb,var(--doing-yellow) 40%,white))!important}
+.doing-app .card:nth-of-type(4n),.doing-app .panel:nth-of-type(4n){background:linear-gradient(145deg,rgba(255,255,255,.98),color-mix(in srgb,var(--doing-green) 42%,white))!important}
+.doing-app button,.doing-app .btn{
+  min-height:46px!important;border:3px solid rgba(255,255,255,.9)!important;border-radius:999px!important;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--doing-primary) 62%,white),var(--doing-primary))!important;
+  color:#fff!important;font-weight:950!important;
+  box-shadow:inset 3px 4px 7px rgba(255,255,255,.48),0 8px 18px rgba(92,66,106,.13)!important;
+}
+.doing-app button.secondary,.doing-app .btn.secondary,.doing-app .btn.outline{background:linear-gradient(145deg,#fff,color-mix(in srgb,var(--doing-blue) 65%,white))!important;color:var(--doing-ink)!important}
+.doing-app button.gold{background:linear-gradient(145deg,#ffe9a8,#e6b961)!important;color:#5a421c!important}.doing-app button.danger,.doing-app .btn.danger{background:linear-gradient(145deg,#ff9ca6,#cc626c)!important;color:#fff!important}
+.doing-app input,.doing-app select,.doing-app textarea{min-height:48px!important;border:2px solid color-mix(in srgb,var(--doing-line) 75%,white)!important;border-radius:16px!important;background:rgba(255,255,255,.94)!important;box-shadow:inset 0 2px 7px rgba(91,69,101,.04)!important}
+.doing-app input:focus,.doing-app select:focus,.doing-app textarea:focus{outline:4px solid color-mix(in srgb,var(--doing-primary) 20%,transparent)!important;border-color:var(--doing-primary)!important}
+.doing-app .tabs,.doing-app .platform-nav{border:3px solid #fff!important;background:linear-gradient(135deg,var(--doing-pink),var(--doing-blue),var(--doing-yellow))!important;box-shadow:0 12px 30px rgba(91,68,105,.1)!important}
+.doing-app table{border-collapse:separate!important;border-spacing:0 7px!important}.doing-app th{color:var(--doing-muted)!important}.doing-app td{background:rgba(255,255,255,.84)!important;border-top:1px solid var(--doing-line)!important;border-bottom:1px solid var(--doing-line)!important}.doing-app td:first-child{border-left:1px solid var(--doing-line)!important;border-radius:14px 0 0 14px}.doing-app td:last-child{border-right:1px solid var(--doing-line)!important;border-radius:0 14px 14px 0}
+.doing-app .badge,.doing-app .pill,.doing-app .chip,.doing-app .status{border:2px solid #fff!important;box-shadow:0 4px 11px rgba(91,69,101,.06)!important}
+.doing-platform .wrap{width:min(1380px,calc(100vw - 32px))}.doing-platform .metrics{grid-template-columns:repeat(4,minmax(0,1fr))}.doing-platform .metric{border:3px solid #fff!important;border-radius:22px!important;background:rgba(255,255,255,.88)!important;box-shadow:0 10px 24px rgba(91,68,104,.07)}
+.doing-admin .topbar-in{max-width:1380px!important}.doing-onsite main,.doing-photo .wrap{width:min(1120px,calc(100vw - 24px))!important;margin-inline:auto!important}
+@media(max-width:760px){
+  .doing-app>header,.doing-app>.topbar,.doing-app .top{border-top-width:4px!important}
+  .doing-product-title{gap:8px}.doing-product-title img{width:40px;height:40px}.doing-product-title h1{font-size:20px!important}.doing-product-title .muted{display:none}
+  .doing-app .card,.doing-app .panel,.doing-app .session-card,.doing-app .report-card,.doing-app .login-card,.doing-app .loginbox{border-radius:20px!important;padding:13px!important}
+  .doing-app button,.doing-app .btn{min-height:44px!important;padding:9px 13px!important}
+  .doing-platform .wrap{width:calc(100vw - 16px)!important}.doing-platform .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .doing-platform .head{width:calc(100vw - 20px)!important;min-height:64px}.doing-platform .head>.actions{gap:5px;margin:0}.doing-platform .head>.actions button{font-size:14px!important;padding-inline:10px!important}
+  .doing-onsite main,.doing-photo .wrap{width:calc(100vw - 16px)!important}
+}
