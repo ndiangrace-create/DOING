@@ -1,0 +1,129 @@
+name: DOING Safe Production
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: doing-tobeloved-api-production
+  cancel-in-progress: false
+
+env:
+  TARGET_WORKER: tobeloved-api
+  FORBIDDEN_WORKER: 2bl-v7
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify fixed production target
+        run: |
+          test "$TARGET_WORKER" = "tobeloved-api"
+          test "$TARGET_WORKER" != "$FORBIDDEN_WORKER"
+          test -f worker.js
+          test -f worker.txt
+          cmp worker.js worker.txt
+      - name: Parse JavaScript and HTML scripts
+        run: |
+          node --check worker.js
+          node --check doing-home-refresh.js
+          node --check doing-about-refresh.js
+          node - <<'NODE'
+          const fs=require('fs'),vm=require('vm');
+          for(const f of ['index.html','register.html','admin.html','onsite.html','platform.html','about.html','photo.html']){
+            const source=fs.readFileSync(f,'utf8');let count=0;
+            for(const match of source.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){
+              if(!match[1].trim())continue;
+              new vm.Script(match[1],{filename:`${f}#script${++count}`});
+            }
+          }
+          NODE
+      - name: Verify member and tenant safety invariants
+        run: |
+          grep -q "platform_member_id" worker.js
+          grep -q "verifiedRegOwnerGuard" worker.js
+          grep -q "member_token" index.html
+          grep -q "member_token" register.html
+          ! grep -q "Math.random(" worker.js
+
+  cloudflare-audit:
+    runs-on: ubuntu-latest
+    outputs:
+      compatibility_date: ${{ steps.audit.outputs.compatibility_date }}
+    steps:
+      - name: Verify Cloudflare secrets exist
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          test -n "$CF_TOKEN"
+          test -n "$CF_ACCOUNT"
+      - name: Read only the target Worker settings
+        id: audit
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          base="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/workers"
+          scripts="$(curl --fail-with-body --silent --show-error -H "Authorization: Bearer ${CF_TOKEN}" "${base}/scripts")"
+          count="$(jq --arg id "$TARGET_WORKER" '[.result[] | select(.id==$id)] | length' <<<"$scripts")"
+          test "$count" = "1"
+          settings="$(curl --fail-with-body --silent --show-error -H "Authorization: Bearer ${CF_TOKEN}" "${base}/scripts/${TARGET_WORKER}/settings")"
+          date="$(jq -r '.result.compatibility_date // empty' <<<"$settings")"
+          test -n "$date"
+          unsafe="$(jq '[.result.bindings[]? | select(.type != "plain_text" and .type != "secret_text" and .type != "json")] | length' <<<"$settings")"
+          test "$unsafe" = "0"
+          echo "compatibility_date=$date" >> "$GITHUB_OUTPUT"
+          jq -n --arg worker "$TARGET_WORKER" --arg date "$date" '{worker:$worker,compatibility_date:$date,audit:"passed"}' > cloudflare-audit.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: doing-cloudflare-audit
+          path: cloudflare-audit.json
+          retention-days: 30
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [validate, cloudflare-audit]
+    runs-on: ubuntu-latest
+    environment: doing-production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build deployment-only Wrangler config
+        env:
+          COMPATIBILITY_DATE: ${{ needs.cloudflare-audit.outputs.compatibility_date }}
+        run: |
+          jq -n --arg name "$TARGET_WORKER" --arg main "worker.js" --arg date "$COMPATIBILITY_DATE" \
+            '{name:$name,main:$main,compatibility_date:$date}' > wrangler.deploy.json
+      - name: Deploy only to tobeloved-api
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --config wrangler.deploy.json --keep-vars
+      - name: Verify deployed Worker responds
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          base="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/workers"
+          deployments="$(curl --fail-with-body --silent --show-error -H "Authorization: Bearer ${CF_TOKEN}" "${base}/scripts/${TARGET_WORKER}/deployments")"
+          deployment_id="$(jq -r '.result.deployments[0].id // empty' <<<"$deployments")"
+          test -n "$deployment_id"
+          jq -n --arg worker "$TARGET_WORKER" --arg deployment_id "$deployment_id" --arg commit "$GITHUB_SHA" \
+            '{worker:$worker,deployment_id:$deployment_id,commit:$commit,verified:true}' > deployment-result.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: doing-production-deployment
+          path: deployment-result.json
+          retention-days: 90
