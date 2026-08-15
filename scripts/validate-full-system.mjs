@@ -47,4 +47,14 @@ const missingRoutes=[...frontendActions].filter(x=>!routeActions.has(x)&&!nonRou
 if(missingRoutes.length)fail(`前台呼叫但 Worker 沒有路由：${missingRoutes.join('、')}`);
 
 if(read('worker.txt')!==worker)fail('worker.js 與正式部署副本 worker.txt 不一致');
+const platformPage=read('platform.html'),memberPage=read('member.html'),adminPage=read('admin.html');
+for(const page of ['world','applications','tenants','billing','exposure','support','members']){
+  if(!platformPage.includes(`data-platform-page="${page}"`))fail(`平台切頁缺少入口：${page}`);
+  if(!platformPage.includes(`data-platform-panel="${page}"`))fail(`平台切頁缺少內容：${page}`);
+}
+if(platformPage.includes('scrollIntoView({behavior:\'smooth\''))fail('平台仍存在舊式長頁捲動導覽');
+if(memberPage.includes('查看品牌')||memberPage.includes('data-page="brands"'))fail('會員中心仍存在重複品牌跳頁');
+for(const field of ['approvedAt','paymentReportedAt','paidAt','checkinAt','refundedAt','participants','addonQty'])if(!worker.includes(field))fail(`會員活動回傳缺少欄位：${field}`);
+for(const marker of ['application_created','application_submitted','application_approved','supplement_requested','application_rejected'])if(!worker.includes(marker))fail(`申請時間軸缺少事件：${marker}`);
+if(!adminPage.includes('admin-final-responsive-fix'))fail('主辦後台缺少最終響應式修正');
 console.log(`全系統靜態驗收通過：${pages.length} 頁、${frontendActions.size} 個前端 API 動作、後台按鈕函式完整。`);

@@ -1725,6 +1725,26 @@ table{width:100%!important}
 </style>
 
 <link rel="stylesheet" href="doing-system.css?v=20260815-system">
+<style id="admin-final-responsive-fix">
+html,body{max-width:100%;overflow-x:hidden!important}
+.doing-admin .settings-tile,.doing-admin .settings-tile b{color:#292633!important}
+.doing-admin .settings-tile span{color:#5f6470!important}
+.doing-admin .page-actions{display:flex!important;flex-wrap:wrap!important;justify-content:flex-end!important;gap:8px!important;max-width:100%!important}
+.doing-admin .page-actions .btn{width:auto!important;min-width:132px!important;flex:0 1 auto!important;white-space:normal!important;color:#292633!important}
+.doing-admin .page-actions .btn:not(.secondary){color:#fff!important}
+@media(min-width:901px){
+  .doing-admin .topbar-in{padding-left:18px!important;padding-right:18px!important}
+  .doing-admin .app{width:100%!important;max-width:100%!important;margin:0!important;padding:14px 18px 42px!important}
+  .doing-admin .tabs{position:sticky!important;left:auto!important;top:74px!important;bottom:auto!important;transform:none!important;width:100%!important;display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;margin:0!important;border-radius:0 0 20px 20px!important}
+  .doing-admin .tabs .tab{min-width:0!important;width:100%!important}
+  .doing-admin .settings-grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))!important}
+  .doing-admin section[id^="page-"]{width:100%!important;max-width:100%!important;overflow:visible!important}
+}
+@media(max-width:900px){
+  .doing-admin .page-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;justify-content:stretch!important}
+  .doing-admin .page-actions .btn{width:100%!important;min-width:0!important}
+}
+</style>
 </head>
 <body class="doing-app doing-admin">
 <section id="loginPage" class="login-wrap">

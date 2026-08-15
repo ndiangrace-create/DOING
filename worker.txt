@@ -2445,14 +2445,14 @@ async function hGetMyRegsGlobal(env,p){
       name:r.name||'',brand:r.brand_name||'',venue:s.venue||'',sessionDates:displayDates,
       status:r.review_status,payStatus:r.payment_status,amount:Number(r.amount||0),total:Number(r.total_amount||r.amount||0),paid:Number(r.paid_amount||0),
       due:(()=>{const snap=selectedModuleSnapshot(r),paid=safeNum(r.paid_amount),total=safeNum(r.total_amount||r.amount);const first=safeNum(snap.amountDueNow);return Math.max(0,(paid<=0&&first>0?first:total)-paid)})(),
-      deposit:Number(r.deposit||0),stallCount:Number(r.stall_count||1),selectedDates:safeJson(r.selected_dates_json,[]),equip:safeJson(r.equipment_json,{}),
+      deposit:Number(r.deposit||0),stallCount:Number(r.stall_count||1),selectedDates:safeJson(r.selected_dates_json,[]),equip:safeJson(r.equipment_json,{}),addonQty:safeJson(r.addon_qty_json,{}),participants:safeJson(r.participants_json,{}),
       totalEquipmentText:_equipmentTextFromMap(_effectiveEquipmentMapForReg(r,s)),stallNumber:r.stall_number||'',
       seatChoiceIntent:r.seat_choice_intent||'auto',seatChoiceStatus:r.seat_choice_status||'',seatChoiceType:r.seat_choice_type||'',
-      bundleId:r.bundle_id||'',bundleGroupId:r.bundle_group_id||'',paymentDueAt:r.payment_due_at||'',seatHoldExpiresAt:r.seat_hold_expires_at||'',
+      bundleId:r.bundle_id||'',bundleGroupId:r.bundle_group_id||'',paymentDueAt:r.payment_due_at||'',paymentReminderAt:r.payment_reminder_at||'',paymentExpiredAt:r.payment_expired_at||'',seatHoldExpiresAt:r.seat_hold_expires_at||'',
       transferCreditAmount:safeNum(r.transfer_credit_amount),transferBalanceDue:safeNum(r.transfer_balance_due),transferRefundDue:safeNum(r.transfer_refund_due),
       seatPricingEnabled:(s.seat_pricing_enabled===true||s.seat_pricing_enabled==='true'),seatHoldHours:safeNum(s.seat_hold_hours)||SEAT_HOLD_HOURS,
-      seatMapUrl:s.seat_map_url||'',seatFeeTotal:safeNum(r.seat_fee_total),payMethod:r.payment_method||'',payLast5:r.payment_last5||'',checkin:r.checkin_status,createdAt:r.created_at,
-      transferStatus:r.transfer_status||'',refundAmount:safeNum(r.refund_amount),forceStatus:r.force_status||(s.force_cancel?'pending_force_choice':null),
+      seatMapUrl:s.seat_map_url||'',seatFeeTotal:safeNum(r.seat_fee_total),payMethod:r.payment_method||'',payLast5:r.payment_last5||'',checkin:r.checkin_status,createdAt:r.created_at,approvedAt:r.approved_at||'',paymentReportedAt:r.payment_reported_at||'',paidAt:r.paid_at||'',checkinAt:r.checkin_at||'',
+      transferStatus:r.transfer_status||'',refundAmount:safeNum(r.refund_amount),refundedAt:r.refunded_at||'',refundNote:r.refund_note||'',forceStatus:r.force_status||(s.force_cancel?'pending_force_choice':null),
       forceChoiceDeadline:s.force_cancel_deadline||'',forceCancelled:s.force_cancel||false,forceTransferTargetSessionId:r.transferred_to_session_id||s.force_cancel_target_id||'',
       modules:normalizeSessionModules(u?safeJson(u.modules_json,{}):safeJson(s.modules_json,{})),
       paymentProfile:payPub,paymentProfileName:payPub.paymentProfileName,paymentOwnerMode:payPub.paymentOwnerMode,
@@ -3057,10 +3057,10 @@ async function hGetPlatformMemberProfile(env,p){
   if(!verified)return jsonErr('會員登入已失效，請重新登入');
   const v=safeJson(verified.row.vendor_json,{});
   const email=normEmail(verified.row.email),memberId=String(verified.row.id||'');
-  const applications=email?await dbGet(env,'tenant_apply_logs',`contact_email=ilike.${encodeURIComponent(email)}&select=id,brand_name,status,created_at,application_json&order=created_at.desc&limit=20`).catch(()=>[]):[];
+  const applications=email?await dbGet(env,'tenant_apply_logs',`contact_email=ilike.${encodeURIComponent(email)}&select=id,brand_name,status,created_at,approved_at,supplement_requested_at,supplement_submitted_at,rejected_at,tenant_id,application_json&order=created_at.desc&limit=20`).catch(()=>[]):[];
   const workspaces=email?await findAdminWorkspacesByEmail(env,email):[];
   const roles=['participant'];if(v.brandName)roles.push('vendor');if(applications.length)roles.push('organizer_applicant');if(workspaces.length)roles.push('organizer');
-  return jsonOk({profile:{id:memberId,email:verified.row.email||'',name:verified.row.name||verified.row.display_name||'',phone:verified.row.phone||'',lineId:verified.row.line_id||'',city:verified.row.city||'',brand:v.brandName||'',brand_name:v.brandName||'',brandIntro:v.brandIntro||'',sellCat:v.category||'',sellItem:v.items||'',fb:v.facebook||'',ig:v.instagram||'',photo:v.photoUrl||'',company:v.company||'',taxId:v.taxId||''},complete:platformMemberComplete(verified.row),provider:verified.row._identity?.provider||'',roles,applications:applications.map(x=>{const a=safeJson(x.application_json,{});return{id:x.id,unitName:a.unitName||x.brand_name||'',industryCategories:Array.isArray(a.industryCategories)?a.industryCategories:[],useCases:Array.isArray(a.useCases)?a.useCases:[],status:x.status||'pending',createdAt:x.created_at||''}}),workspaces:workspaces.map(x=>({id:x.tenant_id||x.id,name:x.name||x.tenant_id||x.id,role:x.role||'',isLocked:!!x.is_locked,lockedReason:x.locked_reason||''}))});
+  return jsonOk({profile:{id:memberId,email:verified.row.email||'',name:verified.row.name||verified.row.display_name||'',phone:verified.row.phone||'',lineId:verified.row.line_id||'',city:verified.row.city||'',brand:v.brandName||'',brand_name:v.brandName||'',brandIntro:v.brandIntro||'',sellCat:v.category||'',sellItem:v.items||'',fb:v.facebook||'',ig:v.instagram||'',photo:v.photoUrl||'',company:v.company||'',taxId:v.taxId||''},complete:platformMemberComplete(verified.row),provider:verified.row._identity?.provider||'',roles,applications:applications.map(x=>{const a=safeJson(x.application_json,{});return{id:x.id,unitName:a.unitName||x.brand_name||'',industryCategories:Array.isArray(a.industryCategories)?a.industryCategories:[],useCases:Array.isArray(a.useCases)?a.useCases:[],status:x.status||'pending',createdAt:x.created_at||'',approvedAt:x.approved_at||a.approvedAt||'',supplementRequestedAt:x.supplement_requested_at||a.supplementRequestedAt||'',supplementSubmittedAt:x.supplement_submitted_at||a.supplementSubmittedAt||'',rejectedAt:x.rejected_at||a.rejectedAt||'',tenantId:x.tenant_id||'',timeline:Array.isArray(a.timeline)?a.timeline:[]}}),workspaces:workspaces.map(x=>({id:x.tenant_id||x.id,name:x.name||x.tenant_id||x.id,role:x.role||'',isLocked:!!x.is_locked,lockedReason:x.locked_reason||''}))});
 }
 
 async function hSavePlatformMemberProfile(env,b){
@@ -3086,10 +3086,10 @@ async function hSavePlatformMemberProfile(env,b){
     const industries=Array.isArray(sys.industryCategories)?sys.industryCategories.map(String).filter(Boolean):[];
     const useCases=Array.isArray(sys.useCases)?sys.useCases.map(String).filter(Boolean):[];
     if(!unitName||!industries.length||!useCases.length)return jsonErr('系統申請請完整填寫單位名稱、產業類別與使用功能');
-    const applicationJson={unitName,ownerName:name,phone,industryCategories:industries,useCases,publicLinks:[vendor.facebook,vendor.instagram,vendor.photoUrl].filter(Boolean),memberId:verified.row.id,loginProvider:verified.row._identity?.provider||''};
+    const submittedAt=nowIso(),applicationJson={unitName,ownerName:name,phone,industryCategories:industries,useCases,publicLinks:[vendor.facebook,vendor.instagram,vendor.photoUrl].filter(Boolean),memberId:verified.row.id,loginProvider:verified.row._identity?.provider||'',createdAt:submittedAt,submittedAt,timeline:[{key:'application_created',label:'建立申請',at:submittedAt},{key:'application_submitted',label:'已驗證並送出',at:submittedAt}]};
     const existing=await dbGet(env,'tenant_apply_logs',`contact_email=eq.${encodeURIComponent(email)}&brand_name=eq.${encodeURIComponent(unitName)}&status=in.(pending,supplement_required)&select=id`).catch(()=>[]);
     if(existing[0]){applicationId=existing[0].id;await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{contact_name:name,contact_phone:phone,event_type:useCases.join(','),application_json:applicationJson})}
-    else{applicationId=genId('APL');await dbInsert(env,'tenant_apply_logs',{id:applicationId,brand_name:unitName,contact_name:name,contact_email:email,contact_phone:phone,event_type:useCases.join(','),plan_type:'review',note:'由已驗證 DOING 會員送出',status:'pending',application_json:applicationJson,created_at:nowIso()})}
+    else{applicationId=genId('APL');await dbInsert(env,'tenant_apply_logs',{id:applicationId,brand_name:unitName,contact_name:name,contact_email:email,contact_phone:phone,event_type:useCases.join(','),plan_type:'review',note:'由已驗證 DOING 會員送出',status:'pending',application_json:applicationJson,created_at:submittedAt})}
   }
   return jsonOk({ok:true,complete:true,applicationId});
 }
@@ -3130,7 +3130,7 @@ async function hGetMyRegs(env, p) {
       transferCreditAmount:safeNum(r.transfer_credit_amount),transferBalanceDue:safeNum(r.transfer_balance_due),transferRefundDue:safeNum(r.transfer_refund_due),transferSettlementId:r.transfer_settlement_id||'',
       seatPricingEnabled:(s.seat_pricing_enabled===true||s.seat_pricing_enabled==='true'), seatHoldHours:safeNum(s.seat_hold_hours)||SEAT_HOLD_HOURS,
       seatMapUrl:s.seat_map_url||'', seatFeeTotal:safeNum(r.seat_fee_total), seatHoldExpiresAt:r.seat_hold_expires_at||'',
-      payMethod:r.payment_method||'', payLast5:r.payment_last5||'', checkin:r.checkin_status, createdAt:r.created_at,
+      payMethod:r.payment_method||'', payLast5:r.payment_last5||'', checkin:r.checkin_status, createdAt:r.created_at, approvedAt:r.approved_at||'', paymentReportedAt:r.payment_reported_at||'', paidAt:r.paid_at||'', checkinAt:r.checkin_at||'',
       transferStatus:r.transfer_status||'', transferChosenAt:r.transfer_chosen_at||'', refundAmount:safeNum(r.refund_amount),
       refundAdminFee:safeNum(r.refund_admin_fee), refundTransferFee:safeNum(r.refund_transfer_fee), refundRuleLabel:r.refund_rule_label||'', refundedAt:r.refunded_at||'', refundNote:r.refund_note||'',
       forceStatus:r.force_status || (s.force_cancel ? (r.transfer_status==='申請退費'?'refund_requested':(r.transfer_status==='已延期'?'transferred':'pending_force_choice')) : null),
@@ -3226,11 +3226,11 @@ async function hCreateOrganizerApplicationDraft(env,b){
   if(!publicLinks.length&&app.noPublicLink!==true)return jsonErr('請至少提供一項公開資訊');
   const confirmations=(app.confirmations&&typeof app.confirmations==='object')?app.confirmations:{};
   if(confirmations.confirmReal!==true||confirmations.confirmUse!==true||confirmations.confirmReview!==true)return jsonErr('請先完成送出前確認');
-  const id=genId('APL');
-  const applicationJson={...app,ownerName,contactName:ownerName,billingName:ownerName,industryCategories:industries,useCases,publicLinks};
+  const id=genId('APL'),createdAt=nowIso();
+  const applicationJson={...app,ownerName,contactName:ownerName,billingName:ownerName,industryCategories:industries,useCases,publicLinks,createdAt,timeline:[...(Array.isArray(app.timeline)?app.timeline:[]),{key:'application_created',label:'建立申請',at:createdAt}]};
   await dbInsert(env,'tenant_apply_logs',{
     id,brand_name:unitName,contact_name:ownerName,contact_email:`pending+${id.toLowerCase()}@doing.invalid`,contact_phone:phone,
-    event_type:useCases.join(','),plan_type:'review',note:'等待 Google 驗證',status:'google_verification_pending',application_json:applicationJson,created_at:nowIso()
+    event_type:useCases.join(','),plan_type:'review',note:'等待 Google 驗證',status:'google_verification_pending',application_json:applicationJson,created_at:createdAt
   });
   return jsonOk({ok:true,applicationId:id});
 }
@@ -3298,7 +3298,7 @@ async function hApproveApply(env,b){
     await grantStartupCreditIfEligible(env,tid);
     await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applyId)}`,{
       status:'approved',tenant_id:tid,approved_at:now,approved_by:pay.email,rejection_reason:null,rejected_at:null,rejected_by:null,
-      application_json:{...app,approvedModuleFlags:approvedFlags,approvedModuleFlagsAt:now}
+      application_json:{...app,approvedModuleFlags:approvedFlags,approvedModuleFlagsAt:now,approvedAt:now,timeline:[...(Array.isArray(app.timeline)?app.timeline:[]),{key:'application_approved',label:'審核通過並建立帳號',at:now}]}
     });
     try{
       const baseUrl=String(env.DOING_SITE_URL||env.FRONTEND_SITE_URL||'https://ndiangrace-create.github.io/DOING/').replace(/\/+$/,'/');
@@ -3321,8 +3321,9 @@ async function hRejectApply(env,b){
   const rows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applyId)}&select=*`).catch(()=>[]);
   const apply=rows[0];if(!apply)return jsonErr('找不到申請資料');
   if(String(apply.status)!=='pending')return jsonErr('此申請已處理');
+  const rejectedAt=nowIso(),app=safeJson(apply.application_json,{});
   await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applyId)}`,{
-    status:'rejected',rejected_at:nowIso(),rejected_by:pay.email,rejection_reason:reason||'申請資料未通過審核'
+    status:'rejected',rejected_at:rejectedAt,rejected_by:pay.email,rejection_reason:reason||'申請資料未通過審核',application_json:{...app,rejectedAt,timeline:[...(Array.isArray(app.timeline)?app.timeline:[]),{key:'application_rejected',label:'申請未通過',at:rejectedAt}]}
   });
   try{await sendEmail(env,apply.contact_email,'【DOING】營運帳號申請結果',emailWrap(`<p>${apply.contact_name||''} 您好：</p><p>本次 DOING 營運帳號申請尚未通過審核。</p>${reason?`<p>說明：${reason}</p>`:''}<p>如資料需要補充，可重新提出申請。</p>`));}catch(e){}
   return jsonOk({ok:true});
@@ -3507,8 +3508,9 @@ async function hRequestApplySupplement(env,b){
   if(!reason)return jsonErr('請填寫補件說明');
   const rows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applyId)}&select=*`).catch(()=>[]);
   const apply=rows[0];if(!apply)return jsonErr('找不到申請資料');
+  const requestedAt=nowIso(),app=safeJson(apply.application_json,{});
   await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applyId)}`,
-    {status:'supplement_required',supplement_requested_at:nowIso(),supplement_requested_by:pay.email,supplement_reason:reason,rejected_at:null,rejected_by:null,rejection_reason:null}
+    {status:'supplement_required',supplement_requested_at:requestedAt,supplement_requested_by:pay.email,supplement_reason:reason,rejected_at:null,rejected_by:null,rejection_reason:null,application_json:{...app,supplementRequestedAt:requestedAt,timeline:[...(Array.isArray(app.timeline)?app.timeline:[]),{key:'supplement_requested',label:'平台要求補件',at:requestedAt}]}}
   );
   try{
     const page=doingPageUrl(env,'about.html');
@@ -3945,7 +3947,7 @@ async function hGoogleCallback(env, url) {
     let signupProfile=appPayload.moduleProfile||{};
     const signupDefaults=normalizeSessionModules(signupProfile&&signupProfile.defaults?signupProfile.defaults:{});
     const profile={configured:true,useType:String(signupProfile.useType||'generic'),useCases:Array.isArray(signupProfile.useCases)?signupProfile.useCases.map(String).slice(0,12):[],defaults:signupDefaults,updatedAt:nowIso()};
-    const applicationJson={...appPayload,ownerName:contact,contactName:contact,billingName:contact,moduleProfile:profile,googleName,googleSub:String(userInfo.sub||'')};
+    const submittedAt=nowIso(),applicationJson={...appPayload,ownerName:contact,contactName:contact,billingName:contact,moduleProfile:profile,googleName,googleSub:String(userInfo.sub||''),submittedAt,timeline:[...(Array.isArray(appPayload.timeline)?appPayload.timeline:[]),{key:'application_submitted',label:'Google 驗證並送出',at:submittedAt}]};
     const existingRows=await dbGet(env,'tenant_apply_logs',`contact_email=eq.${encodeURIComponent(googleEmail)}&status=eq.supplement_required&select=id,status,supplement_count,brand_name`).catch(()=>[]);
     const supplement=existingRows.find(x=>String(x.brand_name||'').trim().toLowerCase()===brand.toLowerCase());
     if(supplement){
@@ -3953,7 +3955,7 @@ async function hGoogleCallback(env, url) {
         {
           brand_name:brand,contact_name:contact,contact_email:googleEmail,contact_phone:phone,event_type:(appPayload.useCases||[]).join(','),status:'pending',
           plan_type:'review',note:'補件後重新送出',application_json:applicationJson,
-          supplement_submitted_at:nowIso(),supplement_count:safeNum(supplement.supplement_count)+1,
+          supplement_submitted_at:submittedAt,supplement_count:safeNum(supplement.supplement_count)+1,
           rejected_at:null,rejected_by:null,rejection_reason:null
         }
       );
