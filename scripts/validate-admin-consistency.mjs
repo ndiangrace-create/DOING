@@ -8,6 +8,8 @@ const workerCopy=fs.readFileSync(new URL('../worker.txt',import.meta.url),'utf8'
 assert.equal(worker,workerCopy,'worker.js 與 worker.txt 必須同步');
 for(const marker of [
   '.doing-admin .tabs .tab{background:#ffffff!important',
+  '.doing-admin .tabs .tab.active{background-color:#e1f1f5!important;background-image:none!important',
+  '.doing-admin #sessionList .session-date-equip-list .chip,',
   '.doing-admin #page-finance #financeRefreshBtn{width:auto!important',
   '.doing-admin #sessionList .session3-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important',
   '.doing-admin #page-calendar .cal-days{grid-auto-rows:126px!important',
