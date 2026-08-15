@@ -163,6 +163,17 @@
 .invoice-compact-row{display:grid;grid-template-columns:120px 110px repeat(4,auto);gap:8px;align-items:center;}
 .session-seat-disabled{opacity:.55;pointer-events:none;}
 .seat-map-save-note{margin-top:8px;padding:8px 10px;border:1px dashed var(--line);border-radius:12px;background:#fff;color:var(--muted);font-weight:850;}
+.seat-plan-tools{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.seat-plan-tools .btn.active{outline:3px solid rgba(42,139,134,.22)}
+.seat-plan-help{padding:9px 11px;border-radius:13px;background:#eef8f5;color:#315f59;font-size:14px;font-weight:850;margin-bottom:8px}
+.seat-plan-stage{position:relative;width:100%;min-height:360px;overflow:hidden;border:2px solid #fff;border-radius:18px;background-color:#f4f7f7;background-image:linear-gradient(#dfe8e8 1px,transparent 1px),linear-gradient(90deg,#dfe8e8 1px,transparent 1px);background-size:24px 24px;box-shadow:inset 0 0 0 1px var(--line);touch-action:none;user-select:none}
+.seat-plan-stage.has-map{min-height:0;background-size:contain;background-position:center;background-repeat:no-repeat;background-color:#eef2f2}.seat-plan-stage.has-map:before{content:"";display:block;padding-top:var(--seat-map-ratio,66.666%)}
+.seat-pin{position:absolute;left:calc(var(--x,50)*1%);top:calc(var(--y,50)*1%);transform:translate(-50%,-50%) rotate(calc(var(--r,0)*1deg));width:42px;height:30px;border:2px solid #fff;border-radius:9px;background:#78b7cf;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:950;box-shadow:0 5px 13px rgba(29,54,66,.23);touch-action:none;cursor:grab;z-index:2}.seat-pin.paid{background:#d69a45}.seat-pin.service{background:#6b7280}.seat-pin.closed{background:#b65c59;opacity:.7}.seat-pin.selected{outline:4px solid rgba(54,106,93,.28);z-index:4}.seat-pin.occupied{box-shadow:0 0 0 4px rgba(65,146,98,.25),0 5px 13px rgba(29,54,66,.23)}
+.seat-share-preview{border:1px solid var(--line);border-radius:16px;background:#fff;padding:10px;margin:10px 0}.seat-share-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.seat-share-row{padding:8px 10px;border-radius:11px;background:#f7f9f9;font-size:14px}
+.seat-ops-queue{display:flex;gap:8px;overflow:auto;padding:4px 0 10px;scrollbar-width:none}.seat-ops-queue::-webkit-scrollbar{display:none}.seat-ops-person{flex:0 0 auto;min-width:150px;min-height:54px;padding:9px 12px;border:2px solid #fff;border-radius:16px;background:#fff;color:var(--ink);box-shadow:0 6px 16px rgba(35,58,68,.08);text-align:left}.seat-ops-person.active{border-color:#4c9689;background:#eaf8f4}.seat-ops-person b,.seat-ops-person small{display:block}.seat-ops-person small{color:var(--muted);margin-top:2px}
+.seat-ops-status{position:sticky;top:0;z-index:5;padding:12px 14px;margin-bottom:9px;border-radius:17px;background:#264f49;color:#fff;font-weight:900;box-shadow:0 8px 20px rgba(38,79,73,.18)}
+.seat-ops-viewport{width:100%;max-height:68vh;overflow:auto;border:2px solid #fff;border-radius:19px;background:#e9eeee;box-shadow:inset 0 0 0 1px var(--line);touch-action:pan-x pan-y}.seat-ops-map{position:relative;width:100%;min-width:100%;min-height:420px;background-color:#eef2f2;background-size:contain;background-position:center;background-repeat:no-repeat;transform-origin:0 0}.seat-ops-map.has-map:before{content:"";display:block;padding-top:var(--seat-map-ratio,66.666%)}
+.seat-table{position:absolute;left:calc(var(--x,50)*1%);top:calc(var(--y,50)*1%);transform:translate(-50%,-50%) rotate(calc(var(--r,0)*1deg));width:52px;height:36px;border:3px solid #fff;border-radius:8px;background:#81b7ca;color:#fff;font-size:14px;font-weight:950;box-shadow:0 5px 13px rgba(29,54,66,.25);touch-action:none;z-index:2}.seat-table.empty{background:#9aa6aa}.seat-table.occupied{background:#62a979}.seat-table.paid{background:#d59a45}.seat-table.selected{outline:5px solid rgba(255,206,75,.48);z-index:4}.seat-table.group{box-shadow:0 0 0 4px rgba(100,169,121,.22),0 5px 13px rgba(29,54,66,.25)}
+.seat-ops-sheet{position:sticky;bottom:0;z-index:8;margin-top:10px;padding:12px;border-radius:19px;background:rgba(255,255,255,.96);border:1px solid var(--line);box-shadow:0 -8px 24px rgba(35,55,65,.12)}.seat-ops-sheet h3{margin:0 0 8px}.seat-ops-sheet-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.seat-ops-sheet-actions .btn{min-height:52px;border-radius:15px!important}
 @media(max-width:760px){
   .date-head-row{display:none!important;}
   .date-line-row{grid-template-columns:1fr 1fr!important;}
@@ -170,6 +181,7 @@
   .addon-line-row{grid-template-columns:1fr 1fr;}
   .addon-line-row input:first-child{grid-column:1/-1;}
   .invoice-compact-row{grid-template-columns:1fr 1fr;}
+  .seat-plan-stage{min-height:300px}.seat-pin{width:46px;height:34px}.seat-share-list{grid-template-columns:1fr}.seat-ops-map{min-height:360px}.seat-table{width:50px;height:36px}.seat-ops-sheet-actions{grid-template-columns:1fr 1fr}.seat-ops-sheet-actions .btn{min-height:56px;font-size:16px}
 }
 
 
@@ -2805,7 +2817,7 @@ function normalizeAdminSeatItem(x={},i=0){
   let price=Math.max(0,Number(x.price||x.priceDelta||x.price_delta||0)||0);
   const type=kind==='service'?'service':kind==='closed'?'closed':(price>0?'paid':'auto');
   if(type==='service'||type==='closed') price=0;
-  return {code:String(x.code||x.stallNo||x.stall_no||'').trim(),type,price,note:String(x.note||''),order:Number(x.order||x.mapOrder||x.map_order||i+1)||i+1};
+  return {code:String(x.code||x.stallNo||x.stall_no||'').trim(),type,price,note:String(x.note||''),order:Number(x.order||x.mapOrder||x.map_order||i+1)||i+1,x:Math.max(0,Math.min(100,Number(x.x??x.mapX??x.map_x??50)||0)),y:Math.max(0,Math.min(100,Number(x.y??x.mapY??x.map_y??50)||0)),rotation:((Number(x.rotation??x.mapRotation??x.map_rotation??0)||0)%360+360)%360};
 }
 function adminSeatKind(type){ return type==='service'?'service':type==='closed'?'closed':'fixed'; }
 function seatTypeSelectHtml(type,idx){
@@ -2815,7 +2827,8 @@ function seatTypeSelectHtml(type,idx){
 }
 function moveSessionSeatRow(i,dir){ const a=AdminSessionSeatItems; const j=i+dir; if(j<0||j>=a.length) return; const t=a[i]; a[i]=a[j]; a[j]=t; AdminSessionSeatListDirty=true; renderSessionSeatRows(a); }
 function expandStallCodes(input){ const out=[]; const seen=new Set(); String(input||'').split(/[,\s，、]+/).forEach(function(raw){ const tok=raw.trim(); if(!tok) return; const m=tok.match(/^([^\d]*?)(\d+)\s*[-~～]\s*([^\d]*?)(\d+)$/); if(m && (m[1]===m[3]||m[3]==='')){ const pf=m[1]; const a=parseInt(m[2],10),b=parseInt(m[4],10); const lo=Math.min(a,b),hi=Math.max(a,b); if(hi-lo>500){ if(!seen.has(tok)){seen.add(tok);out.push(tok);} return; } for(let k=lo;k<=hi;k++){ const c=pf+k; if(!seen.has(c)){seen.add(c);out.push(c);} } } else { if(!seen.has(tok)){seen.add(tok);out.push(tok);} } }); return out; }
-function addSeatsByRange(){ const raw=String(($('set_seatRange')||{}).value||'').trim(); if(!raw){ toast('請輸入範圍，例如 A1-A5,B1-B5,D1-D6'); return; } const codes=expandStallCodes(raw); if(!codes.length){ toast('無法解析範圍'); return; } let added=0; codes.forEach(function(code){ if(!AdminSessionSeatItems.some(x=>x.code===code)){ AdminSessionSeatItems.push({code:code,type:'auto',price:0,note:'',order:AdminSessionSeatItems.length+1}); added++; } }); if(added) AdminSessionSeatListDirty=true; renderSessionSeatRows(AdminSessionSeatItems); if($('set_seatRange')) $('set_seatRange').value=''; toast('已建立 '+added+' 個號碼'); }
+function nextSeatPlanPosition(i){const cols=8;return{x:8+(i%cols)*(84/(cols-1)),y:10+Math.floor(i/cols)*11};}
+function addSeatsByRange(){ const raw=String(($('set_seatRange')||{}).value||'').trim(); if(!raw){ toast('請輸入範圍，例如 A1-A5,B1-B5,D1-D6'); return; } const codes=expandStallCodes(raw); if(!codes.length){ toast('無法解析範圍'); return; } let added=0; codes.forEach(function(code){ if(!AdminSessionSeatItems.some(x=>x.code===code)){ const pos=nextSeatPlanPosition(AdminSessionSeatItems.length); AdminSessionSeatItems.push({code:code,type:'auto',price:0,note:'',order:AdminSessionSeatItems.length+1,x:pos.x,y:pos.y,rotation:0}); added++; } }); if(added) AdminSessionSeatListDirty=true; renderSessionSeatRows(AdminSessionSeatItems); if($('set_seatRange')) $('set_seatRange').value=''; toast('已建立 '+added+' 個號碼'); }
 function currentSeatSid(){ return String(($('set_sessionId')||{}).value||'').trim(); }
 async function loadVenueMapList(){ try{ const r=await apiPost({action:'listVenueMaps'}); const maps=(r&&r.maps)||[]; const sel=$('set_venueMapSel'); if(sel){ sel.innerHTML='<option value="">— 選擇常用圖 —</option>'+maps.map(m=>`<option value="${attr(m.id)}">${safe(m.name)}</option>`).join(''); } }catch(e){} }
 async function applyVenueMapNow(){ const sid=currentSeatSid(); const mapId=String(($('set_venueMapSel')||{}).value||''); if(!mapId){ toast('請先選擇常用圖'); return; } if(!confirm('套用後會以常用圖的圖片與位置設定覆蓋本場目前設定，確定？')) return; try{ const res=await apiPost({action:'applyVenueMap',sessionId:sid,mapId,enabled:!!$('set_seatPricingEnabled')?.checked,holdHours:Number(($('set_seatHoldHours')||{}).value||24)||24,assignDaysBefore:Number(($('set_seatAssignDays')||{}).value||7)||7}); await loadSessionSeatSettings(sid, (typeof sessionById==='function'?sessionById(sid):null)||{}); toast(res&&res.warning?('已套用常用圖；'+res.warning):'已套用常用圖',9000); }catch(e){ toast('套用失敗：'+e.message,9000); } }
@@ -2833,6 +2846,7 @@ function renderSessionSeatRows(items){
     +'<span class="seat-row-actions"><button type="button" class="btn secondary small" onclick="moveSessionSeatRow('+i+',-1)" title="上移">▲</button><button type="button" class="btn secondary small" onclick="moveSessionSeatRow('+i+',1)" title="下移">▼</button><button type="button" class="btn secondary small" onclick="removeSessionSeatRow('+i+')">刪</button></span>'
     +'</div>'; }).join('');
   updateSeatMiniSummary();
+  renderSeatPlanEditor();
 }
 // 批次設定加價金額：0＝系統自動排位（攤友不能選）；>0＝開放攤友加價自選
 function bulkSetSeatPrice(){
@@ -2870,7 +2884,7 @@ function updateSessionSeatRow(i,key,val){
   renderSessionSeatRows(AdminSessionSeatItems);
 }
 function removeSessionSeatRow(i){ AdminSessionSeatItems.splice(i,1); AdminSessionSeatListDirty=true; renderSessionSeatRows(AdminSessionSeatItems); }
-function addSessionSeatRow(){ AdminSessionSeatItems.push({code:'',type:'auto',price:0,note:'',order:AdminSessionSeatItems.length+1}); AdminSessionSeatListDirty=true; renderSessionSeatRows(AdminSessionSeatItems); }
+function addSessionSeatRow(){ AdminSessionSeatItems.push({code:'',type:'auto',price:0,note:'',order:AdminSessionSeatItems.length+1,x:50,y:50,rotation:0}); AdminSessionSeatListDirty=true; renderSessionSeatRows(AdminSessionSeatItems); }
 function batchCreateSessionSeats(){
   const prefix=String($('set_seatPrefix')?.value||'').trim().toUpperCase();
   const start=Math.max(1,Number($('set_seatStart')?.value||1)||1);
@@ -2879,7 +2893,7 @@ function batchCreateSessionSeats(){
   let added=0;
   for(let i=0;i<count;i++){
     const code=prefix+String(start+i);
-    if(!AdminSessionSeatItems.some(x=>x.code===code)){ AdminSessionSeatItems.push({code,type:'auto',price:0,note:'',order:AdminSessionSeatItems.length+1}); added++; }
+    if(!AdminSessionSeatItems.some(x=>x.code===code)){ const pos=nextSeatPlanPosition(AdminSessionSeatItems.length); AdminSessionSeatItems.push({code,type:'auto',price:0,note:'',order:AdminSessionSeatItems.length+1,x:pos.x,y:pos.y,rotation:0}); added++; }
   }
   if(added) AdminSessionSeatListDirty=true;
   renderSessionSeatRows(AdminSessionSeatItems);
@@ -2890,9 +2904,35 @@ function collectSessionSeatItems(){
     const s=normalizeAdminSeatItem(x,i);
     const kind=adminSeatKind(s.type);
     const price=kind==='fixed'?Math.max(0,Number(s.price)||0):0;
-    return {code:s.code,type:kind==='service'?'service':kind==='closed'?'closed':(price>0?'paid':'auto'),price,note:s.note||'',order:i+1};
+    return {code:s.code,type:kind==='service'?'service':kind==='closed'?'closed':(price>0?'paid':'auto'),price,note:s.note||'',order:i+1,x:Math.max(0,Math.min(100,Number(s.x)||0)),y:Math.max(0,Math.min(100,Number(s.y)||0)),rotation:((Number(s.rotation)||0)%360+360)%360};
   }).filter(x=>x.code);
 }
+let SeatPlanSelected=-1,SeatPlanLineMode=false,SeatPlanLineStart=null,SeatPlanSaveTimer=null;
+function seatPlanMarkDirty(){AdminSessionSeatListDirty=true;const n=$('set_seatMapNote');if(n)n.textContent='排位位置正在自動儲存…';clearTimeout(SeatPlanSaveTimer);SeatPlanSaveTimer=setTimeout(async()=>{try{await saveSessionSeatSettings(currentSeatSid());if(n)n.textContent='排位位置已自動儲存。';}catch(e){if(n)n.textContent='自動儲存失敗：'+(e.message||e);}},650);}
+function seatPlanPinClass(s){return 'seat-pin '+(s.type==='paid'?'paid':s.type==='service'?'service':s.type==='closed'?'closed':'')}
+function renderSeatPlanEditor(){
+  const stage=$('set_seatPlan');if(!stage)return;
+  const mapUrl=String($('set_seatMapUrl')?.value||'').trim();
+  stage.classList.toggle('has-map',!!mapUrl);stage.style.backgroundImage=mapUrl?'url("'+mapUrl.replace(/["\\]/g,'')+'")':'';
+  if(mapUrl){const img=new Image();img.onload=()=>stage.style.setProperty('--seat-map-ratio',((img.naturalHeight/img.naturalWidth)*100).toFixed(3)+'%');img.src=mapUrl;}
+  stage.innerHTML=AdminSessionSeatItems.map((s,i)=>'<button type="button" class="'+seatPlanPinClass(s)+(SeatPlanSelected===i?' selected':'')+'" data-seat-plan="'+i+'" style="--x:'+s.x+';--y:'+s.y+';--r:'+s.rotation+'" aria-label="攤位 '+attr(s.code)+'">'+safe(s.code||'新')+'</button>').join('');
+  stage.onclick=seatPlanStageClick;
+  stage.querySelectorAll('[data-seat-plan]').forEach(pin=>{
+    pin.onpointerdown=e=>{e.preventDefault();e.stopPropagation();const i=Number(pin.dataset.seatPlan);SeatPlanSelected=i;renderSeatPlanSelectionOnly();pin.setPointerCapture?.(e.pointerId);let moved=false;
+      const move=ev=>{const rect=stage.getBoundingClientRect();if(!rect.width||!rect.height)return;moved=true;const x=Math.max(0,Math.min(100,(ev.clientX-rect.left)/rect.width*100)),y=Math.max(0,Math.min(100,(ev.clientY-rect.top)/rect.height*100));AdminSessionSeatItems[i].x=Math.round(x*100)/100;AdminSessionSeatItems[i].y=Math.round(y*100)/100;pin.style.setProperty('--x',x);pin.style.setProperty('--y',y)};
+      const up=()=>{pin.removeEventListener('pointermove',move);pin.removeEventListener('pointerup',up);pin.removeEventListener('pointercancel',up);if(moved)seatPlanMarkDirty()};
+      pin.addEventListener('pointermove',move);pin.addEventListener('pointerup',up);pin.addEventListener('pointercancel',up);
+    };
+  });
+  renderSeatPlanActions();
+}
+function renderSeatPlanSelectionOnly(){const stage=$('set_seatPlan');if(!stage)return;stage.querySelectorAll('[data-seat-plan]').forEach(x=>x.classList.toggle('selected',Number(x.dataset.seatPlan)===SeatPlanSelected));renderSeatPlanActions();}
+function renderSeatPlanActions(){const box=$('set_seatPlanActions'),s=AdminSessionSeatItems[SeatPlanSelected];if(!box)return;box.innerHTML=s?'<div class="seat-ops-sheet"><h3>桌位 '+safe(s.code||'新位置')+'</h3><div class="seat-ops-sheet-actions"><button type="button" class="btn" onclick="seatPlanRotateSelected()">旋轉 90°</button><button type="button" class="btn secondary" onclick="seatPlanStartLine()">選兩點排成一列</button></div></div>':'';}
+function seatPlanRotateSelected(){if(SeatPlanSelected<0||!AdminSessionSeatItems[SeatPlanSelected]){toast('先點一下要旋轉的攤位');return;}AdminSessionSeatItems[SeatPlanSelected].rotation=(Number(AdminSessionSeatItems[SeatPlanSelected].rotation||0)+90)%360;seatPlanMarkDirty();renderSeatPlanEditor();}
+function seatPlanResetGrid(){if(!AdminSessionSeatItems.length){toast('尚未建立攤位');return;}AdminSessionSeatItems.forEach((s,i)=>Object.assign(s,nextSeatPlanPosition(i),{rotation:0}));seatPlanMarkDirty();renderSeatPlanEditor();toast('已重新整齊排列，記得儲存');}
+function seatPlanStartLine(){if(AdminSessionSeatItems.filter(s=>s.type==='auto'||s.type==='paid').length<2){toast('至少需要兩個攤位');return;}SeatPlanLineMode=true;SeatPlanLineStart=null;const h=$('set_seatPlanHelp');if(h)h.textContent='請在空白處點起點，再點終點；桌位會依號碼順序自動排成一列。';}
+function seatPlanStagePoint(e){const stage=$('set_seatPlan'),r=stage.getBoundingClientRect();return{x:Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100)),y:Math.max(0,Math.min(100,(e.clientY-r.top)/r.height*100))};}
+function seatPlanStageClick(e){if(!SeatPlanLineMode||e.target.closest('[data-seat-plan]'))return;const p=seatPlanStagePoint(e),h=$('set_seatPlanHelp');if(!SeatPlanLineStart){SeatPlanLineStart=p;if(h)h.textContent='第一點已設定，現在點第二個端點。';return;}const list=AdminSessionSeatItems.map((s,i)=>({s,i})).filter(x=>x.s.type==='auto'||x.s.type==='paid').sort((a,b)=>(a.s.order||a.i)-(b.s.order||b.i));list.forEach((x,i)=>{const t=list.length===1?0:i/(list.length-1);x.s.x=SeatPlanLineStart.x+(p.x-SeatPlanLineStart.x)*t;x.s.y=SeatPlanLineStart.y+(p.y-SeatPlanLineStart.y)*t;x.s.rotation=Math.atan2(p.y-SeatPlanLineStart.y,p.x-SeatPlanLineStart.x)*180/Math.PI;});SeatPlanLineMode=false;SeatPlanLineStart=null;seatPlanMarkDirty();renderSeatPlanEditor();if(h)h.textContent='已依兩點排成一列；可再拖曳微調，完成後儲存。';}
 function toggleSessionFeatureSections(){
   ['equipment','addons','agreement','seats','invoice'].forEach(key=>{
     const chk=$('mod_'+key);
@@ -2999,11 +3039,11 @@ async function saveSessionSeatMapOnly(sid,btn){
   finally{ if(btn){ btn.disabled=false; btn.textContent=old; } }
 }
 
-// ── 選位營運（ADMIN_SEAT_OPS_20260725）：看板／一鍵配位／換位指定／三名單 ──
-let SeatOps={sid:'',seats:[],regs:[]};
+// ── 手機優先排位：點攤商 → 點方形桌位 → 自動下一位 ──
+let SeatOps={sid:'',seats:[],regs:[],activeRegId:'',activeSeatCode:'',zoom:1,mapUrl:'',sessionName:'',venue:''};
 async function openSeatOps(sid){
   const s=sessionById(sid)||{};
-  openPanel('選位營運', safe((s.name||s.title||'場次'))+'｜配位／換位／名單', '<div id="seatOpsBox" class="sub">載入中…</div>');
+  openPanel('手機排位', safe((s.name||s.title||'場次'))+'｜點攤商，再點地圖位置', '<div id="seatOpsBox" class="sub">載入中…</div>');
   await loadSeatOps(sid);
 }
 async function loadSeatOps(sid){
@@ -3012,64 +3052,61 @@ async function loadSeatOps(sid){
   try{
     const d=await api({action:'adminSeatBoard',sessionId:sid});
     if(!d || d.error) throw new Error((d&&d.error)||'載入失敗');
-    SeatOps={sid:sid, seats:Array.isArray(d.seats)?d.seats:[], regs:Array.isArray(d.regs)?d.regs:[]};
+    const oldActive=SeatOps.activeRegId;
+    SeatOps={sid:sid,seats:Array.isArray(d.seats)?d.seats:[],regs:Array.isArray(d.regs)?d.regs:[],activeRegId:oldActive,activeSeatCode:'',zoom:SeatOps.zoom||1,mapUrl:d.mapUrl||'',sessionName:d.sessionName||'',venue:d.venue||''};
+    if(SeatOps.seats.length&&SeatOps.seats.every(s=>!Number(s.x)&&!Number(s.y))){SeatOps.seats.forEach((s,i)=>Object.assign(s,nextSeatPlanPosition(i),{rotation:Number(s.rotation)||0}));apiPost({action:'adminUpdateSeatPositions',sessionId:sid,items:SeatOps.seats.map(s=>({code:s.code,x:s.x,y:s.y,rotation:s.rotation}))}).catch(()=>{});}
+    if(!SeatOps.regs.some(r=>r.regId===SeatOps.activeRegId&&!r.stallNumber))SeatOps.activeRegId=(seatOpsPendingRegs()[0]||{}).regId||'';
     renderSeatOps();
   }catch(e){ box.innerHTML='<div class="empty" style="color:#8b1c1c">載入失敗：'+safe(e&&e.message?e.message:String(e))+'</div>'; }
 }
 function seatOpsEmptyCodes(){ return (SeatOps.seats||[]).filter(x=>(x.type==='auto'||x.type==='paid')&&x.active&&!x.occupied).map(x=>x.code); }
+function seatOpsPendingRegs(){return (SeatOps.regs||[]).filter(r=>!r.stallNumber).sort((a,b)=>String(a.paidAt||'').localeCompare(String(b.paidAt||''))||String(a.brand||a.name||'').localeCompare(String(b.brand||b.name||'')));}
+function seatOpsReg(id){return (SeatOps.regs||[]).find(r=>String(r.regId)===String(id));}
+function seatOpsSeat(code){return (SeatOps.seats||[]).find(s=>String(s.code)===String(code));}
+function seatOpsRegForSeat(seat){return seat&&seat.regId?seatOpsReg(seat.regId):null;}
+function seatOpsStatusText(){const r=seatOpsReg(SeatOps.activeRegId),pending=seatOpsPendingRegs();if(r)return '現在安排：'+(r.brand||r.name||'未命名')+'（'+(r.stallCount||1)+' 攤）｜請直接點空桌位';return pending.length?'請先點選一位攤商':'已完成全部排位';}
 function renderSeatOps(){
   const box=$('seatOpsBox'); if(!box) return;
-  const esc=safe, seats=SeatOps.seats||[], regs=SeatOps.regs||[];
-  const isPaid=v=>/已繳費|已付款/.test(String(v||''));
-  const paidSeats=seats.filter(x=>x.type==='paid');
-  const paidFree=paidSeats.filter(x=>x.active&&!x.occupied).length;
-  const autoFree=seats.filter(x=>x.type==='auto'&&x.active&&!x.occupied).length;
-  const paidFull=paidSeats.length>0&&paidFree===0;
-  const emptyCodes=seatOpsEmptyCodes();
-  const paidRegs=regs.filter(r=>r.intent==='paid');
-  const unpicked=paidRegs.filter(r=>!r.stallNumber&&isPaid(r.payStatus));
-  const noSeat=regs.filter(r=>!r.stallNumber);
-  const chip=(t,n,c)=>'<span style="display:inline-block;background:'+c+';border-radius:10px;padding:4px 10px;margin:0 6px 6px 0;font-size:16px;font-weight:900">'+t+'：'+n+'</span>';
-  let h='';
-  h+='<div style="margin-bottom:6px">'+chip('加價位',paidSeats.length,'#eef')+chip('加價可選',paidFree,paidFull?'#fdecea':'#e8f5ec')+chip('自動位可選',autoFree,'#eef')+(paidFull?'<span style="color:#c0392b;font-weight:900">（加價位已額滿）</span>':'')+'</div>';
-  h+='<div style="margin:8px 0 14px"><button type="button" class="btn" onclick="seatOpsBatch(\''+SeatOps.sid+'\')">🔄 一鍵自動配位（未排位者依繳費順序補位）</button><div class="sub" style="margin-top:4px">只填「沒加價的自動位」；加價自選與已鎖位置不受影響。</div></div>';
-  h+='<div style="font-weight:900;margin:12px 0 6px">換位／指定位置</div>';
-  if(!regs.length){ h+='<div class="sub">此場次尚無已錄取報名。</div>'; }
-  else{
-    h+=regs.map(function(r){
-      const cur=r.stallNumber||'（未排）', need=r.stallCount||1;
-      const tag=r.intent==='paid'?'<span style="color:#b45309;font-weight:900">加價自選</span>':'<span class="sub">自動配位</span>';
-      let ctrl='';
-      if(need===1){
-        const opts=['<option value="">— 選空位 —</option>'].concat(emptyCodes.map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>';})).join('');
-        ctrl='<select id="so_'+esc(r.regId)+'" style="min-width:120px;font-size:16px">'+opts+'</select> <button type="button" class="btn secondary small" onclick="seatOpsAssign(\''+SeatOps.sid+'\',\''+esc(r.regId)+'\')">換位</button>';
-      }else{
-        ctrl='<input id="so_'+esc(r.regId)+'" placeholder="輸入 '+need+' 個號碼，逗號分隔" style="min-width:180px;font-size:16px"> <button type="button" class="btn secondary small" onclick="seatOpsAssign(\''+SeatOps.sid+'\',\''+esc(r.regId)+'\')">指定</button>';
-      }
-      return '<div style="border:1px solid #eee;border-radius:12px;padding:10px;margin-bottom:8px"><div style="font-weight:900">'+esc(r.brand||r.name||'—')+' <span class="sub">'+esc(r.name||'')+'</span> ｜ '+tag+'</div><div class="sub" style="margin:4px 0">目前位置：<b>'+esc(cur)+'</b>（'+need+' 攤）</div>'+ctrl+'</div>';
-    }).join('');
-  }
-  const listBlock=function(title,arr,fmt){return '<details style="margin:8px 0"><summary style="font-weight:900;cursor:pointer;font-size:16px">'+title+'（'+arr.length+'）</summary>'+(arr.length?'<div style="margin-top:6px">'+arr.map(fmt).join('')+'</div>':'<div class="sub" style="margin-top:6px">無</div>')+'</details>';};
-  const line=function(r){return '<div class="sub" style="padding:3px 0">・'+esc(r.brand||r.name||'—')+(r.stallNumber?('　位置 '+esc(r.stallNumber)):'　未排')+'</div>';};
-  h+='<div style="margin-top:12px">';
-  h+=listBlock('未選位名單（加價自選、已付款、還沒挑位）', unpicked, line);
-  h+=listBlock('加價選位名單（所有選擇加價選位）', paidRegs, line);
-  h+=listBlock('未排位名單（含自動位尚未配到）', noSeat, line);
-  h+='<div class="sub" style="margin-top:6px">加價位狀態：'+(paidFull?'<b style="color:#c0392b">已額滿</b>':(paidSeats.length?('尚餘 '+paidFree+' 個'):'此場未設加價位'))+'</div>';
-  h+='</div>';
-  box.innerHTML=h;
+  const pending=seatOpsPendingRegs(),seats=SeatOps.seats||[],selected=seatOpsSeat(SeatOps.activeSeatCode),selectedReg=seatOpsRegForSeat(selected);
+  let h='<div id="seatOpsStatus" class="seat-ops-status">'+safe(seatOpsStatusText())+'</div>';
+  h+='<div class="seat-ops-queue">'+(pending.length?pending.map(r=>'<button type="button" class="seat-ops-person '+(r.regId===SeatOps.activeRegId?'active':'')+'" onclick="seatOpsSelectReg(\''+attr(r.regId)+'\')"><b>'+safe(r.brand||r.name||'未命名')+'</b><small>'+Number(r.stallCount||1)+' 攤｜待排位</small></button>').join(''):'<div class="sub">目前沒有待排攤商</div>')+'</div>';
+  h+='<div class="card-actions" style="margin:0 0 10px"><button type="button" class="btn small" onclick="seatOpsBatch(\''+SeatOps.sid+'\')">依付款順序全部自動排位</button><button type="button" class="btn secondary small" onclick="downloadSeatShareImage()">下載分享圖</button></div>';
+  h+='<div id="seatOpsViewport" class="seat-ops-viewport"><div id="seatOpsMap" class="seat-ops-map '+(SeatOps.mapUrl?'has-map':'')+'" style="'+(SeatOps.mapUrl?'background-image:url(&quot;'+attr(SeatOps.mapUrl)+'&quot;);':'')+'">'+seats.filter(s=>s.active||s.occupied).map(s=>'<button type="button" class="seat-table '+(s.occupied?'occupied':'empty')+' '+(s.type==='paid'?'paid':'')+' '+(s.regId&&seats.filter(x=>x.regId===s.regId).length>1?'group':'')+' '+(s.code===SeatOps.activeSeatCode?'selected':'')+'" data-seat-code="'+attr(s.code)+'" style="--x:'+Number(s.x||0)+';--y:'+Number(s.y||0)+';--r:'+Number(s.rotation||0)+'" onclick="seatOpsTapSeat(\''+attr(s.code)+'\')">'+safe(s.code)+'</button>').join('')+'</div></div>';
+  h+='<div class="sub" style="margin-top:7px">雙指可放大縮小；拖曳方形桌位會自動儲存。租兩攤會整組一起移動。</div>';
+  h+='<div id="seatOpsSheet">'+(selected?'<div class="seat-ops-sheet"><h3>桌位 '+safe(selected.code)+(selectedReg?'｜'+safe(selectedReg.brand||selectedReg.name||''):'｜空位')+'</h3><div class="seat-ops-sheet-actions">'+(selectedReg?'<button type="button" class="btn" onclick="seatOpsChooseMove(\''+attr(selectedReg.regId)+'\')">換位</button>':'')+'<button type="button" class="btn secondary" onclick="seatOpsMoveHint()">移動</button><button type="button" class="btn secondary" onclick="seatOpsRotateGroup(\''+attr(selected.code)+'\')">旋轉</button>'+(selectedReg?'<button type="button" class="btn danger" onclick="seatOpsUnassign(\''+attr(selectedReg.regId)+'\')">退回待排</button>':'')+'</div></div>':'')+'</div>';
+  const assigned=(SeatOps.regs||[]).filter(r=>r.stallNumber).sort((a,b)=>String(a.stallNumber).localeCompare(String(b.stallNumber)));
+  h+='<details style="margin-top:12px"><summary style="font-weight:950;font-size:17px">已完成排位（'+assigned.length+'）</summary><div class="seat-share-list">'+assigned.map(r=>'<div class="seat-share-row"><b>'+safe(r.stallNumber)+'｜'+safe(r.brand||r.name||'未命名')+'</b><div class="sub">'+safe(r.equipmentText||'設備自備')+'</div></div>').join('')+'</div></details>';
+  box.innerHTML=h;seatOpsBindMap();
 }
-async function seatOpsAssign(sid, regId){
-  const el=$('so_'+regId); if(!el){ toast('找不到輸入欄'); return; }
-  const raw=String(el.value||'').trim();
-  if(!raw){ toast('請先選擇或輸入位置'); return; }
-  const codes=raw.split(/[,，\s]+/).map(function(x){return x.trim();}).filter(Boolean);
-  try{
-    const r=await apiPost({action:'adminAssignSeat',regId:regId,seats:codes});
-    if(r&&r.error){ toast(r.error,7000); return; }
-    toast('已安排位置：'+codes.join('、'));
-    await loadSeatOps(sid);
-  }catch(e){ toast('安排失敗：'+(e&&e.message?e.message:e),7000); }
+function seatOpsSelectReg(regId){SeatOps.activeRegId=regId;SeatOps.activeSeatCode='';renderSeatOps();}
+function seatOpsChooseMove(regId){SeatOps.activeRegId=regId;SeatOps.activeSeatCode='';renderSeatOps();toast('請直接點新的空桌位');}
+function seatOpsMoveHint(){toast('直接按住方形桌位拖曳，放開後會自動儲存');}
+function seatOpsAdjacentCodes(startCode,need){const start=seatOpsSeat(startCode),free=(SeatOps.seats||[]).filter(s=>s.active&&!s.occupied&&(s.type==='auto'||s.type==='paid'));if(!start||need<=1)return start?[start.code]:[];const near=free.slice().sort((a,b)=>{if(a.code===startCode)return-1;if(b.code===startCode)return 1;const da=Math.hypot(Number(a.x)-Number(start.x),Number(a.y)-Number(start.y)),db=Math.hypot(Number(b.x)-Number(start.x),Number(b.y)-Number(start.y));return da-db||(Number(a.order)||0)-(Number(b.order)||0)}).slice(0,need);return near.length===need&&near.every(s=>Math.hypot(Number(s.x)-Number(start.x),Number(s.y)-Number(start.y))<=22)?near.map(s=>s.code):[];}
+async function seatOpsTapSeat(code){if(SeatOps.dragged){SeatOps.dragged=false;return;}const seat=seatOpsSeat(code);if(!seat)return;if(seat.occupied){SeatOps.activeSeatCode=code;renderSeatOps();return;}const reg=seatOpsReg(SeatOps.activeRegId);if(!reg){SeatOps.activeSeatCode=code;renderSeatOps();toast('請先點選要安排的攤商');return;}const codes=seatOpsAdjacentCodes(code,Math.max(1,Number(reg.stallCount)||1));if(!codes.length){toast('租用多攤必須相鄰；這個位置旁邊沒有足夠空位');return;}try{await apiPost({action:'adminAssignSeat',regId:reg.regId,seats:codes});toast('已完成 '+(reg.brand||reg.name||'攤商')+'：'+codes.join('、'));SeatOps.activeRegId='';await loadSeatOps(SeatOps.sid);}catch(e){toast('排位失敗：'+e.message,7000)}}
+function seatOpsBindMap(){
+  const view=$('seatOpsViewport'),map=$('seatOpsMap');if(!view||!map)return;
+  if(SeatOps.mapUrl){const img=new Image();img.onload=()=>map.style.setProperty('--seat-map-ratio',((img.naturalHeight/img.naturalWidth)*100).toFixed(3)+'%');img.src=SeatOps.mapUrl;}
+  const applyZoom=()=>{map.style.width=(Math.max(1,SeatOps.zoom||1)*100)+'%';if(!SeatOps.mapUrl)map.style.minHeight=(420*Math.max(1,SeatOps.zoom||1))+'px'};applyZoom();
+  let pinchStart=0,zoomStart=SeatOps.zoom||1;
+  view.addEventListener('touchstart',e=>{if(e.touches.length===2){pinchStart=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);zoomStart=SeatOps.zoom||1;}},{passive:true});
+  view.addEventListener('touchmove',e=>{if(e.touches.length===2&&pinchStart){e.preventDefault();const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);SeatOps.zoom=Math.max(1,Math.min(3.5,zoomStart*d/pinchStart));applyZoom();}},{passive:false});
+  view.addEventListener('touchend',e=>{if(e.touches.length<2)pinchStart=0},{passive:true});
+  map.querySelectorAll('[data-seat-code]').forEach(pin=>{pin.onpointerdown=e=>{if(e.pointerType==='touch'&&e.isPrimary===false)return;e.preventDefault();e.stopPropagation();const seat=seatOpsSeat(pin.dataset.seatCode);if(!seat)return;const group=seat.regId?(SeatOps.seats||[]).filter(s=>s.regId===seat.regId):[seat],base=group.map(s=>({s,x:Number(s.x)||0,y:Number(s.y)||0})),rect=map.getBoundingClientRect(),sx=e.clientX,sy=e.clientY;let moved=false;pin.setPointerCapture?.(e.pointerId);
+    const move=ev=>{const dx=(ev.clientX-sx)/rect.width*100,dy=(ev.clientY-sy)/rect.height*100;if(Math.hypot(ev.clientX-sx,ev.clientY-sy)>5)moved=true;base.forEach(o=>{o.s.x=Math.max(0,Math.min(100,o.x+dx));o.s.y=Math.max(0,Math.min(100,o.y+dy));const el=map.querySelector('[data-seat-code="'+CSS.escape(o.s.code)+'"]');if(el){el.style.setProperty('--x',o.s.x);el.style.setProperty('--y',o.s.y)}})};
+    const up=async()=>{pin.removeEventListener('pointermove',move);pin.removeEventListener('pointerup',up);pin.removeEventListener('pointercancel',up);if(!moved)return;SeatOps.dragged=true;setTimeout(()=>SeatOps.dragged=false,250);try{await apiPost({action:'adminUpdateSeatPositions',sessionId:SeatOps.sid,items:group.map(s=>({code:s.code,x:s.x,y:s.y,rotation:s.rotation||0}))});toast(group.length>1?'整組桌位已移動並自動儲存':'桌位已移動並自動儲存');}catch(err){toast('位置儲存失敗：'+err.message,7000);await loadSeatOps(SeatOps.sid)}};
+    pin.addEventListener('pointermove',move);pin.addEventListener('pointerup',up);pin.addEventListener('pointercancel',up);
+  }});
+}
+async function seatOpsRotateGroup(code){const seat=seatOpsSeat(code);if(!seat)return;const group=seat.regId?(SeatOps.seats||[]).filter(s=>s.regId===seat.regId):[seat];group.forEach(s=>s.rotation=(Number(s.rotation||0)+90)%360);try{await apiPost({action:'adminUpdateSeatPositions',sessionId:SeatOps.sid,items:group.map(s=>({code:s.code,x:s.x,y:s.y,rotation:s.rotation}))});toast('已旋轉並自動儲存');renderSeatOps();}catch(e){toast('旋轉失敗：'+e.message,7000)}}
+async function seatOpsUnassign(regId){const r=seatOpsReg(regId);if(!r)return;if(!confirm('將 '+(r.brand||r.name||'這位攤商')+' 退回待排？'))return;try{await apiPost({action:'adminUnassignSeat',regId});toast('已退回待排');SeatOps.activeRegId=regId;await loadSeatOps(SeatOps.sid);}catch(e){toast('退回失敗：'+e.message,7000)}}
+async function seatOpsLoadImage(url){return new Promise((resolve,reject)=>{if(!url)return resolve(null);const img=new Image();img.crossOrigin='anonymous';img.onload=()=>resolve(img);img.onerror=reject;img.src=url;});}
+async function downloadSeatShareImage(){
+  const assigned=(SeatOps.regs||[]).filter(r=>r.stallNumber).sort((a,b)=>String(a.stallNumber).localeCompare(String(b.stallNumber)));if(!assigned.length){toast('目前沒有已排位名單');return;}
+  toast('正在製作高畫質分享圖…');const W=2160,mapH=1320,headerH=210,rowH=112,cols=2,listRows=Math.ceil(assigned.length/cols),H=headerH+mapH+150+listRows*rowH+100,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,W,H);c.fillStyle='#27343a';c.font='900 74px sans-serif';c.fillText(SeatOps.sessionName||'DOING 場地位置圖',90,105);c.font='38px sans-serif';c.fillStyle='#6f777b';c.fillText(SeatOps.venue||'場地位置與攤商名單',90,166);
+  const mx=90,my=headerH,mw=W-180,mh=mapH-70;c.fillStyle='#eef2f2';c.fillRect(mx,my,mw,mh);try{const img=await seatOpsLoadImage(SeatOps.mapUrl);if(img){const scale=Math.min(mw/img.width,mh/img.height),dw=img.width*scale,dh=img.height*scale;c.drawImage(img,mx+(mw-dw)/2,my+(mh-dh)/2,dw,dh)}}catch(e){}
+  for(const s of (SeatOps.seats||[]).filter(x=>x.active||x.occupied)){const x=mx+Number(s.x||0)/100*mw,y=my+Number(s.y||0)/100*mh;c.save();c.translate(x,y);c.rotate(Number(s.rotation||0)*Math.PI/180);c.fillStyle=s.occupied?'#4f9d70':s.type==='paid'?'#d29944':'#89979b';c.strokeStyle='#fff';c.lineWidth=7;c.fillRect(-37,-25,74,50);c.strokeRect(-37,-25,74,50);c.rotate(-Number(s.rotation||0)*Math.PI/180);c.fillStyle='#fff';c.font='900 24px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(String(s.code||''),0,0);c.restore()}
+  let y=headerH+mapH;c.textAlign='left';c.fillStyle='#27343a';c.font='900 54px sans-serif';c.fillText('攤位名單',90,y);y+=62;c.strokeStyle='#d9e0e1';c.lineWidth=2;assigned.forEach((r,i)=>{const col=i%cols,row=Math.floor(i/cols),x=90+col*(W/2),yy=y+row*rowH;c.fillStyle='#27343a';c.font='900 34px sans-serif';c.fillText(String(r.stallNumber||'—')+'｜'+String(r.brand||r.name||'未命名').slice(0,20),x,yy+36);c.fillStyle='#737b7f';c.font='28px sans-serif';c.fillText(String(r.equipmentText||'設備自備').slice(0,34),x,yy+77);c.beginPath();c.moveTo(x,yy+rowH-8);c.lineTo(x+W/2-120,yy+rowH-8);c.stroke()});
+  try{const a=document.createElement('a');a.download=(SeatOps.sessionName||'DOING')+'－場地位置圖.png';a.href=cv.toDataURL('image/png');a.click();toast('高畫質分享圖已下載');}catch(e){toast('底圖來源限制下載，請將底圖重新上傳後再試',8000)}
 }
 async function seatOpsBatch(sid){
   if(!confirm('一鍵自動配位？\n\n把「還沒排位、且不是加價自選」的已付款攤友，依繳費順序補上自動位。\n已鎖位與加價自選不受影響。')) return;
@@ -3736,7 +3773,7 @@ function sessionSettingsForm(s, agreementTemplates=[]){
   const addonsBody = sessionAddonsFormHtml(addons);
   const invoiceBody = sessionInvoiceFormHtml(tax);
   const agreementBody = '<div class="form-grid"><div class="form-field"><label>選擇合約</label><select id="set_agreementTemplate" onchange="syncAgreementTemplateSelection()">'+agreementTemplateOptionsHtml(agreementTemplates,s)+'</select><div class="sub">目前版本：<span id="agreementVersionPreview">'+safe(currentAgreementVersion || '請選擇版本')+'</span></div></div><div class="form-field"><label>合約同意</label><label class="tight-check"><input type="checkbox" id="set_agreementRequired" '+(sessionBool(agreementRequired,true)?'checked':'')+'> 報名時要求同意合約</label></div><input type="hidden" id="set_agreementTitle" value="'+attr(s.agreementTitle||s.agreement_title||'報名合約／活動細則與攤商規範')+'"><input type="hidden" id="set_agreementVersion" value="'+attr(currentAgreementVersion)+'"></div><div class="compact-actions"><button type="button" class="btn secondary small" onclick="openInlineAgreementCreate()">＋ 新增本場次合約</button></div><div class="notice">合約正文在「後台設定 → 合約管理」新增或修改；場次設定只選套用版本。</div>';
-  const seatsBody = '<div class="form-grid"><div class="form-field"><label>加價選位</label><label class="tight-check"><input type="checkbox" id="set_seatPricingEnabled" onchange="toggleSessionSeatSettings()" '+(sessionBool(seatPricing,false)?'checked':'')+'> 啟用加價選位</label></div><div class="form-field"><label>選位保留時間（小時）</label><input id="set_seatHoldHours" type="number" min="1" value="'+attr(s.seatHoldHours||s.seat_hold_hours||24)+'"></div><div class="form-field"><label>活動前幾天開始自動配位</label><input id="set_seatAssignDays" type="number" min="3" value="'+attr(s.seatAssignDaysBefore||s.seat_assign_days_before||7)+'"><div class="sub">進入這個天數後，符合條件者依付款確認順序持續自動補位；之後新確認付款的人也會補位，直到活動開始前。預設 7 天（不小於 3）。</div></div><div class="form-field full"><label>已編號場地圖</label><div class="session-upload-line"><input id="set_seatMapUrl" value="'+attr(s.seatMapUrl||s.seat_map_url||'')+'" placeholder="請上傳或貼上已編號場地圖 URL"><input type="file" accept="image/png,image/jpeg,image/webp" onchange="loadSessionSeatMapFile(this)"></div><div class="seat-map-save-inline"><button type="button" class="btn secondary small" onclick="saveSessionSeatMapOnly(\''+attr(sid)+'\',this)">儲存地圖</button><span class="sub">地圖儲存後，才建立或修改號碼清單。</span></div></div></div><div class="form-field full"><label>常用場地圖</label><div class="session-upload-line"><select id="set_venueMapSel"><option value="">— 選擇常用圖 —</option></select><button type="button" class="btn secondary small" onclick="applyVenueMapNow()">套用</button><button type="button" class="btn secondary small" onclick="saveVenueMapNow()">存成常用圖</button><button type="button" class="btn secondary small" onclick="deleteVenueMapNow()">刪除</button></div><div class="sub">挑一次把「圖＋整份位置設定（分類、加價、備註、排序）」一起帶入；套用會覆蓋本場目前設定。</div></div><div id="set_seatTools" style="display:none"><div class="seat-map-save-note" id="set_seatMapNote"></div><div class="seat-batch-inline" id="set_seatBatchBox"><input id="set_seatPrefix" placeholder="區碼 A"><input id="set_seatStart" type="number" value="1" placeholder="起始"><input id="set_seatCount" type="number" value="" placeholder="數量"><button type="button" class="btn small" onclick="batchCreateSessionSeats()">批次建立號碼</button><button type="button" class="btn secondary small" onclick="addSessionSeatRow()">新增單號</button><button type="button" class="btn secondary small" onclick="bulkSetSeatPrice()">批次設定加價金額</button></div><div class="sub" style="margin-top:6px;line-height:1.7"><b>加價金額怎麼填？</b><br>・填 <b>0</b>＝<b>主辦配位</b>位置；進入活動前設定天數後，系統依付款確認順序持續自動補位，攤友不能自己選位置。<br>・填 <b>大於 0</b>＝<b>開放攤友加價自選</b>這個位置，前台才會出現可選的位置。</div><div class="seat-batch-inline"><input id="set_seatRange" placeholder="範圍快速輸入 例：A1-A5,B1-B5,D1-D6"><button type="button" class="btn small" onclick="addSeatsByRange()">依範圍建立</button></div><div id="set_seatSummary" class="sub"></div><div class="seat-head-row"><span>號碼</span><span>分類</span><span>加價金額</span><span>備註</span><span>排序</span></div><div id="set_seatRows"><div class="sub">尚未讀取號碼清單。</div></div></div><div class="sub">選位使用「已編號場地圖＋位置設定清單」，分類只有攤位（固定）、服務台、禁用。</div>';
+  const seatsBody = '<div class="form-grid"><div class="form-field"><label>加價選位</label><label class="tight-check"><input type="checkbox" id="set_seatPricingEnabled" onchange="toggleSessionSeatSettings()" '+(sessionBool(seatPricing,false)?'checked':'')+'> 啟用加價選位</label></div><div class="form-field"><label>選位保留時間（小時）</label><input id="set_seatHoldHours" type="number" min="1" value="'+attr(s.seatHoldHours||s.seat_hold_hours||24)+'"></div><div class="form-field"><label>活動前幾天開始自動配位</label><input id="set_seatAssignDays" type="number" min="3" value="'+attr(s.seatAssignDaysBefore||s.seat_assign_days_before||7)+'"><div class="sub">進入這個天數後，符合條件者依付款確認順序持續自動補位；之後新確認付款的人也會補位，直到活動開始前。預設 7 天（不小於 3）。</div></div><div class="form-field full"><label>場地底圖</label><div class="session-upload-line"><input id="set_seatMapUrl" value="'+attr(s.seatMapUrl||s.seat_map_url||'')+'" placeholder="請上傳或貼上場地底圖 URL"><input type="file" accept="image/png,image/jpeg,image/webp" onchange="loadSessionSeatMapFile(this)"></div><div class="seat-map-save-inline"><button type="button" class="btn secondary small" onclick="saveSessionSeatMapOnly(\''+attr(sid)+'\',this)">儲存底圖</button><span class="sub">底圖與攤位位置分開儲存，不會互相覆蓋。</span></div></div></div><div class="form-field full"><label>常用場地圖</label><div class="session-upload-line"><select id="set_venueMapSel"><option value="">— 選擇常用圖 —</option></select><button type="button" class="btn secondary small" onclick="applyVenueMapNow()">套用</button><button type="button" class="btn secondary small" onclick="saveVenueMapNow()">存成常用圖</button><button type="button" class="btn secondary small" onclick="deleteVenueMapNow()">刪除</button></div><div class="sub">挑一次把「圖＋整份位置設定（分類、加價、備註、排序）」一起帶入；套用會覆蓋本場目前設定。</div></div><div id="set_seatTools" style="display:none"><div class="seat-map-save-note" id="set_seatMapNote"></div><div class="seat-batch-inline" id="set_seatBatchBox"><input id="set_seatPrefix" placeholder="區碼 A"><input id="set_seatStart" type="number" value="1" placeholder="起始"><input id="set_seatCount" type="number" value="" placeholder="數量"><button type="button" class="btn small" onclick="batchCreateSessionSeats()">批次建立號碼</button><button type="button" class="btn secondary small" onclick="addSessionSeatRow()">新增單號</button><button type="button" class="btn secondary small" onclick="bulkSetSeatPrice()">批次設定加價金額</button></div><div class="sub" style="margin-top:6px;line-height:1.7"><b>加價金額怎麼填？</b><br>・填 <b>0</b>＝<b>主辦配位</b>位置；進入活動前設定天數後，系統依付款確認順序持續自動補位，攤友不能自己選位置。<br>・填 <b>大於 0</b>＝<b>開放攤友加價自選</b>這個位置，前台才會出現可選的位置。</div><div class="seat-batch-inline"><input id="set_seatRange" placeholder="範圍快速輸入 例：A1-A5,B1-B5,D1-D6"><button type="button" class="btn small" onclick="addSeatsByRange()">依範圍建立</button></div><div id="set_seatSummary" class="sub"></div><div id="set_seatPlanHelp" class="seat-plan-help">直接拖曳方形桌位；點一下桌位，下方才出現旋轉與排成一列的大按鈕。</div><div id="set_seatPlan" class="seat-plan-stage" aria-label="場地排位編輯器"></div><div id="set_seatPlanActions"></div><div class="seat-head-row"><span>號碼</span><span>分類</span><span>加價金額</span><span>備註</span><span>排序</span></div><div id="set_seatRows"><div class="sub">尚未讀取號碼清單。</div></div></div><div class="sub">選位使用「場地底圖＋可拖曳方形桌位」，分類只有攤位（固定）、服務台、禁用。</div>';
   return '<div class="readable-detail tight-session-settings">'
   +'<div class="report-card"><div class="report-title">基本資料</div><div class="session-basic-grid">'
   +'<div class="form-field manual-field"><label>場次名稱</label><input id="set_name" value="'+attr(sessionName(s))+'"></div>'
