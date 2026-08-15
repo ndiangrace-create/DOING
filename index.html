@@ -800,26 +800,34 @@ $('submitPayBtn').onclick=async()=>{
 async function cancelReg(r){const g=bundleGroupRows(r);if(!confirm(r.bundleGroupId?'確定取消這個兩場組合？兩場報名會一起取消並釋放兩場名額。':'確定取消這筆未付款報名？'))return;try{await apiPost('cancelReg',{tenant:r.tenantId||state.tenant,regId:r.id,email:state.myEmail,phone:state.myPhone,idempotencyKey:'cancel:'+(r.bundleGroupId||r.id)});toast(r.bundleGroupId?'兩場組合已一起取消':'報名已取消');await loadMy()}catch(e){toast(e.message)}}
 async function refundReg(r){if(!confirm(r.bundleGroupId?'此為兩場組合，退款會兩場一起申請、兩場一起釋放名額與位置，確定繼續？':'送出退款申請後，位置與名額會釋放，確定繼續？'))return;try{await apiPost('applyRefund',{tenant:r.tenantId||state.tenant,regId:r.id,email:state.myEmail,phone:state.myPhone,idempotencyKey:'refund:'+(r.bundleGroupId||r.id)});toast(r.bundleGroupId?'兩場組合退款申請已一起送出':'退款申請已送出');await loadMy()}catch(e){toast(e.message)}}
 $('myEmail').value=localStorage.getItem('doing_my_email')||'';
-let holdTimer=null,holdPointer=null,holdOrigin=null;
-function cancelAdminHold(){if(holdTimer){clearTimeout(holdTimer);holdTimer=null}holdPointer=null;holdOrigin=null}
+let holdTimer=null,holdPointer=null,holdOrigin=null,holdTarget=null;
+const hiddenAdminSelector='#brandHoldTarget,.doing-nav-brand';
+function cancelAdminHold(){if(holdTimer){clearTimeout(holdTimer);holdTimer=null}holdPointer=null;holdOrigin=null;holdTarget=null}
 function openHiddenAdminEntry(){
   const tenant=String(state.tenant||new URL(location.href).searchParams.get('tenant')||'').trim().toLowerCase();
   cancelAdminHold();
   if(!tenant){const u=new URL(API+'/auth/google/start');u.searchParams.set('tenant','platform');location.href=u.toString();return}
   openModal('adminEntryModal');
 }
-function startAdminHold(e){
+function startAdminHold(e,target){
   if(e.pointerType==='mouse'&&e.button!==0)return;
-  cancelAdminHold();holdPointer=e.pointerId;holdOrigin={x:e.clientX,y:e.clientY};
-  try{e.currentTarget.setPointerCapture(e.pointerId)}catch(_e){}
+  cancelAdminHold();holdPointer=e.pointerId;holdOrigin={x:e.clientX,y:e.clientY};holdTarget=target;
+  try{target.setPointerCapture(e.pointerId)}catch(_e){}
   holdTimer=setTimeout(openHiddenAdminEntry,3000);
 }
-function moveAdminHold(e){if(e.pointerId!==holdPointer||!holdOrigin)return;if(Math.hypot(e.clientX-holdOrigin.x,e.clientY-holdOrigin.y)>12)cancelAdminHold()}
-const hiddenAdminTarget=$('brandHoldTarget');
-hiddenAdminTarget?.addEventListener('pointerdown',startAdminHold);
-hiddenAdminTarget?.addEventListener('pointermove',moveAdminHold);
-['pointerup','pointercancel','lostpointercapture','pointerleave'].forEach(ev=>hiddenAdminTarget?.addEventListener(ev,cancelAdminHold));
-hiddenAdminTarget?.addEventListener('contextmenu',e=>{if(holdPointer!==null)e.preventDefault()});
+function moveAdminHold(e){
+  if(e.pointerId!==holdPointer||!holdOrigin||!holdTarget)return;
+  const r=holdTarget.getBoundingClientRect();
+  if(Math.hypot(e.clientX-holdOrigin.x,e.clientY-holdOrigin.y)>12||e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)cancelAdminHold();
+}
+document.addEventListener('pointerdown',e=>{
+  const target=e.target.closest?.(hiddenAdminSelector);
+  if(target)startAdminHold(e,target);
+},true);
+document.addEventListener('pointermove',moveAdminHold,true);
+['pointerup','pointercancel','lostpointercapture'].forEach(ev=>document.addEventListener(ev,cancelAdminHold,true));
+document.addEventListener('contextmenu',e=>{if(e.target.closest?.(hiddenAdminSelector))e.preventDefault()},true);
+document.addEventListener('dragstart',e=>{if(e.target.closest?.(hiddenAdminSelector))e.preventDefault()},true);
 $('adminGoogleBtn').onclick=()=>{
   const tenant=String(state.tenant||new URL(location.href).searchParams.get('tenant')||'').trim().toLowerCase();
   const u=new URL(API+'/auth/google/start');
