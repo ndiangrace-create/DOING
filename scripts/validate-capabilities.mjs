@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 
-const file = new URL('../doing-capabilities.json', import.meta.url);
+const file = process.cwd() + '/doing-capabilities.json';
 const data = JSON.parse(fs.readFileSync(file, 'utf8'));
 const allowed = new Set(['done', 'verify', 'issue', 'later']);
 const ids = new Set();
