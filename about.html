@@ -70,6 +70,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
 .choice:has(input:checked){border-color:#b8d6d0;background:#f0faf7;box-shadow:inset 0 0 0 1px #d4e8e3}
 .confirm-box{display:grid;gap:10px;margin-top:16px}.confirm-box label{display:flex;gap:10px;align-items:flex-start;padding:13px;border-radius:16px;background:#fafcfb;border:1px solid #e0e8e5}.confirm-box input{width:20px;min-height:auto;height:20px;accent-color:var(--brand);margin-top:2px}
 .inline-tip{padding:12px 14px;border-radius:16px;background:#f4faf8;border:1px solid #dce9e5;color:#406360;font-size:16px;line-height:1.62}
+.module-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.module-preview span{display:inline-flex;align-items:center;min-height:38px;padding:7px 11px;border-radius:999px;background:#fff;border:1px solid #cfe2dc;color:#285f59;font-size:15px;font-weight:900}
 .error{display:none;margin-top:14px;color:#b14f45;font-weight:900}.footer{margin-top:28px;padding-top:22px;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:16px}
 @media(max-width:1100px){.hero{grid-template-columns:1fr}.hero-points,.feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.flow{grid-template-columns:repeat(3,minmax(0,1fr))}.apply-wrap{grid-template-columns:1fr}.topin,.shell{width:min(100%,calc(100vw - 28px))}}
 @media(max-width:760px){body{font-size:17px}.topin,.shell{width:100%;padding-left:12px;padding-right:12px}.topin{min-height:64px}.brand-title{font-size:22px}.top-actions .link{display:none}.hero-main,.apply-form,.side-panel,.side-card,.card,.step,.price-card{border-radius:22px}.hero-points,.grid-3,.feature-grid,.field-grid,.choice-grid,.pricing{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.quick-nav{top:64px}}
@@ -317,7 +318,13 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
         </div>
 
         <div class="group">
-          <h3>七、送出前確認</h3>
+          <h3>七、系統會先為你開啟這些功能</h3>
+          <div class="desc">依你選的營運情境與困擾自動整理，不需要自己研究模組名稱。平台審核時會再確認，之後也能申請增減。</div>
+          <div id="signupModulePreview" class="module-preview"><span>先完成上方選擇，這裡會立即顯示</span></div>
+        </div>
+
+        <div class="group">
+          <h3>八、送出前確認</h3>
           <div class="confirm-box">
             <label><input id="confirmReal" type="checkbox"><span>我確認以上資料真實，且可供 DOING 審核營運帳號使用資格。</span></label>
             <label><input id="confirmUse" type="checkbox"><span>我申請的是營運帳號（活動、品牌、工作室、服務或預約使用），不是一般參加者帳號。</span></label>
@@ -355,9 +362,18 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
   const useLabelMap={market:'市集／攤商招募',event:'活動／講座／課程報名',workshop:'手作體驗／工作坊',beauty:'美業／工作室預約',service_booking:'一般服務預約',resource_booking:'場地／資源預約',guide:'導覽／戶外體驗',general:'其他通用報名'};
   const painLabelMap={scattered:'報名資料散落在表單和訊息裡',status:'不清楚誰已錄取、候補或取消',payment:'收款、對帳和退款容易漏掉',schedule:'日期、時段與剩餘名額不好整理',collision:'老師、空間或設備的時間容易排在一起',reschedule:'改期後又要重新整理名單',extras:'設備、材料或加購內容容易對錯',seating:'攤位或座位安排很花時間',notification:'活動前要逐一通知參加者',checkin:'現場報到和名單核對不方便',finance:'活動結束後，財務和紀錄不好整理',repeat_data:'每次都要請客人重新填寫資料',other:'還有其他困擾'};
   const painModules={scattered:['customFields'],status:['review'],payment:['payment'],schedule:['workshopSlots','calendar'],collision:['workshopSlots','resource','calendar'],reschedule:['workshopSlots','notifications'],extras:['equipment','addons'],seating:['seatSelection'],notification:['notifications'],checkin:['checkin'],finance:['payment'],repeat_data:[]};
+  const moduleLabels={registration:'報名／預約核心',review:'審核錄取',payment:'付款確認',equipment:'設備租借',seatSelection:'座位／攤位選位',checkin:'現場報到',invoice:'發票資料',workshopSlots:'日期／時段',service:'服務方案',resource:'人員／資源',participants:'票種／人數',customFields:'自訂問題',addons:'加購',agreement:'條款合約',i18n:'多語言',googleCalendar:'行事曆'};
+  function applicationModuleDefaults(){
+    const painPoints=[...document.querySelectorAll('#signupPainPoints input:checked')].map(x=>x.value),useCases=[...document.querySelectorAll('#signupUseCases input:checked')].map(x=>x.value),flags={};
+    painPoints.forEach(p=>(painModules[p]||[]).forEach(k=>flags[k]=true));
+    const bookingUse=useCases.some(x=>['workshop','beauty','service_booking','resource_booking','guide'].includes(x)),marketUse=useCases.includes('market');
+    return {registration:true,review:!!flags.review,workshopSlots:bookingUse||!!flags.workshopSlots,service:useCases.some(x=>['beauty','service_booking','workshop'].includes(x))||!!flags.service,resource:useCases.some(x=>['beauty','resource_booking','guide'].includes(x))||!!flags.resource,participants:useCases.includes('event'),customFields:!!flags.customFields,equipment:marketUse||!!flags.equipment,seatSelection:marketUse&&!!flags.seatSelection,addons:!!flags.addons,agreement:!!flags.agreement,invoice:!!flags.invoice,payment:!!flags.payment,checkin:marketUse||!!flags.checkin,googleCalendar:!!flags.calendar||bookingUse,quantityMode:marketUse?'stall':(bookingUse?'booking':'participant'),depositKind:flags.deposit?(bookingUse?'booking':'refundable'):'none',operatingMode:bookingUse?'booking':'activity',notifications:!!flags.notifications,rewards:!!flags.rewards,i18n:{enabled:false,languages:['zh-TW'],translations:{}}};
+  }
+  function refreshModulePreview(){const defaults=applicationModuleDefaults(),keys=Object.keys(moduleLabels).filter(k=>k==='registration'||defaults[k]===true),el=document.getElementById('signupModulePreview');if(el)el.innerHTML=keys.map(k=>'<span>'+moduleLabels[k]+'</span>').join('')}
   const painBox=document.getElementById('signupPainPoints'),primaryPain=document.getElementById('signupPrimaryPainPoint');
   const refreshPrimaryPain=()=>{const selected=[...painBox.querySelectorAll('input:checked')].map(x=>x.value),current=primaryPain.value;primaryPain.innerHTML='<option value="">請選擇一項</option>'+selected.map(x=>'<option value="'+x+'">'+painLabelMap[x]+'</option>').join('');if(selected.includes(current))primaryPain.value=current};
-  painBox?.addEventListener('change',e=>{const selected=[...painBox.querySelectorAll('input:checked')];if(selected.length>5){e.target.checked=false;showErr('困擾最多選擇 5 項');}else clearErr();refreshPrimaryPain()});
+  painBox?.addEventListener('change',e=>{const selected=[...painBox.querySelectorAll('input:checked')];if(selected.length>5){e.target.checked=false;showErr('困擾最多選擇 5 項');}else clearErr();refreshPrimaryPain();refreshModulePreview()});
+  document.getElementById('signupUseCases')?.addEventListener('change',refreshModulePreview);
   const publicLinkIds=['signupWebsite','signupFacebook','signupInstagram','signupOtherLink'];
   const noPublic=document.getElementById('signupNoPublicLink');
   publicLinkIds.forEach(id=>document.getElementById(id)?.addEventListener('input',e=>{if(e.target.value.trim())noPublic.checked=false}));
@@ -401,31 +417,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     clearErr();
 
     const flags={};painPoints.forEach(p=>(painModules[p]||[]).forEach(k=>flags[k]=true));
-    const bookingUse=useCases.some(x=>['workshop','beauty','service_booking','resource_booking','guide'].includes(x));
-    const marketUse=useCases.includes('market');
-    const defaults={
-      registration:true,
-      review:!!flags.review,
-      workshopSlots:bookingUse||!!flags.workshopSlots,
-      service:useCases.some(x=>['beauty','service_booking','workshop'].includes(x))||!!flags.service,
-      resource:useCases.some(x=>['beauty','resource_booking','guide'].includes(x))||!!flags.resource,
-      participants:false,
-      customFields:!!flags.customFields,
-      equipment:marketUse||!!flags.equipment,
-      seatSelection:marketUse&&!!flags.seatSelection,
-      addons:!!flags.addons,
-      agreement:!!flags.agreement,
-      invoice:!!flags.invoice,
-      payment:!!flags.payment,
-      checkin:marketUse||!!flags.checkin,
-      googleCalendar:!!flags.calendar || bookingUse,
-      quantityMode:marketUse?'stall':(bookingUse?'booking':'participant'),
-      depositKind:flags.deposit?(bookingUse?'booking':'refundable'):'none',
-      operatingMode:bookingUse?'booking':'activity',
-      notifications:!!flags.notifications,
-      rewards:!!flags.rewards,
-      i18n:{enabled:false,languages:['zh-TW'],translations:{}}
-    };
+    const defaults=applicationModuleDefaults(),bookingUse=defaults.operatingMode==='booking',marketUse=defaults.quantityMode==='stall';
     const moduleProfile={configured:true,useType:bookingUse?'booking':(marketUse?'market':'activity'),useCases,defaults};
     const applicationPayload={
       unitName,companyName,taxId,region,businessIntro,ownerName,contactName,phone,lineId,billingName,operationStage,startTime,
@@ -445,6 +437,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
       const u=new URL(API+'/auth/google/start');u.searchParams.set('mode','organizer_signup');u.searchParams.set('application_id',result.applicationId);location.href=u.toString();
     }catch(e){showErr(e.message||'申請資料保存失敗，請稍後再試');btn.disabled=false;btn.textContent='使用 Google 驗證並送出申請'}
   });
+  refreshModulePreview();
 
   const pageUrl=new URL(location.href);
   const applicationStatus=pageUrl.searchParams.get('application_status')||'';

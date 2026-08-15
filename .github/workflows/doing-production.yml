@@ -51,6 +51,8 @@ jobs:
         run: node scripts/validate-capabilities.mjs
       - name: Validate mobile seat map
         run: node scripts/validate-seat-map.mjs
+      - name: Validate tenant application and module flow
+        run: node scripts/validate-tenant-application.mjs
       - name: Verify unified visual shell and private long press
         run: |
           for page in member.html admin.html onsite.html platform.html photo.html; do

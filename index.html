@@ -846,7 +846,7 @@ $('adminGoogleBtn').onclick=()=>{
 $('adminSignupBtn').onclick=()=>{
   $('adminEntryModal').classList.remove('show');
   if(typeof window.openDoingOrganizerDetails==='function')window.openDoingOrganizerDetails('apply');
-  else location.href='index.html#apply';
+  else location.href='about.html#apply';
 };
 async function enterSelectedWorkspace(workspaceToken,tenantId,btn){
   const old=btn?btn.textContent:'';if(btn){btn.disabled=true;btn.textContent='進入中…'}
