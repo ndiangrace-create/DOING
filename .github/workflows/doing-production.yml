@@ -47,6 +47,8 @@ jobs:
             }
           }
           NODE
+      - name: Validate capability world map
+        run: node scripts/validate-capabilities.mjs
       - name: Verify member and tenant safety invariants
         run: |
           grep -q "platform_member_id" worker.js
