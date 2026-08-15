@@ -169,7 +169,7 @@ function openActivity(item){
     return;
   }
   if(!item?.tenantId||!item?.sessionId)return;
-  location.href=`?tenant=${encodeURIComponent(item.tenantId)}&session=${encodeURIComponent(item.sessionId)}`;
+  location.href=`?tenant=${encodeURIComponent(item.tenantId)}&session=${encodeURIComponent(item.sessionId)}&source=doing-platform`;
 }
 
 function renderActivities(items,query=''){
@@ -448,7 +448,7 @@ function buildPublicApp(){
 function openMyEntry(){if(memberAuth.complete){location.href='member.html';return}const modal=$('doingMyEntryModal');if(modal){modal.hidden=false;document.body.style.overflow='hidden';modal.querySelector('[data-my-action="login"]')?.focus()}}
 function closeMyEntry(){const modal=$('doingMyEntryModal');if(modal){modal.hidden=true;document.body.style.overflow=''}}
 function openMyLogin(){closeMyEntry();if(memberAuth.complete)location.href='member.html';else openMemberGate()}
-function startFirstApplication(){closeMyEntry();openMemberGate()}
+function startFirstApplication(){closeMyEntry();location.href='about.html#apply'}
 
 const memberAuth={token:'',profile:null,complete:false,resume:null,provider:'',roles:[],applications:[],workspaces:[]};
 function isLineBrowser(){return /\bLine\//i.test(navigator.userAgent)||/LIFF/i.test(navigator.userAgent)}
@@ -466,13 +466,14 @@ function ensureMemberGate(){
   modal.querySelector('.doing-member-close').onclick=()=>{modal.hidden=true;document.body.style.overflow=''};
   modal.querySelector('.doing-line-login').onclick=()=>authStart('line');
   form.elements.enableVendor.onchange=e=>form.querySelector('[data-vendor-fields]').hidden=!e.target.checked;
-  form.elements.enableSystem.onchange=e=>form.querySelector('[data-system-fields]').hidden=!e.target.checked;
+  const systemFieldset=form.elements.enableSystem?.closest('fieldset');
+  if(systemFieldset){systemFieldset.insertAdjacentHTML('afterend','<div class="doing-canonical-application"><b>想建立自己的活動／預約系統？</b><p>請使用唯一的正式申請問卷，從你現在遇到的問題開始選擇；不需要先懂模組名稱。</p><button type="button" data-canonical-apply>前往營運帳號申請</button></div>');systemFieldset.remove();modal.querySelector('[data-canonical-apply]').onclick=startFirstApplication}
   modal.querySelector('[data-member-edit]').onclick=showMemberProfile;
   modal.querySelector('[data-member-logout]').onclick=logoutMember;
   form.onsubmit=saveMemberProfile;return modal;
 }
 function showMemberView(view){const modal=ensureMemberGate();modal.hidden=false;document.body.style.overflow='hidden';modal.querySelectorAll('[data-member-view]').forEach(x=>x.hidden=x.dataset.memberView!==view)}
-function showMemberProfile(){const modal=ensureMemberGate(),form=modal.querySelector('form'),p=memberAuth.profile||{},app=(memberAuth.applications||[])[0]||{};for(const key of ['name','email','phone','lineId','city'])if(form.elements[key])form.elements[key].value=p[key]||'';const vendor=!!(p.brand||p.brand_name);form.elements.enableVendor.checked=vendor;form.querySelector('[data-vendor-fields]').hidden=!vendor;if(vendor){form.elements.brandName.value=p.brand||p.brand_name||'';form.elements.brandIntro.value=p.brandIntro||'';form.elements.category.value=p.sellCat||'';form.elements.items.value=p.sellItem||'';form.elements.facebook.value=p.fb||'';form.elements.instagram.value=p.ig||'';form.elements.photoUrl.value=p.photo||'';form.elements.company.value=p.company||'';form.elements.taxId.value=p.taxId||''}const system=!!(app.id||memberAuth.workspaces?.length);form.elements.enableSystem.checked=system;form.querySelector('[data-system-fields]').hidden=!system;form.elements.unitName.value=app.unitName||memberAuth.workspaces?.[0]?.name||'';const industries=new Set(app.industryCategories||[]),useCases=new Set(app.useCases||[]);form.querySelectorAll('[name="industry"]').forEach(x=>x.checked=industries.has(x.value));form.querySelectorAll('[name="useCase"]').forEach(x=>x.checked=useCases.has(x.value));form.querySelector('.doing-member-save').textContent='儲存會員資料';showMemberView('profile')}
+function showMemberProfile(){const modal=ensureMemberGate(),form=modal.querySelector('form'),p=memberAuth.profile||{};for(const key of ['name','email','phone','lineId','city'])if(form.elements[key])form.elements[key].value=p[key]||'';const vendor=!!(p.brand||p.brand_name);form.elements.enableVendor.checked=vendor;form.querySelector('[data-vendor-fields]').hidden=!vendor;if(vendor){form.elements.brandName.value=p.brand||p.brand_name||'';form.elements.brandIntro.value=p.brandIntro||'';form.elements.category.value=p.sellCat||'';form.elements.items.value=p.sellItem||'';form.elements.facebook.value=p.fb||'';form.elements.instagram.value=p.ig||'';form.elements.photoUrl.value=p.photo||'';form.elements.company.value=p.company||'';form.elements.taxId.value=p.taxId||''}form.querySelector('.doing-member-save').textContent='儲存會員資料';showMemberView('profile')}
 function memberStatusLabel(s){return ({pending:'審核中',approved:'已通過',active:'使用中',supplement_required:'待補件',rejected:'未通過'}[s]||s||'尚未申請')}
 function memberTreeHTML(){const p=memberAuth.profile||{},apps=memberAuth.applications||[],spaces=memberAuth.workspaces||[];return `<article class="is-done"><b>① 基本會員</b><span>已完成</span><small>${esc(p.name||'')}｜${esc(p.phone||'')}</small></article><article class="${p.brand?'is-done':''}"><b>② 攤商品牌</b><span>${p.brand?'已建立':'尚未建立'}</span><small>${p.brand?`${esc(p.brand)}｜${esc(p.sellCat||'未分類')}`:'需要擺攤時再建立'}</small></article><article class="${apps.length||spaces.length?'is-done':''}"><b>③ 主辦／系統</b><span>${spaces.length?'已啟用':apps.length?memberStatusLabel(apps[0].status):'尚未申請'}</span><small>${esc(spaces[0]?.name||apps[0]?.unitName||'需要開設系統時再申請')}</small></article><article class="is-done"><b>④ 我的活動</b><span>可使用</span><small>錄取、付款、位置、退款與行前提醒</small></article>`}
 function showMemberTree(){showMemberPage()}
@@ -482,8 +483,8 @@ function updateMemberAuthUi(){const p=memberAuth.profile||{},label=memberAuth.co
 function logoutMember(){memberAuth.token='';memberAuth.profile=null;memberAuth.complete=false;memberAuth.provider='';memberAuth.roles=[];memberAuth.applications=[];memberAuth.workspaces=[];localStorage.removeItem('doing_member_token');ensureMemberGate().hidden=true;const panel=$('doingHomeMy');if(panel){panel.hidden=true;panel.classList.remove('is-open')}document.body.style.overflow='';updateMemberAuthUi();if(typeof toast==='function')toast('已登出 DOING 會員')}
 function openMemberGate(resume){if(resume)memberAuth.resume=resume;if(memberAuth.complete){const fn=memberAuth.resume;memberAuth.resume=null;if(fn)fn();return true}showMemberView(memberAuth.token?'profile':'login');return false}
 async function saveMemberProfile(e){
-  e.preventDefault();const form=e.currentTarget,fd=new FormData(form),vendorOn=fd.has('enableVendor'),systemOn=fd.has('enableSystem'),error=form.querySelector('.doing-member-error'),btn=form.querySelector('.doing-member-save');error.textContent='';btn.disabled=true;
-  const payload={member_token:memberAuth.token,name:fd.get('name'),email:fd.get('email'),phone:fd.get('phone'),lineId:fd.get('lineId'),city:fd.get('city'),vendor:vendorOn?{brandName:fd.get('brandName'),brandIntro:fd.get('brandIntro'),category:fd.get('category'),items:fd.get('items'),facebook:fd.get('facebook'),instagram:fd.get('instagram'),photoUrl:fd.get('photoUrl'),company:fd.get('company'),taxId:fd.get('taxId')}:{},systemApplication:systemOn?{enabled:true,unitName:fd.get('unitName'),industryCategories:fd.getAll('industry'),useCases:fd.getAll('useCase')}:{enabled:false}};
+  e.preventDefault();const form=e.currentTarget,fd=new FormData(form),vendorOn=fd.has('enableVendor'),error=form.querySelector('.doing-member-error'),btn=form.querySelector('.doing-member-save');error.textContent='';btn.disabled=true;
+  const payload={member_token:memberAuth.token,name:fd.get('name'),email:fd.get('email'),phone:fd.get('phone'),lineId:fd.get('lineId'),city:fd.get('city'),vendor:vendorOn?{brandName:fd.get('brandName'),brandIntro:fd.get('brandIntro'),category:fd.get('category'),items:fd.get('items'),facebook:fd.get('facebook'),instagram:fd.get('instagram'),photoUrl:fd.get('photoUrl'),company:fd.get('company'),taxId:fd.get('taxId')}:{},systemApplication:{enabled:false}};
   if(vendorOn&&(!String(payload.vendor.brandName).trim()||!String(payload.vendor.brandIntro).trim()||!String(payload.vendor.category).trim())){error.textContent='攤商登錄請完整填寫品牌名稱、介紹與類別';btn.disabled=false;return}
   try{const d=await apiPost('savePlatformMemberProfile',payload),fresh=await apiGet('getPlatformMemberProfile',{member_token:memberAuth.token});setMemberState(fresh);localStorage.setItem('doing_member_token',memberAuth.token);if(typeof toast==='function')toast(d.applicationId?'會員與系統申請已完成':'會員資料已儲存');const fn=memberAuth.resume;memberAuth.resume=null;if(fn){ensureMemberGate().hidden=true;document.body.style.overflow='';fn()}else showMemberTree()}catch(err){error.textContent=err.message||'儲存失敗'}finally{btn.disabled=false}
 }

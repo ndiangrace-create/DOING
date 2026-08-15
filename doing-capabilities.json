@@ -230,6 +230,11 @@
         {
           "label": "正式購買到首頁顯示E2E",
           "status": "verify"
+        },
+        {
+          "label": "平台為各租戶帶來的曝光、點擊與報名轉換統計",
+          "status": "later",
+          "note": "需建立正式歸因事件資料表；不得用前端或瀏覽器暫存估算"
         }
       ]
     },
@@ -699,6 +704,11 @@
         {
           "label": "前台、會員頁與租戶後台完整套用",
           "status": "verify"
+        },
+        {
+          "label": "租戶自行維護前台客服與常見問題",
+          "status": "done",
+          "evidence": "tenant config faqs / openTenantFaqSettings"
         }
       ]
     },
