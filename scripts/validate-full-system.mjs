@@ -57,4 +57,11 @@ if(memberPage.includes('查看品牌')||memberPage.includes('data-page="brands"'
 for(const field of ['approvedAt','paymentReportedAt','paidAt','checkinAt','refundedAt','participants','addonQty'])if(!worker.includes(field))fail(`會員活動回傳缺少欄位：${field}`);
 for(const marker of ['application_created','application_submitted','application_approved','supplement_requested','application_rejected'])if(!worker.includes(marker))fail(`申請時間軸缺少事件：${marker}`);
 if(!adminPage.includes('admin-final-responsive-fix'))fail('主辦後台缺少最終響應式修正');
+for(const marker of [
+  '.doing-admin .tabs{\n    position:relative!important;',
+  'position:relative!important;',
+  'inset:auto!important;',
+  'top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;',
+  'clear:both!important;'
+])requireText(adminPage,marker,`主辦後台導覽與內容不重疊 ${marker}`);
 console.log(`全系統靜態驗收通過：${pages.length} 頁、${frontendActions.size} 個前端 API 動作、後台按鈕函式完整。`);
