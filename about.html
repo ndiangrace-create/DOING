@@ -367,7 +367,18 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     const painPoints=[...document.querySelectorAll('#signupPainPoints input:checked')].map(x=>x.value),useCases=[...document.querySelectorAll('#signupUseCases input:checked')].map(x=>x.value),flags={};
     painPoints.forEach(p=>(painModules[p]||[]).forEach(k=>flags[k]=true));
     const bookingUse=useCases.some(x=>['workshop','beauty','service_booking','resource_booking','guide'].includes(x)),marketUse=useCases.includes('market');
-    return {registration:true,review:!!flags.review,workshopSlots:bookingUse||!!flags.workshopSlots,service:useCases.some(x=>['beauty','service_booking','workshop'].includes(x))||!!flags.service,resource:useCases.some(x=>['beauty','resource_booking','guide'].includes(x))||!!flags.resource,participants:useCases.includes('event'),customFields:!!flags.customFields,equipment:marketUse||!!flags.equipment,seatSelection:marketUse&&!!flags.seatSelection,addons:!!flags.addons,agreement:!!flags.agreement,invoice:!!flags.invoice,payment:!!flags.payment,checkin:marketUse||!!flags.checkin,googleCalendar:!!flags.calendar||bookingUse,quantityMode:marketUse?'stall':(bookingUse?'booking':'participant'),depositKind:flags.deposit?(bookingUse?'booking':'refundable'):'none',operatingMode:bookingUse?'booking':'activity',notifications:!!flags.notifications,rewards:!!flags.rewards,i18n:{enabled:false,languages:['zh-TW'],translations:{}}};
+    const m={registration:true,review:false,workshopSlots:false,service:false,resource:false,participants:false,customFields:false,equipment:false,seatSelection:false,addons:false,agreement:false,invoice:false,payment:false,checkin:false,googleCalendar:false,quantityMode:'booking',depositKind:'none',operatingMode:'activity',notifications:true,rewards:false,i18n:{enabled:false,languages:['zh-TW'],translations:{}}};
+    const add=x=>Object.assign(m,x);
+    if(useCases.includes('market'))add({review:true,payment:true,equipment:true,seatSelection:true,addons:true,agreement:true,invoice:true,checkin:true,customFields:true,googleCalendar:true,quantityMode:'stall',depositKind:'refundable'});
+    if(useCases.includes('event'))add({review:true,payment:true,participants:true,customFields:true,agreement:true,invoice:true,checkin:true,googleCalendar:true,quantityMode:'participant'});
+    if(useCases.includes('workshop'))add({payment:true,workshopSlots:true,service:true,participants:true,customFields:true,addons:true,agreement:true,invoice:true,checkin:true,googleCalendar:true,quantityMode:'participant',depositKind:'booking',operatingMode:'booking'});
+    if(useCases.includes('beauty')||useCases.includes('service_booking'))add({payment:true,workshopSlots:true,service:true,resource:true,customFields:true,agreement:true,invoice:true,googleCalendar:true,quantityMode:'booking',depositKind:'booking',operatingMode:'booking'});
+    if(useCases.includes('resource_booking'))add({payment:true,workshopSlots:true,resource:true,customFields:true,agreement:true,invoice:true,googleCalendar:true,quantityMode:'booking',depositKind:'booking',operatingMode:'booking'});
+    if(useCases.includes('guide'))add({review:true,payment:true,workshopSlots:true,participants:true,customFields:true,agreement:true,checkin:true,googleCalendar:true,quantityMode:'participant',depositKind:'booking',operatingMode:'booking'});
+    if(useCases.includes('general'))add({review:true,customFields:true,agreement:true,googleCalendar:true});
+    if(flags.review)m.review=true;if(flags.payment)m.payment=true;if(flags.workshopSlots)m.workshopSlots=true;if(flags.service)m.service=true;if(flags.resource)m.resource=true;if(flags.customFields)m.customFields=true;if(flags.equipment)m.equipment=true;if(flags.seatSelection)m.seatSelection=true;if(flags.addons)m.addons=true;if(flags.agreement)m.agreement=true;if(flags.invoice)m.invoice=true;if(flags.checkin)m.checkin=true;if(flags.calendar)m.googleCalendar=true;
+    if(bookingUse)m.operatingMode='booking';if(marketUse)m.quantityMode='stall';
+    return m;
   }
   function refreshModulePreview(){const defaults=applicationModuleDefaults(),keys=Object.keys(moduleLabels).filter(k=>k==='registration'||defaults[k]===true),el=document.getElementById('signupModulePreview');if(el)el.innerHTML=keys.map(k=>'<span>'+moduleLabels[k]+'</span>').join('')}
   const painBox=document.getElementById('signupPainPoints'),primaryPain=document.getElementById('signupPrimaryPainPoint');
@@ -417,8 +428,10 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     clearErr();
 
     const flags={};painPoints.forEach(p=>(painModules[p]||[]).forEach(k=>flags[k]=true));
-    const defaults=applicationModuleDefaults(),bookingUse=defaults.operatingMode==='booking',marketUse=defaults.quantityMode==='stall';
-    const moduleProfile={configured:true,useType:bookingUse?'booking':(marketUse?'market':'activity'),useCases,defaults};
+    const defaults=applicationModuleDefaults();
+    const useType=['market','workshop','beauty','service_booking','resource_booking','event','guide'].includes(useCases[0])?useCases[0]:'generic';
+    Object.keys(moduleLabels).forEach(k=>flags[k]=k==='registration'||defaults[k]===true);
+    const moduleProfile={configured:true,useType,useCases,defaults};
     const applicationPayload={
       unitName,companyName,taxId,region,businessIntro,ownerName,contactName,phone,lineId,billingName,operationStage,startTime,
       industryCategories,publicLinks,noPublicLink,

@@ -1856,6 +1856,26 @@ async function getTenantModuleFlags(env, tenantId) {
   } catch(e) { return {...DEFAULT_TENANT_MODULE_FLAGS}; }
 }
 
+async function tenantAllowedSessionModules(env,tenantId,raw){
+  const modules=normalizeSessionModules(raw||{}),flags=await getTenantModuleFlags(env,tenantId);
+  for(const key of Object.keys(DEFAULT_TENANT_MODULE_FLAGS)){
+    if(key==='registration'||flags[key]!==false)continue;
+    if(key==='i18n')modules.i18n={enabled:false,languages:['zh-TW'],translations:{}};
+    else modules[key]=false;
+  }
+  if(!modules.workshopSlots&&modules.operatingMode==='booking')modules.operatingMode='activity';
+  return modules;
+}
+async function requestedUnapprovedModules(env,tenantId,raw){
+  const requested=normalizeSessionModules(raw||{}),flags=await getTenantModuleFlags(env,tenantId),labels={review:'審核錄取',payment:'付款確認',equipment:'設備租借',seatSelection:'攤位／座位選位',checkin:'現場報到',invoice:'發票資料',workshopSlots:'日期／時段',service:'服務方案',resource:'人員／資源',participants:'票種／人數',customFields:'自訂問題',addons:'加購',agreement:'條款合約',i18n:'多語言',googleCalendar:'行事曆'},blocked=[];
+  for(const key of Object.keys(DEFAULT_TENANT_MODULE_FLAGS)){
+    if(key==='registration'||flags[key]!==false)continue;
+    const enabled=key==='i18n'?requested.i18n?.enabled===true:requested[key]===true;
+    if(enabled)blocked.push(labels[key]||key);
+  }
+  return blocked;
+}
+
 async function hGetTenantModuleProfile(env,p){
   const T=p._tenantId; if(!await verifyStaff(env,p.email,p.token,T)) return jsonErr('無權限');
   const [profile,approvedFlags]=await Promise.all([getTenantModuleProfileValue(env,T),getTenantModuleFlags(env,T)]);
@@ -2627,10 +2647,16 @@ async function hGetOperationUnitsAdmin(env,p){
 async function hSaveOperationUnit(env,b){
   const T=b._tenantId,sid=String(b.sessionId||'').trim();if(!sid)return jsonErr('請先指定場次');if(!await verifyStaff(env,b.email,b.token,T,'sessions',sid))return jsonErr('無權限');
   const sr=await dbGet(env,'sessions',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(sid)}&select=id,event_id`).catch(()=>[]);if(!sr.length)return jsonErr('找不到場次');
-  const name=String(b.name||'').trim();if(!name)return jsonErr('請填營運項目名稱');const now=nowIso(),id=String(b.id||genId('UNT')),mods=normalizeSessionModules(b.modules||{}),pricing=(b.pricing&&typeof b.pricing==='object')?b.pricing:{},policy=(b.policy&&typeof b.policy==='object')?b.policy:{},pub=(b.publicConfig&&typeof b.publicConfig==='object')?b.publicConfig:{};
+  const name=String(b.name||'').trim();if(!name)return jsonErr('請填營運項目名稱');const blocked=await requestedUnapprovedModules(env,T,b.modules||{});if(blocked.length)return jsonErr('以下功能尚未由平台核准：'+blocked.join('、'));const now=nowIso(),id=String(b.id||genId('UNT')),mods=await tenantAllowedSessionModules(env,T,b.modules||{}),pricing=(b.pricing&&typeof b.pricing==='object')?b.pricing:{},policy=(b.policy&&typeof b.policy==='object')?b.policy:{},pub=(b.publicConfig&&typeof b.publicConfig==='object')?b.publicConfig:{};
+  const requestedStatus=unitStatusAllowed(b.status),wantsOpen=['open','active','published'].includes(requestedStatus),slots=Array.isArray(b.timeslots)?b.timeslots:(Array.isArray(pub.timeslots)?pub.timeslots:[]);
+  if(wantsOpen&&mods.operatingMode==='booking'&&!mods.workshopSlots)return jsonErr('預約型營運項目必須設定日期／時段');
+  if(wantsOpen&&mods.service&&!mods.services.length)return jsonErr('已啟用服務方案，請至少建立一個服務項目');
+  if(wantsOpen&&mods.resource&&!mods.resources.length)return jsonErr('已啟用人員／資源，請至少建立一個可選資源');
+  if(wantsOpen&&mods.workshopSlots&&!slots.length)return jsonErr('已啟用日期／時段，請至少建立一個可預約時段');
+  if(wantsOpen&&mods.operatingMode==='booking'&&!mods.payment)return jsonErr('預約型營運項目必須啟用付款功能');
   let code=unitCode(b.code)||unitCode(name)||('unit-'+id.slice(-6).toLowerCase());const same=await dbGet(env,'operation_units',`tenant_id=eq.${encodeURIComponent(T)}&session_id=eq.${encodeURIComponent(sid)}&code=eq.${encodeURIComponent(code)}&select=id`).catch(()=>[]);if(same.some(x=>String(x.id)!==id))code=code+'-'+id.slice(-4).toLowerCase();
-  const data={event_id:String(sr[0].event_id||''),session_id:sid,code,name,unit_type:unitTypeAllowed(b.unitType),status:unitStatusAllowed(b.status),description:String(b.description||''),capacity:Math.max(0,parseInt(b.capacity||0,10)||0),fee:Math.max(0,safeNum(b.fee)),modules_json:JSON.stringify(mods),pricing_json:JSON.stringify(pricing),policy_json:JSON.stringify(policy),public_config_json:JSON.stringify({...pub,timeslots:Array.isArray(b.timeslots)?b.timeslots:(Array.isArray(pub.timeslots)?pub.timeslots:[])}),sort_order:Math.max(0,parseInt(b.sortOrder||0,10)||0),updated_at:now};
-  const old=await dbGet(env,'operation_units',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=*`).catch(()=>[]);const requestedStatus=data.status;const wantsOpen=['open','active','published'].includes(requestedStatus);if(wantsOpen)data.status=old.length&&operationUnitIsOpen(old[0])?requestedStatus:'draft';if(old.length){if(String(old[0].session_id)!==sid)return jsonErr('營運項目不可跨場次直接搬移');await dbUpdate(env,'operation_units',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}`,data)}else await dbInsert(env,'operation_units',{id,tenant_id:T,current_count:0,created_at:now,...data});
+  const data={event_id:String(sr[0].event_id||''),session_id:sid,code,name,unit_type:unitTypeAllowed(b.unitType),status:requestedStatus,description:String(b.description||''),capacity:Math.max(0,parseInt(b.capacity||0,10)||0),fee:Math.max(0,safeNum(b.fee)),modules_json:JSON.stringify(mods),pricing_json:JSON.stringify(pricing),policy_json:JSON.stringify(policy),public_config_json:JSON.stringify({...pub,timeslots:slots}),sort_order:Math.max(0,parseInt(b.sortOrder||0,10)||0),updated_at:now};
+  const old=await dbGet(env,'operation_units',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=*`).catch(()=>[]);if(wantsOpen)data.status=old.length&&operationUnitIsOpen(old[0])?requestedStatus:'draft';if(old.length){if(String(old[0].session_id)!==sid)return jsonErr('營運項目不可跨場次直接搬移');await dbUpdate(env,'operation_units',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}`,data)}else await dbInsert(env,'operation_units',{id,tenant_id:T,current_count:0,created_at:now,...data});
   let fresh=(await dbGet(env,'operation_units',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=*`))[0];if(wantsOpen&&!operationUnitIsOpen(fresh)){const ent=await ensureOperationUnitEntitlement(env,T,{...fresh,status:requestedStatus});if(!ent.ok){await dbUpdate(env,'operation_units',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}`,{status:'pending_payment',updated_at:nowIso()});fresh=(await dbGet(env,'operation_units',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=*`))[0];await syncOperationUnitCatalogs(env,T,fresh);return jsonOk({...formatOperationUnit(fresh),needPayment:true,paymentAmount:ent.amount||0,platformCredit:ent.balance||0,pendingOpenStatus:requestedStatus})}await dbUpdate(env,'operation_units',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}`,{status:requestedStatus,updated_at:nowIso()});fresh=(await dbGet(env,'operation_units',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=*`))[0]}await syncOperationUnitCatalogs(env,T,fresh);await writeAuditLog(env,T,b.email||'','admin',old.length?'update_operation_unit':'create_operation_unit','operation_units',id,old[0]||null,fresh,{sessionId:sid}).catch(()=>{});return jsonOk(formatOperationUnit(fresh));
 }
 async function hDeleteOperationUnit(env,b){
@@ -2757,6 +2783,7 @@ async function callAutoTranslate(env,source){
 }
 async function hAutoTranslateSession(env,b){
   const T=b._tenantId;if(!await verifyStaff(env,b.email,b.token,T,'sessions',String(b.sessionId||'')))return jsonErr('無權限');
+  const flags=await getTenantModuleFlags(env,T);if(flags.i18n===false)return jsonErr('多語言功能尚未由平台核准');
   const rows=await dbGet(env,'sessions',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(b.sessionId)}&select=*`);if(!rows.length)return jsonErr('找不到場次');
   const s=rows[0],mods=normalizeSessionModules(safeJson(s.modules_json,{}));
   const result=await callAutoTranslate(env,{name:s.name||'',venue:s.venue||'',desc:s.description||'',agreementTitle:s.agreement_title||'',agreementContent:s.agreement_content||''});
@@ -8004,6 +8031,8 @@ async function hCreateSession(env, b) {
   if (err) return jsonErr(err);
   const limitErr = await checkTrialSessionLimit(env, TENANT);
   if (limitErr) return jsonErr(limitErr);
+  const blocked=await requestedUnapprovedModules(env,TENANT,b.modules||{});if(blocked.length)return jsonErr('以下功能尚未由平台核准：'+blocked.join('、'));
+  b.modules=await tenantAllowedSessionModules(env,TENANT,b.modules||{});
 
   const id = genId('SES');
   const data = {
@@ -8031,6 +8060,7 @@ async function hUpdateSession(env, b) {
   const currentRows = await dbGet(env,'sessions',`tenant_id=eq.${encodeURIComponent(TENANT)}&id=eq.${encodeURIComponent(b.id)}&select=*`);
   if (!currentRows.length) return jsonErr('找不到場次');
   const current=currentRows[0];
+  if(b.modules!==undefined){const blocked=await requestedUnapprovedModules(env,TENANT,b.modules||{});if(blocked.length)return jsonErr('以下功能尚未由平台核准：'+blocked.join('、'));b.modules=await tenantAllowedSessionModules(env,TENANT,b.modules||{});}
   const patch = {..._sessionBasePayload(b, false), updated_at:nowIso()};
   const simulated={...current,...patch};
   const basicErr=_validateSessionInput({name:simulated.name,dates:safeJson(simulated.dates_json,[]),status:simulated.status});

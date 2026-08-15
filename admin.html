@@ -3145,7 +3145,8 @@ async function openSessionSettings(sid){
     const results=await Promise.allSettled([
       timeout(api({action:'getAgreementTemplate'}),9000,'合約資料'),
       timeout(api({action:'getEventsAdmin'}),9000,'活動主題'),
-      timeout(api({action:'getPaymentProfiles'}),9000,'收款設定')
+      timeout(api({action:'getPaymentProfiles'}),9000,'收款設定'),
+      timeout(loadTenantModuleProfile(true),9000,'核准功能')
     ]);
     const ag=results[0].status==='fulfilled'?results[0].value:[];
     const evs=results[1].status==='fulfilled'?results[1].value:(AdminState.events||[]);
@@ -3363,6 +3364,7 @@ function tenantModulePreset(type){
   else if(type==='service_booking'){Object.assign(m,{workshopSlots:true,service:true,payment:true,googleCalendar:true,quantityMode:'booking',depositKind:'booking',operatingMode:'booking'});}
   else if(type==='resource_booking'){Object.assign(m,{workshopSlots:true,resource:true,payment:true,googleCalendar:true,quantityMode:'booking',depositKind:'booking',operatingMode:'booking'});}
   else if(type==='event'){Object.assign(m,{participants:true,payment:true,checkin:true,quantityMode:'participant',operatingMode:'activity'});}
+  else if(type==='guide'){Object.assign(m,{review:true,workshopSlots:true,participants:true,payment:true,agreement:true,checkin:true,googleCalendar:true,quantityMode:'participant',depositKind:'booking',operatingMode:'booking'});}
   return m;
 }
 const TENANT_PRESET_META={
@@ -3372,7 +3374,8 @@ const TENANT_PRESET_META={
   beauty:{title:'美業／工作室預約',desc:'日期時段、服務項目、指定人員、訂金、改期與取消規則。'},
   service_booking:{title:'一般服務預約',desc:'適合顧問、攝影、教學、諮詢等長期時段預約。'},
   resource_booking:{title:'場地／資源預約',desc:'適合空間、設備或其他有限資源的時段預約與收款。'},
-  event:{title:'一般活動／講座',desc:'票種／人數、付款、通知與現場報到。'}
+  event:{title:'一般活動／講座',desc:'票種／人數、付款、通知與現場報到。'},
+  guide:{title:'導覽／戶外體驗',desc:'日期梯次、參加人數、審核、付款、改期、通知與報到。'}
 };
 function syncTenantPresetUI(type){
   const meta=TENANT_PRESET_META[type]||TENANT_PRESET_META.generic;
@@ -3653,13 +3656,14 @@ function syncBusinessModuleUi(){
 function businessModuleEditorHtml(mods){
   const m=normalizeBusinessModules(mods);
   const ck=k=>m[k]?'checked':'';
+  const approved=k=>!TenantModuleProfileCache||TenantModuleProfileCache.approvedFlags[k]!==false;
   const tr=m.i18n.translations||{};
   const en=tr.en||{},ja=tr.ja||{},ko=tr.ko||{};
   return '<div class="report-card module-config-card"><div class="report-title">功能模組</div>'
    +'<div class="notice">報名表只依下列模組組合；沒有活動分類，也不套用另一套流程。</div>'
    +'<div class="form-grid"><div class="form-field"><label>報名數量計算</label><select id="set_quantityMode"><option value="stall" '+(m.quantityMode==='stall'?'selected':'')+'>攤位／單位數</option><option value="booking" '+(m.quantityMode==='booking'?'selected':'')+'>每筆報名</option><option value="participant" '+(m.quantityMode==='participant'?'selected':'')+'>參加人數</option></select></div></div>'
    +'<div class="module-toggle-grid">'
-   +[['review','審核'],['workshopSlots','日期／時段'],['service','服務項目'],['resource','指定人員／資源'],['participants','票種／人數'],['customFields','自訂問題'],['equipment','設備'],['seatSelection','選位／位置'],['addons','加購'],['agreement','合約'],['invoice','發票'],['payment','付款'],['checkin','報到'],['googleCalendar','Google Calendar'],['i18n','多語言']].map(([k,l])=>'<label class="module-toggle"><input type="checkbox" id="mod_'+k+'" '+ck(k)+' onchange="syncBusinessModuleUi()"> <span>'+l+'</span></label>').join('')
+   +[['review','審核'],['workshopSlots','日期／時段'],['service','服務項目'],['resource','指定人員／資源'],['participants','票種／人數'],['customFields','自訂問題'],['equipment','設備'],['seatSelection','選位／位置'],['addons','加購'],['agreement','合約'],['invoice','發票'],['payment','付款'],['checkin','報到'],['googleCalendar','Google Calendar'],['i18n','多語言']].map(([k,l])=>'<label class="module-toggle '+(approved(k)?'':'locked')+'"><input type="checkbox" id="mod_'+k+'" '+(approved(k)?ck(k):'')+' '+(approved(k)?'':'disabled')+' onchange="syncBusinessModuleUi()"> <span>'+l+(approved(k)?'':'｜尚未核准')+'</span></label>').join('')
    +'</div>'
    +'<div id="serviceCfg" class="'+(m.service?'':'hidden')+'"><h4>服務項目</h4><div class="sub">每行：代碼｜名稱｜加價</div><textarea id="set_services" style="min-height:110px">'+safe(moduleLines(m.services))+'</textarea></div>'
    +'<div id="resourceCfg" class="'+(m.resource?'':'hidden')+'"><h4>指定人員／資源</h4><div class="sub">每行：代碼｜名稱｜加價</div><textarea id="set_resources" style="min-height:100px">'+safe(moduleLines(m.resources))+'</textarea></div>'
