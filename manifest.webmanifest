@@ -1,0 +1,15 @@
+{
+  "name": "DOING 活動報名與預約",
+  "short_name": "DOING",
+  "description": "活動報名、預約、付款與會員資料管理",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fffafd",
+  "theme_color": "#77cfd2",
+  "lang": "zh-Hant",
+  "icons": [
+    {"src": "pwa-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "pwa-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
