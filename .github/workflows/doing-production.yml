@@ -49,6 +49,20 @@ jobs:
           NODE
       - name: Validate capability world map
         run: node scripts/validate-capabilities.mjs
+      - name: Verify unified visual shell and private long press
+        run: |
+          for page in member.html admin.html onsite.html platform.html photo.html; do
+            grep -q 'doing-system.css?v=20260815-system' "$page"
+            grep -q 'doing-app' "$page"
+          done
+          grep -q "addEventListener('pointerdown'" index.html
+          grep -q "setTimeout(openHiddenAdminEntry,3000)" index.html
+          grep -q "Math.hypot" index.html
+          grep -q "u.searchParams.set('tenant','platform')" index.html
+          ! grep -q 'navigator.vibrate' index.html
+          ! grep -q 'holdPulse' index.html
+          ! grep -q "classList.add('holding')" index.html
+          grep -q 'platform_super_admin' worker.js
       - name: Verify member and tenant safety invariants
         run: |
           grep -q "platform_member_id" worker.js
