@@ -1,0 +1,743 @@
+{
+  "version": 1,
+  "updatedAt": "2026-08-15",
+  "statusLabels": {
+    "done": "已完成",
+    "verify": "已有功能，待實際確認",
+    "issue": "有問題待修正",
+    "later": "尚未開發"
+  },
+  "statusIcons": {
+    "done": "✅",
+    "verify": "🟠",
+    "issue": "❌",
+    "later": "⚪"
+  },
+  "modules": [
+    {
+      "id": "platform-application",
+      "area": "平台總管",
+      "title": "租戶申請與開通",
+      "summary": "從會員提出申請，到平台核准並建立正式營運空間。",
+      "features": [
+        {
+          "label": "會員提出營運帳號申請",
+          "status": "done",
+          "evidence": "index.html / applyTrial"
+        },
+        {
+          "label": "會員查看申請進度",
+          "status": "done",
+          "evidence": "member.html / getPlatformMemberProfile"
+        },
+        {
+          "label": "平台查看完整申請資料",
+          "status": "done",
+          "evidence": "platform.html / applyList"
+        },
+        {
+          "label": "要求申請人補件",
+          "status": "done",
+          "evidence": "requestApplySupplement"
+        },
+        {
+          "label": "申請不通過並記錄原因",
+          "status": "done",
+          "evidence": "rejectApply"
+        },
+        {
+          "label": "核准後自動建立租戶與擁有者",
+          "status": "done",
+          "evidence": "approveApply"
+        },
+        {
+          "label": "核准後寄送通過通知",
+          "status": "done",
+          "evidence": "approveApply email"
+        },
+        {
+          "label": "用夜貓美甲完成第一次正式核准",
+          "status": "verify",
+          "note": "需要平台總管本人操作"
+        }
+      ]
+    },
+    {
+      "id": "platform-tenant",
+      "area": "平台總管",
+      "title": "租戶與權限管理",
+      "summary": "平台查看、進入與管理所有正式租戶。",
+      "features": [
+        {
+          "label": "查看全部租戶",
+          "status": "done",
+          "evidence": "getTenantsAdmin"
+        },
+        {
+          "label": "搜尋租戶與擁有者",
+          "status": "done",
+          "evidence": "platform.html"
+        },
+        {
+          "label": "平台進入指定租戶後台",
+          "status": "done",
+          "evidence": "platformEnterTenant"
+        },
+        {
+          "label": "查看租戶場次與營運項目",
+          "status": "done",
+          "evidence": "platformTenantSessions / platformTenantOperationUnits"
+        },
+        {
+          "label": "核准租戶可用功能",
+          "status": "done",
+          "evidence": "savePlatformTenantModules"
+        },
+        {
+          "label": "租戶重新整理後套用功能權限",
+          "status": "verify",
+          "note": "需用新租戶驗證"
+        },
+        {
+          "label": "多租戶資料隔離",
+          "status": "verify",
+          "note": "已有後端權限，需持續E2E"
+        }
+      ]
+    },
+    {
+      "id": "platform-billing",
+      "area": "平台總管",
+      "title": "平台收費與創業金",
+      "summary": "DOING向租戶收取的正式系統費。",
+      "features": [
+        {
+          "label": "免費活動每場 NT$200",
+          "status": "done",
+          "evidence": "platform_billing_policy.freeActivityFee"
+        },
+        {
+          "label": "持續預約／工作室每月 NT$688",
+          "status": "done",
+          "evidence": "platform_billing_policy.bookingMonthlyFee"
+        },
+        {
+          "label": "收費活動按實收 1%",
+          "status": "done",
+          "evidence": "platform_billing_policy.paidActivityRatePercent"
+        },
+        {
+          "label": "收費活動不封頂",
+          "status": "done",
+          "evidence": "platform_billing_policy.noCap"
+        },
+        {
+          "label": "押金不列入1%計費",
+          "status": "done",
+          "evidence": "billing rules"
+        },
+        {
+          "label": "退款依正式紀錄回沖",
+          "status": "done",
+          "evidence": "billing rules"
+        },
+        {
+          "label": "新主辦創業金預設 NT$1,000",
+          "status": "done",
+          "evidence": "startup_credit_policy"
+        },
+        {
+          "label": "協助設定服務收款紀錄",
+          "status": "later",
+          "note": "本次建立"
+        },
+        {
+          "label": "專業模組購買與開通紀錄",
+          "status": "later",
+          "note": "本次建立"
+        }
+      ]
+    },
+    {
+      "id": "platform-products",
+      "area": "平台總管",
+      "title": "設定服務與專業模組",
+      "summary": "記錄租戶購買的設定協助、加購模組、金額與開通結果。",
+      "features": [
+        {
+          "label": "選擇租戶",
+          "status": "done",
+          "evidence": "platform tenant selector"
+        },
+        {
+          "label": "記錄一次性設定服務",
+          "status": "later",
+          "note": "本次建立"
+        },
+        {
+          "label": "記錄專業模組購買",
+          "status": "later",
+          "note": "本次建立"
+        },
+        {
+          "label": "保存應收、實收與備註",
+          "status": "later",
+          "note": "本次建立"
+        },
+        {
+          "label": "付款後同步開通租戶模組",
+          "status": "later",
+          "note": "本次建立"
+        },
+        {
+          "label": "保留平台收款稽核紀錄",
+          "status": "later",
+          "note": "本次建立"
+        }
+      ]
+    },
+    {
+      "id": "platform-exposure",
+      "area": "平台總管",
+      "title": "首頁曝光推廣",
+      "summary": "租戶購買首頁活動快訊曝光後，由平台確認與排程。",
+      "features": [
+        {
+          "label": "建立曝光方案",
+          "status": "done",
+          "evidence": "saveExposurePlanPlatform"
+        },
+        {
+          "label": "設定價格、天數、權重與排序",
+          "status": "done",
+          "evidence": "platform.html"
+        },
+        {
+          "label": "租戶送出曝光訂單",
+          "status": "done",
+          "evidence": "createExposureOrder"
+        },
+        {
+          "label": "平台確認付款並啟用",
+          "status": "done",
+          "evidence": "confirmExposurePayment"
+        },
+        {
+          "label": "首頁自動抓取已啟用活動",
+          "status": "done",
+          "evidence": "global discovery"
+        },
+        {
+          "label": "正式購買到首頁顯示E2E",
+          "status": "verify"
+        }
+      ]
+    },
+    {
+      "id": "platform-support",
+      "area": "平台總管",
+      "title": "平台客服",
+      "summary": "集中處理租戶操作問題與新功能申請。",
+      "features": [
+        {
+          "label": "租戶建立客服對話",
+          "status": "done",
+          "evidence": "support threads"
+        },
+        {
+          "label": "平台查看全部對話",
+          "status": "done",
+          "evidence": "getPlatformSupportThreads"
+        },
+        {
+          "label": "平台回覆租戶",
+          "status": "done",
+          "evidence": "sendPlatformSupportMessage"
+        },
+        {
+          "label": "未讀數提醒",
+          "status": "done",
+          "evidence": "platform unread"
+        },
+        {
+          "label": "功能申請與一般客服分類",
+          "status": "done",
+          "evidence": "thread kind"
+        },
+        {
+          "label": "手機正式收發驗收",
+          "status": "verify"
+        }
+      ]
+    },
+    {
+      "id": "member-center",
+      "area": "會員中心",
+      "title": "我的 DOING",
+      "summary": "同一個會員集中管理活動、品牌與營運空間。",
+      "features": [
+        {
+          "label": "LINE會員登入",
+          "status": "done",
+          "evidence": "member.html"
+        },
+        {
+          "label": "會員資料自動帶回",
+          "status": "done",
+          "evidence": "getPlatformMemberProfile"
+        },
+        {
+          "label": "我的活動",
+          "status": "done",
+          "evidence": "member.html activities"
+        },
+        {
+          "label": "我的品牌",
+          "status": "done",
+          "evidence": "member.html brands"
+        },
+        {
+          "label": "我的營運",
+          "status": "done",
+          "evidence": "member.html operations"
+        },
+        {
+          "label": "同時顯示會員、攤商與營運申請者身分",
+          "status": "done",
+          "evidence": "identityText"
+        },
+        {
+          "label": "多個租戶工作空間",
+          "status": "done",
+          "evidence": "staff workspaces"
+        },
+        {
+          "label": "夜貓美甲核准後轉為可管理",
+          "status": "verify"
+        },
+        {
+          "label": "視覺與DOING首頁完整一致",
+          "status": "issue",
+          "note": "本次重設"
+        }
+      ]
+    },
+    {
+      "id": "tenant-operations",
+      "area": "租戶後台",
+      "title": "營運項目與場次",
+      "summary": "租戶建立市集、活動、課程、體驗與預約。",
+      "features": [
+        {
+          "label": "市集／攤商營運",
+          "status": "done",
+          "evidence": "operation units"
+        },
+        {
+          "label": "一般活動報名",
+          "status": "done",
+          "evidence": "operation units"
+        },
+        {
+          "label": "持續預約服務",
+          "status": "done",
+          "evidence": "booking"
+        },
+        {
+          "label": "手作體驗與課程梯次",
+          "status": "done",
+          "evidence": "workshop/course"
+        },
+        {
+          "label": "人員、場地與資源",
+          "status": "done",
+          "evidence": "resources"
+        },
+        {
+          "label": "場次日曆與日期",
+          "status": "done",
+          "evidence": "calendar"
+        },
+        {
+          "label": "新租戶從零建立第一個營運項目",
+          "status": "verify"
+        }
+      ]
+    },
+    {
+      "id": "tenant-registration",
+      "area": "租戶後台",
+      "title": "報名、審核與通知",
+      "summary": "從公開報名到主辦錄取、付款及行前通知。",
+      "features": [
+        {
+          "label": "會員完成報名",
+          "status": "done",
+          "evidence": "register"
+        },
+        {
+          "label": "報名資料與品牌資料帶入",
+          "status": "done",
+          "evidence": "member profile"
+        },
+        {
+          "label": "主辦查看與搜尋名單",
+          "status": "done",
+          "evidence": "admin getRegs"
+        },
+        {
+          "label": "錄取與不錄取",
+          "status": "done",
+          "evidence": "review"
+        },
+        {
+          "label": "確認付款",
+          "status": "done",
+          "evidence": "payments"
+        },
+        {
+          "label": "取消與退款",
+          "status": "done",
+          "evidence": "refund"
+        },
+        {
+          "label": "通知與信件模板",
+          "status": "done",
+          "evidence": "email templates"
+        },
+        {
+          "label": "新租戶前台到後台完整報名",
+          "status": "verify"
+        }
+      ]
+    },
+    {
+      "id": "tenant-finance",
+      "area": "租戶後台",
+      "title": "財務與結案",
+      "summary": "依正式收款、退款與支出形成場次財務。",
+      "features": [
+        {
+          "label": "正式收款與退款彙整",
+          "status": "done",
+          "evidence": "finance reports"
+        },
+        {
+          "label": "場地、設備、印刷與其他支出",
+          "status": "done",
+          "evidence": "finance_items"
+        },
+        {
+          "label": "場地費5%稅金",
+          "status": "done",
+          "evidence": "finance rules"
+        },
+        {
+          "label": "公司與合作方50%／50%分潤",
+          "status": "done",
+          "evidence": "finance rules"
+        },
+        {
+          "label": "整數尾差由合作方承接",
+          "status": "done",
+          "evidence": "finance summary"
+        },
+        {
+          "label": "財報唯讀分享",
+          "status": "done",
+          "evidence": "financeShare"
+        },
+        {
+          "label": "以真實場次完成結案",
+          "status": "verify"
+        }
+      ]
+    },
+    {
+      "id": "tenant-people",
+      "area": "租戶後台",
+      "title": "會員與工作人員",
+      "summary": "租戶管理會員關係及工作人員授權。",
+      "features": [
+        {
+          "label": "會員與品牌資料庫",
+          "status": "done",
+          "evidence": "members"
+        },
+        {
+          "label": "主辦內部會員備註",
+          "status": "done",
+          "evidence": "member notes"
+        },
+        {
+          "label": "新增管理人員",
+          "status": "done",
+          "evidence": "addStaff"
+        },
+        {
+          "label": "主辦、財務、場次與現場角色",
+          "status": "done",
+          "evidence": "staff roles"
+        },
+        {
+          "label": "依系列或指定場次授權",
+          "status": "done",
+          "evidence": "updateStaffSessions"
+        },
+        {
+          "label": "停用人員後權限驗證",
+          "status": "verify"
+        }
+      ]
+    },
+    {
+      "id": "tenant-onsite",
+      "area": "租戶後台",
+      "title": "現場工作台",
+      "summary": "活動現場搜尋、報到、押金與工作交接。",
+      "features": [
+        {
+          "label": "現場人員登入",
+          "status": "done",
+          "evidence": "onsite.html"
+        },
+        {
+          "label": "搜尋報名者",
+          "status": "done",
+          "evidence": "onsite"
+        },
+        {
+          "label": "報到與狀態更新",
+          "status": "done",
+          "evidence": "checkin"
+        },
+        {
+          "label": "現場押金處理",
+          "status": "done",
+          "evidence": "onsite actions"
+        },
+        {
+          "label": "工作開始與結束紀錄",
+          "status": "done",
+          "evidence": "onsite shift"
+        },
+        {
+          "label": "真實手機現場操作",
+          "status": "verify"
+        }
+      ]
+    },
+    {
+      "id": "advanced-seat",
+      "area": "專業模組",
+      "title": "視覺化排位",
+      "summary": "攤位編號、地圖拖曳、方向與分享名單。",
+      "features": [
+        {
+          "label": "底圖上傳",
+          "status": "done",
+          "evidence": "seat map"
+        },
+        {
+          "label": "攤位自動編號",
+          "status": "verify"
+        },
+        {
+          "label": "拖曳與旋轉",
+          "status": "issue",
+          "note": "目前操作不直覺"
+        },
+        {
+          "label": "點一下換位置",
+          "status": "issue"
+        },
+        {
+          "label": "線性自動排位",
+          "status": "verify"
+        },
+        {
+          "label": "分享圖顯示攤位號碼",
+          "status": "done"
+        },
+        {
+          "label": "分享圖下方完整攤商名單",
+          "status": "issue",
+          "note": "已知缺少"
+        },
+        {
+          "label": "活動前7天自動排位與通知",
+          "status": "verify"
+        }
+      ]
+    },
+    {
+      "id": "advanced-performance",
+      "area": "專業模組",
+      "title": "攤商業績與保證金",
+      "summary": "攤商回報營業額後，進入保證金退還流程。",
+      "features": [
+        {
+          "label": "攤商填寫當日營業額",
+          "status": "done",
+          "evidence": "performance report"
+        },
+        {
+          "label": "不提供NT$0快速選項",
+          "status": "done"
+        },
+        {
+          "label": "管理者不可修改攤商業績",
+          "status": "done"
+        },
+        {
+          "label": "完成回報後啟動保證金退還",
+          "status": "verify"
+        },
+        {
+          "label": "真實場次結案驗收",
+          "status": "verify"
+        }
+      ]
+    },
+    {
+      "id": "advanced-consignment",
+      "area": "專業模組",
+      "title": "寄賣與 POS",
+      "summary": "寄賣檔期、商品、條碼與銷售管理。",
+      "features": [
+        {
+          "label": "寄賣檔期設定",
+          "status": "done"
+        },
+        {
+          "label": "寄賣申請與審核",
+          "status": "done"
+        },
+        {
+          "label": "商品與條碼",
+          "status": "done"
+        },
+        {
+          "label": "POS銷售",
+          "status": "done"
+        },
+        {
+          "label": "完整庫存與結算E2E",
+          "status": "verify"
+        }
+      ]
+    },
+    {
+      "id": "advanced-photo",
+      "area": "專業模組",
+      "title": "拍照框活動",
+      "summary": "手機拍照或選圖、套框及輸出活動照片。",
+      "features": [
+        {
+          "label": "相機拍照與相簿選圖",
+          "status": "done"
+        },
+        {
+          "label": "拖曳與縮放",
+          "status": "done"
+        },
+        {
+          "label": "2160×3840輸出",
+          "status": "verify"
+        },
+        {
+          "label": "後鏡頭",
+          "status": "verify"
+        },
+        {
+          "label": "租戶與活動QR入口",
+          "status": "done"
+        },
+        {
+          "label": "LINE與瀏覽器真機驗收",
+          "status": "verify"
+        }
+      ]
+    },
+    {
+      "id": "tenant-themes",
+      "area": "品牌外觀",
+      "title": "租戶五套視覺模板",
+      "summary": "同一套功能與資料，切換不同品牌視覺。",
+      "features": [
+        {
+          "label": "可愛粉彩 cute_pastel",
+          "status": "verify",
+          "note": "基礎色彩與主題鍵已存在"
+        },
+        {
+          "label": "清新極簡 fresh_minimal",
+          "status": "verify",
+          "note": "基礎色彩與主題鍵已存在"
+        },
+        {
+          "label": "黑白動漫 mono_anime",
+          "status": "verify",
+          "note": "基礎色彩與主題鍵已存在"
+        },
+        {
+          "label": "溫暖手作 warm_handmade",
+          "status": "verify",
+          "note": "基礎色彩與主題鍵已存在"
+        },
+        {
+          "label": "亮眼活潑 vivid_pop",
+          "status": "verify",
+          "note": "基礎色彩與主題鍵已存在"
+        },
+        {
+          "label": "租戶後台選擇並儲存模板",
+          "status": "done",
+          "evidence": "saveTenantTheme"
+        },
+        {
+          "label": "前台、會員頁與租戶後台完整套用",
+          "status": "verify"
+        }
+      ]
+    },
+    {
+      "id": "platform-map",
+      "area": "平台總管",
+      "title": "DOING 系統世界地圖",
+      "summary": "一眼查看所有模組、實際功能及缺口。",
+      "features": [
+        {
+          "label": "所有模組集中在平台總管",
+          "status": "later",
+          "note": "本次建立"
+        },
+        {
+          "label": "每個模組直接顯示全部功能",
+          "status": "later",
+          "note": "本次建立"
+        },
+        {
+          "label": "自動計算完成數",
+          "status": "later",
+          "note": "本次建立"
+        },
+        {
+          "label": "手機可直接閱讀",
+          "status": "later",
+          "note": "本次建立"
+        },
+        {
+          "label": "開發PR同步更新功能紀錄",
+          "status": "later",
+          "note": "本次建立"
+        },
+        {
+          "label": "首頁LOGO長按3秒進入平台總管",
+          "status": "later",
+          "note": "本次建立"
+        }
+      ]
+    }
+  ]
+}
