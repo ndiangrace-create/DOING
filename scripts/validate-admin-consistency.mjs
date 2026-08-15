@@ -7,6 +7,12 @@ const workerCopy=fs.readFileSync(new URL('../worker.txt',import.meta.url),'utf8'
 
 assert.equal(worker,workerCopy,'worker.js 與 worker.txt 必須同步');
 for(const marker of [
+  '<body class="doing-admin doing-public-refactor-body">',
+  '<style id="admin-refero-visual-reset-20260816">',
+  '--admin-blue:#c9eef2;',
+  'grid-template-columns:repeat(auto-fit,minmax(min(460px,100%),1fr))!important',
+  'body.doing-admin .topbar .actions .btn{width:132px!important;min-width:132px!important',
+  'body.doing-admin .tabs .tab.active{',
   '.doing-admin .tabs .tab{background:#ffffff!important',
   '.doing-admin .tabs .tab.active{background-color:#e1f1f5!important;background-image:none!important',
   '.doing-admin #sessionList .session-date-equip-list .chip,',
@@ -17,6 +23,8 @@ for(const marker of [
   'const totalCells=Math.ceil((start+days)/7)*7',
   '第一步：先看每一場賺多少'
 ])assert(admin.includes(marker),`缺少後台一致性標記：${marker}`);
+
+assert(!admin.includes('<body class="doing-app doing-admin">'),'主辦後台不得再套用 doing-app 舊漸層主題');
 
 assert(!/linear-gradient|radial-gradient/i.test(admin),'主辦後台不得包含任何漸層');
 for(const color of ['#f7f2e5','#dfd3b8','#d3ad47','#fffdf9','#f7f6f1','#f4f0ea','#fbf8f1']){
