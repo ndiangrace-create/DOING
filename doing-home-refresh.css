@@ -196,3 +196,56 @@ html.doing-public-refactor body>.top,html.doing-public-refactor body>.bottom-nav
   .doing-public-activity-list.loop-restarted{box-shadow:inset 5px 0 0 #5db7dc!important}
   .doing-public-activity-list.loop-restarted:before{background:#5db7dc!important}
 }
+
+/* DOING_NO_TEXT_CLIPPING_CONTRACT_V1
+   活動標題、日期、地點、金額與會員名稱不得以單行省略或固定高度裁切。 */
+.doing-card-copy h3,
+.doing-list-copy h3{
+  display:block!important;
+  max-height:none!important;
+  -webkit-line-clamp:unset!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+.doing-card-meta,
+.doing-card-date,
+.doing-list-copy p,
+.doing-list-copy small{
+  max-height:none!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:anywhere!important;
+}
+.doing-activity-card,
+.doing-card-copy,
+.doing-list-card,
+.doing-list-copy{
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+@media(max-width:820px){
+  #doingGlobalFixedNav,
+  #doingGlobalFixedNav.hidden,
+  html.doing-public-refactor #doingGlobalFixedNav.hidden{
+    height:auto!important;
+    min-height:98px!important;
+    grid-template-rows:minmax(48px,auto) 42px!important;
+  }
+  body.doing-app #doingGlobalFixedNav .doing-nav-member,
+  .doing-nav-member{
+    width:auto!important;
+    max-width:46vw!important;
+    height:auto!important;
+    min-height:36px!important;
+    white-space:normal!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+    overflow-wrap:anywhere!important;
+    word-break:normal!important;
+    line-height:1.25!important;
+  }
+}

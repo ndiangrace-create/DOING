@@ -333,3 +333,41 @@ html body.doing-app.doing-register.doing-public-refactor-body{background:#fff!im
   body.doing-app.doing-member .record-timeline{display:none!important}
   body.doing-app.doing-member .panel{min-height:0!important}
 }
+
+/* DOING_NO_TEXT_CLIPPING_CONTRACT_V1
+   所有正式頁面的文字必須完整顯示：允許換行、容器自動增高，不使用省略號裁字。 */
+body.doing-app :where(h1,h2,h3,h4,p,label,.notice,.muted,.status,.message,.metric,.kpi,.member-title,.todo-main-title){
+  max-width:100%!important;
+  overflow-wrap:anywhere!important;
+}
+body.doing-app :where(.panel,.card,.modal,.form,.field) :where(button,.btn,[role="button"]){
+  height:auto!important;
+  min-height:44px!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  line-height:1.35!important;
+}
+body.doing-app.doing-admin :where(.tabs .tab,.etc-sub,.equip-name-readonly,.equip-table-name){
+  width:auto!important;
+  max-width:none!important;
+  height:auto!important;
+  min-height:44px!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:anywhere!important;
+  line-height:1.35!important;
+}
+body.doing-app.doing-member .overview-secondary{
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:anywhere!important;
+}
+@media (max-width:760px){
+  body.doing-app :where(.panel,.card,.modal,.form,.field){
+    min-width:0!important;
+    height:auto!important;
+  }
+}

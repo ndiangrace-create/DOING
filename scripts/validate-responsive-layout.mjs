@@ -23,4 +23,13 @@ for(const token of ['body.doing-app #doingGlobalFixedNav .doing-nav-brand{border
   if(!homeCss.includes(token))fail('首頁會員按鈕響應式契約缺少：'+token);
 }
 if(homeCss.includes('.doing-nav-actions .doing-nav-action,.doing-nav-member{width:118px'))fail('會員名稱不可再被固定為 118px');
-console.log('響應式框架驗證完成：'+pages.length+' 個正式頁面，手機／電腦共用契約與登入後會員按鈕有效。');
+for(const token of ['DOING_NO_TEXT_CLIPPING_CONTRACT_V1','white-space:normal!important','text-overflow:clip!important','overflow-wrap:anywhere!important']){
+  if(!css.includes(token)&&!homeCss.includes(token))fail('文字完整顯示契約缺少：'+token);
+}
+for(const token of ['.doing-card-copy h3','-webkit-line-clamp:unset!important','.doing-card-meta','grid-template-rows:minmax(48px,auto) 42px!important']){
+  if(!homeCss.includes(token))fail('首頁活動文字完整顯示契約缺少：'+token);
+}
+for(const token of ['body.doing-app.doing-admin :where(.tabs .tab,.etc-sub,.equip-name-readonly,.equip-table-name)','body.doing-app.doing-member .overview-secondary']){
+  if(!css.includes(token))fail('內頁文字完整顯示契約缺少：'+token);
+}
+console.log('響應式框架驗證完成：'+pages.length+' 個正式頁面，手機／電腦共用契約、登入後會員按鈕與文字不裁切規則有效。');
