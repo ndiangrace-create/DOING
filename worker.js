@@ -3232,7 +3232,7 @@ async function hSaveMemberBrand(env,b){
   const memberId=String(verified.row.id||''),data=b.brand&&typeof b.brand==='object'?b.brand:b;
   const name=String(data.displayName||data.brandName||data.name||'').trim(),key=normalizeBrandName(name);
   if(!name||!key)return jsonErr('請填寫品牌名稱');
-  const allowed=['餐飲美食','手作設計','文創選物','服飾配件','生活用品','親子兒童','寵物相關','收藏娛樂','美業服務','體驗／服務','其他'];
+  const allowed=['餐飲美食','手作設計','文創選物','服飾配件','生活用品','親子兒童','寵物相關','收藏娛樂','美類','美業服務','體驗／服務','其他'];
   const category=String(data.category||'').trim();if(category&&!allowed.includes(category))return jsonErr('請重新選擇正式品牌類別');
   const values={display_name:name,normalized_name:key,category,intro:String(data.intro||data.brandIntro||'').trim(),items:String(data.items||'').trim(),facebook_url:String(data.facebook||'').trim(),instagram_url:String(data.instagram||'').trim(),profile_url:String(data.photoUrl||data.profileUrl||'').trim(),company_name:String(data.company||data.companyName||'').trim(),tax_id:String(data.taxId||'').trim(),updated_at:nowIso()};
   const brandId=String(data.brandId||b.brandId||'').trim();
@@ -3428,7 +3428,7 @@ async function hSavePlatformMemberProfile(env,b){
   const collision=await platformIdentityCollision(env,verified.row.id,email,phone);
   if(collision.found)return jsonErr('登入已成功，但這個 Email 已連結既有 DOING 帳號。請先使用原 LINE／Google 登入並連結帳號；無法使用舊登入時請聯絡平台協助。');
   const hasVendor=Object.prototype.hasOwnProperty.call(b,'vendor'),vendor=hasVendor&&b.vendor&&typeof b.vendor==='object'?b.vendor:safeJson(verified.row.vendor_json,{});
-  const allowedVendorCategories=['餐飲美食','手作設計','文創選物','服飾配件','生活用品','親子兒童','寵物相關','收藏娛樂','美業服務','體驗／服務','其他'];
+  const allowedVendorCategories=['餐飲美食','手作設計','文創選物','服飾配件','生活用品','親子兒童','寵物相關','收藏娛樂','美類','美業服務','體驗／服務','其他'];
   const vendorCategory=String(vendor.category||'').trim();
   if(vendorCategory&&!allowedVendorCategories.includes(vendorCategory))return jsonErr('請重新選擇正式品牌類別');
   const vendorJson={brandName:String(vendor.brandName||'').trim(),brandIntro:String(vendor.brandIntro||'').trim(),category:vendorCategory,items:String(vendor.items||'').trim(),facebook:String(vendor.facebook||'').trim(),instagram:String(vendor.instagram||'').trim(),photoUrl:String(vendor.photoUrl||'').trim(),company:String(vendor.company||'').trim(),taxId:String(vendor.taxId||'').trim()};
