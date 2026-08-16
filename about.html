@@ -196,7 +196,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
       <div class="apply-gate-action"><button class="btn primary" type="button" id="openApplication">申請 DOING 營運帳號</button><small>一般報名者不需要申請</small></div>
     </div>
     <div id="applicationPanel" hidden>
-    <div id="applicationPendingBanner" class="banner"><b>申請已送出，等待 DOING 審核。</b><br>審核通過後才會建立正式營運帳號；若需要補件，系統也會另外通知。</div>
+    <div id="applicationPendingBanner" class="banner"><b>申請已送出，等待 DOING 審核。</b><br>審核通過後才會建立正式營運帳號；需要補件時會另外通知。</div>
     <div class="apply-wrap">
       <div class="apply-side">
         <div class="side-panel">
@@ -237,7 +237,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
 
         <div class="group">
           <h3>二、你的聯絡資料</h3>
-          <div class="desc">這份個人資料同時作為申請人與主要聯絡人，不需要重複建立；LINE 驗證後會與你的 DOING 會員帳號同步。</div>
+          <div class="desc">這份個人資料同時作為申請人與主要聯絡人，不需要重複填寫。</div>
           <div class="field-grid">
             <div class="field"><label class="required" for="signupOwnerName">姓名</label><input id="signupOwnerName" autocomplete="name" placeholder="申請人姓名"></div>
             <div class="field"><label class="required" for="signupPhone">聯絡電話</label><input id="signupPhone" inputmode="tel" autocomplete="tel" placeholder="手機或電話"></div>
@@ -319,7 +319,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
         </div>
 
         <div class="group">
-          <h3>七、系統會先為你開啟這些功能</h3>
+          <h3>七、申請開通功能</h3>
           <div class="desc">依你選的營運情境與困擾自動整理，不需要自己研究模組名稱。平台審核時會再確認，之後也能申請增減。</div>
           <div id="signupModulePreview" class="module-preview"><span>先完成上方選擇，這裡會立即顯示</span></div>
         </div>
@@ -468,7 +468,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
       const applicationId=pageUrl.searchParams.get('application_id')||'';
       if(applicationStatus==='pending')b.innerHTML='<b>營運帳號申請已送出，等待 DOING 審核。</b><br>'+(applicationId?'申請編號：<strong>'+applicationId+'</strong><br>':'')+'審核結果會寄到你填寫的 Email。<br><a href="platform.html">DOING 平台管理者前往大平台後台審核</a>';
       if(applicationStatus==='supplement_submitted')b.innerHTML='<b>補件已重新送出。</b><br>DOING 會再依你最新補充的資料進行審核。';
-      if(applicationStatus==='identity_resolution_required')b.innerHTML='<b>LINE 登入已成功，申請草稿也已保留。</b><br>這個 Email 可能已有 DOING 帳號；請先到會員資料同步原 Google 帳號，無法使用舊登入時請聯絡平台協助。未經簡訊驗證的電話不會拿來合併帳號。';
+      if(applicationStatus==='identity_resolution_required')b.innerHTML='<b>申請草稿已保留。</b><br>請前往會員資料確認帳號，或聯絡 DOING 客服。';
     }
     document.getElementById('apply')?.scrollIntoView({block:'start'});
     const clean=new URL(location.href);clean.searchParams.delete('application_status');clean.searchParams.delete('application_id');history.replaceState({},'',clean.pathname+clean.search+clean.hash);
@@ -482,7 +482,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
       line_cancelled:'LINE 驗證已取消。',
       line_email_permission_required:'LINE Email 權限尚未完成，請先在 LINE Login Channel 開啟 Email 權限。',
       line_login_failed:'LINE 登入流程失敗，請稍後再試。',
-      identity_resolution_required:'LINE 登入已成功，但可能已有舊帳號；申請保留為草稿，請先同步原帳號或聯絡平台協助。',
+      identity_resolution_required:'申請草稿已保留，請前往會員資料確認帳號，或聯絡 DOING 客服。',
       invalid_or_expired_state:'申請驗證已逾時，請重新填寫並驗證。'
     };
     showErr(messages[oauthErr]||('申請失敗：'+oauthErr));
