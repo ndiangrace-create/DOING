@@ -22,8 +22,8 @@ assert(platform.includes('總營收與收款'),'平台導覽未清楚標示總�
 assert(platform.includes('id="platformIssueSearch"')&&platform.includes('id="platformIssueTenant"'),'問題中心缺少搜尋與租戶篩選');
 assert(platform.includes('id="platformTenantHealth"'),'缺少租戶健康狀態');
 assert(!platform.includes("tenantName+'（'+tenantId+'）'"),'平台畫面仍顯示內部租戶代碼');
-assert(platform.includes('savePlatformTenantTheme')&&worker.includes('hSavePlatformTenantTheme'),'五套模板未由平台控制');
-assert(admin.includes('租戶可查看效果；如需更換，請聯絡系統客服'),'租戶仍可自行切換模板');
+assert(admin.includes("apiPost({action:'saveTenantTheme',themeKey:key})")&&worker.includes('async function hSaveTenantTheme'),'五套模板未提供租戶自由切換');
+assert(admin.includes('自由選擇你的品牌模板')&&admin.includes('onclick="saveTenantTheme'),'品牌模板仍被平台鎖定');
 assert(admin.includes('data-advanced-feature="i18n"')&&admin.includes('data-advanced-feature="photoFrames"'),'進階功能未標示平台開通');
 
 for(const [label,target] of [['進行中場次',"switchPage(\\'sessions\\')"],['全部待辦',"setTodoFilter(\\'all\\')"],['待審核',"setTodoFilter(\\'pending\\')"],['付款處理',"setTodoFilter(\\'payment\\')"],['退款處理',"setTodoFilter(\\'refund\\')"],['實際已收',"switchPage(\\'finance\\')"]]){

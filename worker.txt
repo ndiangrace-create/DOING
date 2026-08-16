@@ -1918,7 +1918,14 @@ async function hGetTenantTheme(env,p){
   return jsonOk(await getTenantTheme(env,T));
 }
 async function hSaveTenantTheme(env,b){
-  return jsonErr('品牌模板由 DOING 平台依租戶方案設定；租戶端不開放自行切換',403);
+  const T=b._tenantId;if(!await verifyStaff(env,b.email,b.token,T,'settings'))return jsonErr('無權限');
+  const key=String(b.themeKey||b.key||'').trim();if(!TENANT_THEME_KEYS.has(key))return jsonErr('不支援的品牌模板');
+  const before=await getTenantTheme(env,T),value={key,updatedAt:nowIso(),managedBy:'tenant',updatedBy:b.email||''};
+  const row=await getTenantSettingsRow(env,T);
+  if(row)await dbUpdate(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(T)}`,{theme_json:JSON.stringify(value),updated_at:nowIso()});
+  else await dbInsert(env,'tenant_settings',{tenant_id:T,module_flags_json:await getTenantModuleFlags(env,T),theme_json:value});
+  await writeAuditLog(env,T,b.email||'','organizer','save_tenant_theme','tenant_settings',T,before,value).catch(()=>{});
+  return jsonOk(value);
 }
 async function hGetPlatformTenantModules(env,p){
   if(!await platformSupportAuth(env,p))return jsonErr('無權限');const T=String(p.target_tenant_id||'').trim().toLowerCase();if(!T)return jsonErr('請選擇主辦');return jsonOk({flags:await getTenantModuleFlags(env,T)});

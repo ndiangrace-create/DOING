@@ -4099,12 +4099,16 @@ async function loadTenantTheme(){
   const t=await api({action:'getTenantTheme'});DoingTenantTheme=String(t?.key||'cute_pastel');document.documentElement.dataset.doingTheme=DoingTenantTheme;return t;
 }
 function renderTenantThemeSettings(){
-  const current=DOING_TENANT_THEMES.find(t=>t.key===DoingTenantTheme)||DOING_TENANT_THEMES[0];
-  $('panelBody').innerHTML='<div class="notice"><b>目前品牌模板：'+safe(current.name)+'</b><br>品牌模板由 DOING 平台依方案設定。租戶可查看效果；如需更換，請聯絡系統客服。</div><div class="doing-theme-grid">'+DOING_TENANT_THEMES.map(t=>'<div class="doing-theme-card '+t.cls+' '+(DoingTenantTheme===t.key?'active':'')+'" aria-label="'+safe(t.name)+(DoingTenantTheme===t.key?'，目前使用中':'，尚未套用')+'"><span class="preview"><i></i><span></span></span><span><b>'+safe(t.name)+(DoingTenantTheme===t.key?'｜使用中':'')+'</b><small>'+safe(t.desc)+'</small></span></div>').join('')+'</div><div class="card-actions"><button class="btn secondary" onclick="SupportDraft={kind:\'module_request\',moduleKey:\'theme\',subject:\'申請更換品牌模板\',body:\'想更換目前的品牌模板，請平台協助設定。\'};openSupportCenter()">申請更換模板</button></div>';
+  $('panelBody').innerHTML='<div class="notice"><b>自由選擇你的品牌模板</b><br>五套模板共用同一套功能與資料；點選後立即儲存並套用。</div><div class="doing-theme-grid">'+DOING_TENANT_THEMES.map(t=>'<button type="button" class="doing-theme-card '+t.cls+' '+(DoingTenantTheme===t.key?'active':'')+'" onclick="saveTenantTheme(\''+t.key+'\',this)" aria-label="套用'+safe(t.name)+'"><span class="preview"><i></i><span></span></span><span><b>'+safe(t.name)+(DoingTenantTheme===t.key?'｜使用中':'')+'</b><small>'+safe(t.desc)+'</small></span></button>').join('')+'</div>';
 }
 async function openTenantThemeSettings(){
   openPanel('品牌風格','五種套版共用同一套功能與操作骨架','<div class="loading">正在準備你的風格選單…</div>');
   try{await loadTenantTheme();renderTenantThemeSettings()}catch(e){$('panelBody').innerHTML='<div class="empty">風格載入失敗：'+safe(e.message)+'</div>'}
+}
+async function saveTenantTheme(key,btn){
+  const old=btn.innerHTML;btn.disabled=true;
+  try{const t=await apiPost({action:'saveTenantTheme',themeKey:key});DoingTenantTheme=String(t?.key||key);document.documentElement.dataset.doingTheme=DoingTenantTheme;renderTenantThemeSettings();toast('品牌模板已套用')}
+  catch(e){toast('套用失敗：'+e.message,7000);btn.disabled=false;btn.innerHTML=old}
 }
 function supportUnreadTotal(){return SupportThreads.reduce((n,t)=>n+Number(t.tenant_unread_count||0),0)}
 function paintSupportBadge(){const n=supportUnreadTotal(),el=$('supportUnreadBadge');if(!el)return;el.textContent=String(n>99?'99+':n);el.classList.toggle('show',n>0)}

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "recordedAt": "2026-08-17T03:28:00+08:00",
-  "sourceFingerprint": "28e15e70920f26115db81c4d7986be847f3472586c64c139bf32d6fd94f4c4f6",
+  "sourceFingerprint": "853668ba1003950cf3b00733ec63f3d4ae754bc8d70827ba555c7d94ded743f9",
   "environment": "本機隔離模擬；Supabase、LINE、Google、Resend 全部使用 mock",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
@@ -119,7 +119,7 @@
       "id": "navigation-actions",
       "command": "node scripts/validate-navigation-actions.mjs",
       "result": "PASS",
-      "scope": "平台營運 KPI、問題中心、租戶健康狀態、問題直達指定租戶／場次／訂單、新分頁保留總管登入；租戶後台 KPI、總帳轉帳設定、平台控制五套模板與進階功能、全站共同入口"
+      "scope": "平台營運 KPI、問題中心、租戶健康狀態、問題直達指定租戶／場次／訂單、新分頁保留總管登入；租戶後台 KPI、總帳轉帳設定、租戶自由選擇五套模板、平台控制進階功能、全站共同入口"
     },
     {
       "id": "platform-operations-e2e",
