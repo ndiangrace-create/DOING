@@ -68,6 +68,7 @@
       "tables": [
         "exposure_plans",
         "exposure_orders",
+        "platform_attribution_events",
         "payments",
         "platform_settings"
       ]
@@ -2199,6 +2200,32 @@
         "platform-exposure"
       ],
       "state": "active"
+    },
+    {
+      "name": "platform_attribution_events",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "exposure_order_id",
+        "registration_id",
+        "attribution_id",
+        "event_type",
+        "source",
+        "page_path",
+        "idempotency_key",
+        "occurred_at",
+        "created_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert"
+      ],
+      "moduleKeys": [
+        "platform-exposure"
+      ],
+      "state": "migration_pending"
     },
     {
       "name": "support_threads",

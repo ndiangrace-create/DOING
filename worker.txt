@@ -2306,6 +2306,67 @@ async function hPublicExposureFeed(env,p){
   out.sort((a,b)=>(b.sortOrder-a.sortOrder)||String(a.endsAt).localeCompare(String(b.endsAt)));
   return jsonOk({items:out});
 }
+
+// 匿名平台歸因：只保存活動鍵、來源、事件與隨機歸因碼，不保存 Email、手機、IP 或 User-Agent。
+const PLATFORM_ATTRIBUTION_SOURCES=new Set(['paid_exposure','global_discovery']);
+const PLATFORM_ATTRIBUTION_PUBLIC_EVENTS=new Set(['impression','click']);
+function cleanAttributionId(v){const x=String(v||'').trim();return /^[A-Za-z0-9_-]{8,80}$/.test(x)?x:''}
+function cleanAttributionPath(v){const x=String(v||'/').trim().slice(0,200);return x.startsWith('/')?x:'/'}
+async function hTrackPlatformAttribution(env,b){
+  const eventType=String(b.eventType||'').trim(),source=String(b.source||'').trim();
+  const tenantId=String(b.tenantId||'').trim(),sessionId=String(b.sessionId||'').trim();
+  const attributionId=cleanAttributionId(b.attributionId),exposureOrderId=String(b.exposureOrderId||'').trim();
+  if(!PLATFORM_ATTRIBUTION_PUBLIC_EVENTS.has(eventType)||!PLATFORM_ATTRIBUTION_SOURCES.has(source))return jsonErr('歸因事件格式不正確');
+  if(!tenantId||!sessionId||!attributionId)return jsonErr('歸因事件缺少活動資訊');
+  const sessions=await dbGet(env,'sessions',`id=eq.${encodeURIComponent(sessionId)}&tenant_id=eq.${encodeURIComponent(tenantId)}&select=id,tenant_id,status&limit=1`).catch(()=>[]);
+  if(!sessions.length||!exposurePublicSessionStatus(sessions[0].status))return jsonErr('活動目前未公開');
+  let orderId=null;
+  if(source==='paid_exposure'){
+    if(!exposureOrderId)return jsonErr('付費曝光事件缺少曝光訂單');
+    const orders=await dbGet(env,'exposure_orders',`id=eq.${encodeURIComponent(exposureOrderId)}&tenant_id=eq.${encodeURIComponent(tenantId)}&session_id=eq.${encodeURIComponent(sessionId)}&select=id&limit=1`).catch(()=>[]);
+    if(!orders.length)return jsonErr('找不到對應的曝光訂單');
+    orderId=orders[0].id;
+  }
+  const key=[eventType,source,attributionId,tenantId,sessionId].join(':');
+  const row={id:genId('ATTR'),tenant_id:tenantId,session_id:sessionId,exposure_order_id:orderId,registration_id:null,attribution_id:attributionId,event_type:eventType,source,page_path:cleanAttributionPath(b.pagePath),idempotency_key:key,occurred_at:nowIso(),created_at:nowIso()};
+  await dbUpsert(env,'platform_attribution_events',row,'idempotency_key');
+  return jsonOk({ok:true,attributionId});
+}
+async function recordRegistrationAttribution(env,T,b,registrationId,sessionId){
+  const attributionId=cleanAttributionId(b.doing_attribution_id||b.attributionId),source=String(b.doing_attribution_source||b.attributionSource||'').trim();
+  const attributedSession=String(b.doing_attribution_session_id||b.attributionSessionId||'').trim();
+  if(!attributionId||!PLATFORM_ATTRIBUTION_SOURCES.has(source)||attributedSession!==String(sessionId))return;
+  const claimedOrderId=String(b.doing_exposure_order_id||b.exposureOrderId||'').trim();
+  let clickQuery=`tenant_id=eq.${encodeURIComponent(T)}&session_id=eq.${encodeURIComponent(sessionId)}&attribution_id=eq.${encodeURIComponent(attributionId)}&source=eq.${encodeURIComponent(source)}&event_type=eq.click&select=exposure_order_id&limit=1`;
+  if(claimedOrderId)clickQuery+=`&exposure_order_id=eq.${encodeURIComponent(claimedOrderId)}`;
+  const clicks=await dbGet(env,'platform_attribution_events',clickQuery).catch(()=>[]);if(!clicks.length)return;
+  const exposureOrderId=String(clicks[0].exposure_order_id||'').trim()||null;
+  const key=['registration',source,attributionId,T,sessionId,registrationId].join(':');
+  await dbUpsert(env,'platform_attribution_events',{id:genId('ATTR'),tenant_id:T,session_id:sessionId,exposure_order_id:exposureOrderId,registration_id:registrationId,attribution_id:attributionId,event_type:'registration',source,page_path:cleanAttributionPath(b.doing_attribution_path||b.attributionPath),idempotency_key:key,occurred_at:nowIso(),created_at:nowIso()},'idempotency_key');
+}
+async function hGetPlatformAttributionReport(env,p){
+  const pay=await verifyAdminJwt(p.token,env);if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限');
+  const days=Math.max(1,Math.min(365,parseInt(p.days,10)||30)),since=new Date(Date.now()-days*86400000).toISOString();
+  const events=await dbGet(env,'platform_attribution_events',`occurred_at=gte.${encodeURIComponent(since)}&select=*&order=occurred_at.desc&limit=5000`).catch(()=>[]);
+  const tids=[...new Set(events.map(x=>String(x.tenant_id||'')).filter(Boolean))],sids=[...new Set(events.map(x=>String(x.session_id||'')).filter(Boolean))];
+  const inQ=a=>a.map(x=>'"'+x.replace(/"/g,'')+'"').join(',');
+  const [tenants,sessions]=await Promise.all([
+    tids.length?dbGet(env,'tenants',`id=in.(${inQ(tids)})&select=id,name`).catch(()=>[]):[],
+    sids.length?dbGet(env,'sessions',`id=in.(${inQ(sids)})&select=id,name`).catch(()=>[]):[]
+  ]);
+  const tm=Object.fromEntries(tenants.map(x=>[String(x.id),x.name||x.id])),sm=Object.fromEntries(sessions.map(x=>[String(x.id),x.name||x.id]));
+  const totals={impressions:0,clicks:0,registrations:0,clickRate:0,registrationRate:0},groups={};
+  for(const e of events){
+    if(e.event_type==='impression')totals.impressions++;else if(e.event_type==='click')totals.clicks++;else if(e.event_type==='registration')totals.registrations++;
+    const key=String(e.exposure_order_id||'')||[e.source,e.tenant_id,e.session_id].join(':');
+    if(!groups[key])groups[key]={key,source:e.source,exposureOrderId:e.exposure_order_id||'',tenantId:e.tenant_id,tenantName:tm[String(e.tenant_id)]||e.tenant_id,sessionId:e.session_id,sessionName:sm[String(e.session_id)]||e.session_id,impressions:0,clicks:0,registrations:0,lastAt:e.occurred_at};
+    if(e.event_type==='impression')groups[key].impressions++;else if(e.event_type==='click')groups[key].clicks++;else if(e.event_type==='registration')groups[key].registrations++;
+  }
+  totals.clickRate=totals.impressions?Number((totals.clicks/totals.impressions*100).toFixed(1)):0;
+  totals.registrationRate=totals.clicks?Number((totals.registrations/totals.clicks*100).toFixed(1)):0;
+  const campaigns=Object.values(groups).map(x=>({...x,clickRate:x.impressions?Number((x.clicks/x.impressions*100).toFixed(1)):0,registrationRate:x.clicks?Number((x.registrations/x.clicks*100).toFixed(1)):0})).sort((a,b)=>String(b.lastAt).localeCompare(String(a.lastAt)));
+  return jsonOk({days,totals,campaigns,truncated:events.length>=5000});
+}
 async function hGetExposureCatalog(env,p){
   const T=p._tenantId;if(!await verifyStaff(env,p.email,p.token,T,'settings'))return jsonErr('無權限');
   await syncExposureStatuses(env);
@@ -6475,6 +6536,8 @@ async function hRegisterBundle(env,b,ctx){
   for(const {bb,prep} of preps){
     await finalizeRegistration(env,T,bb,prep.ses,prep.id,prep.meta,ctx,{skipFinance:true});
     await refreshSessionStatsSafe(env,T,bb.sessionId);
+    const attributionJob=recordRegistrationAttribution(env,T,bb,prep.id,bb.sessionId).catch(e=>logError(env,{source:'recordRegistrationAttribution',tenantId:T,sessionId:bb.sessionId,regId:prep.id,message:'bundle attribution failed',error:e&&e.message?e.message:e}));
+    if(ctx&&typeof ctx.waitUntil==='function')ctx.waitUntil(attributionJob);else attributionJob;
   }
 
   return jsonOk({
@@ -6539,6 +6602,8 @@ async function hRegister(env, b, ctx) {
     else await dbRpc(env,'release_session_slot',{p_tenant_id:TENANT,p_session_id:b.sessionId,p_stall_count:meta.stallCount}).catch(()=>{});
     return jsonErr('報名財務資料建立失敗，本次報名與名額已回復：'+(e&&e.message?e.message:'資料寫入失敗'));
   }
+  const attributionJob=recordRegistrationAttribution(env,TENANT,b,id,b.sessionId).catch(e=>logError(env,{source:'recordRegistrationAttribution',tenantId:TENANT,sessionId:b.sessionId,regId:id,message:'registration attribution failed',error:e&&e.message?e.message:e}));
+  if(ctx&&typeof ctx.waitUntil==='function')ctx.waitUntil(attributionJob);else attributionJob;
   return jsonOk({success:true,ok:true,id,status:meta.status,total:meta.total,operationUnitId:meta.operationUnitId||'',benefit:meta.benefit||null,rewardBalance:await rewardBalance(env,TENANT,b.email)});
 }
 
@@ -10162,6 +10227,7 @@ async function routeGet(env, action, p, req) {
   if (action==='getPlatformPublicProfile') return await hGetPlatformPublicProfile(env,p);
   if (action==='getExposurePlansPlatform') return await hGetExposurePlansPlatform(env,p);
   if (action==='getPlatformExposureOrders') return await hGetPlatformExposureOrders(env,p);
+  if (action==='getPlatformAttributionReport') return await hGetPlatformAttributionReport(env,p);
   if (action==='getMyRegsGlobal') return await hGetMyRegsGlobal(env,p);
   if (action==='adminMe') return await hAdminMe(env, p);
   if (action==='listLoginWorkspaces') return await hListLoginWorkspaces(env, p);
@@ -10319,6 +10385,7 @@ async function enforceSessionModuleForAction(env,T,action,b){
 
 async function routePost(env, action, b, ctx, req) {
   // 平台層動作不綁 Tenant。
+  if(action==='trackPlatformAttribution')return hTrackPlatformAttribution(env,b);
   if(action==='savePlatformMemberProfile')return hSavePlatformMemberProfile(env,b);
   if(action==='createOrganizerApplicationDraft')return hCreateOrganizerApplicationDraft(env,b);
   if(action==='approveApply')return hApproveApply(env,b);

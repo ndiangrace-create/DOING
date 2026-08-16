@@ -161,6 +161,7 @@ function setCarouselPositions(stage,items){
   });
   const count=$('doingActivityCount');
   if(count)count.textContent=`${carouselIndex+1} / ${items.length}`;
+  if(items[carouselIndex]&&!items[carouselIndex].isDemo)window.DoingAttribution?.track('impression',items[carouselIndex]);
 }
 
 function openActivity(item){
@@ -169,6 +170,7 @@ function openActivity(item){
     return;
   }
   if(!item?.tenantId||!item?.sessionId)return;
+  if(window.DoingAttribution)return window.DoingAttribution.open(item);
   location.href=`?tenant=${encodeURIComponent(item.tenantId)}&session=${encodeURIComponent(item.sessionId)}`;
 }
 
@@ -240,6 +242,7 @@ function renderActivityList(items,query=''){
   host.innerHTML=rows.map((x,i)=>`<article class="doing-list-card" data-i="${i}" tabindex="0" role="link"><div class="doing-list-cover doing-cover-${(i%5)+1}">${x.cover?`<img src="${esc(x.cover)}" alt="" loading="lazy">`:`<span>${['市','課','體','親','約'][i%5]}</span>`}</div><div class="doing-list-copy"><small>${esc(itemType(x))}</small><h3>${esc(x.sessionName||x.eventTitle||'活動')}</h3><p>${esc(dateText(x.dates))}${x.venue?' · '+esc(x.venue):''}</p><span data-default-label="查看活動">${host.classList.contains('is-first-use')?'選擇這場並建立資料':'查看活動'} <b>→</b></span></div></article>`).join('');
   host.querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{const cover=img.closest('.doing-list-cover');if(cover){img.remove();cover.innerHTML=`<span>${['市','課','體','親','約'][Number(cover.closest('.doing-list-card')?.dataset.i||0)%5]}</span>`}},{once:true}));
   host.querySelectorAll('.doing-list-card').forEach(card=>{const go=()=>openActivity(rows[Number(card.dataset.i)]);card.onclick=go;card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}}});
+  window.DoingAttribution?.observe(host.querySelectorAll('.doing-list-card'),card=>rows[Number(card.dataset.i)]);
   setupInfiniteActivityStrip(host,rows);
 }
 
