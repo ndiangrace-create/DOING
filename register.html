@@ -105,7 +105,7 @@ table{max-width:100%!important}
 <link rel="stylesheet" href="doing-home-refresh.css?v=20260815s">
 </head>
 <body>
-<header class="top"><div class="top-in"><div class="brand" id="brandHoldTarget" title="主辦品牌"><img id="tenantLogo" class="logo hidden" alt="主辦 LOGO"><div><h1 id="tenantName">DOING</h1><p id="brandSub">一次建立資料，之後報名快速帶入</p></div><span id="holdRing" class="hold-ring"></span></div><div class="nav"><select id="languageSelect" class="lang-select hidden" aria-label="Language"></select><button id="memberLoginBtn" class="btn outline small" type="button">登入</button></div></div></header>
+<header class="top"><div class="top-in"><div class="brand" id="brandHoldTarget" title="主辦品牌"><img id="tenantLogo" class="logo hidden" alt="主辦 LOGO"><div><h1 id="tenantName">DOING</h1><p id="brandSub">一次建立資料，之後報名快速帶入</p></div><span id="holdRing" class="hold-ring"></span></div><div class="nav"><a class="btn outline small" href="index.html">DOING 首頁</a><select id="languageSelect" class="lang-select hidden" aria-label="Language"></select><button id="memberLoginBtn" class="btn outline small" type="button">登入</button></div></div></header>
 <main class="shell">
 <section id="pageSessions" class="page active">
   <div id="hero" class="hero"><div class="hero-copy"><h2 id="heroTitle">活動報名，從這裡開始</h2><p id="heroText">選擇場次、完成報名；登入我的報名即可查看審核、付款、設備、選位與行前資訊。</p><div class="actions"><button class="btn" id="heroMyBtn">查看我的報名</button><a id="lineBtn" class="btn outline hidden" target="_blank" rel="noopener">聯繫主辦</a></div></div><div id="heroArt" class="hero-art"><div class="hero-mark"></div></div></div>
@@ -546,7 +546,7 @@ async function refundReg(r){if(!confirm(r.bundleGroupId?'此為兩場組合，�
 $('myEmail').value=localStorage.getItem('doing_my_email')||'';
 let holdTimer=null,holdStart=0;
 function cancelAdminHold(){if(holdTimer){clearTimeout(holdTimer);holdTimer=null}holdStart=0;$('brandHoldTarget')?.classList.remove('holding')}
-function startAdminHold(e){if(e&&e.type==='mousedown'&&e.button!==0)return;holdStart=Date.now();$('brandHoldTarget')?.classList.add('holding');holdTimer=setTimeout(()=>{cancelAdminHold();const tenant=String(S.tenant||new URL(location.href).searchParams.get('tenant')||'').trim();if(!tenant){alert('目前無法辨識主辦空間');return;}location.href='admin.html?tenant='+encodeURIComponent(tenant)},3000)}
+function startAdminHold(e){if(e&&e.type==='mousedown'&&e.button!==0)return;holdStart=Date.now();$('brandHoldTarget')?.classList.add('holding');holdTimer=setTimeout(()=>{cancelAdminHold();const tenant=String(S.tenant||new URL(location.href).searchParams.get('tenant')||'').trim();if(!tenant){alert('目前無法辨識主辦空間');return;}location.href='admin.html?tenant='+encodeURIComponent(tenant)+'&from=register'},3000)}
 ['mousedown','touchstart'].forEach(ev=>$('brandHoldTarget')?.addEventListener(ev,startAdminHold,{passive:true}));
 ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=>$('brandHoldTarget')?.addEventListener(ev,cancelAdminHold,{passive:true}));
 $('adminGoogleBtn').onclick=()=>{location.href=API+'/auth/google/start'};

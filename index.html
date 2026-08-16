@@ -854,7 +854,7 @@ async function enterSelectedWorkspace(workspaceToken,tenantId,btn){
     const resp=await fetch(API+'?action=selectLoginWorkspace',{method:'POST',headers:{'Content-Type':'application/json;charset=UTF-8'},body:JSON.stringify({action:'selectLoginWorkspace',workspace_token:workspaceToken,target_workspace_id:tenantId})});
     const d=await resp.json().catch(()=>({error:'伺服器回應格式錯誤'}));
     if(!resp.ok||d.error||!d.admin_token)throw new Error(d.error||'無法進入主辦空間');
-    const u=new URL(d.admin_url||'admin.html',location.href);u.searchParams.set('tenant',d.tenant||tenantId);u.searchParams.set('admin_token',d.admin_token);location.href=u.toString();
+    const u=new URL(d.admin_url||'admin.html',location.href);u.searchParams.set('tenant',d.tenant||tenantId);u.searchParams.set('admin_token',d.admin_token);u.searchParams.set('from','member');location.href=u.toString();
   }catch(e){toast(e.message||'無法進入主辦空間');if(btn){btn.disabled=false;btn.textContent=old}}
 }
 async function handleWorkspaceToken(){
