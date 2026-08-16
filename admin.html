@@ -2082,8 +2082,8 @@ body.doing-admin .toast{border-radius:8px!important;background:#222!important;co
     <div class="login-mark doing-mark" aria-hidden="true"></div>
     <h1>DOING 活動營運管理系統</h1>
     <div class="sub">活動報名｜審核繳費｜場次管理｜現場報到</div>
-    <div class="login-info"><b>系統服務資訊</b><br>管理員請使用已授權的 Google 帳號登入。若無法登入或需要開通權限，請聯繫系統服務窗口。</div>
-    <button class="btn block" onclick="startGoogleLogin()">主辦／工作人員 Google 登入</button>
+    <div class="login-info"><b>系統服務資訊</b><br>管理員請先使用已授權的 LINE 帳號登入。Google 登入串接保留，暫時不顯示。若無法登入或需要開通權限，請聯繫系統服務窗口。</div>
+    <button class="btn block" onclick="startLineLogin()">主辦／工作人員 LINE 登入</button>
     
     <div id="loginErr" class="notice warn hidden" style="text-align:left"></div>
   </div>
@@ -2275,13 +2275,18 @@ function startGoogleLogin(){
   if(!tenant){ toast('找不到主辦帳號，請回到公開首頁後長按左上品牌圖示 3 秒進入主辦工作台',6000); return; }
   const u=new URL(endpoint()+'/auth/google/start');u.searchParams.set('tenant',tenant);location.href=u.toString();
 }
+function startLineLogin(){
+  const tenant=currentTenantFromUrl();
+  if(!tenant){ toast('找不到主辦帳號，請回到公開首頁後長按左上品牌圖示 3 秒進入主辦工作台',6000); return; }
+  const u=new URL(endpoint()+'/auth/line/start');u.searchParams.set('mode','admin');u.searchParams.set('tenant',tenant);location.href=u.toString();
+}
 async function handleOAuthCallback(){
   const token=sessionStorage.getItem('doing_admin_token_pending');
   const loginError=sessionStorage.getItem('doing_login_error_pending');
   sessionStorage.removeItem('doing_admin_token_pending');
   sessionStorage.removeItem('doing_login_error_pending');
   if(loginError){
-    showLoginError({not_authorized:'這個 Google 帳號目前沒有可管理的主辦帳號',staff_inactive:'此管理員帳號已停用',id_token_verify_failed:'Google 身份驗證失敗',google_cancelled:'Google 登入已取消',token_exchange_failed:'Google 登入流程錯誤',invalid_or_expired_state:'登入驗證已逾時，請重新登入',signup_missing_profile:'主辦基本資料不完整，請重新建立主辦帳號',signup_failed:'主辦帳號建立失敗，請重新操作'}[loginError]||('登入失敗：'+loginError));
+    showLoginError({not_authorized:'這個 LINE 帳號目前沒有可管理的主辦帳號',staff_inactive:'此管理員帳號已停用',id_token_verify_failed:'身分驗證失敗',line_cancelled:'LINE 登入已取消',line_email_permission_required:'LINE Email 權限尚未完成，請先完成 LINE Login 設定',line_login_failed:'LINE 登入流程錯誤',google_cancelled:'Google 登入已取消',token_exchange_failed:'登入流程錯誤',invalid_or_expired_state:'登入驗證已逾時，請重新登入',signup_missing_profile:'主辦基本資料不完整，請重新建立主辦帳號',signup_failed:'主辦帳號建立失敗，請重新操作'}[loginError]||('登入失敗：'+loginError));
     return false;
   }
   if(!token) return false;
@@ -5484,7 +5489,7 @@ async function saveHomepageSettings(btn){ const old=btn.textContent; btn.disable
       enterAdmin();
     }catch(e){
       localStorage.removeItem(SESSION_KEY);
-      showLoginError('登入已失效，請重新使用 Google 登入。');
+      showLoginError('登入已失效，請重新使用 LINE 登入。');
     }
   }
 })();

@@ -411,7 +411,7 @@ body.doing-global-mode>.top,body.doing-global-mode>.bottom-nav{display:none!impo
 <div id="seatModal" class="modal-bg"><div class="modal"><div class="modal-head"><div><h2>加價選位</h2><p id="seatHint"></p></div><button class="close" data-close>×</button></div><div class="modal-body"><img id="seatMapImg" class="hidden" style="width:100%;max-height:360px;object-fit:contain;border:1px solid var(--line);border-radius:16px;margin-bottom:14px"><div id="seatGrid" class="seat-grid"></div></div><div class="modal-foot"><button class="btn outline" data-close>取消</button><button class="btn" id="confirmSeatBtn">確認選位</button></div></div></div>
 
 <div id="paymentModal" class="modal-bg"><div class="modal" style="max-width:620px"><div class="modal-head"><div><h2>付款與回報</h2><p id="paySub"></p></div><button class="close" data-close>×</button></div><div class="modal-body"><div id="payAccount" class="summary"></div><div id="payExternal" class="actions" style="margin-top:12px"></div><div id="payExternalNote" class="ann hidden">使用 LINE Pay／信用卡前，請先確認本次應付金額；付款完成後回到這裡送出付款回報，方便主辦確認入帳。</div><div class="form-grid" style="margin-top:12px"><div class="field"><label>付款方式</label><select id="payMethod"></select></div><div class="field"><label>本次應付金額</label><input id="payAmount" type="number" min="0" readonly></div><div class="field full"><label>帳號末五碼（銀行轉帳／ATM 才需填）</label><input id="payLast5" inputmode="numeric" maxlength="5"></div></div></div><div class="modal-foot"><button class="btn outline" data-close>取消</button><button class="btn" id="submitPayBtn">送出付款回報</button></div></div></div>
-<div id="adminEntryModal" class="modal-bg"><div class="modal" style="max-width:470px"><div class="modal-head"><div><h2 data-i18n="workspace">主辦工作台</h2><p>這裡是主辦與工作人員使用的管理入口，一般報名者不需要從這裡登入。</p></div><button class="close" data-close>×</button></div><div class="modal-body"><button class="btn" style="width:100%" id="adminGoogleBtn">主辦／工作人員 Google 登入</button><button class="btn outline" style="width:100%;margin-top:10px" id="adminSignupBtn">建立主辦帳號</button><div class="help" style="margin-top:10px">第一次使用請先填寫主辦基本資料，再完成 Google 驗證；完成後即可直接進入自己的主辦工作台。</div></div></div></div><div id="workspaceSelectModal" class="modal-bg"><div class="modal" style="max-width:520px"><div class="modal-head"><div><h2>選擇要管理的主辦</h2><p>這個 Google 帳號可管理多個主辦，請選擇這次要進入哪一個。</p></div><button class="close" data-close>×</button></div><div class="modal-body"><div id="workspaceSelectList" style="display:grid;gap:10px"><div class="help">正在讀取可管理的主辦…</div></div></div></div></div>
+<div id="adminEntryModal" class="modal-bg"><div class="modal" style="max-width:470px"><div class="modal-head"><div><h2 data-i18n="workspace">主辦工作台</h2><p>這裡是主辦與工作人員使用的管理入口，一般報名者不需要從這裡登入。</p></div><button class="close" data-close>×</button></div><div class="modal-body"><button class="btn" style="width:100%" id="adminLineBtn">主辦／工作人員 LINE 登入</button><button class="btn" style="width:100%" id="adminGoogleBtn" hidden aria-hidden="true" tabindex="-1">主辦／工作人員 Google 登入</button><button class="btn outline" style="width:100%;margin-top:10px" id="adminSignupBtn">建立主辦帳號</button><div class="help" style="margin-top:10px">第一次使用請先填寫主辦基本資料，再完成 LINE 驗證；審核通過後即可進入自己的主辦工作台。</div></div></div></div><div id="workspaceSelectModal" class="modal-bg"><div class="modal" style="max-width:520px"><div class="modal-head"><div><h2>選擇要管理的主辦</h2><p>這個 DOING 帳號可管理多個主辦，請選擇這次要進入哪一個。</p></div><button class="close" data-close>×</button></div><div class="modal-body"><div id="workspaceSelectList" style="display:grid;gap:10px"><div class="help">正在讀取可管理的主辦…</div></div></div></div></div>
 <div id="paymentSuccessModal" class="modal-bg"><div class="modal" style="max-width:650px"><div class="modal-head"><div><h2>付款回報已送出</h2><p>目前狀態為「付款待確認」，請等待主辦核帳。</p></div><button class="close" data-close>×</button></div><div class="modal-body"><div class="ann">請先截圖保存本頁，再視需要傳給主辦客服。</div><div id="paymentSuccessCard" class="summary" style="white-space:pre-wrap"></div></div><div class="modal-foot"><button class="btn outline" id="copyPaymentCardBtn">① 複製付款卡</button><button class="btn" id="openPaymentLineBtn">② 傳 LINE 客服</button><button class="btn outline" data-close>完成</button></div></div></div>
 <div id="preNoticeModal" class="modal-bg"><div class="modal" style="max-width:820px"><div class="modal-head"><div><h2>我的活動位置</h2><p>先看大號碼，再放大地圖確認方向</p></div><button class="close" data-close>×</button></div><div class="modal-body"><div class="my-seat-hero"><span>我的位置</span><strong id="preNoticeSeat">—</strong><h3 id="preNoticeName">場次</h3><div id="preNoticeVenue"></div></div><div id="preNoticeDateTabs" class="my-seat-tabs"></div><div id="preNoticeMapStatus" class="ann">正在讀取場地圖…</div><div id="preNoticeMapViewport" class="my-seat-map-viewport hidden"><div id="preNoticeMap" class="my-seat-map"></div></div><div class="my-seat-info"><div><span>日期</span><b id="preNoticeDate">—</b></div><div><span>設備</span><b id="preNoticeEquip">設備自備</b></div><div class="full"><span>注意事項</span><b>報到時間與最新異動以主辦通知為準；兩天活動預設使用相同位置。</b></div></div></div><div class="modal-foot"><button class="btn" data-close>知道了</button></div></div></div>
 <div id="toast" class="toast"></div>
@@ -816,7 +816,7 @@ function cancelAdminHold(){if(holdTimer){clearTimeout(holdTimer);holdTimer=null}
 function openHiddenAdminEntry(){
   const tenant=String(state.tenant||new URL(location.href).searchParams.get('tenant')||'').trim().toLowerCase();
   cancelAdminHold();
-  if(!tenant){const u=new URL(API+'/auth/google/start');u.searchParams.set('tenant','platform');location.href=u.toString();return}
+  if(!tenant){const u=new URL(API+'/auth/line/start');u.searchParams.set('mode','platform');u.searchParams.set('tenant','platform');location.href=u.toString();return}
   openModal('adminEntryModal');
 }
 function startAdminHold(e,target){
@@ -841,6 +841,12 @@ document.addEventListener('dragstart',e=>{if(e.target.closest?.(hiddenAdminSelec
 $('adminGoogleBtn').onclick=()=>{
   const tenant=String(state.tenant||new URL(location.href).searchParams.get('tenant')||'').trim().toLowerCase();
   const u=new URL(API+'/auth/google/start');
+  if(tenant)u.searchParams.set('tenant',tenant);
+  location.href=u.toString();
+};
+$('adminLineBtn').onclick=()=>{
+  const tenant=String(state.tenant||new URL(location.href).searchParams.get('tenant')||'').trim().toLowerCase();
+  const u=new URL(API+'/auth/line/start');u.searchParams.set('mode','admin');
   if(tenant)u.searchParams.set('tenant',tenant);
   location.href=u.toString();
 };
@@ -874,7 +880,7 @@ async function handleWorkspaceToken(){
 bootstrap();
 handleWorkspaceToken();
 if(oauthLoginError && location.hash!=='#apply'){
-  const loginMessages={not_authorized:'這個 Google 帳號目前沒有可管理的主辦帳號。',google_cancelled:'Google 登入已取消。',id_token_verify_failed:'Google 身分驗證失敗，請重新登入。',token_exchange_failed:'Google 登入流程失敗，請稍後再試。',invalid_or_expired_state:'登入驗證已逾時，請重新操作。'};
+  const loginMessages={not_authorized:'這個 LINE 帳號目前沒有可管理的主辦帳號。',line_cancelled:'LINE 登入已取消。',line_email_permission_required:'LINE Email 權限尚未完成，請先完成 LINE Login 設定。',line_login_failed:'LINE 登入流程失敗，請稍後再試。',google_cancelled:'Google 登入已取消。',id_token_verify_failed:'身分驗證失敗，請重新登入。',token_exchange_failed:'登入流程失敗，請稍後再試。',invalid_or_expired_state:'登入驗證已逾時，請重新操作。'};
   setTimeout(()=>{toast(loginMessages[oauthLoginError]||('登入失敗：'+oauthLoginError));openModal('adminEntryModal');},300);
   const clean=new URL(location.href);clean.searchParams.delete('login_error');history.replaceState({},'',clean.pathname+clean.search+clean.hash);
 }

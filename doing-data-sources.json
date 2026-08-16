@@ -354,7 +354,8 @@
         "updated_at",
         "display_name",
         "last_login_at",
-        "normalized_role"
+        "normalized_role",
+        "platform_member_id"
       ],
       "workerAccess": [
         "get",
@@ -385,7 +386,8 @@
         "last_login_at",
         "normalized_role",
         "scope_type",
-        "scope_event_id"
+        "scope_event_id",
+        "platform_member_id"
       ],
       "workerAccess": [
         "delete",

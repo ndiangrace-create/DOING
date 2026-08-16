@@ -224,13 +224,15 @@ async function issueAdminToken(staffRow, tenantId, env) {
 }
 
 // 免輸入主辦識別登入：多工作空間選擇用短效 JWT（10 分鐘）
-async function issueWorkspaceSelectionToken(email, tenantIds, env) {
+async function issueWorkspaceSelectionToken(email, tenantIds, env, extra = {}) {
   const now = Date.now();
   return signAdminJwt({
     iss: 'DOING',
     type: 'workspace_selection',
     sub: email,
     email,
+    provider: String(extra.provider || ''),
+    platform_member_id: String(extra.platform_member_id || ''),
     tenant_ids: Array.from(new Set((tenantIds || []).filter(Boolean))),
     issued_at: now,
     expires_at: now + 10 * 60 * 1000,
@@ -239,7 +241,7 @@ async function issueWorkspaceSelectionToken(email, tenantIds, env) {
 
 async function verifyWorkspaceSelectionToken(token, env) {
   const payload = await verifyAdminJwt(token, env);
-  if (!payload || payload.type !== 'workspace_selection' || !payload.email || !Array.isArray(payload.tenant_ids)) return null;
+  if (!payload || payload.type !== 'workspace_selection' || (!payload.email && !payload.platform_member_id) || !Array.isArray(payload.tenant_ids)) return null;
   return payload;
 }
 
@@ -249,8 +251,10 @@ async function issueMemberToken(memberInfo, env) {
   const payload = {
     iss: 'DOING',
     type: 'member',
-    sub: memberInfo.google_sub || memberInfo.email,
+    sub: memberInfo.provider_subject || memberInfo.google_sub || memberInfo.email,
     email: memberInfo.email,
+    provider: memberInfo.provider || '',
+    provider_subject: memberInfo.provider_subject || memberInfo.google_sub || '',
     google_sub: memberInfo.google_sub || '',
     display_name: (memberInfo.display_name || '').replace(/[^\x00-\x7F]/g, ''),
     avatar_url: memberInfo.avatar_url || '',
@@ -3155,9 +3159,11 @@ async function hGetMember(env, p) {
 
 async function verifiedPlatformMember(env, token){
   const payload=await verifyAdminJwt(String(token||''),env).catch(()=>null);
-  if(!payload||payload.type!=='member'||!payload.google_sub)return null;
+  const subject=String(payload&&payload.provider_subject||payload&&payload.google_sub||'');
+  if(!payload||payload.type!=='member'||!subject)return null;
+  if(payload.provider){const row=await getPlatformMemberByProvider(env,String(payload.provider),subject);if(row)return {payload,row}}
   const providers=['line','google'];
-  for(const provider of providers){const row=await getPlatformMemberByProvider(env,provider,String(payload.google_sub));if(row)return {payload,row}}
+  for(const provider of providers){const row=await getPlatformMemberByProvider(env,provider,subject);if(row)return {payload,row}}
   return null;
 }
 
@@ -3267,7 +3273,7 @@ async function hGetAnnouncements(env, p) {
 }
 
 // ── 舊 Google unified OAuth 已停用 ────────────────────────
-// DOING 後台登入只保留 /auth/google/start + /auth/google/callback。
+// DOING 現行公開入口使用 LINE；Google OAuth 路由完整保留但不顯示。
 // 下方 staff/member 輔助函式保留供既有其他流程相容。
 
 // 輔助：檢查是否為 staff
@@ -3322,29 +3328,30 @@ async function updateMemberLastLogin(env, email, tenantId, googleSub, displayNam
 
 // ── 申請試用 API ──────────────────────────────────────────────────
 
-// 營運帳號申請先完整寫入資料庫，再以申請編號進行 Google 驗證；瀏覽器不保存申請資料。
+// 營運帳號申請先完整寫入資料庫，再以申請編號進行 LINE 驗證；Google 流程保留但不從公開入口觸發。
 async function hCreateOrganizerApplicationDraft(env,b){
   const app=(b&&b.application&&typeof b.application==='object')?b.application:{};
-  const unitName=String(app.unitName||'').trim(),ownerName=String(app.ownerName||'').trim(),phone=String(app.phone||'').trim();
+  const unitName=String(app.unitName||'').trim(),ownerName=String(app.ownerName||'').trim(),phone=String(app.phone||'').trim(),contactEmail=normEmail(app.contactEmail||app.email||'');
   const industries=Array.isArray(app.industryCategories)?app.industryCategories.map(String).filter(Boolean).slice(0,20):[];
   const useCases=Array.isArray(app.useCases)?app.useCases.map(String).filter(Boolean).slice(0,20):[];
   const publicLinks=Array.isArray(app.publicLinks)?app.publicLinks.map(x=>String(x||'').trim()).filter(Boolean).slice(0,8):[];
-  if(!unitName||!ownerName||!phone)return jsonErr('營運單位、姓名與聯絡電話不可空白');
+  if(!unitName||!ownerName||!phone||!contactEmail)return jsonErr('營運單位、姓名、Email 與聯絡電話不可空白');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail))return jsonErr('Email 格式不正確');
   if(!industries.length)return jsonErr('請至少選擇一個產業類別');
   if(!useCases.length)return jsonErr('請至少選擇一個 DOING 使用情境');
   if(!publicLinks.length&&app.noPublicLink!==true)return jsonErr('請至少提供一項公開資訊');
   const confirmations=(app.confirmations&&typeof app.confirmations==='object')?app.confirmations:{};
   if(confirmations.confirmReal!==true||confirmations.confirmUse!==true||confirmations.confirmReview!==true)return jsonErr('請先完成送出前確認');
   const id=genId('APL'),createdAt=nowIso();
-  const applicationJson={...app,ownerName,contactName:ownerName,billingName:ownerName,industryCategories:industries,useCases,publicLinks,createdAt,timeline:[...(Array.isArray(app.timeline)?app.timeline:[]),{key:'application_created',label:'建立申請',at:createdAt}]};
+  const applicationJson={...app,contactEmail,ownerName,contactName:ownerName,billingName:ownerName,industryCategories:industries,useCases,publicLinks,createdAt,timeline:[...(Array.isArray(app.timeline)?app.timeline:[]),{key:'application_created',label:'建立申請',at:createdAt}]};
   await dbInsert(env,'tenant_apply_logs',{
-    id,brand_name:unitName,contact_name:ownerName,contact_email:`pending+${id.toLowerCase()}@doing.invalid`,contact_phone:phone,
-    event_type:useCases.join(','),plan_type:'review',note:'等待 Google 驗證',status:'google_verification_pending',application_json:applicationJson,created_at:createdAt
+    id,brand_name:unitName,contact_name:ownerName,contact_email:contactEmail,contact_phone:phone,
+    event_type:useCases.join(','),plan_type:'review',note:'等待 LINE 驗證',status:'line_verification_pending',application_json:applicationJson,created_at:createdAt
   });
   return jsonOk({ok:true,applicationId:id});
 }
 
-// 主辦申請改為「Google 驗證後送審」，審核通過才建立 Tenant / Owner / 創業金。
+// 主辦申請為「LINE 驗證後送審」，審核通過才建立 Tenant / Owner / 創業金；Google 驗證程式保留備用。
 async function hApplyTrial(env,b){
   const brand=String(b.brand_name||'').trim(),contact=String(b.contact_name||'').trim(),email=normEmail(b.contact_email||''),phone=String(b.contact_phone||'').trim();
   if(!brand||!contact||!email||!phone)return jsonErr('主辦基本資料不完整');
@@ -3398,6 +3405,7 @@ async function hApproveApply(env,b){
     try{
       await dbInsert(env,'staff',{
         id:genId('STF'),tenant_id:tid,email,name:contact,display_name:contact,
+        platform_member_id:String(app.memberId||'').trim()||null,
         role:'organizer_owner',normalized_role:'organizer_owner',is_active:true,active:true,
         perms_json:JSON.stringify({events:true,sessions:true,review:true,finance:true,checkin:true,announce:true,members:true,settings:true}),
         limit_sessions:'',created_at:now,updated_at:now
@@ -3790,6 +3798,45 @@ async function findAdminWorkspacesByEmail(env, email) {
   return workspaces;
 }
 
+async function approvedApplicationsByMemberId(env, memberId) {
+  const id=String(memberId||'').trim();if(!id)return [];
+  const rows=await dbGet(env,'tenant_apply_logs','status=eq.approved&select=*&order=approved_at.desc&limit=500').catch(()=>[]);
+  return rows.filter(row=>String(safeJson(row.application_json,{}).memberId||'')===id&&String(row.tenant_id||'').trim());
+}
+
+async function findStaffForPlatformMember(env, memberId, tenantId) {
+  const id=String(memberId||'').trim(),tenant=String(tenantId||'').trim().toLowerCase();
+  if(!id||!tenant)return null;
+  const direct=await dbGet(env,'staff',`tenant_id=eq.${encodeURIComponent(tenant)}&platform_member_id=eq.${encodeURIComponent(id)}&select=*`).catch(()=>[]);
+  let staff=direct.find(row=>((row.is_active!==undefined?row.is_active:row.active)!==false));
+  if(staff)return staff;
+  const applications=await approvedApplicationsByMemberId(env,id);
+  const application=applications.find(row=>String(row.tenant_id||'').trim().toLowerCase()===tenant);
+  if(!application)return null;
+  const email=normEmail(application.contact_email);
+  const rows=await dbGet(env,'staff',`tenant_id=eq.${encodeURIComponent(tenant)}&email=eq.${encodeURIComponent(email)}&select=*`).catch(()=>[]);
+  staff=rows.find(row=>((row.is_active!==undefined?row.is_active:row.active)!==false));
+  if(staff)await dbUpdate(env,'staff',`id=eq.${encodeURIComponent(staff.id)}`,{platform_member_id:id}).catch(()=>{});
+  return staff||null;
+}
+
+async function findAdminWorkspacesByMemberId(env, memberId) {
+  const id=String(memberId||'').trim();if(!id)return [];
+  const tenantIds=new Set();
+  const direct=await dbGet(env,'staff',`platform_member_id=eq.${encodeURIComponent(id)}&select=*`).catch(()=>[]);
+  for(const row of direct){const active=row.is_active!==undefined?row.is_active:row.active;if(active!==false&&row.tenant_id)tenantIds.add(String(row.tenant_id).trim().toLowerCase())}
+  for(const row of await approvedApplicationsByMemberId(env,id))tenantIds.add(String(row.tenant_id).trim().toLowerCase());
+  const workspaces=[];
+  for(const tenantId of tenantIds){
+    const staff=await findStaffForPlatformMember(env,id,tenantId);if(!staff)continue;
+    const tenantRows=await dbGet(env,'tenants',`id=eq.${encodeURIComponent(tenantId)}&select=id,name,slug,is_locked,locked_reason,plan_type,trial_end_at`).catch(()=>[]);
+    const tenant=tenantRows[0];if(!tenant)continue;
+    workspaces.push({tenant_id:tenantId,name:tenant.name||tenant.slug||tenantId,role:staff.normalized_role||staff.role||'organizer_admin',is_locked:!!tenant.is_locked});
+  }
+  workspaces.sort((a,b)=>String(a.name).localeCompare(String(b.name),'zh-Hant'));
+  return workspaces;
+}
+
 const DEFAULT_DOING_SITE_URL = 'https://ndiangrace-create.github.io/DOING/';
 
 function doingSiteUrl(env) {
@@ -3831,7 +3878,7 @@ function lineRedirectUri(env, requestUrl) {
 
 async function issueLineOAuthState(env, extra={}) {
   const now=Date.now();
-  return signAdminJwt({iss:'DOING',type:'line_oauth_state',return_url:String(extra.return_url||'').slice(0,1800),issued_at:now,expires_at:now+10*60*1000},env);
+  return signAdminJwt({iss:'DOING',type:'line_oauth_state',mode:String(extra.mode||'').slice(0,40),tenant:String(extra.tenant||'').trim().toLowerCase().slice(0,120),application_id:String(extra.application_id||'').slice(0,120),return_url:String(extra.return_url||'').slice(0,1800),nonce:String(extra.nonce||'').slice(0,120),issued_at:now,expires_at:now+10*60*1000},env);
 }
 
 async function verifyLineOAuthState(env, token) {
@@ -3853,41 +3900,97 @@ async function getPlatformMemberByProvider(env, provider, subject) {
 
 function platformMemberComplete(row){return !!(row&&normEmail(row.email)&&normPhone(row.phone)&&String(row.name||'').trim()&&row.completed_at)}
 
+function platformMemberMergeScore(row){const vendor=safeJson(row&&row.vendor_json,{});return (row&&row.completed_at?8:0)+(row&&row.name?4:0)+(row&&row.phone?2:0)+(vendor&&vendor.brandName?2:0)+(row&&row.email_verified_at?1:0)}
+
+async function mergeVerifiedPlatformMembers(env,left,right,verifiedEmail){
+  if(!left||!right||String(left.id)===String(right.id))return left||right;
+  const pair=[left,right].sort((a,b)=>platformMemberMergeScore(b)-platformMemberMergeScore(a)||String(a.created_at||'').localeCompare(String(b.created_at||''))),target=pair[0],source=pair[1],now=nowIso();
+  const targetVendor=safeJson(target.vendor_json,{}),sourceVendor=safeJson(source.vendor_json,{}),mergedVendor={...sourceVendor,...Object.fromEntries(Object.entries(targetVendor).filter(([,value])=>value!==''&&value!==null&&value!==undefined))};
+  await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(target.id)}`,{email:verifiedEmail,email_verified_at:target.email_verified_at||source.email_verified_at||now,phone:target.phone||source.phone||null,name:target.name||source.name||null,line_id:target.line_id||source.line_id||null,city:target.city||source.city||null,display_name:target.display_name||source.display_name||'',avatar_url:target.avatar_url||source.avatar_url||'',vendor_json:mergedVendor,completed_at:target.completed_at||source.completed_at||null,updated_at:now});
+  const identities=await dbGet(env,'platform_member_identities',`member_id=eq.${encodeURIComponent(source.id)}&select=*`).catch(()=>[]);
+  for(const identity of identities)await dbUpdate(env,'platform_member_identities',`id=eq.${encodeURIComponent(identity.id)}`,{member_id:target.id,provider_email:identity.provider_email||verifiedEmail}).catch(()=>{});
+  await dbUpdate(env,'registrations',`platform_member_id=eq.${encodeURIComponent(source.id)}`,{platform_member_id:target.id}).catch(()=>{});
+  await dbUpdate(env,'staff',`platform_member_id=eq.${encodeURIComponent(source.id)}`,{platform_member_id:target.id}).catch(()=>{});
+  await dbUpdate(env,'platform_staff',`platform_member_id=eq.${encodeURIComponent(source.id)}`,{platform_member_id:target.id}).catch(()=>{});
+  const applications=await dbGet(env,'tenant_apply_logs','select=id,application_json&limit=1000').catch(()=>[]);
+  for(const application of applications){const data=safeJson(application.application_json,{});if(String(data.memberId||'')===String(source.id))await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(application.id)}`,{application_json:{...data,memberId:target.id,identityMergedAt:now}}).catch(()=>{})}
+  await dbDelete(env,'platform_members',`id=eq.${encodeURIComponent(source.id)}`).catch(()=>{});
+  const identity=await dbGet(env,'platform_member_identities',`member_id=eq.${encodeURIComponent(target.id)}&select=*&order=last_login_at.desc&limit=1`).catch(()=>[]);
+  return {...target,email:verifiedEmail,email_verified_at:target.email_verified_at||source.email_verified_at||now,phone:target.phone||source.phone||null,name:target.name||source.name||null,line_id:target.line_id||source.line_id||null,city:target.city||source.city||null,display_name:target.display_name||source.display_name||'',avatar_url:target.avatar_url||source.avatar_url||'',vendor_json:mergedVendor,completed_at:target.completed_at||source.completed_at||null,_identity:identity[0]||target._identity};
+}
+
 async function upsertPlatformIdentity(env,{provider,subject,email='',displayName='',avatarUrl=''}){
   const now=nowIso();
-  let member=await getPlatformMemberByProvider(env,provider,subject);
-  if(member){await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(member.id)}`,{display_name:displayName||member.display_name||'',avatar_url:avatarUrl||member.avatar_url||'',updated_at:now}).catch(()=>{});await dbUpdate(env,'platform_member_identities',`id=eq.${encodeURIComponent(member._identity.id)}`,{last_login_at:now}).catch(()=>{});return member}
   const normalizedEmail=normEmail(email);
+  let member=await getPlatformMemberByProvider(env,provider,subject);
+  if(member){if(normalizedEmail){const matches=await dbGet(env,'platform_members',`email=ilike.${encodeURIComponent(normalizedEmail)}&id=neq.${encodeURIComponent(member.id)}&email_verified_at=not.is.null&select=*&order=created_at.asc`).catch(()=>[]);if(matches[0]){await mergeVerifiedPlatformMembers(env,member,matches[0],normalizedEmail);member=await getPlatformMemberByProvider(env,provider,subject)}}const update={display_name:displayName||member.display_name||'',avatar_url:avatarUrl||member.avatar_url||'',updated_at:now};if(normalizedEmail){update.email=normalizedEmail;update.email_verified_at=now}await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(member.id)}`,update).catch(()=>{});if(member._identity)await dbUpdate(env,'platform_member_identities',`id=eq.${encodeURIComponent(member._identity.id)}`,{provider_email:normalizedEmail||member._identity.provider_email||null,last_login_at:now}).catch(()=>{});return {...member,...update}}
   if(normalizedEmail){
     const byEmail=await dbGet(env,'platform_members',`email=ilike.${encodeURIComponent(normalizedEmail)}&select=*`).catch(()=>[]);
     if(byEmail[0]){member=byEmail[0];if(!member.email_verified_at)throw new Error('email_link_requires_existing_login');await dbInsert(env,'platform_member_identities',{id:genId('MID'),member_id:member.id,provider,provider_subject:subject,provider_email:normalizedEmail,created_at:now,last_login_at:now});await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(member.id)}`,{display_name:displayName||member.display_name||'',avatar_url:avatarUrl||member.avatar_url||'',updated_at:now});return member}
   }
-  const row={id:genId('MEM'),email:normalizedEmail||null,phone:null,name:null,line_id:null,city:null,display_name:displayName,avatar_url:avatarUrl,vendor_json:{},created_at:now,updated_at:now,completed_at:null,email_verified_at:provider==='google'&&normalizedEmail?now:null};
+  const row={id:genId('MEM'),email:normalizedEmail||null,phone:null,name:null,line_id:null,city:null,display_name:displayName,avatar_url:avatarUrl,vendor_json:{},created_at:now,updated_at:now,completed_at:null,email_verified_at:normalizedEmail?now:null};
   await dbInsert(env,'platform_members',row);await dbInsert(env,'platform_member_identities',{id:genId('MID'),member_id:row.id,provider,provider_subject:subject,provider_email:normalizedEmail||null,created_at:now,last_login_at:now});return row;
 }
 
 async function hLineStart(env,url){
   if(!env.LINE_LOGIN_CHANNEL_ID)return new Response('LINE Login 尚未設定 Channel ID',{status:500});
-  const state=await issueLineOAuthState(env,{return_url:url.searchParams.get('return_url')||doingSiteUrl(env)});
-  const params=new URLSearchParams({response_type:'code',client_id:env.LINE_LOGIN_CHANNEL_ID,redirect_uri:lineRedirectUri(env,url),state,scope:'openid profile',bot_prompt:'normal'});
+  const mode=String(url.searchParams.get('mode')||'member').trim().toLowerCase(),tenant=String(url.searchParams.get('tenant')||'').trim().toLowerCase(),nonce=crypto.randomUUID();
+  const fallback=mode==='platform'||tenant==='platform'?platformSiteUrl(env):mode==='organizer_signup'?doingSiteUrl(env)+'#apply':doingSiteUrl(env);
+  const state=await issueLineOAuthState(env,{mode,tenant,application_id:url.searchParams.get('application_id')||'',return_url:url.searchParams.get('return_url')||fallback,nonce});
+  const scope='openid profile email';
+  const params=new URLSearchParams({response_type:'code',client_id:env.LINE_LOGIN_CHANNEL_ID,redirect_uri:lineRedirectUri(env,url),state,scope,nonce,bot_prompt:'normal'});
   return Response.redirect(`https://access.line.me/oauth2/v2.1/authorize?${params}`,302);
 }
 
 async function hLineCallback(env,url){
   const statePayload=await verifyLineOAuthState(env,url.searchParams.get('state')||'');
-  const target=safeDoingReturnUrl(env,statePayload&&statePayload.return_url);
-  const fail=reason=>{target.searchParams.set('member_login_error',reason);return Response.redirect(target.toString(),302)};
+  const mode=String(statePayload&&statePayload.mode||'member').trim().toLowerCase(),tenant=String(statePayload&&statePayload.tenant||'').trim().toLowerCase();
+  const memberTarget=safeDoingReturnUrl(env,statePayload&&statePayload.return_url),applicationTarget=new URL(doingSiteUrl(env)),adminTarget=new URL(adminLoginSiteUrl(env)),platformTarget=new URL(platformSiteUrl(env));applicationTarget.hash='apply';
+  const target=mode==='organizer_signup'?applicationTarget:mode==='platform'||tenant==='platform'?platformTarget:mode==='admin'||tenant?adminTarget:memberTarget;
+  const fail=reason=>{target.searchParams.set(mode==='member'?'member_login_error':'login_error',reason);return Response.redirect(target.toString(),302)};
   if(!statePayload)return fail('invalid_or_expired_state');
   if(url.searchParams.get('error'))return fail('line_cancelled');
   const code=url.searchParams.get('code');
   if(!code||!env.LINE_LOGIN_CHANNEL_ID||!env.LINE_LOGIN_CHANNEL_SECRET)return fail('line_config_or_code_missing');
   try{
     const tokenHttp=await fetch('https://api.line.me/oauth2/v2.1/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'authorization_code',code,redirect_uri:lineRedirectUri(env,url),client_id:env.LINE_LOGIN_CHANNEL_ID,client_secret:env.LINE_LOGIN_CHANNEL_SECRET})});
-    const tokens=await tokenHttp.json();if(!tokenHttp.ok||!tokens.access_token)throw new Error('token_exchange_failed');
-    const profileHttp=await fetch('https://api.line.me/v2/profile',{headers:{Authorization:`Bearer ${tokens.access_token}`}});const profile=await profileHttp.json();if(!profileHttp.ok||!profile.userId)throw new Error('profile_failed');
-    const member=await upsertPlatformIdentity(env,{provider:'line',subject:String(profile.userId),displayName:String(profile.displayName||''),avatarUrl:String(profile.pictureUrl||'')});
-    const memberToken=await issueMemberToken({email:member.email,google_sub:profile.userId,display_name:profile.displayName||'',avatar_url:profile.pictureUrl||''},env);
-    target.searchParams.set('member_token',memberToken);target.searchParams.set('member_status',platformMemberComplete(member)?'ready':'profile_required');return Response.redirect(target.toString(),302);
+    const tokens=await tokenHttp.json();if(!tokenHttp.ok||!tokens.access_token||!tokens.id_token)throw new Error('token_exchange_failed');
+    const verifyHttp=await fetch('https://api.line.me/oauth2/v2.1/verify',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({id_token:String(tokens.id_token),client_id:String(env.LINE_LOGIN_CHANNEL_ID)})});
+    const profile=await verifyHttp.json();if(!verifyHttp.ok||String(profile.aud)!==String(env.LINE_LOGIN_CHANNEL_ID)||!profile.sub||String(profile.nonce||'')!==String(statePayload.nonce||''))throw new Error('id_token_verify_failed');
+    const verifiedEmail=normEmail(profile.email||''),lineSubject=String(profile.sub),lineName=String(profile.name||''),lineAvatar=String(profile.picture||'');if(!verifiedEmail)return fail('line_email_permission_required');
+    const member=await upsertPlatformIdentity(env,{provider:'line',subject:lineSubject,email:verifiedEmail,displayName:lineName,avatarUrl:lineAvatar});
+
+    if(mode==='organizer_signup'){
+      const applicationId=String(statePayload.application_id||'').trim();if(!applicationId)return fail('signup_missing_profile');
+      const draftRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&status=eq.line_verification_pending&select=*`).catch(()=>[]),draft=draftRows[0];
+      if(!draft)return fail('signup_draft_not_found');
+      const appPayload=safeJson(draft.application_json,{}),brand=String(appPayload.unitName||draft.brand_name||'').trim(),contact=String(appPayload.ownerName||appPayload.contactName||draft.contact_name||lineName||'').trim(),phone=String(appPayload.phone||draft.contact_phone||'').trim(),contactEmail=normEmail(appPayload.contactEmail||draft.contact_email||verifiedEmail);
+      if(!brand||!contact||!phone||!contactEmail)return fail('signup_missing_profile');
+      const signupProfile=appPayload.moduleProfile||{},signupDefaults=normalizeSessionModules(signupProfile&&signupProfile.defaults?signupProfile.defaults:{}),profileConfig={configured:true,useType:String(signupProfile.useType||'generic'),useCases:Array.isArray(signupProfile.useCases)?signupProfile.useCases.map(String).slice(0,12):[],defaults:signupDefaults,updatedAt:nowIso()};
+      const submittedAt=nowIso(),applicationJson={...appPayload,ownerName:contact,contactName:contact,billingName:contact,moduleProfile:profileConfig,memberId:member.id,loginProvider:'line',lineSubject,lineDisplayName:lineName,submittedAt,timeline:[...(Array.isArray(appPayload.timeline)?appPayload.timeline:[]),{key:'application_submitted',label:'LINE 驗證並送出',at:submittedAt}]};
+      const existingRows=await dbGet(env,'tenant_apply_logs',`contact_email=eq.${encodeURIComponent(contactEmail)}&status=eq.supplement_required&select=id,status,supplement_count,brand_name`).catch(()=>[]),supplement=existingRows.find(x=>String(x.brand_name||'').trim().toLowerCase()===brand.toLowerCase());
+      if(supplement){await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(supplement.id)}`,{brand_name:brand,contact_name:contact,contact_email:contactEmail,contact_phone:phone,event_type:(appPayload.useCases||[]).join(','),status:'pending',plan_type:'review',note:'LINE 驗證後補件重新送出',application_json:applicationJson,supplement_submitted_at:submittedAt,supplement_count:safeNum(supplement.supplement_count)+1,rejected_at:null,rejected_by:null,rejection_reason:null});await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{status:'replaced',note:'已併入補件申請'}).catch(()=>{});applicationTarget.searchParams.set('application_status','supplement_submitted');applicationTarget.searchParams.set('application_id',supplement.id);return Response.redirect(applicationTarget.toString(),302)}
+      await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{brand_name:brand,contact_name:contact,contact_email:contactEmail,contact_phone:phone,event_type:(appPayload.useCases||[]).join(','),plan_type:'review',note:'LINE 驗證完成',status:'pending',application_json:applicationJson});
+      try{await sendEmail(env,contactEmail,'【DOING】營運帳號申請已送出',emailWrap(`<p>${contact} 您好：</p><p>你的 DOING 營運帳號申請已送出，目前等待平台審核。</p><p><b>申請編號：</b>${applicationId}</p><p>審核通過或需要補件時，系統會再寄信通知。</p>`))}catch(e){}
+      applicationTarget.searchParams.set('application_status','pending');applicationTarget.searchParams.set('application_id',applicationId);return Response.redirect(applicationTarget.toString(),302);
+    }
+
+    if(mode==='platform'||tenant==='platform'){
+      let rows=await dbGet(env,'platform_staff',`platform_member_id=eq.${encodeURIComponent(member.id)}&is_active=eq.true&select=*`).catch(()=>[]),staff=rows[0];
+      if(!staff&&verifiedEmail){rows=await dbGet(env,'platform_staff',`email=eq.${encodeURIComponent(verifiedEmail)}&is_active=eq.true&select=*`).catch(()=>[]);staff=rows[0];if(staff)await dbUpdate(env,'platform_staff',`id=eq.${encodeURIComponent(staff.id)}`,{platform_member_id:member.id,last_login_at:nowIso()}).catch(()=>{})}
+      if(!staff){await logAdminLogin(env,'platform',null,verifiedEmail,'line','denied','not_platform_staff','','').catch(()=>{});return fail(verifiedEmail?'not_authorized':'line_email_permission_required')}
+      const platformToken=await issueAdminToken({...staff,email:staff.email||verifiedEmail,name:staff.name||lineName},'platform',env);await dbUpdate(env,'platform_staff',`id=eq.${encodeURIComponent(staff.id)}`,{last_login_at:nowIso()}).catch(()=>{});await logAdminLogin(env,'platform',staff.id,staff.email||verifiedEmail,'line','success','platform_login','','').catch(()=>{});platformTarget.searchParams.set('admin_token',platformToken);return Response.redirect(platformTarget.toString(),302);
+    }
+
+    if(mode==='admin'||tenant){
+      const workspaces=tenant?((await findStaffForPlatformMember(env,member.id,tenant))?await findAdminWorkspacesByMemberId(env,member.id):[]):await findAdminWorkspacesByMemberId(env,member.id);
+      if(!workspaces.length){await logAdminLogin(env,tenant,null,verifiedEmail,'line','denied','member_not_in_staff','','').catch(()=>{});return fail('not_authorized')}
+      if(tenant||workspaces.length===1){const selected=tenant?workspaces.find(w=>w.tenant_id===tenant):workspaces[0];if(!selected)return fail('not_authorized');const staff=await findStaffForPlatformMember(env,member.id,selected.tenant_id);if(!staff)return fail('not_authorized');const adminToken=await issueAdminToken({...staff,email:staff.email||verifiedEmail},selected.tenant_id,env);await dbUpdate(env,'staff',`id=eq.${encodeURIComponent(staff.id)}`,{last_login_at:nowIso(),display_name:staff.display_name||lineName,platform_member_id:member.id}).catch(()=>{});await logAdminLogin(env,selected.tenant_id,staff.id,staff.email||verifiedEmail,'line','success','tenant_login','','').catch(()=>{});const u=new URL(adminSiteUrl(env));u.searchParams.set('tenant',selected.tenant_id);u.searchParams.set('admin_token',adminToken);return Response.redirect(u.toString(),302)}
+      const selectionToken=await issueWorkspaceSelectionToken(verifiedEmail,workspaces.map(w=>w.tenant_id),env,{provider:'line',platform_member_id:member.id});const u=new URL(adminLoginSiteUrl(env));u.searchParams.set('workspace_token',selectionToken);return Response.redirect(u.toString(),302);
+    }
+
+    const memberToken=await issueMemberToken({email:member.email,provider:'line',provider_subject:lineSubject,display_name:lineName,avatar_url:lineAvatar},env);
+    memberTarget.searchParams.set('member_token',memberToken);memberTarget.searchParams.set('member_status',platformMemberComplete(member)?'ready':'profile_required');return Response.redirect(memberTarget.toString(),302);
   }catch(e){return fail('line_login_failed')}
 }
 
@@ -3911,8 +4014,8 @@ async function verifyGoogleOAuthState(env, token) {
 
 async function hListLoginWorkspaces(env, p) {
   const payload = await verifyWorkspaceSelectionToken(p.workspace_token || p.token || '', env);
-  if (!payload) return jsonErr('登入選擇已失效，請重新使用 Google 登入');
-  const current = await findAdminWorkspacesByEmail(env, payload.email);
+  if (!payload) return jsonErr('登入選擇已失效，請重新使用 LINE 登入');
+  const current = payload.platform_member_id?await findAdminWorkspacesByMemberId(env,payload.platform_member_id):await findAdminWorkspacesByEmail(env,payload.email);
   const allowed = new Set(payload.tenant_ids.map(v=>String(v).toLowerCase()));
   return jsonOk({
     ok: true,
@@ -3923,18 +4026,17 @@ async function hListLoginWorkspaces(env, p) {
 
 async function hSelectLoginWorkspace(env, b) {
   const payload = await verifyWorkspaceSelectionToken(b.workspace_token || b.token || '', env);
-  if (!payload) return jsonErr('登入選擇已失效，請重新使用 Google 登入');
+  if (!payload) return jsonErr('登入選擇已失效，請重新使用 LINE 登入');
   const tenant = String(b.target_workspace_id || b.tenant || b.tenant_id || '').trim().toLowerCase();
   const allowed = payload.tenant_ids.map(v=>String(v).toLowerCase());
   if (!tenant || !allowed.includes(tenant)) return jsonErr('此主辦空間不在本次登入授權範圍');
 
-  const rows = await dbGet(env, 'staff', `tenant_id=eq.${encodeURIComponent(tenant)}&email=eq.${encodeURIComponent(payload.email)}&select=*`).catch(()=>[]);
-  const staff = rows.find(r=>((r.is_active !== undefined ? r.is_active : r.active) !== false));
+  const staff = payload.platform_member_id?await findStaffForPlatformMember(env,payload.platform_member_id,tenant):(await dbGet(env, 'staff', `tenant_id=eq.${encodeURIComponent(tenant)}&email=eq.${encodeURIComponent(payload.email)}&select=*`).catch(()=>[])).find(r=>((r.is_active !== undefined ? r.is_active : r.active) !== false));
   if (!staff) return jsonErr('此帳號已無該主辦空間管理權限，請重新登入');
 
-  const adminToken = await issueAdminToken({ ...staff, email: payload.email }, tenant, env);
+  const adminToken = await issueAdminToken({ ...staff, email: staff.email||payload.email }, tenant, env);
   await dbUpdate(env, 'staff', `id=eq.${encodeURIComponent(staff.id)}`, { last_login_at: new Date().toISOString() }).catch(()=>{});
-  await logAdminLogin(env, tenant, staff.id, payload.email, 'google', 'success', 'workspace_selected', '', '');
+  await logAdminLogin(env, tenant, staff.id, staff.email||payload.email, payload.provider||'google', 'success', 'workspace_selected', '', '');
 
   const adminUrl = adminSiteUrl(env);
   return jsonOk({ ok:true, tenant, admin_token:adminToken, admin_url:adminUrl });
@@ -3942,12 +4044,7 @@ async function hSelectLoginWorkspace(env, b) {
 
 // GET /auth/google/start
 async function hGoogleStart(env, url) {
-  // 會員端現階段只開放 LINE；Google 會員 OAuth 程式保留供未來啟用，不刪除也不從公開流程觸發。
-  if(String(url.searchParams.get('mode')||'').trim().toLowerCase()==='member'){
-    const target=new URL(url.searchParams.get('return_url')||frontSiteUrl(env));
-    target.searchParams.set('member_login_error','line_only');
-    return Response.redirect(target.toString(),302);
-  }
+  // 公開畫面現階段只顯示 LINE；Google OAuth 保留並可供既有帳號連結與未來重新啟用。
   const GOOGLE_CLIENT_ID = env.GOOGLE_CLIENT_ID;
   if (!GOOGLE_CLIENT_ID) {
     return new Response('Google OAuth 未設定：缺少 GOOGLE_CLIENT_ID', { status: 500 });
@@ -4036,33 +4133,38 @@ async function hGoogleCallback(env, url) {
   const googleEmail = String(userInfo.email || '').trim().toLowerCase();
   const googleName = userInfo.name || '';
   if (!googleEmail) return failRedirect('no_email', tenant === 'platform' ? platformUrl : loginUrl);
+  const googleSubject=String(userInfo.sub||googleEmail);
+  let member;
+  try{member=await upsertPlatformIdentity(env,{provider:'google',subject:googleSubject,email:googleEmail,displayName:googleName,avatarUrl:String(userInfo.picture||'')})}
+  catch(e){return failRedirect(e&&e.message==='email_link_requires_existing_login'?'email_link_requires_existing_login':'google_member_login_failed',statePayload.mode==='member'?safeDoingReturnUrl(env,statePayload.return_url||doingSiteUrl(env)):tenant==='platform'?platformUrl:loginUrl)}
 
   if(statePayload.mode==='member'){
     const target=safeDoingReturnUrl(env,statePayload.return_url||doingSiteUrl(env));
-    try{const member=await upsertPlatformIdentity(env,{provider:'google',subject:String(userInfo.sub||googleEmail),email:googleEmail,displayName:googleName,avatarUrl:String(userInfo.picture||'')});const memberToken=await issueMemberToken({email:member.email,google_sub:String(userInfo.sub||googleEmail),display_name:googleName,avatar_url:String(userInfo.picture||'')},env);target.searchParams.set('member_token',memberToken);target.searchParams.set('member_status',platformMemberComplete(member)?'ready':'profile_required');return Response.redirect(target.toString(),302)}catch(e){target.searchParams.set('member_login_error',e&&e.message==='email_link_requires_existing_login'?'email_link_requires_existing_login':'google_member_login_failed');return Response.redirect(target.toString(),302)}
+    const memberToken=await issueMemberToken({email:member.email,provider:'google',provider_subject:googleSubject,google_sub:googleSubject,display_name:googleName,avatar_url:String(userInfo.picture||'')},env);target.searchParams.set('member_token',memberToken);target.searchParams.set('member_status',platformMemberComplete(member)?'ready':'profile_required');return Response.redirect(target.toString(),302);
   }
 
   if(statePayload.mode==='organizer_signup'){
     const applicationId=String(statePayload.application_id||'').trim();
     if(!applicationId)return failRedirect('signup_missing_profile',doingSiteUrl(env)+'#apply');
-    const draftRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&status=eq.google_verification_pending&select=*`).catch(()=>[]);
+    const draftRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&status=in.(line_verification_pending,google_verification_pending)&select=*`).catch(()=>[]);
     const draft=draftRows[0];
     if(!draft)return failRedirect('signup_draft_not_found',doingSiteUrl(env)+'#apply');
     const appPayload=safeJson(draft.application_json,{});
     const brand=String(appPayload.unitName||draft.brand_name||'').trim();
     const contact=String(appPayload.ownerName||appPayload.contactName||draft.contact_name||googleName||'').trim();
     const phone=String(appPayload.phone||draft.contact_phone||'').trim();
-    if(!brand||!contact||!phone)return failRedirect('signup_missing_profile',doingSiteUrl(env)+'#apply');
+    const contactEmail=normEmail(appPayload.contactEmail||draft.contact_email||googleEmail);
+    if(!brand||!contact||!phone||!contactEmail)return failRedirect('signup_missing_profile',doingSiteUrl(env)+'#apply');
     let signupProfile=appPayload.moduleProfile||{};
     const signupDefaults=normalizeSessionModules(signupProfile&&signupProfile.defaults?signupProfile.defaults:{});
     const profile={configured:true,useType:String(signupProfile.useType||'generic'),useCases:Array.isArray(signupProfile.useCases)?signupProfile.useCases.map(String).slice(0,12):[],defaults:signupDefaults,updatedAt:nowIso()};
-    const submittedAt=nowIso(),applicationJson={...appPayload,ownerName:contact,contactName:contact,billingName:contact,moduleProfile:profile,googleName,googleSub:String(userInfo.sub||''),submittedAt,timeline:[...(Array.isArray(appPayload.timeline)?appPayload.timeline:[]),{key:'application_submitted',label:'Google 驗證並送出',at:submittedAt}]};
-    const existingRows=await dbGet(env,'tenant_apply_logs',`contact_email=eq.${encodeURIComponent(googleEmail)}&status=eq.supplement_required&select=id,status,supplement_count,brand_name`).catch(()=>[]);
+    const submittedAt=nowIso(),applicationJson={...appPayload,ownerName:contact,contactName:contact,billingName:contact,moduleProfile:profile,memberId:member.id,loginProvider:'google',googleName,googleSub:googleSubject,submittedAt,timeline:[...(Array.isArray(appPayload.timeline)?appPayload.timeline:[]),{key:'application_submitted',label:'Google 驗證並送出',at:submittedAt}]};
+    const existingRows=await dbGet(env,'tenant_apply_logs',`contact_email=eq.${encodeURIComponent(contactEmail)}&status=eq.supplement_required&select=id,status,supplement_count,brand_name`).catch(()=>[]);
     const supplement=existingRows.find(x=>String(x.brand_name||'').trim().toLowerCase()===brand.toLowerCase());
     if(supplement){
       await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(supplement.id)}`,
         {
-          brand_name:brand,contact_name:contact,contact_email:googleEmail,contact_phone:phone,event_type:(appPayload.useCases||[]).join(','),status:'pending',
+          brand_name:brand,contact_name:contact,contact_email:contactEmail,contact_phone:phone,event_type:(appPayload.useCases||[]).join(','),status:'pending',
           plan_type:'review',note:'補件後重新送出',application_json:applicationJson,
           supplement_submitted_at:submittedAt,supplement_count:safeNum(supplement.supplement_count)+1,
           rejected_at:null,rejected_by:null,rejection_reason:null
@@ -4073,12 +4175,26 @@ async function hGoogleCallback(env, url) {
       return Response.redirect(u.toString(),302);
     }
     await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{
-      brand_name:brand,contact_name:contact,contact_email:googleEmail,contact_phone:phone,
+      brand_name:brand,contact_name:contact,contact_email:contactEmail,contact_phone:phone,
       event_type:(appPayload.useCases||[]).join(','),plan_type:'review',note:'Google 驗證完成',status:'pending',application_json:applicationJson
     });
-    try{await sendEmail(env,googleEmail,'【DOING】營運帳號申請已送出',emailWrap(`<p>${contact} 您好：</p><p>你的 DOING 營運帳號申請已送出，目前等待平台審核。</p><p><b>申請編號：</b>${applicationId}</p><p>審核通過或需要補件時，系統會再寄信通知。</p>`));}catch(e){}
+    try{await sendEmail(env,contactEmail,'【DOING】營運帳號申請已送出',emailWrap(`<p>${contact} 您好：</p><p>你的 DOING 營運帳號申請已送出，目前等待平台審核。</p><p><b>申請編號：</b>${applicationId}</p><p>審核通過或需要補件時，系統會再寄信通知。</p>`));}catch(e){}
     const u=new URL(doingSiteUrl(env));u.hash='apply';u.searchParams.set('application_status','pending');u.searchParams.set('application_id',applicationId);
     return Response.redirect(u.toString(),302);
+  }
+
+  if(statePayload.mode==='platform'||tenant==='platform'){
+    let rows=await dbGet(env,'platform_staff',`platform_member_id=eq.${encodeURIComponent(member.id)}&is_active=eq.true&select=*`).catch(()=>[]),staff=rows[0];
+    if(!staff){rows=await dbGet(env,'platform_staff',`email=eq.${encodeURIComponent(googleEmail)}&is_active=eq.true&select=*`).catch(()=>[]);staff=rows[0];if(staff)await dbUpdate(env,'platform_staff',`id=eq.${encodeURIComponent(staff.id)}`,{platform_member_id:member.id,last_login_at:nowIso()}).catch(()=>{})}
+    if(!staff){await logAdminLogin(env,'platform',null,googleEmail,'google','denied','not_platform_staff','','').catch(()=>{});return failRedirect('not_authorized',platformUrl)}
+    const platformToken=await issueAdminToken({...staff,email:staff.email||googleEmail,name:staff.name||googleName},'platform',env);await dbUpdate(env,'platform_staff',`id=eq.${encodeURIComponent(staff.id)}`,{last_login_at:nowIso()}).catch(()=>{});await logAdminLogin(env,'platform',staff.id,staff.email||googleEmail,'google','success','platform_login','','').catch(()=>{});const u=new URL(platformUrl);u.searchParams.set('admin_token',platformToken);return Response.redirect(u.toString(),302);
+  }
+
+  if(statePayload.mode==='admin'||tenant){
+    const workspaces=tenant?((await findStaffForPlatformMember(env,member.id,tenant))?await findAdminWorkspacesByMemberId(env,member.id):[]):await findAdminWorkspacesByMemberId(env,member.id);
+    if(!workspaces.length){await logAdminLogin(env,tenant,null,googleEmail,'google','denied','member_not_in_staff','','').catch(()=>{});return failRedirect('not_authorized',loginUrl)}
+    if(tenant||workspaces.length===1){const selected=tenant?workspaces.find(w=>w.tenant_id===tenant):workspaces[0];if(!selected)return failRedirect('not_authorized',loginUrl);const staff=await findStaffForPlatformMember(env,member.id,selected.tenant_id);if(!staff)return failRedirect('not_authorized',loginUrl);const adminToken=await issueAdminToken({...staff,email:staff.email||googleEmail},selected.tenant_id,env);await dbUpdate(env,'staff',`id=eq.${encodeURIComponent(staff.id)}`,{last_login_at:nowIso(),display_name:staff.display_name||googleName,platform_member_id:member.id}).catch(()=>{});await logAdminLogin(env,selected.tenant_id,staff.id,staff.email||googleEmail,'google','success','tenant_login','','').catch(()=>{});const u=new URL(adminUrl);u.searchParams.set('tenant',selected.tenant_id);u.searchParams.set('admin_token',adminToken);return Response.redirect(u.toString(),302)}
+    const selectionToken=await issueWorkspaceSelectionToken(googleEmail,workspaces.map(w=>w.tenant_id),env,{provider:'google',platform_member_id:member.id});const u=new URL(loginUrl);u.searchParams.set('workspace_token',selectionToken);return Response.redirect(u.toString(),302);
   }
 
 
@@ -4228,12 +4344,12 @@ async function logAdminLogin(env, tenantId, staffId, email, provider, status, re
   } catch(e) { /* 登入 log 失敗不影響主流程 */ }
 }
 
-// adminLogin（保留用於緊急後門，但改為需要系統設定的 EMERGENCY_ADMIN_KEY）
+// adminLogin（保留用於緊急恢復，但改為需要系統設定的 EMERGENCY_ADMIN_KEY）
 async function hAdminLogin(env, p) {
-  // Google OAuth 升級後，此 endpoint 僅供緊急恢復用
+  // OAuth 登入啟用後，此 endpoint 僅供緊急恢復用
   // 必須提供 EMERGENCY_ADMIN_KEY 環境變數才能使用
   const emergencyKey = env.EMERGENCY_ADMIN_KEY;
-  if (!emergencyKey) return jsonErr('Email 直接登入已停用，請使用 Google OAuth 登入');
+  if (!emergencyKey) return jsonErr('Email 直接登入已停用，請使用 LINE 登入');
   if (!p.emergency_key || p.emergency_key !== emergencyKey) return jsonErr('無效的緊急登入金鑰');
 
   const TENANT = p && p._tenantId;
@@ -10613,7 +10729,7 @@ export default {
       if (request.method==='GET' && pathname.endsWith('/auth/line/callback')) {
         return await hLineCallback(env, url);
       }
-      // 舊 unified OAuth 僅做相容轉址；正式流程只有 /auth/google/start + /auth/google/callback。
+      // 舊 unified Google OAuth 僅做相容轉址；現行公開入口使用 /auth/line/start。
       if (request.method==='GET' && pathname.endsWith('/auth/google/unified/start')) {
         const u = new URL('/auth/google/start', url.origin);
         for (const [k,v] of url.searchParams.entries()) {
@@ -10669,7 +10785,7 @@ export default {
         if (pathname.endsWith('/admin/logout') || act==='adminLogout') return await hAdminLogout(env, body);
         // 申請試用（不需登入）
         if (pathname.endsWith('/apply') || act==='applyTrial') return await hApplyTrial(env, body);
-        // 多主辦空間選擇（Google 已驗證後的短效 token，不需 tenant 前置參數）
+        // 多主辦空間選擇（LINE／Google 已驗證後的短效 token，不需 tenant 前置參數）
         if (act==='selectLoginWorkspace') return await hSelectLoginWorkspace(env, body);
         if (act==='platformEnterTenant') return await hPlatformEnterTenant(env, body);
         if (act==='platformUpsertTenantOwner') return await hPlatformUpsertTenantOwner(env, body);

@@ -468,6 +468,7 @@ function ensureMemberGate(){
   if(useCaseGrid&&!form.querySelector('[name="useCase"][value="預約管理"]'))useCaseGrid.insertAdjacentHTML('beforeend','<label><input type="checkbox" name="useCase" value="預約管理">預約管理</label>');
   modal.querySelector('.doing-member-close').onclick=()=>{modal.hidden=true;document.body.style.overflow=''};
   modal.querySelector('.doing-line-login').onclick=()=>authStart('line');
+  modal.querySelector('.doing-google-login').onclick=()=>authStart('google');
   form.elements.enableVendor.onchange=e=>form.querySelector('[data-vendor-fields]').hidden=!e.target.checked;
   form.elements.enableSystem.onchange=e=>form.querySelector('[data-system-fields]').hidden=!e.target.checked;
   modal.querySelector('[data-member-edit]').onclick=showMemberProfile;
@@ -494,7 +495,7 @@ function setMemberState(d){memberAuth.complete=!!d.complete;memberAuth.profile=d
 async function initMemberAuth(){
   const u=new URL(location.href),incoming=u.searchParams.get('member_token');memberAuth.token=incoming||localStorage.getItem('doing_member_token')||'';
   if(incoming)localStorage.setItem('doing_member_token',incoming);
-  const loginError=u.searchParams.get('member_login_error');if(loginError){u.searchParams.delete('member_login_error');history.replaceState({},'',u.pathname+u.search+u.hash);setTimeout(()=>{showMemberView('login');const x=ensureMemberGate().querySelector('.doing-member-error');if(x)x.textContent=loginError==='email_link_requires_existing_login'?'此 Email 已由 LINE 會員使用，請先以 LINE 登入；系統不會只憑相同 Email 自動合併帳號。':loginError==='line_only'?'目前會員端只開放 LINE 登入。':'登入未完成，請重新嘗試。'},20)}
+  const loginError=u.searchParams.get('member_login_error');if(loginError){u.searchParams.delete('member_login_error');history.replaceState({},'',u.pathname+u.search+u.hash);setTimeout(()=>{showMemberView('login');const x=ensureMemberGate().querySelector('.doing-member-error');if(x)x.textContent=loginError==='email_link_requires_existing_login'?'此 Email 已由 LINE 會員使用，請先以 LINE 登入；系統不會只憑未驗證 Email 自動合併帳號。':loginError==='line_email_permission_required'?'LINE Email 權限尚未完成，請先完成 LINE Login 設定。':loginError==='line_only'?'目前會員端只開放 LINE 登入。':'登入未完成，請重新嘗試。'},20)}
   if(!memberAuth.token)return;
   let lastError=null;
   for(let attempt=0;attempt<(incoming?3:1);attempt++){

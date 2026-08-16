@@ -61,11 +61,14 @@ jobs:
       - name: Validate tenant application and module flow
         run: |
           node scripts/validate-tenant-application.mjs
+          node scripts/validate-login-providers.mjs
           node scripts/validate-organizer-application-e2e.mjs
       - name: Validate full system routes, buttons and settings
         run: node scripts/validate-full-system.mjs
       - name: Validate compact admin visual consistency
         run: node scripts/validate-admin-consistency.mjs
+      - name: Validate reusable test records
+        run: node scripts/validate-test-records.mjs
       - name: Verify unified visual shell and private long press
         run: |
           for page in member.html admin.html onsite.html platform.html photo.html; do
