@@ -263,3 +263,73 @@ body.doing-app .world-data-source code{font:700 13px/1.5 ui-monospace,SFMono-Reg
 
 /* 報名頁舊主題會在執行時加上多個 class；以較高權重維持無漸層。 */
 html body.doing-app.doing-register.doing-public-refactor-body{background:#fff!important;background-image:none!important}
+
+.doing-platform .attribution-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:8px 0}
+.doing-platform .platform-title-mobile{display:none}
+.doing-platform .attribution-stat{min-width:0;padding:9px 10px;border:1px solid var(--doing-line);border-radius:13px;background:#f8fbfc}
+.doing-platform .attribution-stat span,.doing-platform .attribution-stat b{display:block}.doing-platform .attribution-stat span{font-size:14px;color:var(--doing-muted)}.doing-platform .attribution-stat b{font-size:20px;line-height:1.3}
+.doing-platform .attribution-campaigns{display:grid;gap:6px;margin-top:7px}.doing-platform .attribution-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;padding:8px 10px;border:1px solid var(--doing-line);border-radius:12px;background:#fff}.doing-platform .attribution-row>div:last-child{text-align:right}.doing-platform .attribution-row b,.doing-platform .attribution-row span{display:block}.doing-platform .attribution-row span{font-size:14px;color:var(--doing-muted)}
+
+/* DOING_RESPONSIVE_DENSITY_CONTRACT_V3
+   手機不是桌機縮小版：保留 44–46px 觸控區，但移除摘要卡的無效高度與單欄長卷軸。 */
+@media (max-width:760px){
+  body.doing-app .wrap,body.doing-app .shell{padding-top:8px!important;padding-bottom:22px!important}
+  body.doing-app .card,body.doing-app .panel,body.doing-app .session-card,body.doing-app .report-card{
+    padding:10px!important;border-radius:13px!important;
+  }
+  body.doing-app .grid,body.doing-app .cards,body.doing-app .detail-grid,body.doing-app .compact-grid{
+    gap:8px!important;
+  }
+  body.doing-app .actions,body.doing-app .page-actions,body.doing-app .card-actions{
+    display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;margin-top:8px!important;
+  }
+  body.doing-app .actions>:only-child,body.doing-app .page-actions>:only-child,body.doing-app .card-actions>:only-child{grid-column:1/-1}
+  body.doing-app .actions button,body.doing-app .actions .btn,body.doing-app .page-actions button,body.doing-app .card-actions button{
+    width:100%!important;min-width:0!important;margin:0!important;
+  }
+  body.doing-app .muted,body.doing-app small{font-size:14px!important}
+
+  /* 平台首屏：總覽數字固定雙欄，卡片本身就是按鈕，不重複顯示「直接開啟」。 */
+  body.doing-app.doing-platform .head{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:7px!important;min-height:58px!important;padding:5px 0!important}
+  body.doing-app.doing-platform .doing-product-title{gap:6px!important}
+  body.doing-app.doing-platform .doing-product-title img{width:34px!important;height:34px!important}
+  body.doing-app.doing-platform .doing-product-title h1{font-size:18px!important;line-height:1.2!important}
+  body.doing-app.doing-platform .platform-title-full{display:none!important}
+  body.doing-app.doing-platform .platform-title-mobile{display:inline!important;white-space:nowrap!important}
+  body.doing-app.doing-platform .head>.actions{display:flex!important;flex-wrap:nowrap!important;gap:4px!important}
+  body.doing-app.doing-platform .head>.actions a,body.doing-app.doing-platform .head>.actions button{
+    width:auto!important;min-height:44px!important;padding:7px 9px!important;font-size:14px!important;white-space:nowrap!important;
+  }
+  body.doing-app.doing-platform .platform-nav{top:58px!important;margin:0 -2px 8px!important}
+  body.doing-app.doing-platform .metrics{
+    display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;margin-bottom:8px!important;
+  }
+  body.doing-app.doing-platform .metric{
+    min-height:70px!important;padding:8px 10px!important;border-radius:13px!important;
+  }
+  body.doing-app.doing-platform .metric span{font-size:14px!important;line-height:1.25!important}
+  body.doing-app.doing-platform .metric b{font-size:20px!important;line-height:1.2!important;margin-top:2px!important}
+  body.doing-app.doing-platform .metric small{display:none!important}
+  body.doing-app.doing-platform .world-modules{grid-template-columns:minmax(0,1fr)!important}
+  body.doing-app.doing-platform .attribution-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
+  body.doing-app.doing-platform .attribution-stat{padding:7px 8px!important}
+  body.doing-app.doing-platform .attribution-row{grid-template-columns:minmax(0,1fr) auto!important;padding:7px 8px!important}
+
+  /* 會員首屏：身份版頭與三張摘要自然高度，細節移到各自分頁。 */
+  body.doing-app.doing-member .top-in{min-height:58px!important;padding:5px 9px!important}
+  body.doing-app.doing-member .home img{width:34px!important;height:34px!important}
+  body.doing-app.doing-member .home-copy small{display:none!important}
+  body.doing-app.doing-member .who b{font-size:16px!important}
+  body.doing-app.doing-member .hero{min-height:0!important;padding:9px 10px!important;border:1px solid var(--doing-line)!important;border-radius:14px!important;box-shadow:none!important}
+  body.doing-app.doing-member .hero .eyebrow{display:none!important}
+  body.doing-app.doing-member .hero h1{font-size:20px!important;line-height:1.25!important;margin:0!important}
+  body.doing-app.doing-member .hero p{max-width:100%!important;margin-top:2px!important;font-size:14px!important;line-height:1.35!important}
+  body.doing-app.doing-member .tabs{top:58px!important;margin:6px 0!important}
+  body.doing-app.doing-member .identity-layout{display:grid!important;gap:7px!important}
+  body.doing-app.doing-member .identity-layout .card{padding:10px!important;min-height:0!important}
+  body.doing-app.doing-member .identity-layout .card h2,body.doing-app.doing-member .identity-layout .card h3{font-size:18px!important;margin:0!important}
+  body.doing-app.doing-member .identity-layout .card p{margin:3px 0!important;line-height:1.4!important}
+  body.doing-app.doing-member .overview-secondary{font-size:14px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  body.doing-app.doing-member .record-timeline{display:none!important}
+  body.doing-app.doing-member .panel{min-height:0!important}
+}

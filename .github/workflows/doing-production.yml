@@ -35,6 +35,7 @@ jobs:
       - name: Parse JavaScript and HTML scripts
         run: |
           node --check worker.js
+          node --check doing-attribution.js
           node --check doing-home-refresh.js
           node --check doing-about-refresh.js
           node - <<'NODE'
@@ -51,18 +52,27 @@ jobs:
         run: node scripts/validate-data-sources.mjs
       - name: Validate responsive mobile and desktop framework
         run: node scripts/validate-responsive-layout.mjs
+      - name: Validate platform attribution flow
+        run: node scripts/validate-platform-attribution.mjs
       - name: Validate capability world map
         run: node scripts/validate-capabilities.mjs
       - name: Validate mobile seat map
         run: node scripts/validate-seat-map.mjs
       - name: Validate tenant application and module flow
-        run: node scripts/validate-tenant-application.mjs
+        run: |
+          node scripts/validate-tenant-application.mjs
+          node scripts/validate-login-providers.mjs
+          node scripts/validate-organizer-application-e2e.mjs
       - name: Validate full system routes, buttons and settings
         run: node scripts/validate-full-system.mjs
+      - name: Validate compact admin visual consistency
+        run: node scripts/validate-admin-consistency.mjs
+      - name: Validate reusable test records
+        run: node scripts/validate-test-records.mjs
       - name: Verify unified visual shell and private long press
         run: |
           for page in member.html admin.html onsite.html platform.html photo.html; do
-            grep -q 'doing-system.css?v=20260816-system3' "$page"
+            grep -q 'doing-system.css?v=20260816-system4' "$page"
             grep -q 'doing-app' "$page"
           done
           grep -q "hiddenAdminSelector='#brandHoldTarget,.doing-nav-brand'" index.html

@@ -75,7 +75,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
 @media(max-width:1100px){.hero{grid-template-columns:1fr}.hero-points,.feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.flow{grid-template-columns:repeat(3,minmax(0,1fr))}.apply-wrap{grid-template-columns:1fr}.topin,.shell{width:min(100%,calc(100vw - 28px))}}
 @media(max-width:760px){body{font-size:17px}.topin,.shell{width:100%;padding-left:12px;padding-right:12px}.topin{min-height:64px}.brand-title{font-size:22px}.top-actions .link{display:none}.hero-main,.apply-form,.side-panel,.side-card,.card,.step,.price-card{border-radius:22px}.hero-points,.grid-3,.feature-grid,.field-grid,.choice-grid,.pricing{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.quick-nav{top:64px}}
 </style>
-<link rel="stylesheet" href="doing-system.css?v=20260816-system3">
+<link rel="stylesheet" href="doing-system.css?v=20260816-system4">
 <link rel="stylesheet" href="doing-about-refresh.css?v=20260815b">
 </head>
 <body class="doing-app doing-about-refresh">
@@ -219,7 +219,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
         <div class="form-head">
           <div>
             <h2>申請你的營運帳號</h2>
-            <p>填完資料後，會進入 Google 驗證，送出後待 DOING 審核。</p>
+            <p>填完資料後，會進入 LINE 驗證，送出後待 DOING 審核。</p>
           </div>
         </div>
 
@@ -237,12 +237,13 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
 
         <div class="group">
           <h3>二、你的聯絡資料</h3>
-          <div class="desc">這份個人資料同時作為申請人與主要聯絡人，不需要重複建立；Google 驗證後的 Email 會成為登入與通知信箱。</div>
+          <div class="desc">這份個人資料同時作為申請人與主要聯絡人，不需要重複建立；LINE 驗證後會與你的 DOING 會員帳號同步。</div>
           <div class="field-grid">
             <div class="field"><label class="required" for="signupOwnerName">姓名</label><input id="signupOwnerName" autocomplete="name" placeholder="申請人姓名"></div>
             <div class="field"><label class="required" for="signupPhone">聯絡電話</label><input id="signupPhone" inputmode="tel" autocomplete="tel" placeholder="手機或電話"></div>
+            <div class="field"><label for="signupEmail">Email *</label><input id="signupEmail" type="email" autocomplete="email" placeholder="審核與通知信箱"></div>
             <div class="field"><label for="signupLineId">LINE 帳號</label><input id="signupLineId" autocomplete="off" placeholder="選填，方便需要時聯繫"></div>
-            <div class="field full"><div class="inline-tip">Google 驗證成功後的 Google Email，會成為你的主要登入與通知信箱。</div></div>
+            <div class="field full"><div class="inline-tip">LINE 與未來啟用的 Google 登入會同步到同一個 DOING 會員帳號，不會建立兩份資料。</div></div>
           </div>
         </div>
 
@@ -333,7 +334,8 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
         </div>
 
         <div class="hero-actions" style="margin-top:20px">
-          <button class="btn primary" type="button" id="signupGoogleBtn">使用 Google 驗證並送出申請</button>
+          <button class="btn primary" type="button" id="signupLineBtn">使用 LINE 驗證並送出申請</button>
+          <button class="btn primary" type="button" id="signupGoogleBtn" hidden aria-hidden="true" tabindex="-1">使用 Google 驗證並送出申請</button>
           <a class="btn secondary" href="index.html">先回公開活動入口</a>
         </div>
         <div id="signupErr" class="error"></div>
@@ -355,7 +357,8 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
 <script>
 (()=>{
   const API='https://tobeloved-api.ndiangrace.workers.dev';
-  const btn=document.getElementById('signupGoogleBtn');
+  const lineBtn=document.getElementById('signupLineBtn');
+  const googleBtn=document.getElementById('signupGoogleBtn');
   const err=document.getElementById('signupErr');
   const showErr=(m,field)=>{err.textContent=m;err.style.display='block';if(field){field.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>field.focus(),350)}else document.getElementById('apply')?.scrollIntoView({block:'start'})};
   const clearErr=()=>{err.textContent='';err.style.display='none'};
@@ -389,7 +392,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
   const noPublic=document.getElementById('signupNoPublicLink');
   publicLinkIds.forEach(id=>document.getElementById(id)?.addEventListener('input',e=>{if(e.target.value.trim())noPublic.checked=false}));
   noPublic?.addEventListener('change',()=>{publicLinkIds.forEach(id=>{const input=document.getElementById(id);input.disabled=noPublic.checked;if(noPublic.checked)input.value=''})});
-  btn?.addEventListener('click',async()=>{
+  const submitApplication=async(provider,btn)=>{
     const unitName=(document.getElementById('signupUnitName').value||'').trim();
     const companyName=(document.getElementById('signupCompanyName').value||'').trim();
     const taxId=(document.getElementById('signupTaxId').value||'').trim();
@@ -397,6 +400,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     const businessIntro=(document.getElementById('signupBusinessIntro').value||'').trim();
     const ownerName=(document.getElementById('signupOwnerName').value||'').trim();
     const contactName=ownerName;
+    const contactEmail=(document.getElementById('signupEmail').value||'').trim().toLowerCase();
     const phone=(document.getElementById('signupPhone').value||'').trim();
     const lineId=(document.getElementById('signupLineId').value||'').trim();
     const billingName=ownerName;
@@ -416,6 +420,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     if(!region)return showErr('請先選擇所在地區',document.getElementById('signupRegion'));
     if(!businessIntro)return showErr('請先填寫主要營運內容',document.getElementById('signupBusinessIntro'));
     if(!ownerName)return showErr('請先填寫姓名',document.getElementById('signupOwnerName'));
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail))return showErr('請填寫正確的 Email',document.getElementById('signupEmail'));
     if(!phone)return showErr('請先填寫聯絡電話',document.getElementById('signupPhone'));
     if(!industryCategories.length)return showErr('請至少選擇一個產業類別',document.getElementById('signupIndustries'));
     if(!useCases.length)return showErr('請至少選擇一個營運情境');
@@ -433,7 +438,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     Object.keys(moduleLabels).forEach(k=>flags[k]=k==='registration'||defaults[k]===true);
     const moduleProfile={configured:true,useType,useCases,defaults};
     const applicationPayload={
-      unitName,companyName,taxId,region,businessIntro,ownerName,contactName,phone,lineId,billingName,operationStage,startTime,
+      unitName,companyName,taxId,region,businessIntro,ownerName,contactName,contactEmail,phone,lineId,billingName,operationStage,startTime,
       industryCategories,publicLinks,noPublicLink,
       useCases,useCaseLabels:useCases.map(x=>useLabelMap[x]||x),
       painPoints,painPointLabels:painPoints.map(x=>painLabelMap[x]||x),primaryPainPoint,primaryPainPointLabel:painLabelMap[primaryPainPoint]||primaryPainPoint,otherPainPoint,
@@ -447,9 +452,11 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
       const response=await fetch(API+'?action=createOrganizerApplicationDraft',{method:'POST',headers:{'Content-Type':'application/json;charset=UTF-8'},body:JSON.stringify({action:'createOrganizerApplicationDraft',application:applicationPayload})});
       const result=await response.json();
       if(!response.ok||result.error)throw new Error(result.error||'申請資料保存失敗');
-      const u=new URL(API+'/auth/google/start');u.searchParams.set('mode','organizer_signup');u.searchParams.set('application_id',result.applicationId);location.href=u.toString();
-    }catch(e){showErr(e.message||'申請資料保存失敗，請稍後再試');btn.disabled=false;btn.textContent='使用 Google 驗證並送出申請'}
-  });
+      const u=new URL(API+(provider==='google'?'/auth/google/start':'/auth/line/start'));u.searchParams.set('mode','organizer_signup');u.searchParams.set('application_id',result.applicationId);location.href=u.toString();
+    }catch(e){showErr(e.message||'申請資料保存失敗，請稍後再試');btn.disabled=false;btn.textContent=provider==='google'?'使用 Google 驗證並送出申請':'使用 LINE 驗證並送出申請'}
+  };
+  lineBtn?.addEventListener('click',()=>submitApplication('line',lineBtn));
+  googleBtn?.addEventListener('click',()=>submitApplication('google',googleBtn));
   refreshModulePreview();
 
   const pageUrl=new URL(location.href);
@@ -459,8 +466,9 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     if(b){
       b.style.display='block';
       const applicationId=pageUrl.searchParams.get('application_id')||'';
-      if(applicationStatus==='pending')b.innerHTML='<b>營運帳號申請已送出，等待 DOING 審核。</b><br>'+(applicationId?'申請編號：<strong>'+applicationId+'</strong><br>':'')+'審核結果會寄到你的 Google Email。<br><a href="platform.html">DOING 平台管理者前往大平台後台審核</a>';
+      if(applicationStatus==='pending')b.innerHTML='<b>營運帳號申請已送出，等待 DOING 審核。</b><br>'+(applicationId?'申請編號：<strong>'+applicationId+'</strong><br>':'')+'審核結果會寄到你填寫的 Email。<br><a href="platform.html">DOING 平台管理者前往大平台後台審核</a>';
       if(applicationStatus==='supplement_submitted')b.innerHTML='<b>補件已重新送出。</b><br>DOING 會再依你最新補充的資料進行審核。';
+      if(applicationStatus==='identity_resolution_required')b.innerHTML='<b>LINE 登入已成功，申請草稿也已保留。</b><br>這組 Email 或手機可能已有 DOING 帳號；請先到會員資料同步原 Google 帳號，無法使用舊登入時請聯絡平台協助。';
     }
     document.getElementById('apply')?.scrollIntoView({block:'start'});
     const clean=new URL(location.href);clean.searchParams.delete('application_status');clean.searchParams.delete('application_id');history.replaceState({},'',clean.pathname+clean.search+clean.hash);
@@ -471,9 +479,10 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
       signup_missing_profile:'申請資料不完整，請重新填寫。',
       signup_draft_not_found:'找不到這筆申請資料，請重新送出申請。',
       signup_failed:'營運帳號申請建立失敗，請重新操作。',
-      google_cancelled:'Google 驗證已取消。',
-      id_token_verify_failed:'Google 身分驗證失敗，請重新操作。',
-      token_exchange_failed:'Google 登入流程失敗，請稍後再試。',
+      line_cancelled:'LINE 驗證已取消。',
+      line_email_permission_required:'LINE Email 權限尚未完成，請先在 LINE Login Channel 開啟 Email 權限。',
+      line_login_failed:'LINE 登入流程失敗，請稍後再試。',
+      identity_resolution_required:'LINE 登入已成功，但可能已有舊帳號；申請保留為草稿，請先同步原帳號或聯絡平台協助。',
       invalid_or_expired_state:'申請驗證已逾時，請重新填寫並驗證。'
     };
     showErr(messages[oauthErr]||('申請失敗：'+oauthErr));

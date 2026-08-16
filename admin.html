@@ -1408,18 +1408,21 @@ body{letter-spacing:.005em}
   .finance-center-head h2{font-size:24px!important;}
 }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
 // ── 曝光推廣（007）────────────────────────────────────────────
 function exposureStatusLabel(v){return ({pending_payment:'待付款',scheduled:'已排程',active:'曝光中',expired:'已到期',cancelled:'已取消'})[String(v||'')]||String(v||'')}
 function exposureMoney(v){return 'NT$ '+Math.round(Number(v||0)).toLocaleString('zh-TW')}
 async function openExposurePromotion(){
   openPanel('曝光推廣','首頁「活動快訊」付費曝光；活動內容會自動讀取你目前正式公開的場次，不需要重複建立資料。','<div class="loading">載入曝光方案與公開活動…</div>');
   try{
-    const d=await api({action:'getExposureCatalog'}),plans=Array.isArray(d.plans)?d.plans:[],sessions=Array.isArray(d.sessions)?d.sessions:[],orders=Array.isArray(d.orders)?d.orders:[];
+    const d=await api({action:'getExposureCatalog'}),plans=Array.isArray(d.plans)?d.plans:[],sessions=Array.isArray(d.sessions)?d.sessions:[],orders=Array.isArray(d.orders)?d.orders:[],report=d.attributionReport||{},totals=report.totals||{},campaigns=Array.isArray(report.campaigns)?report.campaigns:[];
     const planHtml=plans.length?plans.map(p=>'<label class="choice"><input type="radio" name="exposurePlan" value="'+attr(p.id)+'"><span><b>'+safe(p.name)+'</b><small>'+safe(String(p.duration_days))+' 天｜'+exposureMoney(p.price)+'</small></span></label>').join(''):'<div class="empty">目前沒有開放購買的曝光方案。請聯繫 DOING 客服。</div>';
     const sesOpts=sessions.map(s=>'<option value="'+attr(s.id)+'">'+safe(s.name||s.id)+(s.eventTitle?'｜'+safe(s.eventTitle):'')+'</option>').join('');
-    const orderHtml=orders.length?orders.map(o=>'<div class="card" style="padding:13px;margin-top:8px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div><b>'+safe((sessions.find(s=>String(s.id)===String(o.session_id))||{}).name||o.session_id)+'</b><div class="sub">'+safe(exposureStatusLabel(o.status))+'｜'+exposureMoney(o.amount)+(o.starts_at?'｜'+safe(new Date(o.starts_at).toLocaleDateString('zh-TW'))+' 起':'')+(o.ends_at?'～'+safe(new Date(o.ends_at).toLocaleDateString('zh-TW')):'')+'</div></div>'+(o.status==='pending_payment'?'<button class="btn small gray" onclick="cancelExposureOrderAdmin(\''+attr(o.id)+'\')">取消申請</button>':'')+'</div></div>').join(''):'<div class="sub">尚無曝光訂單。</div>';
-    const html='<div class="notice"><b>怎麼運作？</b><br>選擇你目前公開中的活動 → 選曝光方案 → 送出購買。DOING 確認付款後，系統會在曝光期間自動把該活動放進首頁「活動快訊」立體輪播；到期、活動取消或停止公開就會自動退出。</div><div class="form-grid" style="margin-top:14px"><div class="form-field full"><label>曝光方案</label><div class="choice-grid">'+planHtml+'</div></div><div class="form-field full"><label>要曝光的活動</label><select id="exposureSession"><option value="">請選擇公開活動</option>'+sesOpts+'</select></div><div class="form-field"><label>希望開始日期（可留空）</label><input id="exposureStart" type="date"></div><div class="form-field"><label>備註</label><input id="exposureNote" placeholder="選填"></div></div><div class="card-actions"><button class="btn" onclick="submitExposureOrderAdmin()">購買首頁活動快訊曝光</button></div><div class="section-label" style="margin-top:18px">我的曝光紀錄</div>'+orderHtml;
+    const campaignMap=Object.fromEntries(campaigns.filter(x=>x.exposureOrderId).map(x=>[String(x.exposureOrderId),x]));
+    const orderHtml=orders.length?orders.map(o=>{const m=campaignMap[String(o.id)]||{};return '<div class="card" style="padding:13px;margin-top:8px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div><b>'+safe((sessions.find(s=>String(s.id)===String(o.session_id))||{}).name||o.session_id)+'</b><div class="sub">'+safe(exposureStatusLabel(o.status))+'｜'+exposureMoney(o.amount)+(o.starts_at?'｜'+safe(new Date(o.starts_at).toLocaleDateString('zh-TW'))+' 起':'')+(o.ends_at?'～'+safe(new Date(o.ends_at).toLocaleDateString('zh-TW')):'')+'</div><div class="sub" style="margin-top:6px">近 30 日：曝光 '+Number(m.impressions||0).toLocaleString('zh-TW')+'｜點擊 '+Number(m.clicks||0).toLocaleString('zh-TW')+'（'+Number(m.clickRate||0)+'%）｜完成報名 '+Number(m.registrations||0).toLocaleString('zh-TW')+'（點擊轉換 '+Number(m.registrationRate||0)+'%）</div></div>'+(o.status==='pending_payment'?'<button class="btn small gray" onclick="cancelExposureOrderAdmin(\''+attr(o.id)+'\')">取消申請</button>':'')+'</div></div>'}).join(''):'<div class="sub">尚無曝光訂單。</div>';
+    const metricHtml='<div class="section-label" style="margin-top:18px">我的曝光成效（近 30 日）</div><div class="mini-stat-row"><div class="mini-stat"><b>'+Number(totals.impressions||0).toLocaleString('zh-TW')+'</b><span>曝光</span></div><div class="mini-stat"><b>'+Number(totals.clicks||0).toLocaleString('zh-TW')+'</b><span>點擊</span></div><div class="mini-stat"><b>'+Number(totals.registrations||0).toLocaleString('zh-TW')+'</b><span>完成報名</span></div><div class="mini-stat"><b>'+Number(totals.registrationRate||0)+'%</b><span>點擊→報名</span></div></div><div class="click-note">曝光點擊率 '+Number(totals.clickRate||0)+'%；採匿名歸因，不記錄會員 Email、手機、IP 或裝置資訊。</div>';
+    const html='<div class="notice"><b>怎麼運作？</b><br>選擇你目前公開中的活動 → 選曝光方案 → 送出購買。DOING 確認付款後，系統會在曝光期間自動把該活動放進首頁「活動快訊」立體輪播；到期、活動取消或停止公開就會自動退出。</div><div class="form-grid" style="margin-top:14px"><div class="form-field full"><label>曝光方案</label><div class="choice-grid">'+planHtml+'</div></div><div class="form-field full"><label>要曝光的活動</label><select id="exposureSession"><option value="">請選擇公開活動</option>'+sesOpts+'</select></div><div class="form-field"><label>希望開始日期（可留空）</label><input id="exposureStart" type="date"></div><div class="form-field"><label>備註</label><input id="exposureNote" placeholder="選填"></div></div><div class="card-actions"><button class="btn" onclick="submitExposureOrderAdmin()">購買首頁活動快訊曝光</button></div>'+metricHtml+'<div class="section-label" style="margin-top:18px">我的曝光紀錄</div>'+orderHtml;
     const body=document.querySelector('.panel.show .panel-body');if(body)body.innerHTML=html;
   }catch(e){const body=document.querySelector('.panel.show .panel-body');if(body)body.innerHTML='<div class="empty">曝光推廣載入失敗：'+safe(e.message)+'</div>'}
 }
@@ -1733,7 +1736,7 @@ table{width:100%!important}
 .admin-member-context{padding-left:8px;border-left:1px solid #CAD8DF;color:#687581;font-weight:700}
 @media(max-width:620px){.admin-member-home{gap:7px}.admin-member-home .brand-title{font-size:18px!important}.admin-member-home .brand-sub{display:flex!important;font-size:15px!important}.admin-member-context{display:none!important}}
 </style>
-<link rel="stylesheet" href="doing-system.css?v=20260816-system3">
+<link rel="stylesheet" href="doing-system.css?v=20260816-system4">
 <style id="admin-final-responsive-fix">
 html,body{max-width:100%;overflow-x:hidden!important}
 .doing-admin .settings-tile,.doing-admin .settings-tile b{color:#292633!important}
@@ -2079,8 +2082,8 @@ body.doing-admin .toast{border-radius:8px!important;background:#222!important;co
     <div class="login-mark doing-mark" aria-hidden="true"></div>
     <h1>DOING 活動營運管理系統</h1>
     <div class="sub">活動報名｜審核繳費｜場次管理｜現場報到</div>
-    <div class="login-info"><b>系統服務資訊</b><br>管理員請使用已授權的 Google 帳號登入。若無法登入或需要開通權限，請聯繫系統服務窗口。</div>
-    <button class="btn block" onclick="startGoogleLogin()">主辦／工作人員 Google 登入</button>
+    <div class="login-info"><b>系統服務資訊</b><br>管理員請先使用已授權的 LINE 帳號登入。Google 登入串接保留，暫時不顯示。若無法登入或需要開通權限，請聯繫系統服務窗口。</div>
+    <button class="btn block" onclick="startLineLogin()">主辦／工作人員 LINE 登入</button>
     
     <div id="loginErr" class="notice warn hidden" style="text-align:left"></div>
   </div>
@@ -2272,13 +2275,18 @@ function startGoogleLogin(){
   if(!tenant){ toast('找不到主辦帳號，請回到公開首頁後長按左上品牌圖示 3 秒進入主辦工作台',6000); return; }
   const u=new URL(endpoint()+'/auth/google/start');u.searchParams.set('tenant',tenant);location.href=u.toString();
 }
+function startLineLogin(){
+  const tenant=currentTenantFromUrl();
+  if(!tenant){ toast('找不到主辦帳號，請回到公開首頁後長按左上品牌圖示 3 秒進入主辦工作台',6000); return; }
+  const u=new URL(endpoint()+'/auth/line/start');u.searchParams.set('mode','admin');u.searchParams.set('tenant',tenant);location.href=u.toString();
+}
 async function handleOAuthCallback(){
   const token=sessionStorage.getItem('doing_admin_token_pending');
   const loginError=sessionStorage.getItem('doing_login_error_pending');
   sessionStorage.removeItem('doing_admin_token_pending');
   sessionStorage.removeItem('doing_login_error_pending');
   if(loginError){
-    showLoginError({not_authorized:'這個 Google 帳號目前沒有可管理的主辦帳號',staff_inactive:'此管理員帳號已停用',id_token_verify_failed:'Google 身份驗證失敗',google_cancelled:'Google 登入已取消',token_exchange_failed:'Google 登入流程錯誤',invalid_or_expired_state:'登入驗證已逾時，請重新登入',signup_missing_profile:'主辦基本資料不完整，請重新建立主辦帳號',signup_failed:'主辦帳號建立失敗，請重新操作'}[loginError]||('登入失敗：'+loginError));
+    showLoginError({not_authorized:'這個 LINE 帳號目前沒有可管理的主辦帳號',staff_inactive:'此管理員帳號已停用',id_token_verify_failed:'身分驗證失敗',line_cancelled:'LINE 登入已取消',line_email_permission_required:'LINE Email 權限尚未完成，請先完成 LINE Login 設定',line_login_failed:'LINE 登入流程錯誤',google_cancelled:'Google 登入已取消',token_exchange_failed:'登入流程錯誤',invalid_or_expired_state:'登入驗證已逾時，請重新登入',signup_missing_profile:'主辦基本資料不完整，請重新建立主辦帳號',signup_failed:'主辦帳號建立失敗，請重新操作'}[loginError]||('登入失敗：'+loginError));
     return false;
   }
   if(!token) return false;
@@ -5481,7 +5489,7 @@ async function saveHomepageSettings(btn){ const old=btn.textContent; btn.disable
       enterAdmin();
     }catch(e){
       localStorage.removeItem(SESSION_KEY);
-      showLoginError('登入已失效，請重新使用 Google 登入。');
+      showLoginError('登入已失效，請重新使用 LINE 登入。');
     }
   }
 })();

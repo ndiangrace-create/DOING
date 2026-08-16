@@ -285,6 +285,31 @@
           "evidence": "global discovery"
         },
         {
+          "label": "匿名記錄曝光與點擊",
+          "status": "done",
+          "evidence": "doing-attribution.js / trackPlatformAttribution"
+        },
+        {
+          "label": "完成報名自動歸因",
+          "status": "done",
+          "evidence": "recordRegistrationAttribution"
+        },
+        {
+          "label": "主辦在曝光推廣查看自己的近 30 日成效",
+          "status": "done",
+          "evidence": "getExposureCatalog.attributionReport / admin.html"
+        },
+        {
+          "label": "平台查看曝光、點擊與報名轉換率",
+          "status": "done",
+          "evidence": "getPlatformAttributionReport / platform.html"
+        },
+        {
+          "label": "正式曝光到完成報名歸因 E2E",
+          "status": "verify",
+          "note": "需先執行 supabase_platform_attribution.sql，再以正式活動測試"
+        },
+        {
           "label": "正式購買到首頁顯示E2E",
           "status": "verify"
         }
@@ -293,12 +318,13 @@
         "authority": "supabase",
         "project": "DOING_SaaS",
         "schema": "public",
-        "tables": [
-          "exposure_plans",
-          "exposure_orders",
-          "payments",
-          "platform_settings"
-        ]
+      "tables": [
+        "exposure_plans",
+        "exposure_orders",
+        "platform_attribution_events",
+        "payments",
+        "platform_settings"
+      ]
       }
     },
     {

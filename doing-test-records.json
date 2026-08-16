@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-16T15:10:00+08:00",
+  "sourceFingerprint": "bf6f4314bfc94ceecf6369b5778d9ad193f440a9bf886658e9435b7e3763b38c",
+  "environment": "本機隔離模擬；Supabase、LINE、Google、Resend 全部使用 mock",
+  "deploymentTarget": "tobeloved-api",
+  "forbiddenTarget": "2bl-v7",
+  "productionWrites": 0,
+  "tests": [
+    {"id":"syntax","command":"node --check worker.js && node --check doing-attribution.js && node --check doing-home-refresh.js && node --check doing-about-refresh.js","result":"PASS","scope":"Worker 與前端 JavaScript 語法"},
+    {"id":"login-providers","command":"node scripts/validate-login-providers.mjs","result":"PASS","scope":"LINE 優先登入、Google 隱藏保留、固定 provider subject、聯絡資料分流與共用會員權限"},
+    {"id":"organizer-application-e2e","command":"node scripts/validate-organizer-application-e2e.mjs","result":"PASS","scope":"正式申請、LINE 驗證、核准、不同 Email 仍可登入、同電話防重、LINE／Google 明確同步與舊重複帳號合併"},
+    {"id":"tenant-application","command":"node scripts/validate-tenant-application.mjs","result":"PASS","scope":"問卷與核准模組對應"},
+    {"id":"role-module-access","command":"node scripts/validate-role-module-access.mjs","result":"PASS","scope":"角色與已核准模組權限"},
+    {"id":"data-sources","command":"node scripts/validate-data-sources.mjs","result":"PASS","scope":"Supabase 資料來源與關聯"},
+    {"id":"responsive-layout","command":"node scripts/validate-responsive-layout.mjs","result":"PASS","scope":"手機與桌面框架密度"},
+    {"id":"platform-attribution","command":"node scripts/validate-platform-attribution.mjs","result":"PASS","scope":"匿名曝光、點擊、完成報名與近 30 日轉換率"},
+    {"id":"capabilities","command":"node scripts/validate-capabilities.mjs","result":"PASS","scope":"功能世界圖與狀態"},
+    {"id":"seat-map","command":"node scripts/validate-seat-map.mjs","result":"PASS","scope":"手機選位與攤位圖"},
+    {"id":"full-system","command":"node scripts/validate-full-system.mjs","result":"PASS","scope":"全頁面、API、按鈕與設定"},
+    {"id":"admin-consistency","command":"node scripts/validate-admin-consistency.mjs","result":"PASS","scope":"後台壓縮版視覺一致性"},
+    {"id":"admin-operations","command":"node scripts/validate-admin-operations.mjs","result":"PASS","scope":"主辦營運操作"},
+    {"id":"worker-sync","command":"cmp -s worker.js worker.txt","result":"PASS","scope":"正式 Worker 雙檔同步"},
+    {"id":"diff-quality","command":"git diff --check","result":"PASS","scope":"空白與差異格式"}
+  ]
+}
