@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-17T01:25:00+08:00",
-  "sourceFingerprint": "7439a5e47842b97b24ec708477583d74958cc609b248a2ed37ceda2f3be323d0",
+  "recordedAt": "2026-08-17T02:15:00+08:00",
+  "sourceFingerprint": "156641f7efef13f7b58ad35b22f70fb91d79460ca9d916bd5c873fc17ffe79e4",
   "environment": "本機隔離模擬；Supabase、LINE、Google、Resend 全部使用 mock",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
@@ -9,7 +9,7 @@
   "tests": [
     {
       "id": "syntax",
-      "command": "node --check worker.js && node --check doing-attribution.js && node --check doing-home-refresh.js && node --check doing-about-refresh.js",
+      "command": "node --check worker.js && node --check doing-attribution.js && node --check doing-home-refresh.js && node --check doing-about-refresh.js && node --check doing-global-entry.js",
       "result": "PASS",
       "scope": "Worker 與前端 JavaScript 語法"
     },
@@ -114,6 +114,12 @@
       "command": "node scripts/validate-tenant-billing.mjs",
       "result": "PASS",
       "scope": "租戶帳務頁、免費活動 NT$200、收費活動實收 1%、持續預約 NT$688、付款回報、平台確認與文字不裁切"
+    },
+    {
+      "id": "navigation-actions",
+      "command": "node scripts/validate-navigation-actions.mjs",
+      "result": "PASS",
+      "scope": "平台十張數字卡逐一對應正確篩選或明細、租戶後台 KPI、總帳轉帳設定入口、全站首頁／我的 DOING／共同 LOGO 與三秒總管入口"
     },
     {
       "id": "worker-sync",

@@ -2096,8 +2096,8 @@ body.doing-admin .toast{border-radius:8px!important;background:#222!important;co
 
 <section id="adminPage" class="hidden">
   <header class="topbar"><div class="topbar-in">
-    <div class="brand"><a id="adminReturnLink" class="admin-member-home" href="member.html#operations" aria-label="回到我的 DOING 會員中心" title="回到我的 DOING"><div class="logo doing-logo" aria-hidden="true"></div><div><div class="brand-title">DOING 活動營運管理系統</div><div class="brand-sub"><span id="adminReturnLabel" class="admin-member-back">← 回到我的 DOING</span><span id="whoText" class="admin-member-context">尚未登入</span></div></div></a></div>
-    <div class="actions"><button class="btn secondary small" onclick="openSupportCenter()">系統客服 <span id="supportUnreadBadge" class="doing-unread">0</span></button><button class="btn secondary small hide-sm" onclick="refreshCurrentPage()">重新整理</button><button class="btn secondary small" onclick="openOnsiteWorkerPage()">現場入口</button><button class="btn gray small" onclick="logout()">登出</button></div>
+    <div class="brand"><a class="admin-member-home" href="index.html" data-doing-admin-entry aria-label="回到 DOING 首頁；長按進入總管平台" title="回到首頁"><img src="doing-logo.png" alt="DOING" style="width:46px;height:46px;object-fit:contain"><div><div class="brand-title">DOING 活動營運管理系統</div><div class="brand-sub"><span class="admin-member-back">← 回到首頁｜長按 LOGO 進入總管</span><span id="whoText" class="admin-member-context">尚未登入</span></div></div></a></div>
+    <div class="actions"><a id="adminReturnLink" class="btn secondary small" href="member.html#operations"><span id="adminReturnLabel">我的 DOING</span></a><button class="btn secondary small" onclick="openSupportCenter()">系統客服 <span id="supportUnreadBadge" class="doing-unread">0</span></button><button class="btn secondary small hide-sm" onclick="refreshCurrentPage()">重新整理</button><button class="btn secondary small" onclick="openOnsiteWorkerPage()">現場入口</button><button class="btn gray small" onclick="logout()">登出</button></div>
   </div></header>
   <nav class="tabs" aria-label="DOING 後台主選單">
       <button id="tab-todos" class="tab" onclick="switchPage('todos')">待辦</button>
@@ -5542,5 +5542,6 @@ async function saveHomepageSettings(btn){ const old=btn.textContent; btn.disable
   window.addEventListener('resize',sync,{passive:true});
 })();
 </script>
+<script src="doing-global-entry.js?v=20260817a"></script>
 </body>
 </html>

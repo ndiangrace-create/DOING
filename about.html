@@ -83,13 +83,14 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
 <body class="doing-app doing-about-refresh">
 <header class="top">
   <div class="topin">
-    <a class="brand" href="index.html" aria-label="回到 DOING 公開活動入口">
-      <div class="brand-badge">D</div>
-      <div><div class="brand-title">DOING</div><div class="brand-sub">活動營運管理系統</div></div>
+    <a class="brand" href="index.html" data-doing-admin-entry aria-label="回到 DOING 首頁；長按進入總管平台">
+      <img src="doing-logo.png" alt="DOING" style="width:48px;height:48px;object-fit:contain">
+      <div><div class="brand-title">DOING</div><div class="brand-sub">← 回到首頁｜長按 LOGO 進入總管</div></div>
     </a>
     <div class="top-actions">
       <a class="link" href="index.html">找活動</a>
       <a class="link" href="index.html#my">我的報名</a>
+      <a class="link" href="member.html">我的 DOING</a>
       <a class="btn secondary" href="#apply" data-open-apply>申請營運帳號</a>
     </div>
   </div>
@@ -493,6 +494,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
   }
 })();
 </script>
+<script src="doing-global-entry.js?v=20260817a"></script>
 <script src="doing-about-refresh.js?v=20260815b"></script>
 </body>
 </html>

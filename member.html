@@ -35,7 +35,7 @@ body{min-height:100vh;background:radial-gradient(circle at 6% 2%,var(--doing-pin
 <link rel="stylesheet" href="doing-pastel-pages.css?v=20260816a">
 </head>
 <body class="doing-app doing-member">
-<header class="top"><div class="top-in"><a class="home" href="index.html" aria-label="回到 DOING 首頁"><img src="doing-logo.png" alt="DOING"><span class="home-copy"><b>DOING</b><small>← 回到活動首頁</small></span></a><div class="who"><b id="topName">我的 DOING</b><small id="topRole">會員中心</small></div></div></header>
+<header class="top"><div class="top-in"><a class="home" href="index.html" data-doing-admin-entry aria-label="回到 DOING 首頁；長按進入總管平台"><img src="doing-logo.png" alt="DOING"><span class="home-copy"><b>DOING</b><small>← 回到首頁｜長按 LOGO 進入總管</small></span></a><div class="who"><b id="topName">我的 DOING</b><small id="topRole">會員中心</small></div></div></header>
 <main class="shell">
   <section id="loginView" class="hero"><div class="hero-copy"><span class="eyebrow">MY DOING</span><h1>把參加、品牌與營運放在一起</h1><p>一個帳號，就能帶著你的每一種身分繼續前進。</p></div><button class="btn" id="lineLogin">使用 LINE 登入</button><span class="hero-spark" aria-hidden="true">✦</span></section>
   <section id="appView" class="hidden">
@@ -50,7 +50,7 @@ body{min-height:100vh;background:radial-gradient(circle at 6% 2%,var(--doing-pin
     <section class="panel" data-panel="account"><div class="row"><h2>帳號與聯絡資料</h2><span class="status">LINE 優先登入</span></div><form id="profileForm" class="form"><div class="field full card"><b id="accountSyncStatus">目前使用 LINE 登入</b><p>需要備援登入時，可同步本人的 Google 帳號。</p><div class="actions"><button class="btn outline" type="button" id="accountSync">同步 Google 帳號</button><a class="btn hidden" id="platformAdminEntry" href="platform.html">進入平台總管理者</a></div></div><label class="field">姓名<input name="name" required></label><label class="field">聯絡 Email<input name="email" type="email" required></label><label class="field">聯絡手機<input name="phone" required inputmode="tel"></label><label class="field">所在縣市<input name="city"></label><label class="field">LINE 帳號<input name="lineId"></label><div class="field full"><div id="formMessage" class="message"></div><div class="savebar"><button type="button" class="btn secondary" data-go="home">取消</button><button class="btn" type="submit">儲存聯絡資料</button></div></div></form></section>
   </section>
 </main>
-<script>
+<script src="doing-global-entry.js?v=20260817a"></script><script>
 'use strict';
 const API='https://tobeloved-api.ndiangrace.workers.dev',TOKEN_KEY='doing_member_token';
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
