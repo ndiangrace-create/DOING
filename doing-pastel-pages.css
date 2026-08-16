@@ -1,0 +1,424 @@
+/* DOING Homepage Pastel v1 — page-by-page application layer.
+   Loaded after legacy page styles so the approved homepage palette is the
+   single visual authority without changing business logic or data flow. */
+
+:root{
+  --doing-bg:var(--doing-brand-paper);
+  --doing-paper:var(--doing-brand-white);
+  --doing-ink:var(--doing-brand-ink);
+  --doing-muted:var(--doing-brand-muted);
+  --doing-line:var(--doing-brand-line);
+  --doing-primary:var(--doing-brand-pink);
+  --doing-primary-dark:var(--doing-brand-pink-strong);
+  --doing-blue:var(--doing-brand-blue);
+  --doing-pink:var(--doing-brand-pink);
+  --doing-yellow:var(--doing-brand-yellow);
+  --doing-green:var(--doing-brand-mint);
+  --doing-mint:var(--doing-brand-mint);
+  --doing-purple:var(--doing-brand-purple);
+  --doing-radius:var(--doing-brand-card-radius);
+  --doing-shadow:var(--doing-brand-shadow);
+  --bg:var(--doing-bg);
+  --paper:var(--doing-paper);
+  --ink:var(--doing-ink);
+  --muted:var(--doing-muted);
+  --line:var(--doing-line);
+  --main:var(--doing-primary);
+  --main2:var(--doing-primary-dark);
+  --shadow:var(--doing-shadow);
+}
+
+body.doing-app{
+  --doing-page-accent:var(--doing-brand-pink);
+  --doing-page-accent-strong:var(--doing-brand-pink-strong);
+  --doing-page-wash:#fff3f8;
+  min-height:100vh;
+  color:var(--doing-brand-ink)!important;
+  background-color:var(--doing-brand-paper)!important;
+  background-image:
+    radial-gradient(circle at 4% 0,rgba(239,162,201,.24),transparent 24rem),
+    radial-gradient(circle at 98% 3%,rgba(145,215,244,.24),transparent 28rem),
+    linear-gradient(180deg,#fff 0,#fffdfd 38%,#f8fcfd 100%)!important;
+  background-attachment:fixed!important;
+}
+
+body.doing-member{--doing-page-accent:var(--doing-brand-pink);--doing-page-accent-strong:var(--doing-brand-pink-strong);--doing-page-wash:#fff2f7}
+body.doing-register{--doing-page-accent:var(--doing-brand-blue);--doing-page-accent-strong:var(--doing-brand-blue-strong);--doing-page-wash:#eefaff}
+body.doing-about-refresh{--doing-page-accent:var(--doing-brand-purple);--doing-page-accent-strong:#9d7bd8;--doing-page-wash:#f6f0ff}
+body.doing-admin{--doing-page-accent:var(--doing-brand-mint);--doing-page-accent-strong:#6ea9a4;--doing-page-wash:#f3fbea}
+body.doing-platform{--doing-page-accent:var(--doing-brand-blue);--doing-page-accent-strong:var(--doing-brand-blue-strong);--doing-page-wash:#edfaff}
+body.doing-onsite{--doing-page-accent:var(--doing-brand-mint);--doing-page-accent-strong:#79aa64;--doing-page-wash:#f5fbe9}
+body.doing-photo{--doing-page-accent:var(--doing-brand-pink);--doing-page-accent-strong:var(--doing-brand-pink-strong);--doing-page-wash:#fff1f7}
+
+body.doing-app>header,
+body.doing-app>.topbar,
+body.doing-app .top{
+  border:0!important;
+  border-bottom:1px solid var(--doing-brand-line)!important;
+  background:rgba(255,255,255,.94)!important;
+  background-image:none!important;
+  box-shadow:0 8px 24px rgba(105,82,118,.08)!important;
+  backdrop-filter:blur(18px)!important;
+}
+
+body.doing-app .doing-product-title img,
+body.doing-app .home img,
+body.doing-app .brand img,
+body.doing-app header img{
+  border:0!important;
+  outline:0!important;
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+
+body.doing-app .card,
+body.doing-app .panel,
+body.doing-app .session-card,
+body.doing-app .report-card,
+body.doing-app .login-card,
+body.doing-app .loginbox,
+body.doing-app .modalbox,
+body.doing-app .world-module,
+body.doing-app .brand-card,
+body.doing-app .activity,
+body.doing-app .reg-card{
+  border:1px solid var(--doing-brand-line)!important;
+  border-radius:var(--doing-brand-card-radius)!important;
+  background-color:rgba(255,255,255,.96)!important;
+  background-image:linear-gradient(145deg,#fff 18%,var(--doing-page-wash) 100%)!important;
+  box-shadow:0 16px 42px rgba(105,82,118,.1)!important;
+}
+
+body.doing-app .card .card,
+body.doing-app .panel .card,
+body.doing-app .report-card .card{
+  border-radius:18px!important;
+  box-shadow:0 7px 20px rgba(105,82,118,.07)!important;
+}
+
+body.doing-app button,
+body.doing-app .btn,
+body.doing-app a.btn{
+  min-height:44px!important;
+  border:1px solid color-mix(in srgb,var(--doing-page-accent-strong) 38%,white)!important;
+  border-radius:14px!important;
+  background-color:color-mix(in srgb,var(--doing-page-accent) 36%,white)!important;
+  background-image:linear-gradient(145deg,#fff,color-mix(in srgb,var(--doing-page-accent) 48%,white))!important;
+  color:var(--doing-brand-ink)!important;
+  box-shadow:0 6px 15px rgba(105,82,118,.08)!important;
+  text-shadow:none!important;
+}
+
+body.doing-app button:hover,
+body.doing-app .btn:hover{
+  background-color:color-mix(in srgb,var(--doing-page-accent) 48%,white)!important;
+  filter:none!important;
+  transform:translateY(-1px)!important;
+}
+
+body.doing-app button.primary,
+body.doing-app .btn.primary,
+body.doing-app button:not(.secondary):not(.outline):not(.danger):not(.alt).active,
+body.doing-app .btn:not(.secondary):not(.outline):not(.danger):not(.alt).active{
+  background-color:var(--doing-page-accent)!important;
+  background-image:linear-gradient(145deg,color-mix(in srgb,var(--doing-page-accent) 72%,white),var(--doing-page-accent))!important;
+  color:var(--doing-brand-ink)!important;
+}
+
+body.doing-app button.secondary,
+body.doing-app .btn.secondary,
+body.doing-app .btn.outline,
+body.doing-app button.alt,
+body.doing-app .btn.alt{
+  border-color:var(--doing-brand-line)!important;
+  background:#fff!important;
+  background-image:none!important;
+  color:var(--doing-brand-ink)!important;
+}
+
+body.doing-app button.danger,
+body.doing-app .btn.danger{
+  border-color:#edbcc4!important;
+  background:#fff0f3!important;
+  background-image:none!important;
+  color:#8f3f52!important;
+}
+
+body.doing-app input,
+body.doing-app select,
+body.doing-app textarea{
+  border:1px solid color-mix(in srgb,var(--doing-page-accent) 28%,#d9d5df)!important;
+  border-radius:14px!important;
+  background:#fff!important;
+  background-image:none!important;
+  color:var(--doing-brand-ink)!important;
+  box-shadow:inset 0 2px 6px rgba(105,82,118,.035)!important;
+}
+
+body.doing-app input:focus,
+body.doing-app select:focus,
+body.doing-app textarea:focus{
+  outline:3px solid color-mix(in srgb,var(--doing-page-accent) 24%,transparent)!important;
+  border-color:var(--doing-page-accent-strong)!important;
+}
+
+/* Navigation and status may be pills. Content tiles may not. */
+body.doing-app .tabs,
+body.doing-app .platform-nav{
+  gap:7px!important;
+  padding:7px!important;
+  border:1px solid var(--doing-brand-line)!important;
+  border-radius:18px!important;
+  background:rgba(255,255,255,.9)!important;
+  background-image:linear-gradient(90deg,rgba(239,162,201,.16),rgba(145,215,244,.16),rgba(204,239,168,.15))!important;
+  box-shadow:0 8px 22px rgba(105,82,118,.08)!important;
+}
+
+body.doing-app .tabs .tab,
+body.doing-app .platform-nav a{
+  min-height:42px!important;
+  border:1px solid rgba(104,86,120,.12)!important;
+  border-radius:999px!important;
+  background:#fff!important;
+  background-image:none!important;
+  color:var(--doing-brand-ink)!important;
+  box-shadow:none!important;
+}
+
+body.doing-app .tabs .tab.active,
+body.doing-app .platform-nav a.active,
+body.doing-app .platform-nav a[aria-current="page"]{
+  border-color:transparent!important;
+  background:color-mix(in srgb,var(--doing-page-accent) 64%,white)!important;
+  background-image:none!important;
+}
+
+body.doing-app .status,
+body.doing-app .badge,
+body.doing-app .pill,
+body.doing-app .chip,
+body.doing-app .tag,
+body.doing-app .role-chip{
+  border-radius:999px!important;
+  border:1px solid rgba(104,86,120,.12)!important;
+  background-color:color-mix(in srgb,var(--doing-page-accent) 28%,white)!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+
+/* Permanent rule: compact content/function/number/icon tiles are rounded
+   squares or rectangles. Never circles, ovals or pill-shaped containers. */
+body.doing-app .kpi,
+body.doing-app .metric,
+body.doing-app .info,
+body.doing-app .sum,
+body.doing-app .mini-stat,
+body.doing-app .settings-tile,
+body.doing-app .access-role,
+body.doing-app .attribution-stat,
+body.doing-app .world-stat,
+body.doing-app .world-count,
+body.doing-app .frame-choice,
+body.doing-app .meta>div,
+body.doing-app .record-info>div,
+body.doing-app .hero-point,
+body.doing-app .point,
+body.doing-app .capability,
+body.doing-app .module-toggle,
+body.doing-app .module-core-item,
+body.doing-app .mini-card,
+body.doing-app .cal-day,
+body.doing-app .cal-slot,
+body.doing-app .seat,
+body.doing-app .ico{
+  border-radius:var(--doing-brand-small-tile-radius)!important;
+  clip-path:none!important;
+}
+
+body.doing-app .metric,
+body.doing-app .kpi,
+body.doing-app .sum,
+body.doing-app .mini-stat,
+body.doing-app .settings-tile,
+body.doing-app .access-role,
+body.doing-app .attribution-stat,
+body.doing-app .world-stat,
+body.doing-app .frame-choice{
+  border:1px solid var(--doing-brand-line)!important;
+  background-color:#fff!important;
+  background-image:linear-gradient(145deg,#fff,color-mix(in srgb,var(--doing-page-accent) 25%,white))!important;
+  box-shadow:0 7px 18px rgba(105,82,118,.065)!important;
+}
+
+/* Member center */
+body.doing-member .hero{
+  border:1px solid var(--doing-brand-line)!important;
+  border-radius:30px!important;
+  background-color:#fff!important;
+  background-image:linear-gradient(125deg,#fff5fa,#f1fbff 62%,#f6ffed)!important;
+  box-shadow:0 15px 40px rgba(105,82,118,.09)!important;
+}
+body.doing-member .identity-layout{gap:12px!important}
+body.doing-member .kpis{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important}
+body.doing-member .brand-card,
+body.doing-member .activity{padding:15px!important}
+
+/* Registration and booking */
+body.doing-register.doing-public-refactor-body{
+  background-color:var(--doing-brand-paper)!important;
+  background-image:
+    radial-gradient(circle at 5% 0,rgba(145,215,244,.22),transparent 24rem),
+    radial-gradient(circle at 98% 6%,rgba(239,162,201,.2),transparent 27rem),
+    linear-gradient(180deg,#fff,#fffdfd 42%,#f7fcfd)!important;
+}
+body.doing-register .hero,
+body.doing-register .cover{
+  border-color:var(--doing-brand-line)!important;
+  background-color:#fff!important;
+  background-image:linear-gradient(125deg,#eefaff,#fff4f9 66%,#f8ffef)!important;
+}
+body.doing-register .reg-step,
+body.doing-register .choice,
+body.doing-register .event-card{
+  border-radius:16px!important;
+}
+body.doing-register .event-card,
+body.doing-register .choice{
+  background-color:#fff!important;
+  background-image:linear-gradient(145deg,#fff,#f1fbff)!important;
+}
+
+/* Account application */
+body.doing-about-refresh .hero,
+body.doing-about-refresh .apply-gate{
+  border-color:var(--doing-brand-line)!important;
+  background-color:#fff!important;
+  background-image:linear-gradient(125deg,#f8f1ff,#fff6fa 60%,#effbff)!important;
+}
+body.doing-about-refresh .group,
+body.doing-about-refresh .side-panel,
+body.doing-about-refresh .price-card,
+body.doing-about-refresh .scenario-stage{
+  border-radius:20px!important;
+}
+
+/* Organizer admin */
+body.doing-admin .topbar{background:#fff!important}
+body.doing-admin .settings-grid,
+body.doing-admin .cards,
+body.doing-admin .mini-stat-row{gap:10px!important}
+body.doing-admin .settings-tile,
+body.doing-admin .report-card{
+  background-color:#fff!important;
+  background-image:linear-gradient(145deg,#fff,#f4fbea)!important;
+}
+body.doing-admin .settings-tile:nth-child(3n+2),
+body.doing-admin .report-card:nth-child(3n+2){background-image:linear-gradient(145deg,#fff,#effaff)!important}
+body.doing-admin .settings-tile:nth-child(3n+3),
+body.doing-admin .report-card:nth-child(3n+3){background-image:linear-gradient(145deg,#fff,#fff6df)!important}
+
+/* Platform management */
+body.doing-platform .metrics{gap:9px!important}
+body.doing-platform .metric{
+  min-height:92px!important;
+  text-align:left!important;
+}
+body.doing-platform .metric:nth-child(5n+2){background-image:linear-gradient(145deg,#fff,#fff1f7)!important}
+body.doing-platform .metric:nth-child(5n+3){background-image:linear-gradient(145deg,#fff,#f5ffea)!important}
+body.doing-platform .metric:nth-child(5n+4){background-image:linear-gradient(145deg,#fff,#fff7d8)!important}
+body.doing-platform .metric:nth-child(5n){background-image:linear-gradient(145deg,#fff,#f5efff)!important}
+body.doing-platform .world-module,
+body.doing-platform .access-person,
+body.doing-platform .application,
+body.doing-platform .service-row{
+  border-radius:18px!important;
+}
+
+/* Onsite workflow */
+body.doing-onsite .summary{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}
+body.doing-onsite .sum{min-height:82px!important;padding:10px!important}
+body.doing-onsite .hero{
+  border:1px solid var(--doing-brand-line)!important;
+  border-radius:22px!important;
+  background-color:#fff!important;
+  background-image:linear-gradient(125deg,#f5ffec,#fff9e3 68%,#effaff)!important;
+  box-shadow:0 12px 32px rgba(105,82,118,.08)!important;
+}
+
+/* Photo tool */
+body.doing-photo .frame-grid{gap:10px!important}
+body.doing-photo .frame-choice{padding:8px!important}
+body.doing-photo .camera{border-radius:22px!important;box-shadow:0 16px 38px rgba(60,46,70,.17)!important}
+body.doing-photo .guide{border-radius:18px!important}
+
+@media (max-width:760px){
+  body.doing-app{
+    background-image:linear-gradient(180deg,#fff 0,#fffdfd 46%,#f8fcfd 100%)!important;
+    background-attachment:scroll!important;
+  }
+  body.doing-app main,
+  body.doing-app .wrap,
+  body.doing-app .shell,
+  body.doing-app .container,
+  body.doing-app .app{padding-left:9px!important;padding-right:9px!important}
+  body.doing-app .card,
+  body.doing-app .panel,
+  body.doing-app .session-card,
+  body.doing-app .report-card,
+  body.doing-app .login-card,
+  body.doing-app .loginbox{
+    padding:11px!important;
+    border-radius:17px!important;
+    box-shadow:0 7px 20px rgba(105,82,118,.07)!important;
+  }
+  body.doing-app .tabs,
+  body.doing-app .platform-nav{
+    gap:5px!important;
+    padding:5px!important;
+    border-radius:14px!important;
+  }
+  body.doing-app .tabs .tab,
+  body.doing-app .platform-nav a{
+    min-width:94px!important;
+    min-height:42px!important;
+    padding:8px 11px!important;
+  }
+  body.doing-app .actions,
+  body.doing-app .page-actions,
+  body.doing-app .card-actions{gap:6px!important;margin-top:7px!important}
+
+  body.doing-member .hero{padding:9px 11px!important;border-radius:16px!important}
+  body.doing-member .identity-layout{gap:7px!important}
+  body.doing-member .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+
+  body.doing-register .hero,
+  body.doing-register .cover{border-radius:18px!important}
+  body.doing-register .event-strip{gap:8px!important}
+
+  body.doing-about-refresh .hero,
+  body.doing-about-refresh .apply-gate{border-radius:20px!important}
+  body.doing-about-refresh .capability-grid,
+  body.doing-about-refresh .grid-3,
+  body.doing-about-refresh .pricing-three{grid-template-columns:minmax(0,1fr)!important}
+
+  body.doing-admin .settings-grid,
+  body.doing-admin .mini-stat-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+
+  body.doing-platform .metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.doing-platform .metric{min-height:72px!important;padding:8px 9px!important}
+
+  body.doing-onsite .summary{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  body.doing-onsite .sum{min-height:68px!important;padding:8px!important}
+  body.doing-onsite .sum b{font-size:22px!important}
+  body.doing-onsite .meta{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+
+  body.doing-photo .frame-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+@media (min-width:761px){
+  body.doing-member .identity-layout{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  body.doing-member .identity-layout .wide{grid-column:1/-1}
+  body.doing-platform .metrics{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+}
