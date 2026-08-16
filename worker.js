@@ -2344,10 +2344,13 @@ async function recordRegistrationAttribution(env,T,b,registrationId,sessionId){
   const key=['registration',source,attributionId,T,sessionId,registrationId].join(':');
   await dbUpsert(env,'platform_attribution_events',{id:genId('ATTR'),tenant_id:T,session_id:sessionId,exposure_order_id:exposureOrderId,registration_id:registrationId,attribution_id:attributionId,event_type:'registration',source,page_path:cleanAttributionPath(b.doing_attribution_path||b.attributionPath),idempotency_key:key,occurred_at:nowIso(),created_at:nowIso()},'idempotency_key');
 }
-async function hGetPlatformAttributionReport(env,p){
-  const pay=await verifyAdminJwt(p.token,env);if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限');
-  const days=Math.max(1,Math.min(365,parseInt(p.days,10)||30)),since=new Date(Date.now()-days*86400000).toISOString();
-  const events=await dbGet(env,'platform_attribution_events',`occurred_at=gte.${encodeURIComponent(since)}&select=*&order=occurred_at.desc&limit=5000`).catch(()=>[]);
+async function buildAttributionReport(env,{days=30,tenantId='',source=''}={}){
+  days=Math.max(1,Math.min(365,parseInt(days,10)||30));
+  const since=new Date(Date.now()-days*86400000).toISOString(),filters=[`occurred_at=gte.${encodeURIComponent(since)}`];
+  if(tenantId)filters.push(`tenant_id=eq.${encodeURIComponent(tenantId)}`);
+  if(source)filters.push(`source=eq.${encodeURIComponent(source)}`);
+  filters.push('select=tenant_id,session_id,exposure_order_id,event_type,source,occurred_at','order=occurred_at.desc','limit=5000');
+  const events=await dbGet(env,'platform_attribution_events',filters.join('&')).catch(()=>[]);
   const tids=[...new Set(events.map(x=>String(x.tenant_id||'')).filter(Boolean))],sids=[...new Set(events.map(x=>String(x.session_id||'')).filter(Boolean))];
   const inQ=a=>a.map(x=>'"'+x.replace(/"/g,'')+'"').join(',');
   const [tenants,sessions]=await Promise.all([
@@ -2365,19 +2368,24 @@ async function hGetPlatformAttributionReport(env,p){
   totals.clickRate=totals.impressions?Number((totals.clicks/totals.impressions*100).toFixed(1)):0;
   totals.registrationRate=totals.clicks?Number((totals.registrations/totals.clicks*100).toFixed(1)):0;
   const campaigns=Object.values(groups).map(x=>({...x,clickRate:x.impressions?Number((x.clicks/x.impressions*100).toFixed(1)):0,registrationRate:x.clicks?Number((x.registrations/x.clicks*100).toFixed(1)):0})).sort((a,b)=>String(b.lastAt).localeCompare(String(a.lastAt)));
-  return jsonOk({days,totals,campaigns,truncated:events.length>=5000});
+  return {days,totals,campaigns,truncated:events.length>=5000};
+}
+async function hGetPlatformAttributionReport(env,p){
+  const pay=await verifyAdminJwt(p.token,env);if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限');
+  return jsonOk(await buildAttributionReport(env,{days:p.days}));
 }
 async function hGetExposureCatalog(env,p){
   const T=p._tenantId;if(!await verifyStaff(env,p.email,p.token,T,'settings'))return jsonErr('無權限');
   await syncExposureStatuses(env);
-  const [plans,sessions,events,orders]=await Promise.all([
+  const [plans,sessions,events,orders,attributionReport]=await Promise.all([
     dbGet(env,'exposure_plans','is_active=eq.true&placement=eq.home_activity_flash&select=*&order=sort_order.desc,price.asc').catch(()=>[]),
     dbGet(env,'sessions',`tenant_id=eq.${encodeURIComponent(T)}&status=in.(%E5%A0%B1%E5%90%8D%E4%B8%AD,%E9%96%8B%E6%94%BE%E4%B8%AD,%E9%96%8B%E6%94%BE)&select=id,event_id,name,status,venue,dates_json,cover_url,fee,created_at&order=created_at.desc`).catch(()=>[]),
     dbGet(env,'events',`tenant_id=eq.${encodeURIComponent(T)}&select=id,title,cover_url`).catch(()=>[]),
-    dbGet(env,'exposure_orders',`tenant_id=eq.${encodeURIComponent(T)}&select=*&order=created_at.desc`).catch(()=>[])
+    dbGet(env,'exposure_orders',`tenant_id=eq.${encodeURIComponent(T)}&select=*&order=created_at.desc`).catch(()=>[]),
+    buildAttributionReport(env,{days:30,tenantId:T,source:'paid_exposure'})
   ]);
   const em=Object.fromEntries(events.map(x=>[String(x.id),x]));
-  return jsonOk({plans,sessions:sessions.map(s=>({...s,eventTitle:(em[String(s.event_id)]||{}).title||'',cover:s.cover_url||(em[String(s.event_id)]||{}).cover_url||''})),orders});
+  return jsonOk({plans,sessions:sessions.map(s=>({...s,eventTitle:(em[String(s.event_id)]||{}).title||'',cover:s.cover_url||(em[String(s.event_id)]||{}).cover_url||''})),orders,attributionReport});
 }
 async function hCreateExposureOrder(env,b){
   const T=b._tenantId;if(!await verifyStaff(env,b.email,b.token,T,'settings'))return jsonErr('無權限');

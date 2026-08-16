@@ -295,6 +295,11 @@
           "evidence": "recordRegistrationAttribution"
         },
         {
+          "label": "主辦在曝光推廣查看自己的近 30 日成效",
+          "status": "done",
+          "evidence": "getExposureCatalog.attributionReport / admin.html"
+        },
+        {
           "label": "平台查看曝光、點擊與報名轉換率",
           "status": "done",
           "evidence": "getPlatformAttributionReport / platform.html"
