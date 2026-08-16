@@ -115,6 +115,7 @@ html[data-doing-theme="mono_anime"] body:not(.doing-public-refactor-body) button
 html{box-sizing:border-box;max-width:100%;overflow-x:hidden}
 *,*::before,*::after{box-sizing:inherit}
 body{max-width:100%;overflow-x:hidden}
+body.doing-app{background-image:none!important}
 body.doing-app:not(.doing-public-refactor-body){
   background:var(--doing-bg)!important;
   background-image:none!important;
