@@ -10142,6 +10142,17 @@ function icsEscape(v){return String(v||'').replace(/\\/g,'\\\\').replace(/;/g,'\
 function icsDate(date,start){return String(date||'').replace(/-/g,'')+'T'+String(start||'00:00').replace(/:/g,'').padEnd(6,'0')}
 async function hBookingCalendarIcs(env,p){
  const T=p._tenantId,calendarId=String(p.calendarId||'');if(!await verifyStaff(env,p.email,p.token,T))return jsonErr('無權限');const regs=await dbGet(env,'registrations',`tenant_id=eq.${T}&select=id,session_id,booking_calendar_id,name,brand_name,selected_dates_json,custom_fields_json,review_status,transfer_status`);const sessions=await dbGet(env,'sessions',`tenant_id=eq.${T}&select=id,name,venue`);const sm=Object.fromEntries(sessions.map(x=>[x.id,x]));const slotIds=[...new Set(regs.flatMap(registrationTimeslotIds))];let slots=[];if(slotIds.length)slots=await dbGet(env,'timeslots',`tenant_id=eq.${T}&id=in.(${slotIds.map(x=>encodeURIComponent(x)).join(',')})&select=*`).catch(()=>[]);const sl=Object.fromEntries(slots.map(x=>[x.id,x]));let out=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//DOING//Booking Calendar//ZH-TW','CALSCALE:GREGORIAN'];for(const r of regs){if(['已取消','不錄取'].includes(String(r.review_status||''))||['已退費','已退款'].includes(String(r.transfer_status||'')))continue;for(const id of registrationTimeslotIds(r)){const x=sl[id],s=sm[r.session_id]||{};if(!x||calendarId&&String(r.booking_calendar_id||x.booking_calendar_id||'')!==calendarId)continue;out.push('BEGIN:VEVENT','UID:'+r.id+'-'+id+'@doing','DTSTART;TZID=Asia/Taipei:'+icsDate(x.date_key,x.start_text),'DTEND;TZID=Asia/Taipei:'+icsDate(x.date_key,x.end_text||x.start_text),'SUMMARY:'+icsEscape((s.name||'預約')+'｜'+(r.brand_name||r.name||'')),'LOCATION:'+icsEscape(s.venue||''),'END:VEVENT')}}out.push('END:VCALENDAR');return new Response(out.join('\r\n'),{status:200,headers:{...corsHeaders(),'Content-Type':'text/calendar; charset=utf-8','Content-Disposition':'inline; filename="doing-bookings.ics"'}})}
+
+async function hGetSystemDataCatalog(env,p){
+  const pay=await verifyAdminJwt(p.token,env);
+  if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限');
+  const rows=await dbGet(env,'platform_settings','setting_key=eq.system_data_catalog&select=setting_key,value_json,updated_at&limit=1');
+  const row=rows[0]||null;
+  let catalog=row?.value_json||{};
+  if(typeof catalog==='string'){try{catalog=JSON.parse(catalog)}catch(_){catalog={}}}
+  return jsonOk({ok:true,catalog,updatedAt:row?.updated_at||null});
+}
+
 async function routeGet(env, action, p, req) {
   if (action==='getPlatformMemberProfile') return await hGetPlatformMemberProfile(env,p);
   // 不需要 tenant 的路由
@@ -10157,6 +10168,7 @@ async function routeGet(env, action, p, req) {
   if (action==='applyList') return await hApplyList(env, p);
   if (action==='getTenantsAdmin') return await hGetTenantsAdmin(env, p);
   if (action==='getPlatformDashboard') return await hGetPlatformDashboard(env,p);
+  if (action==='getSystemDataCatalog') return await hGetSystemDataCatalog(env,p);
   if (action==='getPlatformMembersAdmin') return await hGetPlatformMembersAdmin(env,p);
   if (action==='getPlatformBillingPolicy') return await hGetPlatformBillingPolicy(env,p);
         if (action==='getPlatformServiceSales') return await hGetPlatformServiceSales(env,p);

@@ -190,14 +190,27 @@ function badge(status){const map={pending:'待審核',supplement_required:'待�
 
 const worldEsc=esc;
 async function loadCapabilityMap(){
-  try{const r=await fetch('doing-capabilities.json?v=20260815-ops',{cache:'no-store'});if(!r.ok)throw Error('功能地圖讀取失敗');capabilityMap=await r.json();renderCapabilityMap()}catch(e){$('worldMapBody').innerHTML='<div class="error">'+worldEsc(e.message)+'</div>'}
+  try{
+    const [r,dataResult]=await Promise.all([
+      fetch('doing-capabilities.json?v=20260816-data-source',{cache:'no-store'}),
+      get('getSystemDataCatalog').catch(()=>null)
+    ]);
+    if(!r.ok)throw Error('功能地圖讀取失敗');
+    capabilityMap=await r.json();
+    const dbCatalog=dataResult&&dataResult.catalog;
+    if(dbCatalog&&Array.isArray(dbCatalog.modules)){
+      const byKey=Object.fromEntries(dbCatalog.modules.map(x=>[x.key,x.tables||[]]));
+      (capabilityMap.modules||[]).forEach(m=>{const key=m.key||m.id;if(byKey[key])m.dataSource={authority:'supabase',project:'DOING_SaaS',schema:'public',tables:byKey[key]}});
+    }
+    renderCapabilityMap();
+  }catch(e){$('worldMapBody').innerHTML='<div class="error">'+worldEsc(e.message)+'</div>'}
 }
 function renderCapabilityMap(){
   const modules=Array.isArray(capabilityMap?.modules)?capabilityMap.modules:[],features=modules.flatMap(m=>m.features||[]),icons=capabilityMap?.statusIcons||{done:'✅',verify:'🟠',issue:'❌',later:'⚪'};
   const counts={done:0,verify:0,issue:0,later:0};features.forEach(f=>{if(Object.prototype.hasOwnProperty.call(counts,f.status))counts[f.status]++});
   $('worldSummary').innerHTML=[['done','已完成'],['verify','已有待確認'],['issue','有問題'],['later','尚未開發']].map(([k,label])=>'<button type="button" class="world-stat '+(activeWorldStatus===k?'active':'')+'" data-world-status="'+k+'"><b>'+icons[k]+' '+counts[k]+'</b><span>'+label+'</span></button>').join('');
   const areas=[];for(const m of modules)if(!areas.includes(m.area))areas.push(m.area);
-  $('worldMapBody').innerHTML=areas.map(area=>{const areaModules=modules.filter(m=>m.area===area).map(m=>({...m,features:(m.features||[]).filter(f=>!activeWorldStatus||f.status===activeWorldStatus)})).filter(m=>m.features.length);if(!areaModules.length)return '';return '<section class="world-area"><h3>'+worldEsc(area)+'</h3><div class="world-modules">'+areaModules.map(m=>{const done=m.features.filter(f=>f.status==='done').length,total=m.features.length,route=String(m.route||'');return '<article class="world-module"><div class="world-module-head"><h4>'+worldEsc(m.title)+'</h4><span class="world-count">'+done+'／'+total+'</span></div><p>'+worldEsc(m.summary||'')+'</p><div class="world-features">'+m.features.map(f=>{const href=String(f.route||route||'');const tag=href?'a':'div';return '<'+tag+' class="world-feature"'+(href?' href="'+worldEsc(href)+'" title="開啟對應功能"':'')+'><span class="mark">'+(icons[f.status]||'•')+'</span><span>'+worldEsc(f.label)+(f.note?'<small>'+worldEsc(f.note)+'</small>':'')+'</span></'+tag+'>'}).join('')+'</div></article>'}).join('')+'</div></section>'}).join('')||'<div class="world-empty">這個狀態目前沒有項目。</div>';
+  $('worldMapBody').innerHTML=areas.map(area=>{const areaModules=modules.filter(m=>m.area===area).map(m=>({...m,features:(m.features||[]).filter(f=>!activeWorldStatus||f.status===activeWorldStatus)})).filter(m=>m.features.length);if(!areaModules.length)return '';return '<section class="world-area"><h3>'+worldEsc(area)+'</h3><div class="world-modules">'+areaModules.map(m=>{const done=m.features.filter(f=>f.status==='done').length,total=m.features.length,route=String(m.route||'');return '<article class="world-module"><div class="world-module-head"><h4>'+worldEsc(m.title)+'</h4><span class="world-count">'+done+'／'+total+'</span></div><p>'+worldEsc(m.summary||'')+'</p><div class="world-features">'+m.features.map(f=>{const href=String(f.route||route||'');const tag=href?'a':'div';return '<'+tag+' class="world-feature"'+(href?' href="'+worldEsc(href)+'" title="開啟對應功能"':'')+'><span class="mark">'+(icons[f.status]||'•')+'</span><span>'+worldEsc(f.label)+(f.note?'<small>'+worldEsc(f.note)+'</small>':'')+'</span></'+tag+'>'}).join('')+'<div class="world-data-source"><b>正式資料來源：</b> '+worldEsc(m.dataSource?.project||'DOING_SaaS')+' / '+worldEsc(m.dataSource?.schema||'public')+'<br>'+((m.dataSource?.tables||[]).map(t=>'<code>'+worldEsc(t)+'</code>').join(' ')||'<span>尚未指定</span>')+'</div></article>'}).join('')+'</div></section>'}).join('')||'<div class="world-empty">這個狀態目前沒有項目。</div>';
   document.querySelectorAll('[data-world-status]').forEach(btn=>btn.onclick=()=>{activeWorldStatus=activeWorldStatus===btn.dataset.worldStatus?'':btn.dataset.worldStatus;renderCapabilityMap()});
 }
 

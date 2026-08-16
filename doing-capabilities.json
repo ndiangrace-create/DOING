@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "updatedAt": "2026-08-16",
   "statusLabels": {
     "done": "已完成",
@@ -61,7 +61,20 @@
           "status": "verify",
           "note": "需要平台總管本人操作"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "platform_members",
+          "platform_member_identities",
+          "tenant_apply_logs",
+          "tenants",
+          "tenant_settings",
+          "staff"
+        ]
+      }
     },
     {
       "id": "platform-tenant",
@@ -105,7 +118,20 @@
           "status": "verify",
           "note": "已有後端權限，需持續E2E"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "tenants",
+          "tenant_settings",
+          "staff",
+          "staff_session_permissions",
+          "platform_staff",
+          "audit_logs"
+        ]
+      }
     },
     {
       "id": "platform-billing",
@@ -159,7 +185,22 @@
           "status": "done",
           "evidence": "billing_logs setup_feature:module"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "billing_entities",
+          "billing_entity_tenants",
+          "billing_session_charges",
+          "billing_monthly_statements",
+          "billing_payments",
+          "billing_logs",
+          "platform_settings",
+          "reward_ledger"
+        ]
+      }
     },
     {
       "id": "platform-products",
@@ -198,7 +239,18 @@
           "status": "done",
           "evidence": "recordPlatformServiceSale audit"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "platform_settings",
+          "tenant_settings",
+          "billing_logs",
+          "tenants"
+        ]
+      }
     },
     {
       "id": "platform-exposure",
@@ -236,7 +288,18 @@
           "label": "正式購買到首頁顯示E2E",
           "status": "verify"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "exposure_plans",
+          "exposure_orders",
+          "payments",
+          "platform_settings"
+        ]
+      }
     },
     {
       "id": "platform-support",
@@ -274,7 +337,17 @@
           "label": "手機正式收發驗收",
           "status": "verify"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "support_threads",
+          "support_messages",
+          "notifications"
+        ]
+      }
     },
     {
       "id": "member-center",
@@ -328,7 +401,20 @@
           "note": "已完成品牌化重設，待手機與桌機正式畫面確認",
           "evidence": "member.html member-brand-refresh"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "platform_members",
+          "platform_member_identities",
+          "members",
+          "registrations",
+          "tenants",
+          "tenant_apply_logs"
+        ]
+      }
     },
     {
       "id": "tenant-operations",
@@ -381,7 +467,22 @@
           "label": "新租戶從零建立第一個營運項目",
           "status": "verify"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "events",
+          "sessions",
+          "operation_units",
+          "service_items",
+          "resources",
+          "timeslots",
+          "booking_calendars",
+          "session_bundles"
+        ]
+      }
     },
     {
       "id": "tenant-registration",
@@ -444,7 +545,22 @@
           "label": "新租戶前台到後台完整報名",
           "status": "verify"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "registrations",
+          "registration_items",
+          "members",
+          "payments",
+          "refunds",
+          "invoices",
+          "notifications",
+          "email_templates"
+        ]
+      }
     },
     {
       "id": "tenant-finance",
@@ -497,7 +613,22 @@
           "label": "以真實場次完成結案",
           "status": "verify"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "finance_items",
+          "finance_ledger",
+          "finance_audit_logs",
+          "payments",
+          "refunds",
+          "invoices",
+          "payment_allocations",
+          "transfer_settlements"
+        ]
+      }
     },
     {
       "id": "tenant-people",
@@ -536,7 +667,21 @@
           "status": "done",
           "evidence": "enforceTenantRole 回查 staff active 狀態"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "members",
+          "staff",
+          "roles",
+          "permissions",
+          "role_permissions",
+          "staff_session_permissions",
+          "staff_action_logs"
+        ]
+      }
     },
     {
       "id": "tenant-onsite",
@@ -574,7 +719,18 @@
           "label": "真實手機現場操作",
           "status": "verify"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "onsite_passcodes",
+          "registrations",
+          "staff_action_logs",
+          "audit_logs"
+        ]
+      }
     },
     {
       "id": "advanced-seat",
@@ -621,7 +777,20 @@
           "label": "活動前7天自動排位與通知",
           "status": "verify"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "venue_map_templates",
+          "stalls",
+          "seat_maps",
+          "seat_assignments",
+          "seat_operation_logs",
+          "registrations"
+        ]
+      }
     },
     {
       "id": "advanced-performance",
@@ -632,26 +801,40 @@
       "features": [
         {
           "label": "攤商填寫當日營業額",
-          "status": "done",
-          "evidence": "performance report"
+          "status": "later",
+          "evidence": "performance report",
+          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
         },
         {
           "label": "不提供NT$0快速選項",
-          "status": "done"
+          "status": "later",
+          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
         },
         {
           "label": "管理者不可修改攤商業績",
-          "status": "done"
+          "status": "later",
+          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
         },
         {
           "label": "完成回報後啟動保證金退還",
-          "status": "verify"
+          "status": "later",
+          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
         },
         {
           "label": "真實場次結案驗收",
-          "status": "verify"
+          "status": "later",
+          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "registrations",
+          "finance_ledger"
+        ]
+      }
     },
     {
       "id": "advanced-consignment",
@@ -662,25 +845,39 @@
       "features": [
         {
           "label": "寄賣檔期設定",
-          "status": "done"
+          "status": "later",
+          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
         },
         {
           "label": "寄賣申請與審核",
-          "status": "done"
+          "status": "later",
+          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
         },
         {
           "label": "商品與條碼",
-          "status": "done"
+          "status": "later",
+          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
         },
         {
           "label": "POS銷售",
-          "status": "done"
+          "status": "later",
+          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
         },
         {
           "label": "完整庫存與結算E2E",
-          "status": "verify"
+          "status": "later",
+          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "registration_items",
+          "finance_ledger"
+        ]
+      }
     },
     {
       "id": "advanced-photo",
@@ -713,7 +910,17 @@
           "label": "LINE與瀏覽器真機驗收",
           "status": "verify"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "photo_activities",
+          "photo_activity_frames",
+          "photo_leads"
+        ]
+      }
     },
     {
       "id": "tenant-themes",
@@ -756,7 +963,15 @@
           "label": "前台、會員頁與租戶後台完整套用",
           "status": "verify"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "tenant_settings"
+        ]
+      }
     },
     {
       "id": "platform-map",
@@ -801,7 +1016,15 @@
           "status": "done",
           "evidence": "index.html long press"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "platform_settings"
+        ]
+      }
     },
     {
       "id": "future-roadmap",
@@ -833,7 +1056,22 @@
           "label": "自動化行銷流程",
           "status": "later"
         }
-      ]
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "platform_settings"
+        ]
+      }
     }
-  ]
+  ],
+  "dataAuthority": {
+    "projectName": "DOING_SaaS",
+    "projectRef": "nayonqbzejoojexxxkyg",
+    "schema": "public",
+    "api": "tobeloved-api",
+    "rule": "Supabase 是營運資料唯一正式來源；瀏覽器儲存僅限登入與介面偏好。"
+  }
 }

@@ -1,0 +1,2508 @@
+{
+  "version": 2,
+  "auditedAt": "2026-08-16",
+  "authority": {
+    "projectName": "DOING_SaaS",
+    "projectRef": "nayonqbzejoojexxxkyg",
+    "schema": "public",
+    "api": "tobeloved-api",
+    "rule": "Supabase 是營運資料唯一正式來源；瀏覽器儲存僅限登入與介面偏好。"
+  },
+  "browserStorage": {
+    "businessDataAllowed": false,
+    "allowedKeys": [
+      "doing_admin_token_pending",
+      "doing_login_error_pending",
+      "doing_platform_token",
+      "doing_lang",
+      "doing_my_email"
+    ]
+  },
+  "modules": [
+    {
+      "key": "platform-application",
+      "tables": [
+        "platform_members",
+        "platform_member_identities",
+        "tenant_apply_logs",
+        "tenants",
+        "tenant_settings",
+        "staff"
+      ]
+    },
+    {
+      "key": "platform-tenant",
+      "tables": [
+        "tenants",
+        "tenant_settings",
+        "staff",
+        "staff_session_permissions",
+        "platform_staff",
+        "audit_logs"
+      ]
+    },
+    {
+      "key": "platform-billing",
+      "tables": [
+        "billing_entities",
+        "billing_entity_tenants",
+        "billing_session_charges",
+        "billing_monthly_statements",
+        "billing_payments",
+        "billing_logs",
+        "platform_settings",
+        "reward_ledger"
+      ]
+    },
+    {
+      "key": "platform-products",
+      "tables": [
+        "platform_settings",
+        "tenant_settings",
+        "billing_logs",
+        "tenants"
+      ]
+    },
+    {
+      "key": "platform-exposure",
+      "tables": [
+        "exposure_plans",
+        "exposure_orders",
+        "payments",
+        "platform_settings"
+      ]
+    },
+    {
+      "key": "platform-support",
+      "tables": [
+        "support_threads",
+        "support_messages",
+        "notifications"
+      ]
+    },
+    {
+      "key": "member-center",
+      "tables": [
+        "platform_members",
+        "platform_member_identities",
+        "members",
+        "registrations",
+        "tenants",
+        "tenant_apply_logs"
+      ]
+    },
+    {
+      "key": "tenant-operations",
+      "tables": [
+        "events",
+        "sessions",
+        "operation_units",
+        "service_items",
+        "resources",
+        "timeslots",
+        "booking_calendars",
+        "session_bundles"
+      ]
+    },
+    {
+      "key": "tenant-registration",
+      "tables": [
+        "registrations",
+        "registration_items",
+        "members",
+        "payments",
+        "refunds",
+        "invoices",
+        "notifications",
+        "email_templates"
+      ]
+    },
+    {
+      "key": "tenant-finance",
+      "tables": [
+        "finance_items",
+        "finance_ledger",
+        "finance_audit_logs",
+        "payments",
+        "refunds",
+        "invoices",
+        "payment_allocations",
+        "transfer_settlements"
+      ]
+    },
+    {
+      "key": "tenant-people",
+      "tables": [
+        "members",
+        "staff",
+        "roles",
+        "permissions",
+        "role_permissions",
+        "staff_session_permissions",
+        "staff_action_logs"
+      ]
+    },
+    {
+      "key": "tenant-onsite",
+      "tables": [
+        "onsite_passcodes",
+        "registrations",
+        "staff_action_logs",
+        "audit_logs"
+      ]
+    },
+    {
+      "key": "advanced-seat",
+      "tables": [
+        "venue_map_templates",
+        "stalls",
+        "seat_maps",
+        "seat_assignments",
+        "seat_operation_logs",
+        "registrations"
+      ]
+    },
+    {
+      "key": "advanced-performance",
+      "tables": [
+        "registrations",
+        "finance_ledger"
+      ]
+    },
+    {
+      "key": "advanced-consignment",
+      "tables": [
+        "registration_items",
+        "finance_ledger"
+      ]
+    },
+    {
+      "key": "advanced-photo",
+      "tables": [
+        "photo_activities",
+        "photo_activity_frames",
+        "photo_leads"
+      ]
+    },
+    {
+      "key": "tenant-themes",
+      "tables": [
+        "tenant_settings"
+      ]
+    },
+    {
+      "key": "platform-map",
+      "tables": [
+        "platform_settings"
+      ]
+    },
+    {
+      "key": "future-roadmap",
+      "tables": [
+        "platform_settings"
+      ]
+    }
+  ],
+  "tables": [
+    {
+      "name": "tenants",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "slug",
+        "name",
+        "status",
+        "config_json",
+        "line_url",
+        "bank_info",
+        "logo_url",
+        "cover_url",
+        "email_from",
+        "email_reply_to",
+        "footer_text",
+        "site_url",
+        "default_refund_rules_json",
+        "payment_config_json",
+        "invoice_mode",
+        "invoice_note",
+        "created_at",
+        "updated_at",
+        "plan_type",
+        "trial_start_at",
+        "trial_end_at",
+        "locked_at",
+        "locked_reason",
+        "is_locked",
+        "archived_at",
+        "session_count_used",
+        "contact_name",
+        "contact_phone",
+        "event_type",
+        "apply_note",
+        "notify_email",
+        "billing_entity_id",
+        "tenant_type",
+        "legal_name",
+        "tax_id",
+        "responsible_name",
+        "responsible_phone",
+        "responsible_email",
+        "responsible_id_number"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "member-center",
+        "platform-application",
+        "platform-products",
+        "platform-tenant"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "tenant_settings",
+      "rlsEnabled": true,
+      "columns": [
+        "tenant_id",
+        "organizer_name",
+        "logo_url",
+        "cover_url",
+        "line_url",
+        "payment_config_json",
+        "email_templates_json",
+        "module_flags_json",
+        "refund_rules_json",
+        "theme_json",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "platform-application",
+        "platform-products",
+        "platform-tenant",
+        "tenant-themes"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "roles",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "name",
+        "level",
+        "description",
+        "created_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [
+        "tenant-people"
+      ],
+      "state": "schema_only"
+    },
+    {
+      "name": "permissions",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "name",
+        "description",
+        "created_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [
+        "tenant-people"
+      ],
+      "state": "schema_only"
+    },
+    {
+      "name": "role_permissions",
+      "rlsEnabled": true,
+      "columns": [
+        "role_id",
+        "permission_id",
+        "created_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [
+        "tenant-people"
+      ],
+      "state": "schema_only"
+    },
+    {
+      "name": "platform_staff",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "email",
+        "name",
+        "role",
+        "is_active",
+        "note",
+        "created_at",
+        "updated_at",
+        "display_name",
+        "last_login_at",
+        "normalized_role"
+      ],
+      "workerAccess": [
+        "get",
+        "update"
+      ],
+      "moduleKeys": [
+        "platform-tenant"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "staff",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "email",
+        "name",
+        "role",
+        "role_id",
+        "perms_json",
+        "limit_sessions",
+        "active",
+        "created_at",
+        "updated_at",
+        "is_active",
+        "display_name",
+        "last_login_at",
+        "normalized_role",
+        "scope_type",
+        "scope_event_id"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "platform-application",
+        "platform-tenant",
+        "tenant-people"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "events",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "title",
+        "description",
+        "location",
+        "cover_url",
+        "status",
+        "starts_at",
+        "ends_at",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "tenant-operations"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "sessions",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "event_id",
+        "name",
+        "region",
+        "dates_json",
+        "venue",
+        "fee",
+        "deposit",
+        "limit_count",
+        "max_stalls",
+        "current_count",
+        "status",
+        "need_review",
+        "modules_json",
+        "equip_json",
+        "basic_equip",
+        "custom_fields_json",
+        "addons_json",
+        "invoice_tax_json",
+        "refund_rules_json",
+        "theme",
+        "organizer",
+        "co_organizer",
+        "cover_url",
+        "description",
+        "assigned_staff",
+        "force_cancel",
+        "force_cancel_target_id",
+        "force_cancel_deadline",
+        "created_at",
+        "updated_at",
+        "force_cancelled",
+        "force_cancel_reason_code",
+        "force_cancel_reason_label",
+        "force_cancel_note",
+        "force_cancelled_at",
+        "force_mode",
+        "force_transfer_target_session_id",
+        "force_choice_deadline",
+        "force_notice_sent_at",
+        "agreement_required",
+        "agreement_title",
+        "agreement_content",
+        "agreement_version",
+        "agreement_updated_at",
+        "seat_pricing_enabled",
+        "seat_hold_hours",
+        "seat_map_url",
+        "billing_first_opened_at",
+        "seat_assign_days_before",
+        "seat_assign_done_at",
+        "venue_map_template_id",
+        "payment_profile_id",
+        "main_visual_asset_id",
+        "ai_visual_preset"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "tenant-operations"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "members",
+      "rlsEnabled": true,
+      "columns": [
+        "email",
+        "tenant_id",
+        "name",
+        "phone",
+        "brand",
+        "brand_name",
+        "brand_intro",
+        "photo_url",
+        "fb_url",
+        "ig_url",
+        "collab_url",
+        "collab_desc",
+        "collab_items",
+        "company",
+        "tax_id",
+        "invoice_email",
+        "city",
+        "line_id",
+        "fast_pass",
+        "invoice_carrier",
+        "invoice_type",
+        "invoice_title",
+        "sell_category",
+        "joined_at",
+        "updated_at",
+        "google_sub",
+        "google_email",
+        "display_name",
+        "avatar_url",
+        "last_login_at",
+        "login_provider",
+        "admin_note",
+        "admin_note_updated_at",
+        "admin_note_updated_by"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "member-center",
+        "tenant-people",
+        "tenant-registration"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "registrations",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "event_id",
+        "email",
+        "name",
+        "phone",
+        "brand",
+        "brand_name",
+        "brand_intro",
+        "sell_category",
+        "sell_cat",
+        "sell_items",
+        "sell_item",
+        "sell_link",
+        "photo_url",
+        "fb_url",
+        "ig_url",
+        "equipment_json",
+        "equip_json",
+        "custom_fields_json",
+        "participants_json",
+        "selected_dates_json",
+        "addon_qty_json",
+        "addon_amount",
+        "stall_count",
+        "stall_number",
+        "stall_no",
+        "deposit",
+        "review_status",
+        "registration_status",
+        "payment_status",
+        "amount",
+        "total_amount",
+        "payment_method",
+        "pay_method",
+        "paid_at",
+        "payment_report_amount",
+        "payment_last5",
+        "payment_reported_at",
+        "payment_screenshot_status",
+        "payment_screenshot_received_at",
+        "payment_detail_json",
+        "payment_line_card_text",
+        "checkin_status",
+        "checkin_at",
+        "clear_status",
+        "deposit_refunded",
+        "tax_id",
+        "invoice_title",
+        "invoice_email",
+        "invoice_status",
+        "invoice_type",
+        "invoice_carrier",
+        "admin_note",
+        "reminder_sent",
+        "remind_sent",
+        "transfer_status",
+        "transfer_target_session_id",
+        "original_session_id",
+        "transfer_chosen_at",
+        "refund_amount",
+        "refund_admin_fee",
+        "refund_transfer_fee",
+        "refund_rule_label",
+        "refunded_at",
+        "refund_note",
+        "created_at",
+        "updated_at",
+        "force_status",
+        "transferred_to_session_id",
+        "transferred_from_registration_id",
+        "force_choice_at",
+        "force_choice_email",
+        "force_choice_ip",
+        "force_choice_user_agent",
+        "force_refund_requested_at",
+        "force_refunded_at",
+        "force_refund_note",
+        "agreement_accepted",
+        "agreement_viewed",
+        "agreement_viewed_at",
+        "agreement_accepted_at",
+        "agreement_email",
+        "agreement_version",
+        "agreement_title_snapshot",
+        "agreement_content_snapshot",
+        "seat_choice_intent",
+        "seat_choice_status",
+        "seat_choice_type",
+        "seat_fee_total",
+        "seat_hold_expires_at",
+        "teardown_status",
+        "violation_flags",
+        "bundle_id",
+        "bundle_group_id",
+        "paid_amount",
+        "payment_group_id",
+        "approved_at",
+        "payment_due_at",
+        "payment_reminder_at",
+        "payment_expired_at",
+        "payment_terms_snapshot",
+        "transfer_credit_amount",
+        "transfer_balance_due",
+        "transfer_refund_due",
+        "transfer_settlement_id",
+        "operation_unit_id",
+        "booking_calendar_id",
+        "platform_member_id"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "advanced-performance",
+        "advanced-seat",
+        "member-center",
+        "tenant-onsite",
+        "tenant-registration"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "registration_items",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "registration_id",
+        "session_id",
+        "item_type",
+        "item_name",
+        "quantity",
+        "unit_price",
+        "amount",
+        "tax_included",
+        "meta_json",
+        "created_at",
+        "operation_unit_id"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert"
+      ],
+      "moduleKeys": [
+        "advanced-consignment",
+        "tenant-registration"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "payments",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "reg_id",
+        "session_id",
+        "email",
+        "amount",
+        "method",
+        "status",
+        "trade_no",
+        "paid_at",
+        "created_at",
+        "screenshot_status",
+        "screenshot_received_at",
+        "detail_json",
+        "line_card_text",
+        "admin_note",
+        "registration_id",
+        "payment_profile_id",
+        "payment_profile_snapshot",
+        "operation_unit_id"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "platform-exposure",
+        "tenant-finance",
+        "tenant-registration"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "refunds",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "reg_id",
+        "payment_id",
+        "session_id",
+        "email",
+        "status",
+        "paid_amount",
+        "refund_amount",
+        "admin_fee",
+        "transfer_fee",
+        "rule_label",
+        "reason",
+        "requested_at",
+        "confirmed_at",
+        "created_by",
+        "confirmed_by",
+        "note",
+        "created_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [
+        "tenant-finance",
+        "tenant-registration"
+      ],
+      "state": "schema_only"
+    },
+    {
+      "name": "finance_items",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "type",
+        "name",
+        "amount",
+        "is_auto",
+        "meta_json",
+        "created_at",
+        "operation_unit_id"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "tenant-finance"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "invoices",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "reg_id",
+        "session_id",
+        "invoice_type",
+        "invoice_title",
+        "tax_id",
+        "invoice_email",
+        "invoice_carrier",
+        "amount_total",
+        "amount_untaxed",
+        "tax_amount",
+        "status",
+        "issued_at",
+        "note",
+        "created_at",
+        "operation_unit_id"
+      ],
+      "workerAccess": [
+        "delete",
+        "insert"
+      ],
+      "moduleKeys": [
+        "tenant-finance",
+        "tenant-registration"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "stalls",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "stall_no",
+        "number",
+        "status",
+        "reg_id",
+        "email",
+        "hold_time",
+        "meta_json",
+        "created_at",
+        "seat_label",
+        "seat_type",
+        "price_adjustment",
+        "sort_order",
+        "row_label",
+        "col_label",
+        "is_selectable",
+        "is_reserved",
+        "is_locked",
+        "updated_at",
+        "seat_code",
+        "price_delta",
+        "map_x",
+        "map_y",
+        "map_order",
+        "is_active",
+        "note",
+        "seat_hold_expires_at",
+        "category",
+        "map_rotation"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update",
+        "updatereturning"
+      ],
+      "moduleKeys": [
+        "advanced-seat"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "equipment_items",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "name",
+        "price",
+        "included_qty",
+        "stock_qty",
+        "is_active",
+        "meta_json",
+        "created_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [],
+      "state": "schema_only"
+    },
+    {
+      "name": "email_templates",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "template_key",
+        "subject",
+        "body_html",
+        "button_label",
+        "is_active",
+        "created_at",
+        "updated_at",
+        "title",
+        "body",
+        "updated_by"
+      ],
+      "workerAccess": [
+        "get",
+        "upsert"
+      ],
+      "moduleKeys": [
+        "tenant-registration"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "report_templates",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "template_key",
+        "name",
+        "file_format",
+        "columns_json",
+        "role_required",
+        "is_active",
+        "created_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [],
+      "state": "schema_only"
+    },
+    {
+      "name": "announcements",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "title",
+        "content",
+        "link_url",
+        "link_text",
+        "url",
+        "url_text",
+        "created_at"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [],
+      "state": "active"
+    },
+    {
+      "name": "audit_logs",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "actor_email",
+        "actor_role",
+        "action",
+        "target_table",
+        "target_id",
+        "before_json",
+        "after_json",
+        "meta_json",
+        "created_at"
+      ],
+      "workerAccess": [
+        "insert"
+      ],
+      "moduleKeys": [
+        "platform-tenant",
+        "tenant-onsite"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "report_exports",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "event_id",
+        "template_id",
+        "file_name",
+        "file_format",
+        "status",
+        "snapshot_summary_json",
+        "generated_by",
+        "generated_at",
+        "downloaded_at",
+        "created_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [],
+      "state": "schema_only"
+    },
+    {
+      "name": "report_download_logs",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "event_id",
+        "template_id",
+        "export_id",
+        "staff_email",
+        "action",
+        "file_name",
+        "file_format",
+        "status",
+        "user_agent",
+        "meta_json",
+        "created_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [],
+      "state": "schema_only"
+    },
+    {
+      "name": "force_majeure_logs",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "registration_id",
+        "session_id",
+        "action",
+        "old_status",
+        "new_status",
+        "actor_type",
+        "actor_email",
+        "reason_code",
+        "target_session_id",
+        "note",
+        "ip",
+        "user_agent",
+        "created_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [],
+      "state": "schema_only"
+    },
+    {
+      "name": "admin_login_logs",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "staff_id",
+        "email",
+        "provider",
+        "login_status",
+        "reason",
+        "ip",
+        "user_agent",
+        "created_at"
+      ],
+      "workerAccess": [
+        "insert"
+      ],
+      "moduleKeys": [],
+      "state": "active"
+    },
+    {
+      "name": "billing_logs",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "billing_type",
+        "amount",
+        "tax",
+        "total",
+        "session_id",
+        "period_start",
+        "period_end",
+        "status",
+        "confirmed_at",
+        "confirmed_by",
+        "note",
+        "created_at"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert"
+      ],
+      "moduleKeys": [
+        "platform-billing",
+        "platform-products"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "tenant_apply_logs",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "brand_name",
+        "contact_name",
+        "contact_email",
+        "contact_phone",
+        "event_type",
+        "plan_type",
+        "note",
+        "status",
+        "tenant_id",
+        "approved_at",
+        "approved_by",
+        "created_at",
+        "tenant_type",
+        "legal_name",
+        "tax_id",
+        "responsible_name",
+        "responsible_phone",
+        "responsible_email",
+        "responsible_id_number",
+        "updated_at",
+        "application_json",
+        "rejected_at",
+        "rejected_by",
+        "rejection_reason",
+        "supplement_requested_at",
+        "supplement_requested_by",
+        "supplement_reason",
+        "supplement_submitted_at",
+        "supplement_count"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "member-center",
+        "platform-application"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "platform_sessions",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "google_sub",
+        "google_email",
+        "display_name",
+        "avatar_url",
+        "role",
+        "tenant_ids",
+        "jwt_token",
+        "expires_at",
+        "created_at",
+        "last_used_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [],
+      "state": "schema_only"
+    },
+    {
+      "name": "tenant_agreement_templates",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "slot_no",
+        "label",
+        "title",
+        "content",
+        "version",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [],
+      "state": "active"
+    },
+    {
+      "name": "seat_maps",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "map_name",
+        "map_type",
+        "layout_json",
+        "is_enabled",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [
+        "advanced-seat"
+      ],
+      "state": "schema_only"
+    },
+    {
+      "name": "seat_assignments",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "registration_id",
+        "stall_id",
+        "seat_code",
+        "status",
+        "assigned_by",
+        "assigned_source",
+        "assigned_at",
+        "released_at",
+        "locked_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [
+        "advanced-seat"
+      ],
+      "state": "schema_only"
+    },
+    {
+      "name": "seat_operation_logs",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "registration_id",
+        "stall_id",
+        "action",
+        "operator_type",
+        "operator_id",
+        "note",
+        "created_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert"
+      ],
+      "moduleKeys": [
+        "advanced-seat"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "staff_session_permissions",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "staff_id",
+        "staff_email",
+        "session_id",
+        "can_view",
+        "can_checkin",
+        "can_mark_absent",
+        "can_note",
+        "can_mark_refund_flag",
+        "is_active",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert"
+      ],
+      "moduleKeys": [
+        "platform-tenant",
+        "tenant-people"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "staff_action_logs",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "staff_id",
+        "staff_email",
+        "action_type",
+        "target_type",
+        "target_id",
+        "before_data",
+        "after_data",
+        "meta_json",
+        "created_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [
+        "tenant-onsite",
+        "tenant-people"
+      ],
+      "state": "schema_only"
+    },
+    {
+      "name": "finance_audit_logs",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "registration_id",
+        "issue_type",
+        "issue_message",
+        "severity",
+        "status",
+        "checked_by",
+        "resolved_by",
+        "resolved_at",
+        "meta_json",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [
+        "tenant-finance"
+      ],
+      "state": "schema_only"
+    },
+    {
+      "name": "onsite_passcodes",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "code",
+        "assignee_note",
+        "open_from",
+        "open_until",
+        "active",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "tenant-onsite"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "session_bundles",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "name",
+        "session_ids",
+        "bundle_price",
+        "active",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "tenant-operations"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "billing_entities",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "entity_type",
+        "identity_key",
+        "legal_name",
+        "tax_id",
+        "responsible_name",
+        "responsible_phone",
+        "responsible_email",
+        "responsible_id_number",
+        "trial_started_at",
+        "billing_effective_from",
+        "trial_day_limit",
+        "trial_session_limit",
+        "free_session_fee",
+        "paid_rate",
+        "monthly_cap",
+        "is_locked",
+        "locked_at",
+        "locked_reason",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "get"
+      ],
+      "moduleKeys": [
+        "platform-billing"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "billing_entity_tenants",
+      "rlsEnabled": true,
+      "columns": [
+        "tenant_id",
+        "billing_entity_id",
+        "linked_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [
+        "platform-billing"
+      ],
+      "state": "schema_only"
+    },
+    {
+      "name": "billing_session_charges",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "billing_entity_id",
+        "tenant_id",
+        "session_id",
+        "session_name",
+        "session_end_at",
+        "billing_month",
+        "charge_type",
+        "is_trial_exempt",
+        "non_deposit_received",
+        "applied_rate",
+        "base_fee",
+        "raw_platform_fee",
+        "source_snapshot",
+        "calculated_at",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [
+        "platform-billing"
+      ],
+      "state": "schema_only"
+    },
+    {
+      "name": "billing_monthly_statements",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "billing_entity_id",
+        "billing_month",
+        "raw_total",
+        "cap_amount",
+        "cap_discount",
+        "amount_due",
+        "paid_amount",
+        "balance_due",
+        "status",
+        "issued_at",
+        "closed_at",
+        "due_at",
+        "paid_at",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [
+        "platform-billing"
+      ],
+      "state": "schema_only"
+    },
+    {
+      "name": "billing_payments",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "billing_entity_id",
+        "statement_id",
+        "amount",
+        "payment_method",
+        "payment_reference",
+        "status",
+        "note",
+        "confirmed_by",
+        "confirmed_at",
+        "created_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [
+        "platform-billing"
+      ],
+      "state": "schema_only"
+    },
+    {
+      "name": "short_links",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "code",
+        "clicks",
+        "last_click_at",
+        "created_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert"
+      ],
+      "moduleKeys": [],
+      "state": "active"
+    },
+    {
+      "name": "error_logs",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "level",
+        "source",
+        "action",
+        "reg_id",
+        "session_id",
+        "email",
+        "message",
+        "detail",
+        "created_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert"
+      ],
+      "moduleKeys": [],
+      "state": "active"
+    },
+    {
+      "name": "venue_map_templates",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "name",
+        "seat_map_url",
+        "seats_json",
+        "note",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "advanced-seat"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "photo_leads",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "frame_id",
+        "event_id",
+        "session_id",
+        "name",
+        "email",
+        "phone",
+        "first_time",
+        "source",
+        "marketing_consent",
+        "created_at",
+        "activity_id"
+      ],
+      "workerAccess": [
+        "get",
+        "insert"
+      ],
+      "moduleKeys": [
+        "advanced-photo"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "service_items",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "name",
+        "description",
+        "price",
+        "duration_minutes",
+        "capacity",
+        "active",
+        "sort_order",
+        "config_json",
+        "created_at",
+        "updated_at",
+        "operation_unit_id"
+      ],
+      "workerAccess": [
+        "get"
+      ],
+      "moduleKeys": [
+        "tenant-operations"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "resources",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "staff_id",
+        "name",
+        "resource_type",
+        "capacity",
+        "active",
+        "sort_order",
+        "config_json",
+        "created_at",
+        "updated_at",
+        "operation_unit_id"
+      ],
+      "workerAccess": [
+        "get"
+      ],
+      "moduleKeys": [
+        "tenant-operations"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "timeslots",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "service_item_id",
+        "resource_id",
+        "date_key",
+        "label",
+        "start_text",
+        "end_text",
+        "capacity",
+        "reserved_count",
+        "confirmed_count",
+        "status",
+        "config_json",
+        "created_at",
+        "updated_at",
+        "operation_unit_id",
+        "booking_calendar_id"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "tenant-operations"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "translations",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "entity_type",
+        "entity_id",
+        "locale",
+        "field_name",
+        "value",
+        "source",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [],
+      "state": "active"
+    },
+    {
+      "name": "tenant_domains",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "domain",
+        "is_primary",
+        "verified",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [],
+      "state": "schema_only"
+    },
+    {
+      "name": "idempotency_keys",
+      "rlsEnabled": true,
+      "columns": [
+        "tenant_id",
+        "idempotency_key",
+        "action",
+        "actor_key",
+        "response_json",
+        "status",
+        "created_at",
+        "expires_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [],
+      "state": "schema_only"
+    },
+    {
+      "name": "session_stats",
+      "rlsEnabled": true,
+      "columns": [
+        "tenant_id",
+        "session_id",
+        "registration_total",
+        "pending_review",
+        "paid",
+        "unpaid",
+        "payment_pending",
+        "checked_in",
+        "receivable",
+        "received",
+        "refunded",
+        "deposit",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [],
+      "state": "active"
+    },
+    {
+      "name": "finance_ledger",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "registration_id",
+        "session_id",
+        "payment_id",
+        "settlement_id",
+        "entry_type",
+        "amount",
+        "direction",
+        "memo",
+        "meta_json",
+        "created_at",
+        "operation_unit_id"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert"
+      ],
+      "moduleKeys": [
+        "advanced-consignment",
+        "advanced-performance",
+        "tenant-finance"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "payment_allocations",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "payment_id",
+        "registration_id",
+        "session_id",
+        "allocation_type",
+        "amount",
+        "created_at",
+        "operation_unit_id"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert"
+      ],
+      "moduleKeys": [
+        "tenant-finance"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "transfer_settlements",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "source_registration_id",
+        "source_session_id",
+        "target_registration_id",
+        "target_session_id",
+        "source_paid_amount",
+        "target_total_amount",
+        "credit_applied",
+        "balance_due",
+        "refund_due",
+        "refund_paid",
+        "status",
+        "created_at",
+        "settled_at",
+        "operation_unit_id"
+      ],
+      "workerAccess": [
+        "delete",
+        "insert"
+      ],
+      "moduleKeys": [
+        "tenant-finance"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "photo_activities",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "name",
+        "slug",
+        "page_title",
+        "page_content",
+        "hashtag",
+        "reward_text",
+        "frame_mode",
+        "default_frame_id",
+        "scope_type",
+        "scope_event_id",
+        "scope_session_id",
+        "is_unlimited",
+        "start_at",
+        "end_at",
+        "is_active",
+        "note",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "advanced-photo"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "photo_activity_frames",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "activity_id",
+        "name",
+        "frame_url",
+        "sort_order",
+        "is_active",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "advanced-photo"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "operation_units",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "event_id",
+        "session_id",
+        "code",
+        "name",
+        "unit_type",
+        "status",
+        "description",
+        "capacity",
+        "current_count",
+        "fee",
+        "modules_json",
+        "pricing_json",
+        "policy_json",
+        "public_config_json",
+        "sort_order",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "tenant-operations"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "notifications",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "operation_unit_id",
+        "session_id",
+        "registration_id",
+        "member_email",
+        "event_key",
+        "channel",
+        "title",
+        "body",
+        "status",
+        "scheduled_at",
+        "sent_at",
+        "error_message",
+        "meta_json",
+        "created_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert"
+      ],
+      "moduleKeys": [
+        "platform-support",
+        "tenant-registration"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "promotion_rules",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "operation_unit_id",
+        "session_id",
+        "name",
+        "rule_type",
+        "code",
+        "active",
+        "start_at",
+        "end_at",
+        "value_type",
+        "value",
+        "min_amount",
+        "max_discount",
+        "every_n_sessions",
+        "config_json",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [],
+      "state": "active"
+    },
+    {
+      "name": "reward_ledger",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "member_email",
+        "operation_unit_id",
+        "session_id",
+        "registration_id",
+        "entry_type",
+        "amount",
+        "note",
+        "source_rule_id",
+        "created_by",
+        "created_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert"
+      ],
+      "moduleKeys": [
+        "platform-billing"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "platform_settings",
+      "rlsEnabled": true,
+      "columns": [
+        "setting_key",
+        "value_json",
+        "updated_by",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "future-roadmap",
+        "platform-billing",
+        "platform-exposure",
+        "platform-map",
+        "platform-products"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "ai_visual_jobs",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "job_type",
+        "status",
+        "style_preset",
+        "aspect_ratio",
+        "size",
+        "title_snapshot",
+        "date_snapshot",
+        "location_snapshot",
+        "description_snapshot",
+        "prompt_text",
+        "requested_count",
+        "completed_count",
+        "model",
+        "quality",
+        "error_message",
+        "created_by",
+        "created_at",
+        "completed_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [],
+      "state": "active"
+    },
+    {
+      "name": "session_visual_assets",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "session_id",
+        "job_id",
+        "asset_type",
+        "style_preset",
+        "storage_provider",
+        "bucket_name",
+        "storage_path",
+        "public_url",
+        "mime_type",
+        "width",
+        "height",
+        "file_size",
+        "variant_no",
+        "is_selected",
+        "prompt_text",
+        "created_by",
+        "created_at"
+      ],
+      "workerAccess": [
+        "delete",
+        "get",
+        "insert"
+      ],
+      "moduleKeys": [],
+      "state": "active"
+    },
+    {
+      "name": "exposure_plans",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "code",
+        "name",
+        "placement",
+        "duration_days",
+        "price",
+        "display_weight",
+        "sort_order",
+        "is_active",
+        "config_json",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "platform-exposure"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "exposure_orders",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plan_id",
+        "session_id",
+        "placement",
+        "status",
+        "payment_status",
+        "amount",
+        "requested_start_at",
+        "starts_at",
+        "ends_at",
+        "paid_at",
+        "activated_at",
+        "cancelled_at",
+        "created_by_email",
+        "confirmed_by_email",
+        "note",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "platform-exposure"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "support_threads",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "kind",
+        "subject",
+        "status",
+        "priority",
+        "requested_module_key",
+        "metadata_json",
+        "created_by_email",
+        "tenant_unread_count",
+        "platform_unread_count",
+        "last_message_at",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "platform-support"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "support_messages",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "thread_id",
+        "tenant_id",
+        "sender_scope",
+        "sender_email",
+        "body",
+        "created_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert"
+      ],
+      "moduleKeys": [
+        "platform-support"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "booking_calendars",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "operation_unit_id",
+        "name",
+        "color",
+        "status",
+        "owner_staff_id",
+        "sort_order",
+        "config_json",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "tenant-operations"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "platform_members",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "email",
+        "phone",
+        "name",
+        "line_id",
+        "city",
+        "display_name",
+        "avatar_url",
+        "vendor_json",
+        "created_at",
+        "updated_at",
+        "completed_at",
+        "email_verified_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "member-center",
+        "platform-application"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "platform_member_identities",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "member_id",
+        "provider",
+        "provider_subject",
+        "provider_email",
+        "created_at",
+        "last_login_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "member-center",
+        "platform-application"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "construction_projects",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "name",
+        "owner_name",
+        "site_address",
+        "contract_amount",
+        "start_date",
+        "target_date",
+        "status",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [],
+      "state": "schema_only"
+    },
+    {
+      "name": "construction_members",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "project_id",
+        "role",
+        "name",
+        "email",
+        "phone",
+        "trade",
+        "access_token_hash",
+        "is_active",
+        "created_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [],
+      "state": "schema_only"
+    },
+    {
+      "name": "construction_stages",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "project_id",
+        "sort_order",
+        "name",
+        "description",
+        "worker_member_id",
+        "planned_start",
+        "planned_end",
+        "status",
+        "progress",
+        "acceptance_rule",
+        "payment_percent",
+        "submitted_at",
+        "accepted_at",
+        "updated_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [],
+      "state": "schema_only"
+    },
+    {
+      "name": "construction_updates",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "project_id",
+        "stage_id",
+        "kind",
+        "actor_role",
+        "actor_name",
+        "actor_email",
+        "body",
+        "files_json",
+        "result",
+        "visibility",
+        "created_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [],
+      "state": "schema_only"
+    },
+    {
+      "name": "construction_quotes",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "project_id",
+        "version",
+        "title",
+        "items_json",
+        "subtotal",
+        "tax",
+        "total",
+        "status",
+        "owner_signed_name",
+        "owner_signed_at",
+        "created_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [],
+      "state": "schema_only"
+    },
+    {
+      "name": "construction_payments",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "project_id",
+        "stage_id",
+        "direction",
+        "member_id",
+        "title",
+        "amount",
+        "due_date",
+        "status",
+        "paid_amount",
+        "paid_at",
+        "proof_json",
+        "note",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [],
+      "state": "schema_only"
+    },
+    {
+      "name": "construction_expenses",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "project_id",
+        "stage_id",
+        "category",
+        "vendor",
+        "amount",
+        "occurred_on",
+        "note",
+        "proof_json",
+        "created_by",
+        "created_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [],
+      "state": "schema_only"
+    },
+    {
+      "name": "construction_signoffs",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "project_id",
+        "stage_id",
+        "signoff_type",
+        "signer_role",
+        "signer_name",
+        "signature_data",
+        "checklist_json",
+        "note",
+        "signed_at"
+      ],
+      "workerAccess": [],
+      "moduleKeys": [],
+      "state": "schema_only"
+    }
+  ]
+}
