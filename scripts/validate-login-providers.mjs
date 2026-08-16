@@ -30,6 +30,11 @@ assert.match(files.worker,/contact_email:email,phone,phone_normalized:phone/,'�
 assert.match(files.worker,/status=in\.\(line_verification_pending,google_verification_pending\)/,'Google 保留流程必須能接續目前申請草稿');
 assert.match(files.worker,/loginProvider:'google'/,'Google 申請完成後必須連到共用會員');
 assert.match(files.worker,/platform_member_id/,'管理權限未連到共用會員編號');
+assert.match(files.worker,/roles\.push\('platform_admin'\)/,'共用會員資料未回傳平台總管理者身分');
+assert.match(files.worker,/platformAccess:platformStaff/,'會員中心缺少安全綁定後的平台入口資料');
+assert.match(files.member,/進入平台總管理者/,'會員中心缺少平台總管理者入口');
+assert.match(files.member,/同步原本的 Google 帳號完成安全接回/,'會員中心未說明既有平台權限的安全接回方式');
+assert.match(files.platform,/我的 DOING → 帳號設定/,'平台登入頁缺少安全接回指引');
 assert.match(files.schema,/alter table public\.staff[\s\S]*platform_member_id/);
 assert.match(files.schema,/alter table public\.platform_staff[\s\S]*platform_member_id/);
 assert.match(files.schema,/alter table public\.platform_members[\s\S]*contact_email[\s\S]*phone_normalized/);

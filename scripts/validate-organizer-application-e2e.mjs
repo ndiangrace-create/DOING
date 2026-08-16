@@ -251,12 +251,16 @@ try{
   const platformLineCallback=await request('/auth/line/callback?code=mock-code&state='+encodeURIComponent(platformLineStartUrl.searchParams.get('state'))),platformLineReturn=new URL(platformLineCallback.headers.get('location'));
   assert.equal(platformLineReturn.pathname,'/platform.html');assert.ok(platformLineReturn.searchParams.get('admin_token'),'既有平台管理者 LINE 登入未取得管理權');
   assert.ok(tables.platform_staff.find(x=>x.id==='PST_LEGACY_PLATFORM').platform_member_id,'既有平台管理者未綁定共用會員');
+  const platformMemberStart=await request('/auth/line/start?return_url='+encodeURIComponent('https://site.test/member.html')),platformMemberStartUrl=new URL(platformMemberStart.headers.get('location'));lineNonce=platformMemberStartUrl.searchParams.get('nonce');
+  const platformMemberCallback=await request('/auth/line/callback?code=mock-code&state='+encodeURIComponent(platformMemberStartUrl.searchParams.get('state'))),platformMemberToken=new URL(platformMemberCallback.headers.get('location')).searchParams.get('member_token');
+  const platformMemberProfile=await (await request('/?action=getPlatformMemberProfile&member_token='+encodeURIComponent(platformMemberToken))).json();
+  assert.ok(platformMemberProfile.roles.includes('platform_admin'),'會員中心未顯示平台總管理者身分');assert.equal(platformMemberProfile.platformAccess.role,'platform_super_admin');
 
   await Promise.all(jobs);
   assert.ok(emailCalls>=2,'申請送出與審核通過通知信未完整觸發');
   console.log(JSON.stringify({
     result:'PASS',applicationId:draft.applicationId,tenantId,
-    stages:['問卷草稿','模擬 LINE 驗證','LINE 未提供 Email 仍完成申請','平台核准','建立租戶','建立負責人','無 Email LINE 身分登入主辦後台','LINE 進入主辦後台','LINE／Google 共用會員','Google 以共用會員進入主辦後台','合併舊重複會員與關聯資料','手填 Email 與驗證 Email 分流','不同 Email 的 Google 仍可登入','同電話暫停重複建檔但不擋登入','使用者明確同步 LINE／Google','不同 Email 的舊主辦權限移到共用會員','4 個既有主辦以 LINE 接回管理權','既有平台管理者以 LINE 接回管理權','寫入模組','建立核准場次','阻擋未核准模組'],
+    stages:['問卷草稿','模擬 LINE 驗證','LINE 未提供 Email 仍完成申請','平台核准','建立租戶','建立負責人','無 Email LINE 身分登入主辦後台','LINE 進入主辦後台','LINE／Google 共用會員','Google 以共用會員進入主辦後台','合併舊重複會員與關聯資料','手填 Email 與驗證 Email 分流','不同 Email 的 Google 仍可登入','同電話暫停重複建檔但不擋登入','使用者明確同步 LINE／Google','不同 Email 的舊主辦權限移到共用會員','4 個既有主辦以 LINE 接回管理權','既有平台管理者以 LINE 接回管理權','會員中心顯示平台總管理者入口','寫入模組','建立核准場次','阻擋未核准模組'],
     legacyOwnersBound:legacyOwnerResults.length,legacyPlatformAdminBound:true,
     approvedModules:Object.entries(approvedFlags).filter(([,v])=>v).map(([k])=>k),
     platformDisabled:['invoice','resource','i18n'],emailNotifications:emailCalls,productionWrites:0
