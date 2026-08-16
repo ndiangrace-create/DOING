@@ -18,4 +18,9 @@ for(const token of ['body.doing-app.doing-platform .metrics','grid-template-colu
 }
 const member=fs.readFileSync(root+'/member.html','utf8');
 if(!member.includes('overview-secondary')||!member.includes('最近進度｜'))fail('會員總覽尚未改為手機摘要模式');
-console.log('響應式框架驗證完成：'+pages.length+' 個正式頁面，手機／電腦共用契約有效。');
+const homeCss=fs.readFileSync(root+'/doing-home-refresh.css','utf8');
+for(const token of ['body.doing-app #doingGlobalFixedNav .doing-nav-brand{border:0!important','body.doing-app #doingGlobalFixedNav .doing-nav-member','width:auto!important','min-width:148px!important','white-space:nowrap!important','overflow-wrap:normal!important','word-break:keep-all!important','@media(min-width:821px) and (max-width:980px)']){
+  if(!homeCss.includes(token))fail('首頁會員按鈕響應式契約缺少：'+token);
+}
+if(homeCss.includes('.doing-nav-actions .doing-nav-action,.doing-nav-member{width:118px'))fail('會員名稱不可再被固定為 118px');
+console.log('響應式框架驗證完成：'+pages.length+' 個正式頁面，手機／電腦共用契約與登入後會員按鈕有效。');
