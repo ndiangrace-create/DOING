@@ -2816,8 +2816,8 @@ async function hSavePromotionRule(env,b){
   return jsonOk({ok:true,id});
 }
 async function hDeletePromotionRule(env,b){const T=b._tenantId,id=String(b.id||'');const rows=await dbGet(env,'promotion_rules',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=session_id`).catch(()=>[]);if(!rows.length)return jsonErr('找不到優惠');if(!await verifyStaff(env,b.email,b.token,T,'sessions',String(rows[0].session_id||'')))return jsonErr('無權限');await dbDelete(env,'promotion_rules',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}`);return jsonOk({ok:true})}
-async function hGetMyRewards(env,p){const T=p._tenantId,verified=await verifiedPlatformMember(env,p&&(p.member_token||p.memberToken||p.token));if(!verified||!platformMemberComplete(verified.row))return jsonErr('會員登入已失效，請重新使用 LINE 登入');const email=normEmail(verified.row.email);const rows=await dbGet(env,'reward_ledger',`tenant_id=eq.${encodeURIComponent(T)}&member_email=ilike.${encodeURIComponent(email)}&select=*&order=created_at.desc&limit=100`).catch(()=>[]);return jsonOk({balance:await rewardBalance(env,T,email),rows})}
-async function hGetMyNotifications(env,p){const T=p._tenantId,verified=await verifiedPlatformMember(env,p&&(p.member_token||p.memberToken||p.token));if(!verified||!platformMemberComplete(verified.row))return jsonErr('會員登入已失效，請重新使用 LINE 登入');const email=normEmail(verified.row.email);return jsonOk(await dbGet(env,'notifications',`tenant_id=eq.${encodeURIComponent(T)}&member_email=ilike.${encodeURIComponent(email)}&select=*&order=created_at.desc&limit=100`).catch(()=>[]))}
+async function hGetMyRewards(env,p){const T=p._tenantId,verified=await verifiedPlatformMember(env,p&&(p.member_token||p.memberToken||p.token));if(!verified||!platformMemberComplete(verified.row))return jsonErr('會員登入已失效，請重新使用 LINE 登入');const email=platformContactEmail(verified.row);const rows=await dbGet(env,'reward_ledger',`tenant_id=eq.${encodeURIComponent(T)}&member_email=ilike.${encodeURIComponent(email)}&select=*&order=created_at.desc&limit=100`).catch(()=>[]);return jsonOk({balance:await rewardBalance(env,T,email),rows})}
+async function hGetMyNotifications(env,p){const T=p._tenantId,verified=await verifiedPlatformMember(env,p&&(p.member_token||p.memberToken||p.token));if(!verified||!platformMemberComplete(verified.row))return jsonErr('會員登入已失效，請重新使用 LINE 登入');const email=platformContactEmail(verified.row);return jsonOk(await dbGet(env,'notifications',`tenant_id=eq.${encodeURIComponent(T)}&member_email=ilike.${encodeURIComponent(email)}&select=*&order=created_at.desc&limit=100`).catch(()=>[]))}
 async function hGetNotificationsAdmin(env,p){const T=p._tenantId,sid=String(p.sessionId||'');if(!await verifyStaff(env,p.email,p.token,T,'announce',sid||undefined)&&!await verifyStaff(env,p.email,p.token,T,'sessions',sid||undefined))return jsonErr('無權限');let q=`tenant_id=eq.${encodeURIComponent(T)}&select=*&order=created_at.desc&limit=200`;if(sid)q=`tenant_id=eq.${encodeURIComponent(T)}&session_id=eq.${encodeURIComponent(sid)}&select=*&order=created_at.desc&limit=200`;return jsonOk(await dbGet(env,'notifications',q).catch(()=>[]))}
 
 async function getPlatformSetting(env,key,fallback={}){const rows=await dbGet(env,'platform_settings',`setting_key=eq.${encodeURIComponent(key)}&select=value_json`).catch(()=>[]);return rows.length?safeJson(rows[0].value_json,fallback):fallback}
@@ -3171,11 +3171,31 @@ async function hGetPlatformMemberProfile(env,p){
   const verified=await verifiedPlatformMember(env,p.member_token||p.token);
   if(!verified)return jsonErr('會員登入已失效，請重新登入');
   const v=safeJson(verified.row.vendor_json,{});
-  const email=normEmail(verified.row.email),memberId=String(verified.row.id||'');
-  const applications=email?await dbGet(env,'tenant_apply_logs',`contact_email=ilike.${encodeURIComponent(email)}&select=id,brand_name,status,created_at,approved_at,supplement_requested_at,supplement_submitted_at,rejected_at,tenant_id,application_json&order=created_at.desc&limit=20`).catch(()=>[]):[];
-  const workspaces=email?await findAdminWorkspacesByEmail(env,email):[];
+  const email=platformContactEmail(verified.row),memberId=String(verified.row.id||'');
+  const applicationRows=await dbGet(env,'tenant_apply_logs','select=id,brand_name,contact_email,status,created_at,approved_at,supplement_requested_at,supplement_submitted_at,rejected_at,tenant_id,application_json&order=created_at.desc&limit=500').catch(()=>[]);
+  const applications=applicationRows.filter(x=>String(safeJson(x.application_json,{}).memberId||'')===memberId||(!safeJson(x.application_json,{}).memberId&&email&&normEmail(x.contact_email)===email)).slice(0,20);
+  const workspaces=await findAdminWorkspacesByMemberId(env,memberId);
+  const identities=await dbGet(env,'platform_member_identities',`member_id=eq.${encodeURIComponent(memberId)}&select=provider,provider_email,last_login_at&order=last_login_at.desc`).catch(()=>[]);
   const roles=['participant'];if(v.brandName)roles.push('vendor');if(applications.length)roles.push('organizer_applicant');if(workspaces.length)roles.push('organizer');
-  return jsonOk({profile:{id:memberId,email:verified.row.email||'',name:verified.row.name||verified.row.display_name||'',phone:verified.row.phone||'',lineId:verified.row.line_id||'',city:verified.row.city||'',brand:v.brandName||'',brand_name:v.brandName||'',brandIntro:v.brandIntro||'',sellCat:v.category||'',sellItem:v.items||'',fb:v.facebook||'',ig:v.instagram||'',photo:v.photoUrl||'',company:v.company||'',taxId:v.taxId||''},complete:platformMemberComplete(verified.row),provider:verified.row._identity?.provider||'',roles,applications:applications.map(x=>{const a=safeJson(x.application_json,{});return{id:x.id,unitName:a.unitName||x.brand_name||'',industryCategories:Array.isArray(a.industryCategories)?a.industryCategories:[],useCases:Array.isArray(a.useCases)?a.useCases:[],status:x.status||'pending',createdAt:x.created_at||'',approvedAt:x.approved_at||a.approvedAt||'',supplementRequestedAt:x.supplement_requested_at||a.supplementRequestedAt||'',supplementSubmittedAt:x.supplement_submitted_at||a.supplementSubmittedAt||'',rejectedAt:x.rejected_at||a.rejectedAt||'',tenantId:x.tenant_id||'',timeline:Array.isArray(a.timeline)?a.timeline:[]}}),workspaces:workspaces.map(x=>({id:x.tenant_id||x.id,name:x.name||x.tenant_id||x.id,role:x.role||'',isLocked:!!x.is_locked,lockedReason:x.locked_reason||''}))});
+  return jsonOk({profile:{id:memberId,email,name:verified.row.name||verified.row.display_name||'',phone:verified.row.phone||'',lineId:verified.row.line_id||'',city:verified.row.city||'',brand:v.brandName||'',brand_name:v.brandName||'',brandIntro:v.brandIntro||'',sellCat:v.category||'',sellItem:v.items||'',fb:v.facebook||'',ig:v.instagram||'',photo:v.photoUrl||'',company:v.company||'',taxId:v.taxId||''},complete:platformMemberComplete(verified.row),provider:verified.row._identity?.provider||'',linkedProviders:[...new Set(identities.map(x=>String(x.provider||'')).filter(Boolean))],roles,applications:applications.map(x=>{const a=safeJson(x.application_json,{});return{id:x.id,unitName:a.unitName||x.brand_name||'',industryCategories:Array.isArray(a.industryCategories)?a.industryCategories:[],useCases:Array.isArray(a.useCases)?a.useCases:[],status:x.status||'pending',createdAt:x.created_at||'',approvedAt:x.approved_at||a.approvedAt||'',supplementRequestedAt:x.supplement_requested_at||a.supplementRequestedAt||'',supplementSubmittedAt:x.supplement_submitted_at||a.supplementSubmittedAt||'',rejectedAt:x.rejected_at||a.rejectedAt||'',tenantId:x.tenant_id||'',timeline:Array.isArray(a.timeline)?a.timeline:[]}}),workspaces:workspaces.map(x=>({id:x.tenant_id||x.id,name:x.name||x.tenant_id||x.id,role:x.role||'',isLocked:!!x.is_locked,lockedReason:x.locked_reason||''}))});
+}
+
+function platformContactEmail(row){return normEmail(row&&(row.contact_email||row.email))}
+
+async function platformIdentityCollision(env,memberId,contactEmail,phone){
+  const id=String(memberId||''),email=normEmail(contactEmail),normalizedPhone=normPhone(phone);
+  const [members,identities]=await Promise.all([
+    dbGet(env,'platform_members','select=id,email,contact_email,phone,phone_normalized,name,completed_at,email_verified_at&limit=1000').catch(()=>[]),
+    email?dbGet(env,'platform_member_identities',`provider_email=ilike.${encodeURIComponent(email)}&select=member_id,provider`).catch(()=>[]):Promise.resolve([])
+  ]);
+  const verifiedEmailMemberIds=new Set(identities.map(x=>String(x.member_id||'')));
+  const matches=members.filter(row=>{
+    if(String(row.id||'')===id)return false;
+    const emailHit=!!email&&(normEmail(row.email)===email||normEmail(row.contact_email)===email||verifiedEmailMemberIds.has(String(row.id||'')));
+    const phoneHit=!!normalizedPhone&&normPhone(row.phone_normalized||row.phone)===normalizedPhone&&!!(row.completed_at||row.name);
+    return emailHit||phoneHit;
+  });
+  return {found:matches.length>0,emailMatch:matches.some(row=>normEmail(row.email)===email||normEmail(row.contact_email)===email||verifiedEmailMemberIds.has(String(row.id||''))),phoneMatch:matches.some(row=>normalizedPhone&&normPhone(row.phone_normalized||row.phone)===normalizedPhone)};
 }
 
 async function hSavePlatformMemberProfile(env,b){
@@ -3185,14 +3205,14 @@ async function hSavePlatformMemberProfile(env,b){
   if(!name||!email||!phone)return jsonErr('姓名、Email 與手機為必填');
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return jsonErr('Email 格式不正確');
   if(phone.length<9)return jsonErr('手機格式不正確');
-  const duplicate=await dbGet(env,'platform_members',`email=ilike.${encodeURIComponent(email)}&id=neq.${encodeURIComponent(verified.row.id)}&select=id`).catch(()=>[]);
-  if(duplicate.length)return jsonErr('此 Email 已連結另一個會員，請先使用原登入方式登入後再綁定');
+  const collision=await platformIdentityCollision(env,verified.row.id,email,phone);
+  if(collision.found)return jsonErr('登入已成功，但這組聯絡 Email 或手機可能屬於既有 DOING 帳號。為避免建立重複資料，請先連結原 LINE／Google 帳號；無法使用舊登入時請聯絡平台協助。');
   const vendor=b.vendor&&typeof b.vendor==='object'?b.vendor:{};
   const allowedVendorCategories=['餐飲美食','手作設計','文創選物','服飾配件','生活用品','親子兒童','寵物相關','收藏娛樂','美業服務','體驗／服務','其他'];
   const vendorCategory=String(vendor.category||'').trim();
   if(vendorCategory&&!allowedVendorCategories.includes(vendorCategory))return jsonErr('請重新選擇正式品牌類別');
   const vendorJson={brandName:String(vendor.brandName||'').trim(),brandIntro:String(vendor.brandIntro||'').trim(),category:vendorCategory,items:String(vendor.items||'').trim(),facebook:String(vendor.facebook||'').trim(),instagram:String(vendor.instagram||'').trim(),photoUrl:String(vendor.photoUrl||'').trim(),company:String(vendor.company||'').trim(),taxId:String(vendor.taxId||'').trim()};
-  const update={email,phone,name,line_id:String(b.lineId||'').trim(),city:String(b.city||'').trim(),vendor_json:vendorJson,completed_at:nowIso(),updated_at:nowIso()};
+  const update={contact_email:email,phone,phone_normalized:phone,name,line_id:String(b.lineId||'').trim(),city:String(b.city||'').trim(),vendor_json:vendorJson,completed_at:nowIso(),updated_at:nowIso()};
   await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(verified.row.id)}`,update);
   let applicationId='';
   const sys=b.systemApplication&&typeof b.systemApplication==='object'?b.systemApplication:null;
@@ -3878,7 +3898,7 @@ function lineRedirectUri(env, requestUrl) {
 
 async function issueLineOAuthState(env, extra={}) {
   const now=Date.now();
-  return signAdminJwt({iss:'DOING',type:'line_oauth_state',mode:String(extra.mode||'').slice(0,40),tenant:String(extra.tenant||'').trim().toLowerCase().slice(0,120),application_id:String(extra.application_id||'').slice(0,120),return_url:String(extra.return_url||'').slice(0,1800),nonce:String(extra.nonce||'').slice(0,120),issued_at:now,expires_at:now+10*60*1000},env);
+  return signAdminJwt({iss:'DOING',type:'line_oauth_state',mode:String(extra.mode||'').slice(0,40),tenant:String(extra.tenant||'').trim().toLowerCase().slice(0,120),application_id:String(extra.application_id||'').slice(0,120),return_url:String(extra.return_url||'').slice(0,1800),link_member_id:String(extra.link_member_id||'').slice(0,120),nonce:String(extra.nonce||'').slice(0,120),issued_at:now,expires_at:now+10*60*1000},env);
 }
 
 async function verifyLineOAuthState(env, token) {
@@ -3898,15 +3918,46 @@ async function getPlatformMemberByProvider(env, provider, subject) {
   return rows[0]?{...rows[0],_identity:ids[0]}:null;
 }
 
-function platformMemberComplete(row){return !!(row&&normEmail(row.email)&&normPhone(row.phone)&&String(row.name||'').trim()&&row.completed_at)}
+async function getPlatformMemberById(env,id){
+  const rows=await dbGet(env,'platform_members',`id=eq.${encodeURIComponent(String(id||''))}&select=*`).catch(()=>[]);
+  return rows[0]||null;
+}
+
+async function issueIdentityLinkStart(env,memberId,provider,returnUrl){
+  const now=Date.now();
+  return signAdminJwt({iss:'DOING',type:'identity_link_start',member_id:String(memberId||''),provider:String(provider||''),return_url:String(returnUrl||'').slice(0,1800),issued_at:now,expires_at:now+10*60*1000},env);
+}
+
+async function hCreateIdentityLink(env,b,req){
+  const verified=await verifiedPlatformMember(env,b.member_token||b.memberToken||b.token);
+  if(!verified)return jsonErr('會員登入已失效，請重新使用 LINE 登入');
+  const provider=String(b.provider||'').trim().toLowerCase();
+  if(!['line','google'].includes(provider))return jsonErr('不支援的登入方式');
+  const already=await dbGet(env,'platform_member_identities',`member_id=eq.${encodeURIComponent(verified.row.id)}&provider=eq.${encodeURIComponent(provider)}&select=id`).catch(()=>[]);
+  if(already.length)return jsonOk({ok:true,alreadyLinked:true,provider});
+  const returnUrl=safeDoingReturnUrl(env,b.return_url||b.returnUrl||doingPageUrl(env,'member.html')).toString();
+  const linkToken=await issueIdentityLinkStart(env,verified.row.id,provider,returnUrl);
+  const start=new URL(`/auth/${provider}/start`,new URL(req&&req.url||doingSiteUrl(env)).origin);start.searchParams.set('mode','link');start.searchParams.set('link_token',linkToken);start.searchParams.set('return_url',returnUrl);
+  return jsonOk({ok:true,provider,url:start.toString()});
+}
+
+async function verifyIdentityLinkStart(env,token,provider){
+  const payload=await verifyAdminJwt(String(token||''),env).catch(()=>null);
+  if(!payload||payload.iss!=='DOING'||payload.type!=='identity_link_start'||payload.provider!==provider||!payload.member_id)return null;
+  return payload;
+}
+
+function platformMemberComplete(row){return !!(row&&platformContactEmail(row)&&normPhone(row.phone)&&String(row.name||'').trim()&&row.completed_at)}
 
 function platformMemberMergeScore(row){const vendor=safeJson(row&&row.vendor_json,{});return (row&&row.completed_at?8:0)+(row&&row.name?4:0)+(row&&row.phone?2:0)+(vendor&&vendor.brandName?2:0)+(row&&row.email_verified_at?1:0)}
 
-async function mergeVerifiedPlatformMembers(env,left,right,verifiedEmail){
+async function mergeVerifiedPlatformMembers(env,left,right,verifiedEmail,preferredMemberId=''){
   if(!left||!right||String(left.id)===String(right.id))return left||right;
-  const pair=[left,right].sort((a,b)=>platformMemberMergeScore(b)-platformMemberMergeScore(a)||String(a.created_at||'').localeCompare(String(b.created_at||''))),target=pair[0],source=pair[1],now=nowIso();
+  const preferred=[left,right].find(row=>String(row.id)===String(preferredMemberId||''));
+  const pair=preferred?[preferred,[left,right].find(row=>String(row.id)!==String(preferred.id))]:[left,right].sort((a,b)=>platformMemberMergeScore(b)-platformMemberMergeScore(a)||String(a.created_at||'').localeCompare(String(b.created_at||''))),target=pair[0],source=pair[1],now=nowIso();
   const targetVendor=safeJson(target.vendor_json,{}),sourceVendor=safeJson(source.vendor_json,{}),mergedVendor={...sourceVendor,...Object.fromEntries(Object.entries(targetVendor).filter(([,value])=>value!==''&&value!==null&&value!==undefined))};
-  await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(target.id)}`,{email:verifiedEmail,email_verified_at:target.email_verified_at||source.email_verified_at||now,phone:target.phone||source.phone||null,name:target.name||source.name||null,line_id:target.line_id||source.line_id||null,city:target.city||source.city||null,display_name:target.display_name||source.display_name||'',avatar_url:target.avatar_url||source.avatar_url||'',vendor_json:mergedVendor,completed_at:target.completed_at||source.completed_at||null,updated_at:now});
+  const primaryEmail=normEmail(target.email)||normEmail(source.email)||normEmail(verifiedEmail),contactEmail=platformContactEmail(target)||platformContactEmail(source)||primaryEmail,phone=normPhone(target.phone||source.phone);
+  await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(target.id)}`,{email:primaryEmail||null,contact_email:contactEmail||null,email_verified_at:target.email_verified_at||source.email_verified_at||now,phone:phone||null,phone_normalized:phone||null,name:target.name||source.name||null,line_id:target.line_id||source.line_id||null,city:target.city||source.city||null,display_name:target.display_name||source.display_name||'',avatar_url:target.avatar_url||source.avatar_url||'',vendor_json:mergedVendor,completed_at:target.completed_at||source.completed_at||null,updated_at:now});
   const identities=await dbGet(env,'platform_member_identities',`member_id=eq.${encodeURIComponent(source.id)}&select=*`).catch(()=>[]);
   for(const identity of identities)await dbUpdate(env,'platform_member_identities',`id=eq.${encodeURIComponent(identity.id)}`,{member_id:target.id,provider_email:identity.provider_email||verifiedEmail}).catch(()=>{});
   await dbUpdate(env,'registrations',`platform_member_id=eq.${encodeURIComponent(source.id)}`,{platform_member_id:target.id}).catch(()=>{});
@@ -3916,27 +3967,29 @@ async function mergeVerifiedPlatformMembers(env,left,right,verifiedEmail){
   for(const application of applications){const data=safeJson(application.application_json,{});if(String(data.memberId||'')===String(source.id))await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(application.id)}`,{application_json:{...data,memberId:target.id,identityMergedAt:now}}).catch(()=>{})}
   await dbDelete(env,'platform_members',`id=eq.${encodeURIComponent(source.id)}`).catch(()=>{});
   const identity=await dbGet(env,'platform_member_identities',`member_id=eq.${encodeURIComponent(target.id)}&select=*&order=last_login_at.desc&limit=1`).catch(()=>[]);
-  return {...target,email:verifiedEmail,email_verified_at:target.email_verified_at||source.email_verified_at||now,phone:target.phone||source.phone||null,name:target.name||source.name||null,line_id:target.line_id||source.line_id||null,city:target.city||source.city||null,display_name:target.display_name||source.display_name||'',avatar_url:target.avatar_url||source.avatar_url||'',vendor_json:mergedVendor,completed_at:target.completed_at||source.completed_at||null,_identity:identity[0]||target._identity};
+  return {...target,email:primaryEmail||null,contact_email:contactEmail||null,email_verified_at:target.email_verified_at||source.email_verified_at||now,phone:phone||null,phone_normalized:phone||null,name:target.name||source.name||null,line_id:target.line_id||source.line_id||null,city:target.city||source.city||null,display_name:target.display_name||source.display_name||'',avatar_url:target.avatar_url||source.avatar_url||'',vendor_json:mergedVendor,completed_at:target.completed_at||source.completed_at||null,_identity:identity[0]||target._identity};
 }
 
-async function upsertPlatformIdentity(env,{provider,subject,email='',displayName='',avatarUrl=''}){
+async function upsertPlatformIdentity(env,{provider,subject,email='',displayName='',avatarUrl='',preferredMemberId=''}){
   const now=nowIso();
   const normalizedEmail=normEmail(email);
   let member=await getPlatformMemberByProvider(env,provider,subject);
-  if(member){if(normalizedEmail){const matches=await dbGet(env,'platform_members',`email=ilike.${encodeURIComponent(normalizedEmail)}&id=neq.${encodeURIComponent(member.id)}&email_verified_at=not.is.null&select=*&order=created_at.asc`).catch(()=>[]);if(matches[0]){await mergeVerifiedPlatformMembers(env,member,matches[0],normalizedEmail);member=await getPlatformMemberByProvider(env,provider,subject)}}const update={display_name:displayName||member.display_name||'',avatar_url:avatarUrl||member.avatar_url||'',updated_at:now};if(normalizedEmail){update.email=normalizedEmail;update.email_verified_at=now}await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(member.id)}`,update).catch(()=>{});if(member._identity)await dbUpdate(env,'platform_member_identities',`id=eq.${encodeURIComponent(member._identity.id)}`,{provider_email:normalizedEmail||member._identity.provider_email||null,last_login_at:now}).catch(()=>{});return {...member,...update}}
+  if(member){if(normalizedEmail){const matches=await dbGet(env,'platform_members',`email=ilike.${encodeURIComponent(normalizedEmail)}&id=neq.${encodeURIComponent(member.id)}&email_verified_at=not.is.null&select=*&order=created_at.asc`).catch(()=>[]);if(matches[0]){await mergeVerifiedPlatformMembers(env,member,matches[0],normalizedEmail,preferredMemberId);member=await getPlatformMemberByProvider(env,provider,subject)}}const update={display_name:displayName||member.display_name||'',avatar_url:avatarUrl||member.avatar_url||'',updated_at:now};if(normalizedEmail&&!normEmail(member.email)){update.email=normalizedEmail;update.email_verified_at=now}await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(member.id)}`,update).catch(()=>{});if(member._identity)await dbUpdate(env,'platform_member_identities',`id=eq.${encodeURIComponent(member._identity.id)}`,{provider_email:normalizedEmail||member._identity.provider_email||null,last_login_at:now}).catch(()=>{});return {...member,...update}}
   if(normalizedEmail){
     const byEmail=await dbGet(env,'platform_members',`email=ilike.${encodeURIComponent(normalizedEmail)}&select=*`).catch(()=>[]);
     if(byEmail[0]){member=byEmail[0];if(!member.email_verified_at)throw new Error('email_link_requires_existing_login');await dbInsert(env,'platform_member_identities',{id:genId('MID'),member_id:member.id,provider,provider_subject:subject,provider_email:normalizedEmail,created_at:now,last_login_at:now});await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(member.id)}`,{display_name:displayName||member.display_name||'',avatar_url:avatarUrl||member.avatar_url||'',updated_at:now});return member}
   }
-  const row={id:genId('MEM'),email:normalizedEmail||null,phone:null,name:null,line_id:null,city:null,display_name:displayName,avatar_url:avatarUrl,vendor_json:{},created_at:now,updated_at:now,completed_at:null,email_verified_at:normalizedEmail?now:null};
+  const row={id:genId('MEM'),email:normalizedEmail||null,contact_email:normalizedEmail||null,phone:null,phone_normalized:null,name:null,line_id:null,city:null,display_name:displayName,avatar_url:avatarUrl,vendor_json:{},created_at:now,updated_at:now,completed_at:null,email_verified_at:normalizedEmail?now:null};
   await dbInsert(env,'platform_members',row);await dbInsert(env,'platform_member_identities',{id:genId('MID'),member_id:row.id,provider,provider_subject:subject,provider_email:normalizedEmail||null,created_at:now,last_login_at:now});return row;
 }
 
 async function hLineStart(env,url){
   if(!env.LINE_LOGIN_CHANNEL_ID)return new Response('LINE Login 尚未設定 Channel ID',{status:500});
   const mode=String(url.searchParams.get('mode')||'member').trim().toLowerCase(),tenant=String(url.searchParams.get('tenant')||'').trim().toLowerCase(),nonce=crypto.randomUUID();
+  const link=mode==='link'?await verifyIdentityLinkStart(env,url.searchParams.get('link_token'),'line'):null;
+  if(mode==='link'&&!link)return new Response('帳號連結已失效，請回會員中心重新操作',{status:400});
   const fallback=mode==='platform'||tenant==='platform'?platformSiteUrl(env):mode==='organizer_signup'?doingSiteUrl(env)+'#apply':doingSiteUrl(env);
-  const state=await issueLineOAuthState(env,{mode,tenant,application_id:url.searchParams.get('application_id')||'',return_url:url.searchParams.get('return_url')||fallback,nonce});
+  const state=await issueLineOAuthState(env,{mode,tenant,application_id:url.searchParams.get('application_id')||'',return_url:link?.return_url||url.searchParams.get('return_url')||fallback,link_member_id:link?.member_id||'',nonce});
   const scope='openid profile email';
   const params=new URLSearchParams({response_type:'code',client_id:env.LINE_LOGIN_CHANNEL_ID,redirect_uri:lineRedirectUri(env,url),state,scope,nonce,bot_prompt:'normal'});
   return Response.redirect(`https://access.line.me/oauth2/v2.1/authorize?${params}`,302);
@@ -3947,7 +4000,7 @@ async function hLineCallback(env,url){
   const mode=String(statePayload&&statePayload.mode||'member').trim().toLowerCase(),tenant=String(statePayload&&statePayload.tenant||'').trim().toLowerCase();
   const memberTarget=safeDoingReturnUrl(env,statePayload&&statePayload.return_url),applicationTarget=new URL(doingSiteUrl(env)),adminTarget=new URL(adminLoginSiteUrl(env)),platformTarget=new URL(platformSiteUrl(env));applicationTarget.hash='apply';
   const target=mode==='organizer_signup'?applicationTarget:mode==='platform'||tenant==='platform'?platformTarget:mode==='admin'||tenant?adminTarget:memberTarget;
-  const fail=reason=>{target.searchParams.set(mode==='member'?'member_login_error':'login_error',reason);return Response.redirect(target.toString(),302)};
+  const fail=reason=>{target.searchParams.set(['member','link'].includes(mode)?'member_login_error':'login_error',reason);return Response.redirect(target.toString(),302)};
   if(!statePayload)return fail('invalid_or_expired_state');
   if(url.searchParams.get('error'))return fail('line_cancelled');
   const code=url.searchParams.get('code');
@@ -3958,7 +4011,14 @@ async function hLineCallback(env,url){
     const verifyHttp=await fetch('https://api.line.me/oauth2/v2.1/verify',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({id_token:String(tokens.id_token),client_id:String(env.LINE_LOGIN_CHANNEL_ID)})});
     const profile=await verifyHttp.json();if(!verifyHttp.ok||String(profile.aud)!==String(env.LINE_LOGIN_CHANNEL_ID)||!profile.sub||String(profile.nonce||'')!==String(statePayload.nonce||''))throw new Error('id_token_verify_failed');
     const verifiedEmail=normEmail(profile.email||''),lineSubject=String(profile.sub),lineName=String(profile.name||''),lineAvatar=String(profile.picture||'');if(!verifiedEmail)return fail('line_email_permission_required');
-    const member=await upsertPlatformIdentity(env,{provider:'line',subject:lineSubject,email:verifiedEmail,displayName:lineName,avatarUrl:lineAvatar});
+    let member=await upsertPlatformIdentity(env,{provider:'line',subject:lineSubject,email:verifiedEmail,displayName:lineName,avatarUrl:lineAvatar,preferredMemberId:mode==='link'?statePayload.link_member_id:''});
+
+    if(mode==='link'){
+      const original=await getPlatformMemberById(env,statePayload.link_member_id);if(!original)return fail('identity_link_target_not_found');
+      member=await mergeVerifiedPlatformMembers(env,original,member,verifiedEmail,original.id);
+      const memberToken=await issueMemberToken({email:member.email,provider:'line',provider_subject:lineSubject,display_name:lineName,avatar_url:lineAvatar},env);
+      memberTarget.searchParams.set('member_token',memberToken);memberTarget.searchParams.set('member_status',platformMemberComplete(member)?'ready':'profile_required');memberTarget.searchParams.set('member_linked','line');return Response.redirect(memberTarget.toString(),302);
+    }
 
     if(mode==='organizer_signup'){
       const applicationId=String(statePayload.application_id||'').trim();if(!applicationId)return fail('signup_missing_profile');
@@ -3966,6 +4026,8 @@ async function hLineCallback(env,url){
       if(!draft)return fail('signup_draft_not_found');
       const appPayload=safeJson(draft.application_json,{}),brand=String(appPayload.unitName||draft.brand_name||'').trim(),contact=String(appPayload.ownerName||appPayload.contactName||draft.contact_name||lineName||'').trim(),phone=String(appPayload.phone||draft.contact_phone||'').trim(),contactEmail=normEmail(appPayload.contactEmail||draft.contact_email||verifiedEmail);
       if(!brand||!contact||!phone||!contactEmail)return fail('signup_missing_profile');
+      const collision=await platformIdentityCollision(env,member.id,contactEmail,phone);
+      if(collision.found){const memberToken=await issueMemberToken({email:member.email,provider:'line',provider_subject:lineSubject,display_name:lineName,avatar_url:lineAvatar},env);await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{note:'登入成功；偵測到既有帳號，申請保留草稿等待連結帳號',application_json:{...appPayload,memberId:member.id,loginProvider:'line',identityResolutionRequired:true}}).catch(()=>{});applicationTarget.searchParams.set('member_token',memberToken);applicationTarget.searchParams.set('member_status',platformMemberComplete(member)?'ready':'profile_required');applicationTarget.searchParams.set('member_login_error','identity_resolution_required');applicationTarget.searchParams.set('application_status','identity_resolution_required');applicationTarget.searchParams.set('application_id',applicationId);return Response.redirect(applicationTarget.toString(),302)}
       const signupProfile=appPayload.moduleProfile||{},signupDefaults=normalizeSessionModules(signupProfile&&signupProfile.defaults?signupProfile.defaults:{}),profileConfig={configured:true,useType:String(signupProfile.useType||'generic'),useCases:Array.isArray(signupProfile.useCases)?signupProfile.useCases.map(String).slice(0,12):[],defaults:signupDefaults,updatedAt:nowIso()};
       const submittedAt=nowIso(),applicationJson={...appPayload,ownerName:contact,contactName:contact,billingName:contact,moduleProfile:profileConfig,memberId:member.id,loginProvider:'line',lineSubject,lineDisplayName:lineName,submittedAt,timeline:[...(Array.isArray(appPayload.timeline)?appPayload.timeline:[]),{key:'application_submitted',label:'LINE 驗證並送出',at:submittedAt}]};
       const existingRows=await dbGet(env,'tenant_apply_logs',`contact_email=eq.${encodeURIComponent(contactEmail)}&status=eq.supplement_required&select=id,status,supplement_count,brand_name`).catch(()=>[]),supplement=existingRows.find(x=>String(x.brand_name||'').trim().toLowerCase()===brand.toLowerCase());
@@ -4000,7 +4062,7 @@ async function issueGoogleOAuthState(env, tenant, extra={}) {
     iss: 'DOING',
     type: 'google_oauth_state',
     tenant: String(tenant || '').trim().toLowerCase(),
-    mode:String(extra.mode||''), return_url:String(extra.return_url||'').slice(0,1800), application_id:String(extra.application_id||'').slice(0,120), brand_name:String(extra.brand_name||'').slice(0,120), contact_name:String(extra.contact_name||'').slice(0,120), contact_phone:String(extra.contact_phone||'').slice(0,80), event_type:String(extra.event_type||'').slice(0,240), module_profile:String(extra.module_profile||'').slice(0,6000),
+    mode:String(extra.mode||''), return_url:String(extra.return_url||'').slice(0,1800), link_member_id:String(extra.link_member_id||'').slice(0,120), application_id:String(extra.application_id||'').slice(0,120), brand_name:String(extra.brand_name||'').slice(0,120), contact_name:String(extra.contact_name||'').slice(0,120), contact_phone:String(extra.contact_phone||'').slice(0,80), event_type:String(extra.event_type||'').slice(0,240), module_profile:String(extra.module_profile||'').slice(0,6000),
     issued_at: now,
     expires_at: now + 10 * 60 * 1000,
   }, env);
@@ -4052,7 +4114,9 @@ async function hGoogleStart(env, url) {
 
   const GOOGLE_REDIRECT_URI = googleRedirectUri(env, url);
   const tenant = String(url.searchParams.get('tenant') || '').trim().toLowerCase();
-  const state = await issueGoogleOAuthState(env, tenant, {mode:url.searchParams.get('mode')||'',return_url:url.searchParams.get('return_url')||'',application_id:url.searchParams.get('application_id')||'',brand_name:url.searchParams.get('brand_name')||'',contact_name:url.searchParams.get('contact_name')||'',contact_phone:url.searchParams.get('contact_phone')||'',event_type:url.searchParams.get('event_type')||'',module_profile:url.searchParams.get('module_profile')||''});
+  const mode=String(url.searchParams.get('mode')||'').trim().toLowerCase(),link=mode==='link'?await verifyIdentityLinkStart(env,url.searchParams.get('link_token'),'google'):null;
+  if(mode==='link'&&!link)return new Response('帳號連結已失效，請回會員中心重新操作',{status:400});
+  const state = await issueGoogleOAuthState(env, tenant, {mode,return_url:link?.return_url||url.searchParams.get('return_url')||'',link_member_id:link?.member_id||'',application_id:url.searchParams.get('application_id')||'',brand_name:url.searchParams.get('brand_name')||'',contact_name:url.searchParams.get('contact_name')||'',contact_phone:url.searchParams.get('contact_phone')||'',event_type:url.searchParams.get('event_type')||'',module_profile:url.searchParams.get('module_profile')||''});
 
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
@@ -4135,8 +4199,15 @@ async function hGoogleCallback(env, url) {
   if (!googleEmail) return failRedirect('no_email', tenant === 'platform' ? platformUrl : loginUrl);
   const googleSubject=String(userInfo.sub||googleEmail);
   let member;
-  try{member=await upsertPlatformIdentity(env,{provider:'google',subject:googleSubject,email:googleEmail,displayName:googleName,avatarUrl:String(userInfo.picture||'')})}
-  catch(e){return failRedirect(e&&e.message==='email_link_requires_existing_login'?'email_link_requires_existing_login':'google_member_login_failed',statePayload.mode==='member'?safeDoingReturnUrl(env,statePayload.return_url||doingSiteUrl(env)):tenant==='platform'?platformUrl:loginUrl)}
+  try{member=await upsertPlatformIdentity(env,{provider:'google',subject:googleSubject,email:googleEmail,displayName:googleName,avatarUrl:String(userInfo.picture||''),preferredMemberId:statePayload.mode==='link'?statePayload.link_member_id:''})}
+  catch(e){return failRedirect(e&&e.message==='email_link_requires_existing_login'?'email_link_requires_existing_login':'google_member_login_failed',['member','link'].includes(statePayload.mode)?safeDoingReturnUrl(env,statePayload.return_url||doingSiteUrl(env)):tenant==='platform'?platformUrl:loginUrl)}
+
+  if(statePayload.mode==='link'){
+    const target=safeDoingReturnUrl(env,statePayload.return_url||doingPageUrl(env,'member.html'));
+    const original=await getPlatformMemberById(env,statePayload.link_member_id);if(!original)return failRedirect('identity_link_target_not_found',target);
+    member=await mergeVerifiedPlatformMembers(env,original,member,googleEmail,original.id);
+    const memberToken=await issueMemberToken({email:member.email,provider:'google',provider_subject:googleSubject,google_sub:googleSubject,display_name:googleName,avatar_url:String(userInfo.picture||'')},env);target.searchParams.set('member_token',memberToken);target.searchParams.set('member_status',platformMemberComplete(member)?'ready':'profile_required');target.searchParams.set('member_linked','google');return Response.redirect(target.toString(),302);
+  }
 
   if(statePayload.mode==='member'){
     const target=safeDoingReturnUrl(env,statePayload.return_url||doingSiteUrl(env));
@@ -4155,6 +4226,8 @@ async function hGoogleCallback(env, url) {
     const phone=String(appPayload.phone||draft.contact_phone||'').trim();
     const contactEmail=normEmail(appPayload.contactEmail||draft.contact_email||googleEmail);
     if(!brand||!contact||!phone||!contactEmail)return failRedirect('signup_missing_profile',doingSiteUrl(env)+'#apply');
+    const collision=await platformIdentityCollision(env,member.id,contactEmail,phone);
+    if(collision.found){const memberToken=await issueMemberToken({email:member.email,provider:'google',provider_subject:googleSubject,google_sub:googleSubject,display_name:googleName,avatar_url:String(userInfo.picture||'')},env);await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{note:'登入成功；偵測到既有帳號，申請保留草稿等待連結帳號',application_json:{...appPayload,memberId:member.id,loginProvider:'google',identityResolutionRequired:true}}).catch(()=>{});const u=new URL(doingSiteUrl(env));u.hash='apply';u.searchParams.set('member_token',memberToken);u.searchParams.set('member_status',platformMemberComplete(member)?'ready':'profile_required');u.searchParams.set('member_login_error','identity_resolution_required');u.searchParams.set('application_status','identity_resolution_required');u.searchParams.set('application_id',applicationId);return Response.redirect(u.toString(),302)}
     let signupProfile=appPayload.moduleProfile||{};
     const signupDefaults=normalizeSessionModules(signupProfile&&signupProfile.defaults?signupProfile.defaults:{});
     const profile={configured:true,useType:String(signupProfile.useType||'generic'),useCases:Array.isArray(signupProfile.useCases)?signupProfile.useCases.map(String).slice(0,12):[],defaults:signupDefaults,updatedAt:nowIso()};
@@ -10510,6 +10583,7 @@ async function enforceSessionModuleForAction(env,T,action,b){
 async function routePost(env, action, b, ctx, req) {
   // 平台層動作不綁 Tenant。
   if(action==='trackPlatformAttribution')return hTrackPlatformAttribution(env,b);
+  if(action==='createIdentityLink')return hCreateIdentityLink(env,b,req);
   if(action==='savePlatformMemberProfile')return hSavePlatformMemberProfile(env,b);
   if(action==='createOrganizerApplicationDraft')return hCreateOrganizerApplicationDraft(env,b);
   if(action==='approveApply')return hApproveApply(env,b);

@@ -2311,7 +2311,9 @@
       "columns": [
         "id",
         "email",
+        "contact_email",
         "phone",
+        "phone_normalized",
         "name",
         "line_id",
         "city",

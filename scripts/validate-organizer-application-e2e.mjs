@@ -42,13 +42,13 @@ function selectedRows(table,url){
 }
 const jsonResponse=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json'}});
 
-const realFetch=globalThis.fetch;let emailCalls=0,lineNonce='';
+const realFetch=globalThis.fetch;let emailCalls=0,lineNonce='',googleMockEmail='formal-flow-test@doing.invalid',googleMockSubject='google-test-subject';
 globalThis.fetch=async(input,init={})=>{
   const url=new URL(typeof input==='string'?input:input.url),method=String(init.method||(typeof input==='string'?'GET':input.method)||'GET').toUpperCase();
   if(url.origin==='https://api.line.me'&&url.pathname==='/oauth2/v2.1/token')return jsonResponse({access_token:'mock-line-access-token',id_token:'mock-line-id-token'});
   if(url.origin==='https://api.line.me'&&url.pathname==='/oauth2/v2.1/verify')return jsonResponse({aud:'mock-line-client',sub:'line-test-subject',name:'DOING 測試人員',picture:'https://example.invalid/avatar.png',email:'formal-flow-test@doing.invalid',nonce:lineNonce});
   if(url.origin==='https://oauth2.googleapis.com'&&url.pathname==='/token')return jsonResponse({id_token:'mock-google-id-token'});
-  if(url.origin==='https://oauth2.googleapis.com'&&url.pathname==='/tokeninfo')return jsonResponse({aud:'mock-google-client',email:'formal-flow-test@doing.invalid',name:'DOING 測試人員',sub:'google-test-subject'});
+  if(url.origin==='https://oauth2.googleapis.com'&&url.pathname==='/tokeninfo')return jsonResponse({aud:'mock-google-client',email:googleMockEmail,name:'DOING 測試人員',sub:googleMockSubject});
   if(url.origin==='https://api.resend.com'){emailCalls++;return jsonResponse({id:'mock-email-'+emailCalls});}
   if(url.origin!=='https://mock.supabase.local')throw new Error('測試禁止連線外部服務：'+url.origin);
   const parts=url.pathname.split('/').filter(Boolean),table=parts[2];
@@ -168,7 +168,7 @@ try{
   const mergeStart=await request('/auth/line/start?mode=member&return_url='+encodeURIComponent('https://site.test/member.html'));
   const mergeStartUrl=new URL(mergeStart.headers.get('location'));lineNonce=mergeStartUrl.searchParams.get('nonce');
   const mergeCallback=await request('/auth/line/callback?code=mock-code&state='+encodeURIComponent(mergeStartUrl.searchParams.get('state')));
-  assert.ok(new URL(mergeCallback.headers.get('location')).searchParams.get('member_token'));
+  const canonicalToken=new URL(mergeCallback.headers.get('location')).searchParams.get('member_token');assert.ok(canonicalToken);
   assert.equal(tables.platform_members.length,1,'舊有重複會員登入後必須自動合併');
   assert.equal(tables.platform_members[0].id,canonicalMemberId);
   assert.ok(tables.platform_member_identities.every(x=>x.member_id===canonicalMemberId),'所有 LINE／Google 身分必須指向同一會員');
@@ -176,11 +176,36 @@ try{
   assert.equal(tables.platform_staff.find(x=>x.id==='PST_LEGACY_MEMBER').platform_member_id,canonicalMemberId);
   assert.equal(tables.tenant_apply_logs.find(x=>x.id==='APP_LEGACY_MEMBER').application_json.memberId,canonicalMemberId);
 
+  const canonicalSave=await jsonAction('savePlatformMemberProfile',{member_token:canonicalToken,name:'DOING 測試人員',email:'contact-main@doing.invalid',phone:'0911222333',city:'台中市',systemApplication:{enabled:false}});
+  assert.equal(canonicalSave.ok,true);assert.equal(tables.platform_members[0].email,'formal-flow-test@doing.invalid','手填聯絡信箱不可覆蓋登入服務已驗證 Email');assert.equal(tables.platform_members[0].contact_email,'contact-main@doing.invalid');assert.equal(tables.platform_members[0].phone_normalized,'0911222333');
+
+  tables.platform_member_identities=tables.platform_member_identities.filter(x=>x.provider!=='google');
+  googleMockEmail='different-google@doing.invalid';googleMockSubject='google-different-email-subject';
+  const separateGoogleStart=await request('/auth/google/start?mode=member&return_url='+encodeURIComponent('https://site.test/member.html'));
+  const separateGoogleState=new URL(separateGoogleStart.headers.get('location')).searchParams.get('state');
+  const separateGoogleCallback=await request('/auth/google/callback?code=mock-code&state='+encodeURIComponent(separateGoogleState));
+  const separateGoogleToken=new URL(separateGoogleCallback.headers.get('location')).searchParams.get('member_token');assert.ok(separateGoogleToken,'不同 Email 的 Google 驗證成功後仍必須能登入');
+  assert.equal(tables.platform_members.length,2,'不同已驗證 Email 在未確認前不可誤合併');
+  const collisionSave=await jsonAction('savePlatformMemberProfile',{member_token:separateGoogleToken,name:'可能重複會員',email:'another-contact@doing.invalid',phone:'+886 911-222-333',systemApplication:{enabled:false}});
+  assert.match(collisionSave.error,/登入已成功.*可能屬於既有 DOING 帳號/,'同電話只暫停重複建檔，不可說成登入失敗');
+  assert.equal(tables.platform_members.filter(x=>x.completed_at).length,1,'重複疑慮未解除前不可建立第二份完整會員資料');
+
+  const linkRequest=await jsonAction('createIdentityLink',{member_token:canonicalToken,provider:'google',return_url:'https://site.test/member.html#account'});
+  assert.equal(linkRequest.ok,true);assert.match(linkRequest.url,/\/auth\/google\/start/);
+  const linkStartUrl=new URL(linkRequest.url),linkStart=await request(linkStartUrl.pathname+linkStartUrl.search),linkState=new URL(linkStart.headers.get('location')).searchParams.get('state');
+  const linkCallback=await request('/auth/google/callback?code=mock-code&state='+encodeURIComponent(linkState)),linkReturn=new URL(linkCallback.headers.get('location'));
+  assert.equal(linkReturn.searchParams.get('member_linked'),'google');assert.ok(linkReturn.searchParams.get('member_token'));
+  assert.equal(tables.platform_members.length,1,'使用者明確登入兩邊帳號後必須合併成一份會員');
+  assert.ok(tables.platform_member_identities.every(x=>x.member_id===canonicalMemberId),'不同 Email 的 Google 身分也必須連到原 LINE 會員');
+  assert.equal(tables.platform_members[0].email,'formal-flow-test@doing.invalid','同步不同 Email 的 Google 後不可反覆改寫主要登入 Email');
+  const linkedProfile=await (await request('/?action=getPlatformMemberProfile&member_token='+encodeURIComponent(linkReturn.searchParams.get('member_token')))).json();
+  assert.deepEqual(linkedProfile.linkedProviders.sort(),['google','line']);
+
   await Promise.all(jobs);
   assert.ok(emailCalls>=2,'申請送出與審核通過通知信未完整觸發');
   console.log(JSON.stringify({
     result:'PASS',applicationId:draft.applicationId,tenantId,
-    stages:['問卷草稿','模擬 LINE 驗證','平台核准','建立租戶','建立負責人','LINE 進入主辦後台','LINE／Google 共用會員','Google 以共用會員進入主辦後台','合併舊重複會員與關聯資料','寫入模組','建立核准場次','阻擋未核准模組'],
+    stages:['問卷草稿','模擬 LINE 驗證','平台核准','建立租戶','建立負責人','LINE 進入主辦後台','LINE／Google 共用會員','Google 以共用會員進入主辦後台','合併舊重複會員與關聯資料','手填 Email 與驗證 Email 分流','不同 Email 的 Google 仍可登入','同電話暫停重複建檔但不擋登入','使用者明確同步 LINE／Google','寫入模組','建立核准場次','阻擋未核准模組'],
     approvedModules:Object.entries(approvedFlags).filter(([,v])=>v).map(([k])=>k),
     platformDisabled:['invoice','resource','i18n'],emailNotifications:emailCalls,productionWrites:0
   },null,2));
