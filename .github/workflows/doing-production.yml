@@ -59,7 +59,9 @@ jobs:
       - name: Validate mobile seat map
         run: node scripts/validate-seat-map.mjs
       - name: Validate tenant application and module flow
-        run: node scripts/validate-tenant-application.mjs
+        run: |
+          node scripts/validate-tenant-application.mjs
+          node scripts/validate-organizer-application-e2e.mjs
       - name: Validate full system routes, buttons and settings
         run: node scripts/validate-full-system.mjs
       - name: Validate compact admin visual consistency
