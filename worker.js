@@ -3381,7 +3381,7 @@ async function hGetPlatformMemberProfile(env,p){
   const v=safeJson(verified.row.vendor_json,{});
   const email=platformContactEmail(verified.row),memberId=String(verified.row.id||'');
   const applicationRows=await dbGet(env,'tenant_apply_logs','select=id,brand_name,contact_email,status,created_at,approved_at,supplement_requested_at,supplement_submitted_at,rejected_at,tenant_id,application_json&order=created_at.desc&limit=500').catch(()=>[]);
-  const applications=applicationRows.filter(x=>String(safeJson(x.application_json,{}).memberId||'')===memberId||(!safeJson(x.application_json,{}).memberId&&email&&normEmail(x.contact_email)===email)).slice(0,20);
+  const applications=applicationRows.filter(x=>!isQaApplication(x)&&(String(safeJson(x.application_json,{}).memberId||'')===memberId||(!safeJson(x.application_json,{}).memberId&&email&&normEmail(x.contact_email)===email))).slice(0,20);
   const workspaces=await findAdminWorkspacesByMemberId(env,memberId);
   const identities=await dbGet(env,'platform_member_identities',`member_id=eq.${encodeURIComponent(memberId)}&select=provider,provider_email,last_login_at&order=last_login_at.desc`).catch(()=>[]);
   const platformRows=await dbGet(env,'platform_staff',`platform_member_id=eq.${encodeURIComponent(memberId)}&is_active=eq.true&select=id,name,role,normalized_role&limit=1`).catch(()=>[]),platformStaff=platformRows[0]||null;
@@ -3389,6 +3389,11 @@ async function hGetPlatformMemberProfile(env,p){
   const roles=['participant'];if(primary||v.brandName)roles.push('vendor');if(applications.length)roles.push('organizer_applicant');if(workspaces.length)roles.push('organizer');if(platformStaff)roles.push('platform_admin');
   const brandName=primary?.name||v.brandName||'',brandIntro=primary?.intro||v.brandIntro||'',brandCategory=primary?.category||v.category||'',brandItems=primary?.items||v.items||'';
   return jsonOk({profile:{id:memberId,email,name:verified.row.name||verified.row.display_name||'',phone:verified.row.phone||'',lineId:verified.row.line_id||'',city:verified.row.city||'',primaryBrandId:primary?.id||v.brandId||'',brand:brandName,brand_name:brandName,brandIntro,sellCat:brandCategory,sellItem:brandItems,fb:primary?.facebook||v.facebook||'',ig:primary?.instagram||v.instagram||'',photo:primary?.photoUrl||v.photoUrl||'',company:primary?.company||v.company||'',taxId:primary?.taxId||v.taxId||''},brands,complete:platformMemberComplete(verified.row),provider:verified.row._identity?.provider||'',linkedProviders:[...new Set(identities.map(x=>String(x.provider||'')).filter(Boolean))],roles,platformAccess:platformStaff?{role:'platform_super_admin',name:platformStaff.name||'DOING 平台總管理者'}:null,applications:applications.map(x=>{const a=safeJson(x.application_json,{});return{id:x.id,unitName:a.unitName||x.brand_name||'',industryCategories:Array.isArray(a.industryCategories)?a.industryCategories:[],useCases:Array.isArray(a.useCases)?a.useCases:[],status:x.status||'pending',createdAt:x.created_at||'',approvedAt:x.approved_at||a.approvedAt||'',supplementRequestedAt:x.supplement_requested_at||a.supplementRequestedAt||'',supplementSubmittedAt:x.supplement_submitted_at||a.supplementSubmittedAt||'',rejectedAt:x.rejected_at||a.rejectedAt||'',tenantId:x.tenant_id||'',timeline:Array.isArray(a.timeline)?a.timeline:[]}}),workspaces:workspaces.map(x=>({id:x.tenant_id||x.id,name:x.name||x.tenant_id||x.id,role:x.role||'',isLocked:!!x.is_locked,lockedReason:x.locked_reason||''}))});
+}
+
+function isQaApplication(row){
+  const app=safeJson(row&&row.application_json,{}),name=String(app.unitName||(row&&row.brand_name)||'').trim();
+  return app.qaTest===true||Boolean(String(app.qaRun||'').trim())||/^DOING QA(?:\s|$)/i.test(name);
 }
 
 function platformContactEmail(row){return normEmail(row&&(row.contact_email||row.email))}
@@ -3938,7 +3943,7 @@ async function hApplyList(env, p) {
   const payload = await verifyAdminJwt(p.token, env);
   if (!payload || payload.normalized_role !== 'platform_super_admin') return jsonErr('無權限', 401);
   const rows = await dbGet(env, 'tenant_apply_logs', `order=created_at.desc&limit=50&select=*`);
-  return jsonOk(rows);
+  return jsonOk(rows.filter(row=>!isQaApplication(row)));
 }
 async function hRequestApplySupplement(env,b){
   const pay=await verifyAdminJwt(b.token,env);
