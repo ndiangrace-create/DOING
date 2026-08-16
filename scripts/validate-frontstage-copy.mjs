@@ -31,4 +31,9 @@ const register=fs.readFileSync(new URL('../register.html',import.meta.url),'utf8
 assert.match(register,/第一次申請可直接填寫/);
 assert.doesNotMatch(register,/系統會在背景比對/);
 
-console.log(JSON.stringify({result:'PASS',pages:pages.length,rules:forbidden.length,directBrandEdit:true,myRegistrationsLabel:true},null,2));
+const worker=fs.readFileSync(new URL('../worker.js',import.meta.url),'utf8');
+assert.match(worker,/function isQaApplication\(row\)/);
+assert.match(worker,/applicationRows\.filter\(x=>!isQaApplication\(x\)/);
+assert.match(worker,/jsonOk\(rows\.filter\(row=>!isQaApplication\(row\)\)\)/);
+
+console.log(JSON.stringify({result:'PASS',pages:pages.length,rules:forbidden.length,directBrandEdit:true,myRegistrationsLabel:true,qaApplicationsHiddenFromFormalLists:true},null,2));

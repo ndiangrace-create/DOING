@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-16T23:11:42+08:00",
-  "sourceFingerprint": "e695a5d45e438530de9baa931c5d32f7f1f1a1005338f53aaf9521fa46f390bf",
+  "recordedAt": "2026-08-16T23:19:46+08:00",
+  "sourceFingerprint": "152dc2ae3aa8af7e3f48532e43a4aff796fe77f879aaba5cd960a41981943e24",
   "environment": "本機隔離模擬；Supabase、LINE、Google、Resend 全部使用 mock",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
@@ -15,7 +15,7 @@
     {"id":"role-module-access","command":"node scripts/validate-role-module-access.mjs","result":"PASS","scope":"角色與已核准模組權限"},
     {"id":"data-sources","command":"node scripts/validate-data-sources.mjs","result":"PASS","scope":"Supabase 資料來源與關聯"},
     {"id":"responsive-layout","command":"node scripts/validate-responsive-layout.mjs","result":"PASS","scope":"手機與桌面框架密度、桌機會員按鈕單行與 LOGO 無外框"},
-    {"id":"frontstage-copy","command":"node scripts/validate-frontstage-copy.mjs","result":"PASS","scope":"六個一般使用頁移除內部實作說明、我的報名命名、單一品牌直接編輯"},
+    {"id":"frontstage-copy","command":"node scripts/validate-frontstage-copy.mjs","result":"PASS","scope":"六個一般使用頁移除內部實作說明、我的報名命名、單一品牌直接編輯、QA 驗收申請不回傳正式前台與審核清單"},
     {"id":"visual-standard","command":"node scripts/validate-visual-standard.mjs","result":"PASS","scope":"天空藍與薄荷綠主色、粉紅僅少量點綴、七個核心頁面逐頁套用、小型格子禁止圓形、世界樹實作狀態"},
     {"id":"platform-attribution","command":"node scripts/validate-platform-attribution.mjs","result":"PASS","scope":"近期開放活動付費廣告板優先顯示與依權重隨機輪播、匿名曝光、點擊、完成報名與近 30 日轉換率"},
     {"id":"capabilities","command":"node scripts/validate-capabilities.mjs","result":"PASS","scope":"功能世界圖與狀態"},
