@@ -38,6 +38,7 @@ jobs:
           node --check doing-attribution.js
           node --check doing-home-refresh.js
           node --check doing-about-refresh.js
+          node --check doing-global-entry.js
           node - <<'NODE'
           const fs=require('fs'),vm=require('vm');
           for(const f of ['index.html','register.html','member.html','admin.html','onsite.html','platform.html','about.html','photo.html']){
@@ -70,7 +71,9 @@ jobs:
           node scripts/validate-member-brand-e2e.mjs
           node scripts/validate-role-module-access.mjs
       - name: Validate full system routes, buttons and settings
-        run: node scripts/validate-full-system.mjs
+        run: |
+          node scripts/validate-full-system.mjs
+          node scripts/validate-navigation-actions.mjs
       - name: Validate compact admin visual consistency
         run: node scripts/validate-admin-consistency.mjs
       - name: Validate reusable test records

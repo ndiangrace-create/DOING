@@ -3722,10 +3722,35 @@ async function hGetPlatformDashboard(env,p){
   const now=Date.now(),monthAgo=now-30*86400000,activeTenantIds=new Set();
   for(const x of sessions)if(new Date(x.created_at||0).getTime()>=monthAgo)activeTenantIds.add(String(x.tenant_id||''));
   for(const x of regs)if(new Date(x.created_at||0).getTime()>=monthAgo)activeTenantIds.add(String(x.tenant_id||''));
-  const revenueLogs=logs.filter(x=>{const t=String(x.billing_type||'');return t==='booking_monthly'||t.startsWith('activity_publish:')||t.startsWith('activity_unit:')||t.startsWith('setup_feature:')||t.startsWith('exposure:')});
+  const revenueLogs=logs.filter(x=>{const t=String(x.billing_type||'');return t==='booking_monthly'||t.startsWith('activity_publish:')||t.startsWith('activity_rate:')||t.startsWith('activity_unit:')||t.startsWith('setup_feature:')||t.startsWith('exposure:')});
   const revenue=revenueLogs.reduce((n,x)=>n+Math.max(0,safeNum(x.total||x.amount)),0);
   const startupGranted=logs.filter(x=>String(x.billing_type)==='startup_credit_grant').reduce((n,x)=>n+Math.max(0,safeNum(x.amount)),0);
   return jsonOk({tenantCount:tenants.length,memberCount:members.length,completedMemberCount:members.filter(x=>!!x.completed_at).length,vendorMemberCount:members.filter(x=>!!safeJson(x.vendor_json,{}).brandName).length,activeTenant30d:activeTenantIds.size,lockedTenantCount:tenants.filter(x=>x.is_locked===true).length,sessionCount:sessions.length,operationUnitCount:units.length,registrationCount:regs.length,platformRevenue:revenue,startupCreditGranted:startupGranted,bookingUnitCount:units.filter(x=>String(x.unit_type)==='booking').length,openUnitCount:units.filter(x=>['open','active','published'].includes(String(x.status||''))).length});
+}
+
+async function hGetPlatformMetricDetails(env,p){
+  const pay=await verifyAdminJwt(p.token,env);if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限');
+  const kind=String(p.kind||'').trim(),allowed=new Set(['activeTenants','sessions','operationUnits','registrations','platformRevenue','startupCredit']);if(!allowed.has(kind))return jsonErr('不支援的統計明細');
+  const tenants=await dbGet(env,'tenants','select=id,name,owner_email,status,is_locked,created_at&limit=1000').catch(()=>[]),tenantMap=Object.fromEntries(tenants.map(x=>[String(x.id),x]));
+  const tenantName=id=>tenantMap[String(id||'')]?.name||String(id||'未指定租戶'),tenantMeta=id=>{const t=tenantMap[String(id||'')]||{};return {tenantId:String(id||''),tenantName:t.name||String(id||''),ownerEmail:t.owner_email||''}};
+  if(kind==='sessions'){
+    const list=await dbGet(env,'sessions','select=id,tenant_id,name,status,created_at&order=created_at.desc&limit=500').catch(()=>[]);
+    return jsonOk({kind,title:'活動場次',rows:list.map(x=>({...tenantMeta(x.tenant_id),id:x.id,title:x.name||x.id,meta:[tenantName(x.tenant_id),x.status||'未設定狀態'].join('｜'),createdAt:x.created_at||''}))});
+  }
+  if(kind==='operationUnits'){
+    const list=await dbGet(env,'operation_units','select=id,tenant_id,session_id,name,status,unit_type,created_at&order=created_at.desc&limit=500').catch(()=>[]);
+    return jsonOk({kind,title:'營運項目',rows:list.map(x=>({...tenantMeta(x.tenant_id),id:x.id,title:x.name||x.id,meta:[tenantName(x.tenant_id),x.unit_type||'活動',x.status||'未設定狀態'].join('｜'),createdAt:x.created_at||''}))});
+  }
+  if(kind==='registrations'){
+    const list=await dbGet(env,'registrations','select=id,tenant_id,session_id,operation_unit_id,payment_status,review_status,created_at&order=created_at.desc&limit=500').catch(()=>[]),sessionIds=[...new Set(list.map(x=>String(x.session_id||'')).filter(Boolean))],sessionRows=sessionIds.length?await dbGet(env,'sessions',`id=in.(${sessionIds.map(x=>'"'+x.replaceAll('"','')+'"').join(',')})&select=id,name`).catch(()=>[]):[],sessionMap=Object.fromEntries(sessionRows.map(x=>[String(x.id),x.name||x.id]));
+    return jsonOk({kind,title:'全平台報名／預約',rows:list.map(x=>({...tenantMeta(x.tenant_id),id:x.id,title:sessionMap[String(x.session_id||'')]||x.operation_unit_id||'報名／預約',meta:[tenantName(x.tenant_id),x.review_status||'未審核',x.payment_status||'未付款'].join('｜'),createdAt:x.created_at||''}))});
+  }
+  if(kind==='activeTenants'){
+    const monthAgo=new Date(Date.now()-30*86400000).toISOString(),[sessions,regs]=await Promise.all([dbGet(env,'sessions',`created_at=gte.${encodeURIComponent(monthAgo)}&select=tenant_id,created_at`).catch(()=>[]),dbGet(env,'registrations',`created_at=gte.${encodeURIComponent(monthAgo)}&select=tenant_id,created_at`).catch(()=>[])]),last={};for(const x of [...sessions,...regs]){const id=String(x.tenant_id||'');if(id&&(!last[id]||new Date(x.created_at)>new Date(last[id])))last[id]=x.created_at}
+    return jsonOk({kind,title:'近 30 日活躍主辦',rows:Object.entries(last).sort((a,b)=>new Date(b[1])-new Date(a[1])).map(([id,at])=>({...tenantMeta(id),id,title:tenantName(id),meta:tenantMap[id]?.owner_email||'尚未建立管理者',createdAt:at}))});
+  }
+  const logs=await dbGet(env,'billing_logs','status=eq.confirmed&select=id,tenant_id,billing_type,amount,total,note,created_at&order=created_at.desc&limit=1000').catch(()=>[]),isRevenue=x=>{const t=String(x.billing_type||'');return t==='booking_monthly'||t.startsWith('activity_publish:')||t.startsWith('activity_rate:')||t.startsWith('activity_unit:')||t.startsWith('setup_feature:')||t.startsWith('exposure:')},list=kind==='startupCredit'?logs.filter(x=>String(x.billing_type)==='startup_credit_grant'):logs.filter(isRevenue);
+  return jsonOk({kind,title:kind==='startupCredit'?'已發創業金':'平台收入',rows:list.map(x=>({...tenantMeta(x.tenant_id),id:x.id,title:tenantName(x.tenant_id),meta:String(x.note||x.billing_type||''),amount:Math.max(0,safeNum(x.total||x.amount)),createdAt:x.created_at||''}))});
 }
 
 async function hGetPlatformMembersAdmin(env,p){
@@ -10925,6 +10950,7 @@ async function routeGet(env, action, p, req) {
   if (action==='applyList') return await hApplyList(env, p);
   if (action==='getTenantsAdmin') return await hGetTenantsAdmin(env, p);
   if (action==='getPlatformDashboard') return await hGetPlatformDashboard(env,p);
+  if (action==='getPlatformMetricDetails') return await hGetPlatformMetricDetails(env,p);
   if (action==='getSystemDataCatalog') return await hGetSystemDataCatalog(env,p);
   if (action==='getPlatformMembersAdmin') return await hGetPlatformMembersAdmin(env,p);
   if (action==='getPlatformAccessAssignments') return await hGetPlatformAccessAssignments(env,p);
