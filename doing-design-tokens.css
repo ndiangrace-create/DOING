@@ -1,4 +1,4 @@
-/* DOING Homepage Pastel v1 — canonical, non-invasive design tokens. */
+/* DOING Sky Mint v2 — canonical, non-invasive design tokens. */
 :root{
   --doing-brand-ink:#363341;
   --doing-brand-muted:#756f7d;
@@ -13,6 +13,9 @@
   --doing-brand-yellow-strong:#ffc53e;
   --doing-brand-mint:#ccefa8;
   --doing-brand-purple:#cdb8f4;
+  --doing-brand-primary:#91d7f4;
+  --doing-brand-primary-strong:#5db7dc;
+  --doing-brand-secondary:#ccefa8;
   --doing-nav-purple:#e4cff4;
   --doing-nav-green:#d7efa9;
   --doing-nav-yellow:#f7e5a5;

@@ -19,7 +19,9 @@ for(const [name,color] of Object.entries(palette)){
   assert.ok(tokens.toLowerCase().includes(color),`設計 Token 缺少 ${name} ${color}`);
 }
 
-assert.match(rules,/DOING Homepage Pastel v1/);
+assert.match(rules,/DOING Sky Mint v2/);
+assert.match(rules,/天空藍與薄荷綠是全站主色/);
+assert.match(rules,/粉紅不得作為全站主色/);
 assert.match(rules,/小型資料格、功能格、數字格、圖示格固定使用圓角方形或圓角矩形/);
 assert.match(rules,/小型格子禁止使用 `50%` 或 `999px` 圓角/);
 assert.match(tokens,/--doing-brand-small-tile-radius:14px/);
@@ -43,7 +45,12 @@ for(const page of pages){
 
 const visual=capabilities.modules.find(module=>module.id==='platform-visual');
 assert.ok(visual,'世界樹缺少 DOING 平台視覺基準');
-assert.ok(visual.features.some(feature=>feature.status==='done'&&feature.label.includes('首頁粉彩色系')));
+assert.ok(visual.features.some(feature=>feature.status==='done'&&feature.label.includes('天空藍與薄荷綠主色')));
 assert.ok(visual.features.some(feature=>feature.status==='done'&&feature.label.includes('逐頁套用')),'七個核心頁面完成套用後必須同步世界樹');
 
-console.log(JSON.stringify({result:'PASS',standard:'DOING Homepage Pastel v1',paletteColors:Object.keys(palette).length,pagesApplied:pages.length,smallTiles:'rounded-square-only',worldTreeStatus:'all_core_pages_done'},null,2));
+assert.match(tokens,/--doing-brand-primary:#91d7f4/);
+assert.match(tokens,/--doing-brand-secondary:#ccefa8/);
+assert.doesNotMatch(pageStyles,/body\.doing-member\{[^}]*doing-brand-pink/);
+assert.doesNotMatch(pageStyles,/body\.doing-photo\{[^}]*doing-brand-pink/);
+
+console.log(JSON.stringify({result:'PASS',standard:'DOING Sky Mint v2',primary:'sky-blue',secondary:'mint',pink:'accent-only',paletteColors:Object.keys(palette).length,pagesApplied:pages.length,smallTiles:'rounded-square-only',worldTreeStatus:'all_core_pages_done'},null,2));

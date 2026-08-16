@@ -1,4 +1,4 @@
-/* DOING Homepage Pastel v1 — page-by-page application layer.
+/* DOING Sky Mint v2 — page-by-page application layer.
    Loaded after legacy page styles so the approved homepage palette is the
    single visual authority without changing business logic or data flow. */
 
@@ -8,8 +8,8 @@
   --doing-ink:var(--doing-brand-ink);
   --doing-muted:var(--doing-brand-muted);
   --doing-line:var(--doing-brand-line);
-  --doing-primary:var(--doing-brand-pink);
-  --doing-primary-dark:var(--doing-brand-pink-strong);
+  --doing-primary:var(--doing-brand-primary);
+  --doing-primary-dark:var(--doing-brand-primary-strong);
   --doing-blue:var(--doing-brand-blue);
   --doing-pink:var(--doing-brand-pink);
   --doing-yellow:var(--doing-brand-yellow);
@@ -29,26 +29,26 @@
 }
 
 body.doing-app{
-  --doing-page-accent:var(--doing-brand-pink);
-  --doing-page-accent-strong:var(--doing-brand-pink-strong);
-  --doing-page-wash:#fff3f8;
+  --doing-page-accent:var(--doing-brand-primary);
+  --doing-page-accent-strong:var(--doing-brand-primary-strong);
+  --doing-page-wash:#eefaff;
   min-height:100vh;
   color:var(--doing-brand-ink)!important;
   background-color:var(--doing-brand-paper)!important;
   background-image:
-    radial-gradient(circle at 4% 0,rgba(239,162,201,.24),transparent 24rem),
-    radial-gradient(circle at 98% 3%,rgba(145,215,244,.24),transparent 28rem),
-    linear-gradient(180deg,#fff 0,#fffdfd 38%,#f8fcfd 100%)!important;
+    radial-gradient(circle at 4% 0,rgba(145,215,244,.28),transparent 24rem),
+    radial-gradient(circle at 98% 3%,rgba(204,239,168,.25),transparent 28rem),
+    linear-gradient(180deg,#fff 0,#f9fdff 38%,#f8fdf5 100%)!important;
   background-attachment:fixed!important;
 }
 
-body.doing-member{--doing-page-accent:var(--doing-brand-pink);--doing-page-accent-strong:var(--doing-brand-pink-strong);--doing-page-wash:#fff2f7}
+body.doing-member{--doing-page-accent:var(--doing-brand-blue);--doing-page-accent-strong:var(--doing-brand-blue-strong);--doing-page-wash:#eefaff}
 body.doing-register{--doing-page-accent:var(--doing-brand-blue);--doing-page-accent-strong:var(--doing-brand-blue-strong);--doing-page-wash:#eefaff}
 body.doing-about-refresh{--doing-page-accent:var(--doing-brand-purple);--doing-page-accent-strong:#9d7bd8;--doing-page-wash:#f6f0ff}
 body.doing-admin{--doing-page-accent:var(--doing-brand-mint);--doing-page-accent-strong:#6ea9a4;--doing-page-wash:#f3fbea}
 body.doing-platform{--doing-page-accent:var(--doing-brand-blue);--doing-page-accent-strong:var(--doing-brand-blue-strong);--doing-page-wash:#edfaff}
 body.doing-onsite{--doing-page-accent:var(--doing-brand-mint);--doing-page-accent-strong:#79aa64;--doing-page-wash:#f5fbe9}
-body.doing-photo{--doing-page-accent:var(--doing-brand-pink);--doing-page-accent-strong:var(--doing-brand-pink-strong);--doing-page-wash:#fff1f7}
+body.doing-photo{--doing-page-accent:var(--doing-brand-purple);--doing-page-accent-strong:#9d7bd8;--doing-page-wash:#f6f0ff}
 
 body.doing-app>header,
 body.doing-app>.topbar,
@@ -172,7 +172,7 @@ body.doing-app .platform-nav{
   border:1px solid var(--doing-brand-line)!important;
   border-radius:18px!important;
   background:rgba(255,255,255,.9)!important;
-  background-image:linear-gradient(90deg,rgba(239,162,201,.16),rgba(145,215,244,.16),rgba(204,239,168,.15))!important;
+  background-image:linear-gradient(90deg,rgba(145,215,244,.2),rgba(204,239,168,.18),rgba(205,184,244,.16))!important;
   box-shadow:0 8px 22px rgba(105,82,118,.08)!important;
 }
 
@@ -257,7 +257,7 @@ body.doing-member .hero{
   border:1px solid var(--doing-brand-line)!important;
   border-radius:30px!important;
   background-color:#fff!important;
-  background-image:linear-gradient(125deg,#fff5fa,#f1fbff 62%,#f6ffed)!important;
+  background-image:linear-gradient(125deg,#eefaff,#fff 54%,#f4fbea)!important;
   box-shadow:0 15px 40px rgba(105,82,118,.09)!important;
 }
 body.doing-member .identity-layout{gap:12px!important}
@@ -270,14 +270,14 @@ body.doing-register.doing-public-refactor-body{
   background-color:var(--doing-brand-paper)!important;
   background-image:
     radial-gradient(circle at 5% 0,rgba(145,215,244,.22),transparent 24rem),
-    radial-gradient(circle at 98% 6%,rgba(239,162,201,.2),transparent 27rem),
-    linear-gradient(180deg,#fff,#fffdfd 42%,#f7fcfd)!important;
+    radial-gradient(circle at 98% 6%,rgba(204,239,168,.22),transparent 27rem),
+    linear-gradient(180deg,#fff,#f9fdff 42%,#f8fdf5)!important;
 }
 body.doing-register .hero,
 body.doing-register .cover{
   border-color:var(--doing-brand-line)!important;
   background-color:#fff!important;
-  background-image:linear-gradient(125deg,#eefaff,#fff4f9 66%,#f8ffef)!important;
+  background-image:linear-gradient(125deg,#eefaff,#fff 62%,#f5fbea)!important;
 }
 body.doing-register .reg-step,
 body.doing-register .choice,
@@ -295,7 +295,7 @@ body.doing-about-refresh .hero,
 body.doing-about-refresh .apply-gate{
   border-color:var(--doing-brand-line)!important;
   background-color:#fff!important;
-  background-image:linear-gradient(125deg,#f8f1ff,#fff6fa 60%,#effbff)!important;
+  background-image:linear-gradient(125deg,#effaff,#fff 56%,#f5f0ff)!important;
 }
 body.doing-about-refresh .group,
 body.doing-about-refresh .side-panel,
@@ -325,7 +325,7 @@ body.doing-platform .metric{
   min-height:92px!important;
   text-align:left!important;
 }
-body.doing-platform .metric:nth-child(5n+2){background-image:linear-gradient(145deg,#fff,#fff1f7)!important}
+body.doing-platform .metric:nth-child(5n+2){background-image:linear-gradient(145deg,#fff,#eefaff)!important}
 body.doing-platform .metric:nth-child(5n+3){background-image:linear-gradient(145deg,#fff,#f5ffea)!important}
 body.doing-platform .metric:nth-child(5n+4){background-image:linear-gradient(145deg,#fff,#fff7d8)!important}
 body.doing-platform .metric:nth-child(5n){background-image:linear-gradient(145deg,#fff,#f5efff)!important}
@@ -355,7 +355,7 @@ body.doing-photo .guide{border-radius:18px!important}
 
 @media (max-width:760px){
   body.doing-app{
-    background-image:linear-gradient(180deg,#fff 0,#fffdfd 46%,#f8fcfd 100%)!important;
+    background-image:linear-gradient(180deg,#fff 0,#f9fdff 46%,#f8fdf5 100%)!important;
     background-attachment:scroll!important;
   }
   body.doing-app main,

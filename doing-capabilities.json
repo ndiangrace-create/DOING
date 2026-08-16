@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "updatedAt": "2026-08-16",
   "statusLabels": {
     "done": "已完成",
@@ -336,6 +336,11 @@
           "label": "首頁自動抓取已啟用活動",
           "status": "done",
           "evidence": "global discovery"
+        },
+        {
+          "label": "近期開放活動付費廣告板置於所有開放活動之前並隨機輪播",
+          "status": "done",
+          "evidence": "doing-home-refresh.js / doing-home-refresh.css"
         },
         {
           "label": "匿名記錄曝光與點擊",
@@ -1116,7 +1121,7 @@
       "route": "index.html",
       "features": [
         {
-          "label": "首頁粉彩色系與風格正式定案",
+          "label": "天空藍與薄荷綠主色正式定案，粉紅僅少量點綴",
           "status": "done",
           "evidence": "DOING_首頁視覺基準.md / doing-design-tokens.css"
         },

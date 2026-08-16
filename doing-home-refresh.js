@@ -118,9 +118,32 @@ function realRows(){
   return out;
 }
 
+let paidBoardRows=[];
+let paidBoardKey='';
+function randomPaidRows(){
+  let base=[];
+  try{base=Array.isArray(state.exposureItems)?state.exposureItems:[]}catch(e){}
+  const key=base.map(x=>`${x.exposureOrderId||x.sessionId||x.id}:${Number(x.weight)||1}`).join('|');
+  if(key===paidBoardKey)return paidBoardRows;
+  paidBoardKey=key;
+  const pool=base.slice();
+  const out=[];
+  while(pool.length){
+    const total=pool.reduce((sum,x)=>sum+Math.max(1,Math.min(5,Number(x.weight)||1)),0);
+    let pick=Math.random()*total,index=0;
+    for(;index<pool.length;index++){
+      pick-=Math.max(1,Math.min(5,Number(pool[index].weight)||1));
+      if(pick<=0)break;
+    }
+    out.push(pool.splice(Math.min(index,pool.length-1),1)[0]);
+  }
+  paidBoardRows=out;
+  return paidBoardRows;
+}
+
 function displayRows(){
   const rows=realRows();
-  return rows.length?rows.slice(0,5):demoActivities;
+  return rows;
 }
 
 function dateText(rows){
@@ -274,31 +297,26 @@ function searchActivities(){
   const query=raw.toLowerCase();
   const rows=displayRows();
   const results=!query?rows:rows.filter(x=>[x.sessionName,x.eventTitle,x.tenantName,x.venue,x.description,itemType(x)].join(' ').toLowerCase().includes(query));
-  const label=$('doingActivityLabel');
-  if(label)label.textContent=query?`搜尋「${raw}」`:'近期開放活動';
-  renderActivities(results.slice(0,5),raw);
   renderActivityList(results,raw);
   smoothTo($('doingPublicActivityList'));
 }
 
 function watchActivities(){
   let tries=0;
-  renderActivities(displayRows());
-  renderActivityList(realRows().length?realRows():demoActivities);
+  renderActivities(randomPaidRows());
+  renderActivityList(realRows());
   const tick=()=>{
     tries++;
     const rows=realRows();
     const key=rows.map(x=>x.sessionId||x.id).join('|');
     if(rows.length&&key!==lastRowsKey){
       lastRowsKey=key;
-      renderActivities(rows.slice(0,5));
+      renderActivities(randomPaidRows());
       renderActivityList(rows);
-      const label=$('doingActivityLabel');
-      if(label)label.textContent='近期開放活動';
       return;
     }
     if(tries<60)setTimeout(tick,500);
-    else if(!rows.length)renderActivities(demoActivities);
+    else if(!rows.length){renderActivities(randomPaidRows());renderActivityList([])}
   };
   tick();
 }
@@ -334,15 +352,10 @@ function publicAppHTML(){
       </div>
     </section>
 
-    <section class="doing-public-section doing-list-section" aria-label="所有開放活動">
-      <div class="doing-list-head"><div><span class="doing-kicker">找活動</span><h2>所有開放活動</h2></div><span>左右滑動查看更多活動</span></div>
-      <div id="doingPublicActivityList" class="doing-public-activity-list" aria-live="polite"></div>
-    </section>
-
-    <section class="doing-public-section doing-activities-section" id="doingPublicActivities" aria-label="活動快訊輪播">
+    <section class="doing-public-section doing-activities-section" id="doingPublicActivities" aria-label="近期開放活動廣告輪播">
       <div class="doing-section-title row">
-        <div><span class="doing-kicker">活動快訊</span><h2 id="doingActivityLabel">近期精選活動</h2><p>看看最近有哪些活動、課程與體驗正在開放，點進去即可查看完整內容。</p></div>
-        <span class="doing-ad-label">精選曝光</span>
+        <div><span class="doing-kicker">活動快訊</span><h2 id="doingActivityLabel">近期開放活動</h2><p>付費曝光中的活動會在這裡隨機輪播，點進去即可查看完整內容。</p></div>
+        <span class="doing-ad-label">廣告</span>
       </div>
       <div class="doing-carousel-frame">
         <span class="doing-frame-title">DOING NOW</span>
@@ -351,6 +364,11 @@ function publicAppHTML(){
         <button id="doingActivityNext" class="doing-carousel-arrow next" type="button" aria-label="下一個活動">›</button>
         <div class="doing-carousel-footer"><div id="doingActivityDots" class="doing-activity-dots" aria-label="活動頁數"></div><span id="doingActivityCount">1 / 5</span></div>
       </div>
+    </section>
+
+    <section class="doing-public-section doing-list-section" aria-label="所有開放活動">
+      <div class="doing-list-head"><div><span class="doing-kicker">找活動</span><h2>所有開放活動</h2></div><span>左右滑動查看更多活動</span></div>
+      <div id="doingPublicActivityList" class="doing-public-activity-list" aria-live="polite"></div>
     </section>
 
     <section class="doing-my-highlight" aria-label="快速報名功能亮點">
