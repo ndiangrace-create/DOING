@@ -63,6 +63,8 @@ jobs:
           node scripts/validate-tenant-application.mjs
           node scripts/validate-login-providers.mjs
           node scripts/validate-organizer-application-e2e.mjs
+          node scripts/validate-member-brand-e2e.mjs
+          node scripts/validate-role-module-access.mjs
       - name: Validate full system routes, buttons and settings
         run: node scripts/validate-full-system.mjs
       - name: Validate compact admin visual consistency

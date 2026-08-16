@@ -31,6 +31,18 @@
       ]
     },
     {
+      "key": "platform-access",
+      "tables": [
+        "platform_members",
+        "platform_member_identities",
+        "platform_staff",
+        "staff",
+        "staff_session_permissions",
+        "tenants",
+        "sessions"
+      ]
+    },
+    {
       "key": "platform-tenant",
       "tables": [
         "tenants",
@@ -86,8 +98,13 @@
       "tables": [
         "platform_members",
         "platform_member_identities",
+        "brands",
+        "brand_members",
+        "brand_access_requests",
         "members",
         "registrations",
+        "registration_members",
+        "registration_member_invites",
         "tenants",
         "tenant_apply_logs"
       ]
@@ -108,7 +125,11 @@
     {
       "key": "tenant-registration",
       "tables": [
+        "brands",
+        "brand_members",
         "registrations",
+        "registration_members",
+        "registration_member_invites",
         "registration_items",
         "members",
         "payments",
@@ -148,6 +169,8 @@
       "tables": [
         "onsite_passcodes",
         "registrations",
+        "registration_members",
+        "registration_member_invites",
         "staff_action_logs",
         "audit_logs"
       ]
@@ -553,6 +576,113 @@
       "state": "active"
     },
     {
+      "name": "brands",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "display_name",
+        "normalized_name",
+        "category",
+        "intro",
+        "items",
+        "facebook_url",
+        "instagram_url",
+        "profile_url",
+        "company_name",
+        "tax_id",
+        "status",
+        "created_by_member_id",
+        "merged_into_brand_id",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": ["delete", "get", "insert", "update"],
+      "moduleKeys": ["member-center", "tenant-registration"],
+      "state": "migration-ready"
+    },
+    {
+      "name": "brand_members",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "brand_id",
+        "platform_member_id",
+        "role",
+        "status",
+        "permissions_json",
+        "invited_by_member_id",
+        "joined_at",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": ["delete", "get", "insert", "update"],
+      "moduleKeys": ["member-center", "tenant-registration"],
+      "state": "migration-ready"
+    },
+    {
+      "name": "brand_access_requests",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "brand_id",
+        "platform_member_id",
+        "request_type",
+        "status",
+        "requested_role",
+        "note",
+        "resolved_by_member_id",
+        "resolved_at",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": ["get", "insert", "update"],
+      "moduleKeys": ["member-center"],
+      "state": "migration-ready"
+    },
+    {
+      "name": "registration_members",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "registration_id",
+        "platform_member_id",
+        "brand_id",
+        "role",
+        "status",
+        "permissions_json",
+        "invited_by_member_id",
+        "accepted_at",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": ["delete", "get", "insert", "update"],
+      "moduleKeys": ["member-center", "tenant-registration", "tenant-onsite"],
+      "state": "migration-ready"
+    },
+    {
+      "name": "registration_member_invites",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "registration_id",
+        "brand_id",
+        "role",
+        "status",
+        "invited_by_member_id",
+        "accepted_by_member_id",
+        "expires_at",
+        "accepted_at",
+        "revoked_at",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": ["get", "insert", "update"],
+      "moduleKeys": ["member-center", "tenant-registration", "tenant-onsite"],
+      "state": "migration-ready"
+    },
+    {
       "name": "registrations",
       "rlsEnabled": true,
       "columns": [
@@ -665,7 +795,9 @@
         "transfer_settlement_id",
         "operation_unit_id",
         "booking_calendar_id",
-        "platform_member_id"
+        "platform_member_id",
+        "brand_id",
+        "submitted_by_member_id"
       ],
       "workerAccess": [
         "delete",

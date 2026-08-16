@@ -42,14 +42,14 @@ function selectedRows(table,url){
 }
 const jsonResponse=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json'}});
 
-const realFetch=globalThis.fetch;let emailCalls=0,lineNonce='',lineMockEmail='formal-flow-test@doing.invalid',lineMockSubject='line-test-subject',lineMockName='DOING 測試人員',googleMockEmail='formal-flow-test@doing.invalid',googleMockSubject='google-test-subject';
+const realFetch=globalThis.fetch;let emailCalls=0,emailPayloads=[],lineNonce='',lineMockEmail='formal-flow-test@doing.invalid',lineMockSubject='line-test-subject',lineMockName='DOING 測試人員',googleMockEmail='formal-flow-test@doing.invalid',googleMockSubject='google-test-subject';
 globalThis.fetch=async(input,init={})=>{
   const url=new URL(typeof input==='string'?input:input.url),method=String(init.method||(typeof input==='string'?'GET':input.method)||'GET').toUpperCase();
   if(url.origin==='https://api.line.me'&&url.pathname==='/oauth2/v2.1/token')return jsonResponse({access_token:'mock-line-access-token',id_token:'mock-line-id-token'});
   if(url.origin==='https://api.line.me'&&url.pathname==='/oauth2/v2.1/verify')return jsonResponse({aud:'mock-line-client',sub:lineMockSubject,name:lineMockName,picture:'https://example.invalid/avatar.png',email:lineMockEmail,nonce:lineNonce});
   if(url.origin==='https://oauth2.googleapis.com'&&url.pathname==='/token')return jsonResponse({id_token:'mock-google-id-token'});
   if(url.origin==='https://oauth2.googleapis.com'&&url.pathname==='/tokeninfo')return jsonResponse({aud:'mock-google-client',email:googleMockEmail,email_verified:true,name:'DOING 測試人員',sub:googleMockSubject});
-  if(url.origin==='https://api.resend.com'){emailCalls++;return jsonResponse({id:'mock-email-'+emailCalls});}
+  if(url.origin==='https://api.resend.com'){emailCalls++;emailPayloads.push(init.body?JSON.parse(String(init.body)):{});return jsonResponse({id:'mock-email-'+emailCalls});}
   if(url.origin!=='https://mock.supabase.local')throw new Error('測試禁止連線外部服務：'+url.origin);
   const parts=url.pathname.split('/').filter(Boolean),table=parts[2];
   if(parts[2]==='rpc')return jsonResponse({ok:true,balance:1000,ledgerId:'mock-ledger'});
@@ -136,6 +136,7 @@ try{
   assert.equal(row.status,'approved');
 
   const ownerToken=await signToken({iss:'DOING',email:'formal-flow-test@doing.invalid',tenant_id:tenantId,role:'organizer_owner',normalized_role:'organizer_owner',issued_at:now,expires_at:now+3600000});
+  const forbiddenPlatformInvite=await jsonAction('addStaff',{tenant:tenantId,email:'formal-flow-test@doing.invalid',token:ownerToken,targetEmail:'forbidden-platform@doing.invalid',targetName:'不可新增平台總管',role:'platform_super_admin'});assert.match(forbiddenPlatformInvite.error,/角色不能由租戶新增/);
   const profileRes=await request('/?action=getTenantModuleProfile&tenant='+encodeURIComponent(tenantId)+'&email='+encodeURIComponent('formal-flow-test@doing.invalid')+'&token='+encodeURIComponent(ownerToken));
   const profile=await profileRes.json();assert.equal(profile.approvedFlags.invoice,false);assert.equal(profile.approvedFlags.workshopSlots,true);
 
@@ -190,9 +191,9 @@ try{
   const separateGoogleToken=new URL(separateGoogleCallback.headers.get('location')).searchParams.get('member_token');assert.ok(separateGoogleToken,'不同 Email 的 Google 驗證成功後仍必須能登入');
   assert.equal(tables.platform_members.length,2,'不同已驗證 Email 在未確認前不可誤合併');
   assert.ok(tables.staff.find(x=>x.id==='STF_LEGACY_GOOGLE').platform_member_id,'Google 已驗證 Email 應先接回原管理權');
-  const collisionSave=await jsonAction('savePlatformMemberProfile',{member_token:separateGoogleToken,name:'可能重複會員',email:'another-contact@doing.invalid',phone:'+886 911-222-333',systemApplication:{enabled:false}});
-  assert.match(collisionSave.error,/登入已成功.*可能屬於既有 DOING 帳號/,'同電話只暫停重複建檔，不可說成登入失敗');
-  assert.equal(tables.platform_members.filter(x=>x.completed_at).length,1,'重複疑慮未解除前不可建立第二份完整會員資料');
+  const collisionSave=await jsonAction('savePlatformMemberProfile',{member_token:separateGoogleToken,name:'共用電話的第二位會員',email:'another-contact@doing.invalid',phone:'+886 911-222-333',systemApplication:{enabled:false}});
+  assert.equal(collisionSave.ok,true,'未做簡訊 OTP 時，同電話不得阻擋第二位真實會員完成資料');
+  assert.equal(tables.platform_members.filter(x=>x.completed_at).length,2,'夫妻或共用電話者必須保留為兩位會員');
 
   const linkRequest=await jsonAction('createIdentityLink',{member_token:canonicalToken,provider:'google',return_url:'https://site.test/member.html#account'});
   assert.equal(linkRequest.ok,true);assert.match(linkRequest.url,/\/auth\/google\/start/);
@@ -251,6 +252,25 @@ try{
   const platformLineCallback=await request('/auth/line/callback?code=mock-code&state='+encodeURIComponent(platformLineStartUrl.searchParams.get('state'))),platformLineReturn=new URL(platformLineCallback.headers.get('location'));
   assert.equal(platformLineReturn.pathname,'/platform.html');assert.ok(platformLineReturn.searchParams.get('admin_token'),'既有平台管理者 LINE 登入未取得管理權');
   assert.ok(tables.platform_staff.find(x=>x.id==='PST_LEGACY_PLATFORM').platform_member_id,'既有平台管理者未綁定共用會員');
+  const linkedPlatformToken=platformLineReturn.searchParams.get('admin_token');
+  const disableSelf=await jsonAction('setPlatformAccessActive',{token:linkedPlatformToken,assignmentType:'platform',assignmentId:'PST_LEGACY_PLATFORM',active:false});assert.match(disableSelf.error,/不能停用目前登入中/);
+  const inviteEmail='invited-manager@doing.invalid';
+  const accessInvite=await jsonAction('createPlatformAccessInvite',{token:linkedPlatformToken,accessType:'system',targetEmail:inviteEmail,targetName:'受邀管理員',tenantId});
+  assert.equal(accessInvite.success,true,JSON.stringify(accessInvite));assert.equal(accessInvite.invitationStatus,'pending');assert.equal(accessInvite.emailSent,true);
+  const invitedStaff=tables.staff.find(x=>x.tenant_id===tenantId&&x.email===inviteEmail);assert.ok(invitedStaff);assert.equal(invitedStaff.platform_member_id,undefined);
+  const inviteMail=[...emailPayloads].reverse().find(x=>String(x.to||'').includes(inviteEmail));assert.ok(inviteMail,'管理邀請信未寄出');
+  const inviteUrlMatch=String(inviteMail.html||'').match(/https:\/\/site\.test\/member\.html\?staff_invite=([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/);assert.ok(inviteUrlMatch,'管理邀請信缺少簽名接受連結');
+  const inviteToken=inviteUrlMatch[1];
+  env.LINE_LOGIN_EMAIL_ENABLED='false';lineMockEmail='';lineMockSubject='line-invited-manager';lineMockName='受邀管理員';
+  const invitedMemberStart=await request('/auth/line/start?mode=member&return_url='+encodeURIComponent('https://site.test/member.html?staff_invite='+inviteToken)),invitedMemberStartUrl=new URL(invitedMemberStart.headers.get('location'));lineNonce=invitedMemberStartUrl.searchParams.get('nonce');
+  const invitedMemberCallback=await request('/auth/line/callback?code=mock-code&state='+encodeURIComponent(invitedMemberStartUrl.searchParams.get('state'))),invitedMemberToken=new URL(invitedMemberCallback.headers.get('location')).searchParams.get('member_token');assert.ok(invitedMemberToken);
+  const acceptedInvite=await jsonAction('acceptStaffInvite',{member_token:invitedMemberToken,invite_token:inviteToken});assert.equal(acceptedInvite.accepted,true,JSON.stringify(acceptedInvite));
+  assert.ok(invitedStaff.platform_member_id,'受邀者使用自己的 LINE 接受後才應綁定管理權');
+  const invitedAdminStart=await request('/auth/line/start?mode=admin&tenant='+encodeURIComponent(tenantId)),invitedAdminStartUrl=new URL(invitedAdminStart.headers.get('location'));lineNonce=invitedAdminStartUrl.searchParams.get('nonce');
+  const invitedAdminCallback=await request('/auth/line/callback?code=mock-code&state='+encodeURIComponent(invitedAdminStartUrl.searchParams.get('state')));assert.ok(new URL(invitedAdminCallback.headers.get('location')).searchParams.get('admin_token'),'受邀者接受後應可用 LINE 登入租戶後台');
+  const onsiteMissing=await jsonAction('createPlatformAccessInvite',{token:linkedPlatformToken,accessType:'onsite',targetEmail:'onsite@doing.invalid',targetName:'現場人員',tenantId,sessionIds:[]});assert.match(onsiteMissing.error,/至少要選擇一個場次/);
+  const onsiteInvite=await jsonAction('createPlatformAccessInvite',{token:linkedPlatformToken,accessType:'onsite',targetEmail:'onsite@doing.invalid',targetName:'現場人員',tenantId,sessionIds:[approvedSession.id]});assert.equal(onsiteInvite.success,true);
+  env.LINE_LOGIN_EMAIL_ENABLED='true';lineMockEmail=legacyPlatformEmail;lineMockSubject='line-legacy-platform';lineMockName='既有平台管理者';
   const platformMemberStart=await request('/auth/line/start?return_url='+encodeURIComponent('https://site.test/member.html')),platformMemberStartUrl=new URL(platformMemberStart.headers.get('location'));lineNonce=platformMemberStartUrl.searchParams.get('nonce');
   const platformMemberCallback=await request('/auth/line/callback?code=mock-code&state='+encodeURIComponent(platformMemberStartUrl.searchParams.get('state'))),platformMemberToken=new URL(platformMemberCallback.headers.get('location')).searchParams.get('member_token');
   const platformMemberProfile=await (await request('/?action=getPlatformMemberProfile&member_token='+encodeURIComponent(platformMemberToken))).json();
@@ -260,7 +280,7 @@ try{
   assert.ok(emailCalls>=2,'申請送出與審核通過通知信未完整觸發');
   console.log(JSON.stringify({
     result:'PASS',applicationId:draft.applicationId,tenantId,
-    stages:['問卷草稿','模擬 LINE 驗證','LINE 未提供 Email 仍完成申請','平台核准','建立租戶','建立負責人','無 Email LINE 身分登入主辦後台','LINE 進入主辦後台','LINE／Google 共用會員','Google 以共用會員進入主辦後台','合併舊重複會員與關聯資料','手填 Email 與驗證 Email 分流','不同 Email 的 Google 仍可登入','同電話暫停重複建檔但不擋登入','使用者明確同步 LINE／Google','不同 Email 的舊主辦權限移到共用會員','4 個既有主辦以 LINE 接回管理權','既有平台管理者以 LINE 接回管理權','會員中心顯示平台總管理者入口','寫入模組','建立核准場次','阻擋未核准模組'],
+    stages:['問卷草稿','模擬 LINE 驗證','LINE 未提供 Email 仍完成申請','平台核准','建立租戶','建立負責人','無 Email LINE 身分登入主辦後台','LINE 進入主辦後台','LINE／Google 共用會員','Google 以共用會員進入主辦後台','合併舊重複會員與關聯資料','手填 Email 與驗證 Email 分流','不同 Email 的 Google 仍可登入','同電話保留兩位會員且不阻擋','使用者明確同步 LINE／Google','不同 Email 的舊主辦權限移到共用會員','4 個既有主辦以 LINE 接回管理權','既有平台管理者以 LINE 接回管理權','Email 管理邀請','本人 LINE 接受後綁定','受邀者 LINE 登入後台','現場管理必選場次','會員中心顯示平台總管理者入口','寫入模組','建立核准場次','阻擋未核准模組'],
     legacyOwnersBound:legacyOwnerResults.length,legacyPlatformAdminBound:true,
     approvedModules:Object.entries(approvedFlags).filter(([,v])=>v).map(([k])=>k),
     platformDisabled:['invoice','resource','i18n'],emailNotifications:emailCalls,productionWrites:0

@@ -77,6 +77,59 @@
       }
     },
     {
+      "id": "platform-access",
+      "area": "平台總管",
+      "title": "管理人員與登入備援",
+      "summary": "平台、租戶與現場管理者以 Email 收邀請，再由本人 LINE 接受並綁定權限。",
+      "route": "platform.html#platform-access",
+      "features": [
+        {
+          "label": "設定平台管理者",
+          "status": "done",
+          "evidence": "getPlatformAccessAssignments / createPlatformAccessInvite"
+        },
+        {
+          "label": "設定指定租戶的系統管理者",
+          "status": "done",
+          "evidence": "createPlatformAccessInvite"
+        },
+        {
+          "label": "設定指定場次的現場管理",
+          "status": "done",
+          "evidence": "staff_session_permissions / onsite_staff"
+        },
+        {
+          "label": "Email 邀請後由本人 LINE 接受",
+          "status": "done",
+          "evidence": "issueStaffInviteToken / acceptStaffInvite"
+        },
+        {
+          "label": "管理入口提供 Google 備援登入",
+          "status": "done",
+          "evidence": "platform.html / admin.html / member identity link"
+        },
+        {
+          "label": "電話未經簡訊驗證不合併、不授權、不阻擋",
+          "status": "done",
+          "evidence": "platformIdentityCollision / validate-login-providers"
+        }
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "platform_members",
+          "platform_member_identities",
+          "platform_staff",
+          "staff",
+          "staff_session_permissions",
+          "tenants",
+          "sessions"
+        ]
+      }
+    },
+    {
       "id": "platform-tenant",
       "area": "平台總管",
       "title": "租戶與權限管理",
@@ -400,7 +453,22 @@
         {
           "label": "我的品牌",
           "status": "done",
-          "evidence": "member.html brands"
+          "evidence": "member.html#brands / saveMemberBrand"
+        },
+        {
+          "label": "一個會員管理多個獨立品牌",
+          "status": "done",
+          "evidence": "brands / brand_members"
+        },
+        {
+          "label": "同一品牌由多位獨立會員共同管理",
+          "status": "done",
+          "evidence": "brand_access_requests / resolveBrandAccessRequest"
+        },
+        {
+          "label": "同名品牌只提示、不自動合併",
+          "status": "done",
+          "evidence": "normalizeBrandName / saveMemberBrand resolution"
         },
         {
           "label": "我的營運",
@@ -435,8 +503,13 @@
         "tables": [
           "platform_members",
           "platform_member_identities",
+          "brands",
+          "brand_members",
+          "brand_access_requests",
           "members",
           "registrations",
+          "registration_members",
+          "registration_member_invites",
           "tenants",
           "tenant_apply_logs"
         ]
@@ -525,7 +598,17 @@
         {
           "label": "報名資料與品牌資料帶入",
           "status": "done",
-          "evidence": "member profile"
+          "evidence": "doingMemberBrands / register brandId"
+        },
+        {
+          "label": "同一品牌同一場只建立一筆有效報名",
+          "status": "done",
+          "evidence": "registrations_active_brand_session_unit_unique"
+        },
+        {
+          "label": "報名人邀請實際出攤者",
+          "status": "done",
+          "evidence": "createRegistrationMemberInvite / acceptRegistrationMemberInvite"
         },
         {
           "label": "主辦查看與搜尋名單",
@@ -577,7 +660,11 @@
         "project": "DOING_SaaS",
         "schema": "public",
         "tables": [
+          "brands",
+          "brand_members",
           "registrations",
+          "registration_members",
+          "registration_member_invites",
           "registration_items",
           "members",
           "payments",
@@ -674,9 +761,9 @@
           "evidence": "member notes"
         },
         {
-          "label": "新增管理人員",
+          "label": "Email 邀請管理人員並由本人 LINE 接受",
           "status": "done",
-          "evidence": "addStaff"
+          "evidence": "addStaff / resendInvite / acceptStaffInvite"
         },
         {
           "label": "主辦、財務、場次與現場角色",
@@ -742,6 +829,11 @@
           "evidence": "onsite shift"
         },
         {
+          "label": "實際出攤者用自己的 LINE 報到與申請撤場",
+          "status": "done",
+          "evidence": "memberOnsiteAction / registration_members"
+        },
+        {
           "label": "真實手機現場操作",
           "status": "verify"
         }
@@ -753,6 +845,8 @@
         "tables": [
           "onsite_passcodes",
           "registrations",
+          "registration_members",
+          "registration_member_invites",
           "staff_action_logs",
           "audit_logs"
         ]
@@ -1058,10 +1152,6 @@
       "title": "已登記、現在先不做",
       "summary": "保留方向，但先完成第一個租戶營運與收入閉環。",
       "features": [
-        {
-          "label": "一個會員管理多個獨立品牌",
-          "status": "later"
-        },
         {
           "label": "租戶自有網域與代設定",
           "status": "later"
