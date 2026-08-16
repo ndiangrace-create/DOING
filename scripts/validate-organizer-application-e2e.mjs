@@ -79,6 +79,7 @@ const env={
   JWT_SECRET:'isolated-e2e-jwt-secret',AUTH_SECRET:'isolated-e2e-auth-secret',
   GOOGLE_CLIENT_ID:'mock-google-client',GOOGLE_CLIENT_SECRET:'mock-google-secret',
   LINE_LOGIN_CHANNEL_ID:'mock-line-client',LINE_LOGIN_CHANNEL_SECRET:'mock-line-secret',
+  LINE_LOGIN_EMAIL_ENABLED:'true',
   RESEND_KEY:'mock-resend-key',
   GOOGLE_REDIRECT_URI:'https://worker.test/auth/google/callback',LINE_LOGIN_REDIRECT_URI:'https://worker.test/auth/line/callback',
   DOING_SITE_URL:'https://site.test/',DOING_ADMIN_URL:'https://site.test/admin.html',DOING_PLATFORM_URL:'https://site.test/platform.html'
@@ -205,6 +206,30 @@ try{
   const linkedProfile=await (await request('/?action=getPlatformMemberProfile&member_token='+encodeURIComponent(linkReturn.searchParams.get('member_token')))).json();
   assert.deepEqual(linkedProfile.linkedProviders.sort(),['google','line']);
 
+  // 真實 LINE Channel 尚未核准 Email 權限時，仍要用 provider subject 完成申請、核准與主辦登入。
+  env.LINE_LOGIN_EMAIL_ENABLED='false';lineMockEmail='';lineMockSubject='line-no-email-subject';lineMockName='無 Email LINE 測試人員';
+  const noEmailQuestionnaire={...questionnaire,unitName:'LINE 無 Email 正式流程測試',ownerName:'無 Email LINE 測試人員',contactEmail:'line-no-email-contact@doing.invalid',phone:'0922000000'};
+  const noEmailDraft=await jsonAction('createOrganizerApplicationDraft',{application:noEmailQuestionnaire});
+  assert.equal(noEmailDraft.ok,true);
+  const noEmailStart=await request('/auth/line/start?mode=organizer_signup&application_id='+encodeURIComponent(noEmailDraft.applicationId));
+  const noEmailStartUrl=new URL(noEmailStart.headers.get('location'));lineNonce=noEmailStartUrl.searchParams.get('nonce');
+  assert.equal(noEmailStartUrl.searchParams.get('scope'),'openid profile','未核准 LINE Email 時不可要求 email scope');
+  const noEmailCallback=await request('/auth/line/callback?code=mock-code&state='+encodeURIComponent(noEmailStartUrl.searchParams.get('state')));
+  const noEmailReturn=new URL(noEmailCallback.headers.get('location'));assert.equal(noEmailReturn.searchParams.get('application_status'),'pending');
+  const noEmailRow=tables.tenant_apply_logs.find(x=>x.id===noEmailDraft.applicationId),noEmailMemberId=noEmailRow.application_json.memberId;
+  assert.equal(noEmailRow.status,'pending');assert.ok(noEmailMemberId);assert.equal(noEmailRow.application_json.loginProvider,'line');
+  const noEmailIdentity=tables.platform_member_identities.find(x=>x.member_id===noEmailMemberId&&x.provider==='line');
+  assert.ok(noEmailIdentity);assert.equal(noEmailIdentity.provider_email,null,'LINE 未提供 Email 時不可偽造已驗證 Email');
+  const noEmailApproval=await jsonAction('approveApply',{token:platformToken,apply_id:noEmailDraft.applicationId,module_flags:approvedFlags});
+  assert.equal(noEmailApproval.ok,true);assert.ok(noEmailApproval.tenantId);
+  const noEmailStaff=tables.staff.find(x=>x.tenant_id===noEmailApproval.tenantId&&x.role==='organizer_owner');
+  assert.equal(noEmailStaff.platform_member_id,noEmailMemberId,'平台核准後必須直接綁定已驗證 LINE 身分');
+  const noEmailAdminStart=await request('/auth/line/start?mode=admin&tenant='+encodeURIComponent(noEmailApproval.tenantId));
+  const noEmailAdminStartUrl=new URL(noEmailAdminStart.headers.get('location'));lineNonce=noEmailAdminStartUrl.searchParams.get('nonce');
+  const noEmailAdminCallback=await request('/auth/line/callback?code=mock-code&state='+encodeURIComponent(noEmailAdminStartUrl.searchParams.get('state')));
+  assert.ok(new URL(noEmailAdminCallback.headers.get('location')).searchParams.get('admin_token'),'LINE 未提供 Email 時，已綁定主辦仍必須能登入後台');
+  env.LINE_LOGIN_EMAIL_ENABLED='true';lineMockEmail='formal-flow-test@doing.invalid';lineMockSubject='line-test-subject';lineMockName='DOING 測試人員';
+
   const legacyOwnerResults=[];
   for(let i=1;i<=4;i++){
     const legacyTenant='legacy-owner-'+i,legacyEmail=`legacy-owner-${i}@doing.invalid`,staffId='STF_LEGACY_OWNER_'+i;
@@ -231,7 +256,7 @@ try{
   assert.ok(emailCalls>=2,'申請送出與審核通過通知信未完整觸發');
   console.log(JSON.stringify({
     result:'PASS',applicationId:draft.applicationId,tenantId,
-    stages:['問卷草稿','模擬 LINE 驗證','平台核准','建立租戶','建立負責人','LINE 進入主辦後台','LINE／Google 共用會員','Google 以共用會員進入主辦後台','合併舊重複會員與關聯資料','手填 Email 與驗證 Email 分流','不同 Email 的 Google 仍可登入','同電話暫停重複建檔但不擋登入','使用者明確同步 LINE／Google','不同 Email 的舊主辦權限移到共用會員','4 個既有主辦以 LINE 接回管理權','既有平台管理者以 LINE 接回管理權','寫入模組','建立核准場次','阻擋未核准模組'],
+    stages:['問卷草稿','模擬 LINE 驗證','LINE 未提供 Email 仍完成申請','平台核准','建立租戶','建立負責人','無 Email LINE 身分登入主辦後台','LINE 進入主辦後台','LINE／Google 共用會員','Google 以共用會員進入主辦後台','合併舊重複會員與關聯資料','手填 Email 與驗證 Email 分流','不同 Email 的 Google 仍可登入','同電話暫停重複建檔但不擋登入','使用者明確同步 LINE／Google','不同 Email 的舊主辦權限移到共用會員','4 個既有主辦以 LINE 接回管理權','既有平台管理者以 LINE 接回管理權','寫入模組','建立核准場次','阻擋未核准模組'],
     legacyOwnersBound:legacyOwnerResults.length,legacyPlatformAdminBound:true,
     approvedModules:Object.entries(approvedFlags).filter(([,v])=>v).map(([k])=>k),
     platformDisabled:['invoice','resource','i18n'],emailNotifications:emailCalls,productionWrites:0
