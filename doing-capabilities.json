@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "updatedAt": "2026-08-16",
   "statusLabels": {
     "done": "已完成",
@@ -1105,6 +1105,38 @@
         "schema": "public",
         "tables": [
           "tenant_settings"
+        ]
+      }
+    },
+    {
+      "id": "platform-visual",
+      "area": "品牌外觀",
+      "title": "DOING 平台視覺基準",
+      "summary": "以首頁粉彩品牌風格統一平台核心頁面，同時保持各角色需要的操作密度。",
+      "route": "index.html",
+      "features": [
+        {
+          "label": "首頁粉彩色系與風格正式定案",
+          "status": "done",
+          "evidence": "DOING_首頁視覺基準.md / doing-design-tokens.css"
+        },
+        {
+          "label": "小型資料格與功能格維持圓角方形，不做成圓形或膠囊",
+          "status": "done",
+          "evidence": "DOING_首頁視覺基準.md"
+        },
+        {
+          "label": "會員、報名、申請、主辦、平台、現場與拍照頁逐頁套用",
+          "status": "later",
+          "note": "視覺基準已保存；後續逐頁修改與驗收，避免改 A 壞 B。"
+        }
+      ],
+      "dataSource": {
+        "authority": "supabase",
+        "project": "DOING_SaaS",
+        "schema": "public",
+        "tables": [
+          "platform_settings"
         ]
       }
     },

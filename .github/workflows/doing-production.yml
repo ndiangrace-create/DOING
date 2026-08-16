@@ -54,6 +54,8 @@ jobs:
         run: node scripts/validate-responsive-layout.mjs
       - name: Validate frontstage user-facing copy
         run: node scripts/validate-frontstage-copy.mjs
+      - name: Validate DOING homepage visual standard
+        run: node scripts/validate-visual-standard.mjs
       - name: Validate platform attribution flow
         run: node scripts/validate-platform-attribution.mjs
       - name: Validate capability world map
