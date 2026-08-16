@@ -260,3 +260,6 @@ body.doing-app .world-data-source code{font:700 13px/1.5 ui-monospace,SFMono-Reg
   body.doing-app .container{width:min(100% - 32px,1380px)!important;margin-inline:auto!important}
   body.doing-app .world-modules{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))!important}
 }
+
+/* 報名頁舊主題會在執行時加上多個 class；以較高權重維持無漸層。 */
+html body.doing-app.doing-register.doing-public-refactor-body{background:#fff!important;background-image:none!important}
