@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-16T22:40:35+08:00",
-  "sourceFingerprint": "2c244b697c36df342030c6c6d3ccb05da85c30cfa70a2588b54c7d5364caf801",
+  "recordedAt": "2026-08-16T22:56:30+08:00",
+  "sourceFingerprint": "395893ecf61f01321f1afc2086c8198b16aee0d46160cfbb1dac40ddf0a5f8bf",
   "environment": "本機隔離模擬；Supabase、LINE、Google、Resend 全部使用 mock",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
@@ -16,7 +16,7 @@
     {"id":"data-sources","command":"node scripts/validate-data-sources.mjs","result":"PASS","scope":"Supabase 資料來源與關聯"},
     {"id":"responsive-layout","command":"node scripts/validate-responsive-layout.mjs","result":"PASS","scope":"手機與桌面框架密度、桌機會員按鈕單行與 LOGO 無外框"},
     {"id":"frontstage-copy","command":"node scripts/validate-frontstage-copy.mjs","result":"PASS","scope":"六個一般使用頁移除內部實作說明、我的報名命名、單一品牌直接編輯"},
-    {"id":"visual-standard","command":"node scripts/validate-visual-standard.mjs","result":"PASS","scope":"首頁粉彩色票、全站視覺基準、小型格子禁止圓形、世界樹實作狀態"},
+    {"id":"visual-standard","command":"node scripts/validate-visual-standard.mjs","result":"PASS","scope":"首頁粉彩色票、七個核心頁面逐頁套用、小型格子禁止圓形、世界樹實作狀態"},
     {"id":"platform-attribution","command":"node scripts/validate-platform-attribution.mjs","result":"PASS","scope":"匿名曝光、點擊、完成報名與近 30 日轉換率"},
     {"id":"capabilities","command":"node scripts/validate-capabilities.mjs","result":"PASS","scope":"功能世界圖與狀態"},
     {"id":"seat-map","command":"node scripts/validate-seat-map.mjs","result":"PASS","scope":"手機選位與攤位圖"},

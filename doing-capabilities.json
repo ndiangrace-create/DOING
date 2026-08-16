@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "updatedAt": "2026-08-16",
   "statusLabels": {
     "done": "已完成",
@@ -1127,8 +1127,8 @@
         },
         {
           "label": "會員、報名、申請、主辦、平台、現場與拍照頁逐頁套用",
-          "status": "later",
-          "note": "視覺基準已保存；後續逐頁修改與驗收，避免改 A 壞 B。"
+          "status": "done",
+          "evidence": "doing-pastel-pages.css / member.html / register.html / about.html / admin.html / platform.html / onsite.html / photo.html"
         }
       ],
       "dataSource": {

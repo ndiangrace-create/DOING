@@ -6,7 +6,7 @@
 
 正式參考頁：`index.html` ＋ `doing-home-refresh.css`
 
-狀態：`已定案；其他頁面逐頁套用中`
+狀態：`已定案；七個核心頁面已逐頁套用並待正式部署`
 
 ## 一、不可改回的整體風格
 
@@ -128,6 +128,16 @@ DOING 全站以目前首頁為唯一視覺母版。
 7. `photo.html` 拍照框工具。
 
 每完成一頁都必須同時驗收桌機與手機，並確認功能、資料與權限沒有因改版受影響。
+
+目前套用狀態：
+
+- `member.html`：已套用。
+- `register.html`：已套用。
+- `about.html`：已套用。
+- `admin.html`：已套用。
+- `platform.html`：已套用。
+- `onsite.html`：已套用。
+- `photo.html`：已套用。
 
 ## 七、執行原則
 
