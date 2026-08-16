@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-16T23:19:46+08:00",
-  "sourceFingerprint": "152dc2ae3aa8af7e3f48532e43a4aff796fe77f879aaba5cd960a41981943e24",
+  "recordedAt": "2026-08-16T23:55:00+08:00",
+  "sourceFingerprint": "7e353258369e8d30800dbcb27ad483eab0cec2f7f527294ed48aa512bee9754f",
   "environment": "本機隔離模擬；Supabase、LINE、Google、Resend 全部使用 mock",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
@@ -12,6 +12,7 @@
     {"id":"organizer-application-e2e","command":"node scripts/validate-organizer-application-e2e.mjs","result":"PASS","scope":"正式申請、LINE 無 Email、核准與租戶建立、4 個既有主辦與平台管理者安全補綁、同電話保留兩位會員、Email 管理邀請、本人 LINE 接受、受邀後登入、現場管理必選場次、LINE／Google 明確同步"},
     {"id":"member-brand-e2e","command":"node scripts/validate-member-brand-e2e.mjs","result":"PASS","scope":"兩位獨立 LINE 會員同電話不合併、同名品牌提示、品牌主檔唯一、共同品牌核准、出攤邀請、本人接受、同一邀請第二支手機搶用被阻擋、報到與撤場；正式資料 0 寫入"},
     {"id":"tenant-application","command":"node scripts/validate-tenant-application.mjs","result":"PASS","scope":"問卷與核准模組對應"},
+    {"id":"beauty-workflow","command":"node scripts/validate-beauty-workflow.mjs","result":"PASS","scope":"美類統一命名、完整初始模組、通用服務人員、顧客到店與票券流程位置"},
     {"id":"role-module-access","command":"node scripts/validate-role-module-access.mjs","result":"PASS","scope":"角色與已核准模組權限"},
     {"id":"data-sources","command":"node scripts/validate-data-sources.mjs","result":"PASS","scope":"Supabase 資料來源與關聯"},
     {"id":"responsive-layout","command":"node scripts/validate-responsive-layout.mjs","result":"PASS","scope":"手機與桌面框架密度、桌機會員按鈕單行與 LOGO 無外框"},
