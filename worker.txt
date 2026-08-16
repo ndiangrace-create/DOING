@@ -4041,7 +4041,10 @@ async function hLineStart(env,url){
   if(mode==='link'&&!link)return new Response('帳號連結已失效，請回會員中心重新操作',{status:400});
   const fallback=mode==='platform'||tenant==='platform'?platformSiteUrl(env):mode==='organizer_signup'?doingSiteUrl(env)+'#apply':doingSiteUrl(env);
   const state=await issueLineOAuthState(env,{mode,tenant,application_id:url.searchParams.get('application_id')||'',return_url:link?.return_url||url.searchParams.get('return_url')||fallback,link_member_id:link?.member_id||'',nonce});
-  const scope='openid profile email';
+  // LINE Email 權限需經 LINE Developers 另行審核。尚未核准時仍以固定 provider subject
+  // 完成安全登入；有核准並明確開啟設定時，才額外取得已驗證 Email 做跨服務自動合併。
+  const lineEmailEnabled=String(env.LINE_LOGIN_EMAIL_ENABLED||'').trim().toLowerCase()==='true';
+  const scope=lineEmailEnabled?'openid profile email':'openid profile';
   const params=new URLSearchParams({response_type:'code',client_id:env.LINE_LOGIN_CHANNEL_ID,redirect_uri:lineRedirectUri(env,url),state,scope,nonce,bot_prompt:'normal'});
   return Response.redirect(`https://access.line.me/oauth2/v2.1/authorize?${params}`,302);
 }
@@ -4061,7 +4064,7 @@ async function hLineCallback(env,url){
     const tokens=await tokenHttp.json();if(!tokenHttp.ok||!tokens.access_token||!tokens.id_token)throw new Error('token_exchange_failed');
     const verifyHttp=await fetch('https://api.line.me/oauth2/v2.1/verify',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({id_token:String(tokens.id_token),client_id:String(env.LINE_LOGIN_CHANNEL_ID)})});
     const profile=await verifyHttp.json();if(!verifyHttp.ok||String(profile.aud)!==String(env.LINE_LOGIN_CHANNEL_ID)||!profile.sub||String(profile.nonce||'')!==String(statePayload.nonce||''))throw new Error('id_token_verify_failed');
-    const verifiedEmail=normEmail(profile.email||''),lineSubject=String(profile.sub),lineName=String(profile.name||''),lineAvatar=String(profile.picture||'');if(!verifiedEmail)return fail('line_email_permission_required');
+    const verifiedEmail=normEmail(profile.email||''),lineSubject=String(profile.sub),lineName=String(profile.name||''),lineAvatar=String(profile.picture||'');
     let member=await upsertPlatformIdentity(env,{provider:'line',subject:lineSubject,email:verifiedEmail,displayName:lineName,avatarUrl:lineAvatar,preferredMemberId:mode==='link'?statePayload.link_member_id:''});
 
     if(mode==='link'){
@@ -4091,7 +4094,7 @@ async function hLineCallback(env,url){
     if(mode==='platform'||tenant==='platform'){
       let rows=await dbGet(env,'platform_staff',`platform_member_id=eq.${encodeURIComponent(member.id)}&is_active=eq.true&select=*`).catch(()=>[]),staff=rows[0];
       if(!staff&&verifiedEmail){rows=await dbGet(env,'platform_staff',`email=eq.${encodeURIComponent(verifiedEmail)}&is_active=eq.true&select=*`).catch(()=>[]);staff=rows[0];if(staff)await dbUpdate(env,'platform_staff',`id=eq.${encodeURIComponent(staff.id)}`,{platform_member_id:member.id,last_login_at:nowIso()}).catch(()=>{})}
-      if(!staff){await logAdminLogin(env,'platform',null,verifiedEmail,'line','denied','not_platform_staff','','').catch(()=>{});return fail(verifiedEmail?'not_authorized':'line_email_permission_required')}
+      if(!staff){await logAdminLogin(env,'platform',null,verifiedEmail,'line','denied','not_platform_staff','','').catch(()=>{});return fail('not_authorized')}
       const platformToken=await issueAdminToken({...staff,email:staff.email||verifiedEmail,name:staff.name||lineName},'platform',env);await dbUpdate(env,'platform_staff',`id=eq.${encodeURIComponent(staff.id)}`,{last_login_at:nowIso()}).catch(()=>{});await logAdminLogin(env,'platform',staff.id,staff.email||verifiedEmail,'line','success','platform_login','','').catch(()=>{});platformTarget.searchParams.set('admin_token',platformToken);return Response.redirect(platformTarget.toString(),302);
     }
 
@@ -4104,7 +4107,7 @@ async function hLineCallback(env,url){
 
     const memberToken=await issueMemberToken({email:member.email,provider:'line',provider_subject:lineSubject,display_name:lineName,avatar_url:lineAvatar},env);
     memberTarget.searchParams.set('member_token',memberToken);memberTarget.searchParams.set('member_status',platformMemberComplete(member)?'ready':'profile_required');return Response.redirect(memberTarget.toString(),302);
-  }catch(e){return fail('line_login_failed')}
+  }catch(e){await logError(env,{source:'hLineCallback',action:'lineOAuthCallback',tenantId:tenant,message:'LINE OAuth callback failed',error:e&&e.message?e.message:String(e),meta:{mode,applicationId:String(statePayload&&statePayload.application_id||'')}}).catch(()=>{});return fail('line_login_failed')}
 }
 
 async function issueGoogleOAuthState(env, tenant, extra={}) {
