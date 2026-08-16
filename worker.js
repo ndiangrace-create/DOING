@@ -3731,8 +3731,8 @@ async function hGetPlatformDashboard(env,p){
 async function hGetPlatformMetricDetails(env,p){
   const pay=await verifyAdminJwt(p.token,env);if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限');
   const kind=String(p.kind||'').trim(),allowed=new Set(['activeTenants','sessions','operationUnits','registrations','platformRevenue','startupCredit']);if(!allowed.has(kind))return jsonErr('不支援的統計明細');
-  const tenants=await dbGet(env,'tenants','select=id,name,owner_email,status,is_locked,created_at&limit=1000').catch(()=>[]),tenantMap=Object.fromEntries(tenants.map(x=>[String(x.id),x]));
-  const tenantName=id=>tenantMap[String(id||'')]?.name||String(id||'未指定租戶'),tenantMeta=id=>{const t=tenantMap[String(id||'')]||{};return {tenantId:String(id||''),tenantName:t.name||String(id||''),ownerEmail:t.owner_email||''}};
+  const tenants=await dbGet(env,'tenants','select=id,name,status,is_locked,created_at&limit=1000').catch(()=>[]),tenantMap=Object.fromEntries(tenants.map(x=>[String(x.id),x]));
+  const tenantName=id=>String(tenantMap[String(id||'')]?.name||'租戶名稱待設定').trim(),tenantMeta=id=>({tenantId:String(id||''),tenantName:tenantName(id)});
   if(kind==='sessions'){
     const list=await dbGet(env,'sessions','select=id,tenant_id,name,status,created_at&order=created_at.desc&limit=500').catch(()=>[]);
     return jsonOk({kind,title:'活動場次',rows:list.map(x=>({...tenantMeta(x.tenant_id),id:x.id,title:x.name||x.id,meta:[tenantName(x.tenant_id),x.status||'未設定狀態'].join('｜'),createdAt:x.created_at||''}))});
@@ -3747,7 +3747,7 @@ async function hGetPlatformMetricDetails(env,p){
   }
   if(kind==='activeTenants'){
     const monthAgo=new Date(Date.now()-30*86400000).toISOString(),[sessions,regs]=await Promise.all([dbGet(env,'sessions',`created_at=gte.${encodeURIComponent(monthAgo)}&select=tenant_id,created_at`).catch(()=>[]),dbGet(env,'registrations',`created_at=gte.${encodeURIComponent(monthAgo)}&select=tenant_id,created_at`).catch(()=>[])]),last={};for(const x of [...sessions,...regs]){const id=String(x.tenant_id||'');if(id&&(!last[id]||new Date(x.created_at)>new Date(last[id])))last[id]=x.created_at}
-    return jsonOk({kind,title:'近 30 日活躍主辦',rows:Object.entries(last).sort((a,b)=>new Date(b[1])-new Date(a[1])).map(([id,at])=>({...tenantMeta(id),id,title:tenantName(id),meta:tenantMap[id]?.owner_email||'尚未建立管理者',createdAt:at}))});
+    return jsonOk({kind,title:'近 30 日活躍主辦',rows:Object.entries(last).sort((a,b)=>new Date(b[1])-new Date(a[1])).map(([id,at])=>({...tenantMeta(id),id,title:tenantName(id),meta:tenantMap[id]?.status||'未設定狀態',createdAt:at}))});
   }
   const logs=await dbGet(env,'billing_logs','status=eq.confirmed&select=id,tenant_id,billing_type,amount,total,note,created_at&order=created_at.desc&limit=1000').catch(()=>[]),isRevenue=x=>{const t=String(x.billing_type||'');return t==='booking_monthly'||t.startsWith('activity_publish:')||t.startsWith('activity_rate:')||t.startsWith('activity_unit:')||t.startsWith('setup_feature:')||t.startsWith('exposure:')},list=kind==='startupCredit'?logs.filter(x=>String(x.billing_type)==='startup_credit_grant'):logs.filter(isRevenue);
   return jsonOk({kind,title:kind==='startupCredit'?'已發創業金':'平台收入',rows:list.map(x=>({...tenantMeta(x.tenant_id),id:x.id,title:tenantName(x.tenant_id),meta:String(x.note||x.billing_type||''),amount:Math.max(0,safeNum(x.total||x.amount)),createdAt:x.created_at||''}))});
