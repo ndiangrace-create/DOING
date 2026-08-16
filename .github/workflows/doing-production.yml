@@ -62,7 +62,7 @@ jobs:
       - name: Verify unified visual shell and private long press
         run: |
           for page in member.html admin.html onsite.html platform.html photo.html; do
-            grep -q 'doing-system.css?v=20260815-system' "$page"
+            grep -q 'doing-system.css?v=20260816-system2' "$page"
             grep -q 'doing-app' "$page"
           done
           grep -q "hiddenAdminSelector='#brandHoldTarget,.doing-nav-brand'" index.html
