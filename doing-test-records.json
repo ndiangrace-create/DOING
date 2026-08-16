@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-17T02:15:00+08:00",
-  "sourceFingerprint": "156641f7efef13f7b58ad35b22f70fb91d79460ca9d916bd5c873fc17ffe79e4",
+  "recordedAt": "2026-08-17T02:28:00+08:00",
+  "sourceFingerprint": "28c2cb7e522bd8d15b588969edf7ef39148f873c867f551f8a5175664d5ffe61",
   "environment": "本機隔離模擬；Supabase、LINE、Google、Resend 全部使用 mock",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
@@ -119,7 +119,7 @@
       "id": "navigation-actions",
       "command": "node scripts/validate-navigation-actions.mjs",
       "result": "PASS",
-      "scope": "平台十張數字卡逐一對應正確篩選或明細、租戶後台 KPI、總帳轉帳設定入口、全站首頁／我的 DOING／共同 LOGO 與三秒總管入口"
+      "scope": "平台十張數字卡逐一對應正確篩選或明細、明細迷你小卡直接標示租戶、站內上一頁、租戶後台 KPI、總帳轉帳設定入口、全站首頁／我的 DOING／共同 LOGO 與三秒總管入口"
     },
     {
       "id": "worker-sync",

@@ -15,6 +15,10 @@ assert(worker.includes('async function hGetPlatformMetricDetails'),'Worker 缺�
 assert(worker.includes("action==='getPlatformMetricDetails'"),'Worker 缺少平台明細路由');
 assert(platform.includes('租戶轉帳收款設定')&&platform.includes('platformPaymentSettingsJump'),'總帳後台缺少清楚的轉帳收款入口');
 assert(platform.includes('收款與計費設定'),'平台導覽未清楚標示收款與計費設定');
+assert(platform.includes('metric-detail-list{display:grid;grid-template-columns:repeat(4'),'資料明細未使用桌機迷你小卡');
+assert(platform.includes('租戶：')&&platform.includes('renderPlatformMetricCard'),'資料小卡未直接標示租戶名稱');
+assert(!platform.includes('>查看租戶</button>'),'資料小卡仍會跳去租戶頁');
+assert(platform.includes('platformBackBtn')&&platform.includes('goBackPlatformPage'),'平台缺少站內上一頁按鈕');
 
 for(const [label,target] of [['進行中場次',"switchPage(\\'sessions\\')"],['全部待辦',"setTodoFilter(\\'all\\')"],['待審核',"setTodoFilter(\\'pending\\')"],['付款處理',"setTodoFilter(\\'payment\\')"],['退款處理',"setTodoFilter(\\'refund\\')"],['實際已收',"switchPage(\\'finance\\')"]]){
   assert(admin.includes(label)&&admin.includes(target),`租戶後台 KPI 對應遺失：${label}`);
