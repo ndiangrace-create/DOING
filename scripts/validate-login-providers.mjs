@@ -18,7 +18,8 @@ for(const [name,source] of Object.entries({index:files.index,register:files.regi
 }
 assert.match(files.worker,/pathname\.endsWith\('\/auth\/line\/start'\)/);
 assert.match(files.worker,/pathname\.endsWith\('\/auth\/google\/start'\)/,'Google OAuth 路由不可刪除');
-assert.match(files.worker,/scope='openid profile email'/,'LINE 必須取得驗證 Email 才能安全同步帳號');
+assert.match(files.worker,/const scope=lineEmailEnabled\?'openid profile email':'openid profile'/,'LINE Email 未核准時必須仍可使用固定 provider subject 登入');
+assert.doesNotMatch(files.worker,/if\(!verifiedEmail\)return fail\('line_email_permission_required'\)/,'LINE 不得因供應商未提供 Email 而阻斷登入');
 assert.match(files.worker,/mergeVerifiedPlatformMembers/,'缺少 LINE／Google 共用會員合併流程');
 assert.match(files.worker,/bindLegacyAdminAccessByVerifiedEmails/,'缺少既有主辦與平台管理者的安全補綁流程');
 assert.match(files.worker,/verifiedProviderEmailsForMember/,'既有管理權只能使用 LINE／Google 已驗證 Email 補綁');
@@ -38,4 +39,4 @@ for(const tableName of ['staff','platform_staff']){
 }
 const platformMembers=catalog.tables.find(x=>x.name==='platform_members');assert.ok(platformMembers);for(const column of ['contact_email','phone_normalized'])assert.ok(platformMembers.columns.includes(column),`platform_members 未登記 ${column}`);
 
-console.log(JSON.stringify({result:'PASS',publicLogin:'line',googleIntegration:'retained_hidden_and_linkable',identityAuthority:'provider_subject',accountMerge:'same_verified_email_or_explicit_dual_login',manualEmailAndPhone:'duplicate_signal_only',loginPolicy:'oauth_login_allowed_duplicate_formal_write_paused',adminBinding:'platform_member_id',legacyAdminBinding:'verified_provider_email_only'},null,2));
+console.log(JSON.stringify({result:'PASS',publicLogin:'line',lineEmail:'optional_until_provider_permission_is_enabled',googleIntegration:'retained_hidden_and_linkable',identityAuthority:'provider_subject',accountMerge:'same_verified_email_or_explicit_dual_login',manualEmailAndPhone:'duplicate_signal_only',loginPolicy:'oauth_login_allowed_duplicate_formal_write_paused',adminBinding:'platform_member_id',legacyAdminBinding:'verified_provider_email_only'},null,2));
