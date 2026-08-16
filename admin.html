@@ -1724,6 +1724,15 @@ table{width:100%!important}
 }
 </style>
 
+<style id="doing-admin-member-return-20260816">
+.admin-member-home{display:flex;align-items:center;gap:10px;min-width:0;color:inherit;text-decoration:none!important;border-radius:12px;outline-offset:4px}
+.admin-member-home:hover .admin-member-back,.admin-member-home:focus-visible .admin-member-back{text-decoration:underline}
+.admin-member-home .logo{flex:0 0 auto}
+.admin-member-home .brand-sub{display:flex!important;align-items:center;gap:8px;max-width:none!important;overflow:visible!important;color:#425F72!important;font-size:16px!important;font-weight:800;white-space:nowrap}
+.admin-member-back{color:#2F6F86;font-weight:900}
+.admin-member-context{padding-left:8px;border-left:1px solid #CAD8DF;color:#687581;font-weight:700}
+@media(max-width:620px){.admin-member-home{gap:7px}.admin-member-home .brand-title{font-size:18px!important}.admin-member-home .brand-sub{display:flex!important;font-size:15px!important}.admin-member-context{display:none!important}}
+</style>
 <link rel="stylesheet" href="doing-system.css?v=20260815-system">
 <style id="admin-final-responsive-fix">
 html,body{max-width:100%;overflow-x:hidden!important}
@@ -2079,7 +2088,7 @@ body.doing-admin .toast{border-radius:8px!important;background:#222!important;co
 
 <section id="adminPage" class="hidden">
   <header class="topbar"><div class="topbar-in">
-    <div class="brand"><div class="logo doing-logo" aria-hidden="true"></div><div><div class="brand-title">DOING 活動營運管理系統</div><div id="whoText" class="brand-sub">尚未登入</div></div></div>
+    <div class="brand"><a id="adminReturnLink" class="admin-member-home" href="member.html#operations" aria-label="回到我的 DOING 會員中心" title="回到我的 DOING"><div class="logo doing-logo" aria-hidden="true"></div><div><div class="brand-title">DOING 活動營運管理系統</div><div class="brand-sub"><span id="adminReturnLabel" class="admin-member-back">← 回到我的 DOING</span><span id="whoText" class="admin-member-context">尚未登入</span></div></div></a></div>
     <div class="actions"><button class="btn secondary small" onclick="openSupportCenter()">系統客服 <span id="supportUnreadBadge" class="doing-unread">0</span></button><button class="btn secondary small hide-sm" onclick="refreshCurrentPage()">重新整理</button><button class="btn secondary small" onclick="openOnsiteWorkerPage()">現場入口</button><button class="btn gray small" onclick="logout()">登出</button></div>
   </div></header>
   <nav class="tabs" aria-label="DOING 後台主選單">
@@ -2114,7 +2123,7 @@ body.doing-admin .toast{border-radius:8px!important;background:#222!important;co
       <div id="financeReportRoot"><div class="loading">財務中心載入中…</div></div>
       <section class="finance-ledger-launch"><div><h3>各場次帳本</h3><p>需要核對單一場次時，再進入該場次查看、編輯或刪除手動收支。</p></div><div id="financeHub"><div class="loading">場次帳本載入中…</div></div></section>
     </section>
-    <section id="page-people" class="hidden"><div class="page-title"><div><h2>人員</h2><div class="sub">把「誰能做什麼」與「主辦累積了哪些會員關係」分開管理；權限會依你設定的管理範圍自動套用。</div></div></div><div class="settings-grid"><button class="settings-tile" onclick="openStaffSettings()"><div class="ico">🔐</div><b>管理人員</b><span>主辦 / 財務 / 單場 / 現場授權</span></button><button class="settings-tile" onclick="switchPage('members')"><div class="ico">👥</div><b>會員 / 品牌</b><span>會員資料、備註、歷史報名</span></button><button class="settings-tile" onclick="switchPage('leads')"><div class="ico">📣</div><b>活動名單</b><span>接觸名單、篩選與匯出</span></button><button class="settings-tile" onclick="window.open('onsite.html','_blank')"><div class="ico">🎟️</div><b>現場工作台</b><span>授權場次與報到操作</span></button></div></section>
+    <section id="page-people" class="hidden"><div class="page-title"><div><h2>人員</h2><div class="sub">把「誰能做什麼」與「主辦累積了哪些會員關係」分開管理；權限會依你設定的管理範圍自動套用。</div></div></div><div class="settings-grid"><button class="settings-tile" onclick="openStaffSettings()"><div class="ico">🔐</div><b>管理人員</b><span>主辦 / 財務 / 單場 / 現場授權</span></button><button class="settings-tile" onclick="switchPage('members')"><div class="ico">👥</div><b>會員 / 品牌</b><span>會員資料、備註、歷史報名</span></button><button class="settings-tile" onclick="switchPage('leads')"><div class="ico">📣</div><b>活動名單</b><span>接觸名單、篩選與匯出</span></button><button class="settings-tile" onclick="openOnsiteWorkerPage()"><div class="ico">🎟️</div><b>現場工作台</b><span>授權場次與報到操作</span></button></div></section>
     <section id="page-todos" class="hidden"><div class="page-title"><div><h2>目前待辦</h2><div class="sub">顯示所有尚未完成事項；今天截止或今天應處理的項目會標示「今日到期」。</div></div><div class="page-actions"><button class="btn secondary" onclick="loadTodos()">重新整理</button></div></div><section id="doingCommand" class="doing-command"><div class="doing-command-top"><div class="doing-command-copy"><small>OPERATIONS NOW</small><h3>今天先處理最重要的營運工作</h3><p id="doingCommandText">正在整理跨場次狀態…</p></div><div class="doing-command-action"><button class="btn secondary small" onclick="switchPage('todos')">查看全部待辦</button><button class="btn small" onclick="newSessionFull()">＋ 建立新場次</button></div></div><div id="doingKpis" class="doing-kpis"></div></section><div id="todoFilterBar"></div><div id="todoList" class="cards"><div class="loading">載入待辦中…</div></div></section>
     <section id="page-onsite" class="hidden"><div class="page-title"><div><h2>現場</h2><div class="sub">管理者直接操作；工讀生使用同場唯一通行碼進入獨立工作台，所有操作與工時都有紀錄。</div></div><div class="page-actions"><button class="btn secondary" onclick="loadOnsiteList()">重新整理</button><button class="btn secondary" onclick="openOnsitePasscodes()">場次通行碼</button><button class="btn secondary" onclick="openOnsiteShifts()">工讀生工時</button><button class="btn" onclick="openOnsiteWorkerPage()">開啟工讀生頁</button></div></div><div class="filter-row"><select id="onsiteSession" onchange="loadOnsiteList(this.value)" style="flex:1;min-width:220px"></select></div><div class="filter-row" style="margin-top:0"><input id="onsiteSearch" placeholder="搜尋品牌、姓名、手機、Email" oninput="renderOnsiteList()"></div><div class="filter-row" style="margin-top:0"><button class="btn secondary small onsite-fbtn active" onclick="onsiteSetFilter('unchecked',this)">未報到</button><button class="btn secondary small onsite-fbtn" onclick="onsiteSetFilter('checked',this)">已報到</button><button class="btn secondary small onsite-fbtn" onclick="onsiteSetFilter('all',this)">全部</button></div><div id="onsiteBody"><div class="empty">請先選擇場次</div></div></section>
     <section id="page-members" class="hidden"><div class="page-title"><div><h2>會員</h2><div class="sub">一張卡同時顯示會員個人與品牌資料；報名、付款、現場與管理備註累積在同一條軌跡。</div></div><div class="page-actions"><button class="btn secondary" onclick="loadMembers()">重新整理</button></div></div><div class="filter-row"><input id="memberSearch" placeholder="搜尋品牌、姓名、手機、Email、FB、IG" oninput="renderMembers()"></div><div id="memberList" class="member-list"><div class="loading">載入會員中…</div></div></section>
@@ -2281,7 +2290,7 @@ async function handleOAuthCallback(){
     sessionStorage.setItem(TENANT_KEY,AdminState.tenantId);
     saveSession({email:j.email,token,role:j.normalized_role||j.role||'',name:j.display_name||j.name||j.email,tenantId:AdminState.tenantId});
     if((j.normalized_role||j.role)==='onsite_staff'){
-      location.href='onsite.html?admin_token='+encodeURIComponent(token);
+      location.href='onsite.html?tenant='+encodeURIComponent(currentTenantFromUrl())+'&from=member&admin_token='+encodeURIComponent(token);
       return true;
     }
     enterAdmin();
@@ -2342,7 +2351,16 @@ function logout(){
   sessionStorage.removeItem(TENANT_KEY);
   location.reload();
 }
+function adminReturnRoute(){
+  const from=String(new URL(location.href).searchParams.get('from')||'').trim();
+  const tenant=currentTenantFromUrl();
+  if(from==='platform')return {href:'platform.html#platform-tenants',label:'← 回平台總管',aria:'回到平台總管'};
+  if(from==='register'&&tenant)return {href:'register.html?tenant='+encodeURIComponent(tenant),label:'← 回活動頁',aria:'回到活動頁'};
+  return {href:'member.html#operations',label:'← 回到我的 DOING',aria:'回到我的 DOING 會員中心'};
+}
+function configureAdminReturnLink(){const route=adminReturnRoute(),link=$('adminReturnLink'),label=$('adminReturnLabel');if(!link||!label)return;link.href=route.href;link.title=route.aria;link.setAttribute('aria-label',route.aria);label.textContent=route.label;}
 async function enterAdmin(){
+  configureAdminReturnLink();
   $('loginPage').classList.add('hidden');
   $('adminPage').classList.remove('hidden');
   const workspaceTenant=currentTenantFromUrl();
@@ -2397,7 +2415,7 @@ function loadOnsite(){
   if(sid)loadOnsiteList(sid); else if($('onsiteBody'))$('onsiteBody').innerHTML='<div class="empty">尚無場次，請先建立場次</div>';
 }
 
-function openOnsiteWorkerPage(){window.open('onsite.html?tenant='+encodeURIComponent(currentTenantFromUrl()),'_blank')}
+function openOnsiteWorkerPage(){const u=new URL('onsite.html',location.href);u.searchParams.set('tenant',currentTenantFromUrl());u.searchParams.set('from','admin');window.open(u.toString(),'_blank','noopener')}
 async function openOnsiteShifts(){openPanel('工讀生工時紀錄','依場次、姓名、開始與結束時間計算','<div class="loading">載入中…</div>');try{const rows=await api({action:'onsiteShiftList'});$('panelBody').innerHTML=tableFromRows(rows,['sessionName','operatorName','startedAt','endedAt','hours','operationCount'],['場次','姓名','開始時間','結束時間','工時','操作筆數'])}catch(e){$('panelBody').innerHTML='<div class="empty">載入失敗：'+safe(e.message)+'</div>'}}
 async function loadOnsiteList(sid){
   sid=sid||$('onsiteSession')?.value||(AdminState.onsite&&AdminState.onsite.sid)||'';
