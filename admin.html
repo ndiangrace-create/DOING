@@ -2076,6 +2076,9 @@ body.doing-admin .toast{border-radius:8px!important;background:#222!important;co
 </style>
 <link rel="stylesheet" href="doing-design-tokens.css?v=20260816a">
 <link rel="stylesheet" href="doing-pastel-pages.css?v=20260816a">
+<style id="doing-tenant-billing-20260817">
+.tenant-billing-policy,.tenant-billing-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}.tenant-billing-card,.tenant-charge{min-width:0;padding:16px;border:1px solid #d9e6eb;border-radius:18px;background:#fff;box-shadow:0 8px 22px rgba(47,82,91,.06)}.tenant-billing-card span,.tenant-billing-card b,.tenant-charge span,.tenant-charge b{display:block;max-width:100%;overflow-wrap:anywhere}.tenant-billing-card span,.tenant-charge-meta{color:#5c6b73;font-size:15px}.tenant-billing-card b{font-size:25px;margin-top:4px}.tenant-charge-list{display:grid;gap:10px}.tenant-charge{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center}.tenant-charge h3{margin:0 0 5px;font-size:19px;line-height:1.45;overflow-wrap:anywhere}.tenant-charge-amount{text-align:right;min-width:150px}.tenant-charge-amount b{font-size:22px}.tenant-charge-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:8px}.tenant-payment-box{padding:16px;border:1px solid #cfe0e5;border-radius:18px;background:#f4fafb;margin-bottom:14px}.tenant-payment-box p{margin:4px 0;overflow-wrap:anywhere}.tenant-billing-status{display:inline-flex!important;width:max-content;max-width:100%;padding:4px 9px;border-radius:999px;background:#edf5f6;color:#365c64;font-weight:850}.tenant-billing-status.due{background:#fff0df;color:#8a5c1d}.tenant-billing-status.reported{background:#eaf3ff;color:#315c87}.tenant-billing-status.paid{background:#e8f6ef;color:#287057}@media(max-width:820px){.tenant-billing-policy,.tenant-billing-summary{grid-template-columns:1fr}.tenant-charge{grid-template-columns:1fr}.tenant-charge-amount{text-align:left;min-width:0}.tenant-charge-actions{justify-content:flex-start}.tenant-charge-actions .btn{width:100%}}
+</style>
 </head>
 <!-- doing-app compatibility marker: the admin deliberately isolates the legacy visual shell. -->
 <body class="doing-app doing-admin">
@@ -2101,6 +2104,7 @@ body.doing-admin .toast{border-radius:8px!important;background:#222!important;co
       <button id="tab-sessions" class="tab active" onclick="switchPage('sessions')">場次</button>
       <button id="tab-calendar" class="tab" onclick="switchPage('calendar')">日曆</button>
       <button id="tab-finance" class="tab" onclick="switchPage('finance')">財務</button>
+      <button id="tab-billing" class="tab" onclick="switchPage('billing')">系統帳務</button>
       <button id="tab-members" class="tab" onclick="switchPage('members')">會員</button>
       <button id="tab-onsite" class="tab" onclick="switchPage('onsite')">現場</button>
       <button id="tab-settings" class="tab" onclick="switchPage('settings')">設定</button>
@@ -2128,6 +2132,7 @@ body.doing-admin .toast{border-radius:8px!important;background:#222!important;co
       <div id="financeReportRoot"><div class="loading">財務中心載入中…</div></div>
       <section class="finance-ledger-launch"><div><h3>各場次帳本</h3><p>需要核對單一場次時，再進入該場次查看、編輯或刪除手動收支。</p></div><div id="financeHub"><div class="loading">場次帳本載入中…</div></div></section>
     </section>
+    <section id="page-billing" class="hidden"><div class="page-title"><div><h2>DOING 系統帳務</h2><div class="sub">查看免費活動、收費活動與預約服務的系統費，並在轉帳後回報付款。</div></div><div class="page-actions"><button class="btn secondary" onclick="loadTenantBillingPage()">重新整理</button></div></div><div id="tenantBillingRoot"><div class="loading">系統帳務載入中…</div></div></section>
     <section id="page-people" class="hidden"><div class="page-title"><div><h2>人員</h2><div class="sub">把「誰能做什麼」與「主辦累積了哪些會員關係」分開管理；權限會依你設定的管理範圍自動套用。</div></div></div><div class="settings-grid"><button class="settings-tile" onclick="openStaffSettings()"><div class="ico">🔐</div><b>管理人員</b><span>主辦 / 財務 / 單場 / 現場授權</span></button><button class="settings-tile" onclick="switchPage('members')"><div class="ico">👥</div><b>會員 / 品牌</b><span>會員資料、備註、歷史報名</span></button><button class="settings-tile" onclick="switchPage('leads')"><div class="ico">📣</div><b>活動名單</b><span>接觸名單、篩選與匯出</span></button><button class="settings-tile" onclick="openOnsiteWorkerPage()"><div class="ico">🎟️</div><b>現場工作台</b><span>授權場次與報到操作</span></button></div></section>
     <section id="page-todos" class="hidden"><div class="page-title"><div><h2>目前待辦</h2><div class="sub">顯示所有尚未完成事項；今天截止或今天應處理的項目會標示「今日到期」。</div></div><div class="page-actions"><button class="btn secondary" onclick="loadTodos()">重新整理</button></div></div><section id="doingCommand" class="doing-command"><div class="doing-command-top"><div class="doing-command-copy"><small>OPERATIONS NOW</small><h3>今天先處理最重要的營運工作</h3><p id="doingCommandText">正在整理跨場次狀態…</p></div><div class="doing-command-action"><button class="btn secondary small" onclick="switchPage('todos')">查看全部待辦</button><button class="btn small" onclick="newSessionFull()">＋ 建立新場次</button></div></div><div id="doingKpis" class="doing-kpis"></div></section><div id="todoFilterBar"></div><div id="todoList" class="cards"><div class="loading">載入待辦中…</div></div></section>
     <section id="page-onsite" class="hidden"><div class="page-title"><div><h2>現場</h2><div class="sub">管理者直接操作；工讀生使用同場唯一通行碼進入獨立工作台，所有操作與工時都有紀錄。</div></div><div class="page-actions"><button class="btn secondary" onclick="loadOnsiteList()">重新整理</button><button class="btn secondary" onclick="openOnsitePasscodes()">場次通行碼</button><button class="btn secondary" onclick="openOnsiteShifts()">工讀生工時</button><button class="btn" onclick="openOnsiteWorkerPage()">開啟工讀生頁</button></div></div><div class="filter-row"><select id="onsiteSession" onchange="loadOnsiteList(this.value)" style="flex:1;min-width:220px"></select></div><div class="filter-row" style="margin-top:0"><input id="onsiteSearch" placeholder="搜尋品牌、姓名、手機、Email" oninput="renderOnsiteList()"></div><div class="filter-row" style="margin-top:0"><button class="btn secondary small onsite-fbtn active" onclick="onsiteSetFilter('unchecked',this)">未報到</button><button class="btn secondary small onsite-fbtn" onclick="onsiteSetFilter('checked',this)">已報到</button><button class="btn secondary small onsite-fbtn" onclick="onsiteSetFilter('all',this)">全部</button></div><div id="onsiteBody"><div class="empty">請先選擇場次</div></div></section>
@@ -2318,13 +2323,13 @@ function saveSession(s){
   if(s.tenantId) AdminState.tenantId=s.tenantId;
 }
 function readSession(){ try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch(e){return null} }
-const ADMIN_HASH_PAGES=new Set(['sessions','calendar','finance','todos','onsite','members','settings']);
+const ADMIN_HASH_PAGES=new Set(['sessions','calendar','finance','billing','todos','onsite','members','settings']);
 const ADMIN_ROLE_PAGES={
-  platform_super_admin:['todos','sessions','calendar','finance','members','onsite','settings'],
-  organizer_owner:['todos','sessions','calendar','finance','members','onsite','settings'],
-  organizer_admin:['todos','sessions','calendar','finance','members','onsite','settings'],
+  platform_super_admin:['todos','sessions','calendar','finance','billing','members','onsite','settings'],
+  organizer_owner:['todos','sessions','calendar','finance','billing','members','onsite','settings'],
+  organizer_admin:['todos','sessions','calendar','finance','billing','members','onsite','settings'],
   session_admin:['todos','sessions','calendar','members','onsite'],
-  finance_admin:['todos','sessions','calendar','finance','members'],
+  finance_admin:['todos','sessions','calendar','finance','billing','members'],
   onsite_staff:[]
 };
 function normalizedAdminRole(){return String(AdminState.role||'').trim()||'onsite_staff'}
@@ -2351,7 +2356,7 @@ function readAdminPageState(){
   try{
     const raw=localStorage.getItem(ADMIN_PAGE_STATE_KEY); if(!raw)return null;
     const st=JSON.parse(raw);
-    if(!st||!['sessions','calendar','finance','todos','onsite','members','settings'].includes(st.page))return null;
+    if(!st||!['sessions','calendar','finance','billing','todos','onsite','members','settings'].includes(st.page))return null;
     return st;
   }catch(e){return null}
 }
@@ -2398,14 +2403,15 @@ function switchPage(page,opts={}){
     AdminState.currentLayer=(page==='todos'?'todos':'root');
   }
   if(!opts||!opts.noSave) saveAdminPageState(page);
-  const pages=['sessions','calendar','finance','todos','onsite','members','settings'];
+  const pages=['sessions','calendar','finance','billing','todos','onsite','members','settings'];
   pages.forEach(p=>{const pg=$('page-'+p);if(pg)pg.classList.toggle('hidden',p!==page)});
   if(!opts.restore && location.hash!=='#'+page) history.replaceState({},'',location.pathname+location.search+'#'+page);
-  const mainMap={sessions:'sessions',calendar:'calendar',finance:'finance',todos:'todos',members:'members',onsite:'onsite',settings:'settings'};
-  ['sessions','calendar','finance','todos','members','onsite','people','settings'].forEach(p=>{const tb=$('tab-'+p);if(tb)tb.classList.toggle('active',mainMap[page]===p)});
+  const mainMap={sessions:'sessions',calendar:'calendar',finance:'finance',billing:'billing',todos:'todos',members:'members',onsite:'onsite',settings:'settings'};
+  ['sessions','calendar','finance','billing','todos','members','onsite','people','settings'].forEach(p=>{const tb=$('tab-'+p);if(tb)tb.classList.toggle('active',mainMap[page]===p)});
   if(page==='sessions'){renderSessions();ensureThemeEventsData();}
   if(page==='calendar')loadUnifiedCalendar();
   if(page==='finance'){refreshFinanceCenter();}
+  if(page==='billing')loadTenantBillingPage();
   if(page==='todos')loadTodos();
   if(page==='people')renderPeopleHub();
   if(page==='onsite')loadOnsite();
@@ -2471,12 +2477,32 @@ async function refreshCurrentPage(){
   if(AdminState.currentLayer!=='root'&&AdminState.currentSessionId){await refreshCurrentSessionOnly();return;}
   if(AdminState.currentPage==='sessions')await refreshSessionsOverview();
   if(AdminState.currentPage==='finance'){await refreshFinanceCenter();}
+  if(AdminState.currentPage==='billing')await loadTenantBillingPage();
   if(AdminState.currentPage==='todos')await loadTodos();
   if(AdminState.currentPage==='people')renderPeopleHub();
   if(AdminState.currentPage==='members')await loadMembers();
   if(AdminState.currentPage==='onsite')await loadOnsiteList();
   if(AdminState.currentPage==='leads')await loadLeads();
 }
+function tenantBillingStatusText(line){if(Number(line.reportedAmount||0)>0)return '付款確認中';if(Number(line.outstanding||0)<=0)return '已完成';return line.chargeType==='paid_activity'?'累積系統費':'待繳費'}
+function tenantBillingStatusClass(line){if(Number(line.reportedAmount||0)>0)return 'reported';if(Number(line.outstanding||0)<=0)return 'paid';return 'due'}
+async function loadTenantBillingPage(){
+  const root=$('tenantBillingRoot');if(!root)return;root.innerHTML='<div class="loading">系統帳務載入中…</div>';
+  try{
+    const d=await api({action:'getOperatingBillingStatus'}),p=d.policy||{},pay=d.paymentProfile||{},lines=Array.isArray(d.charges)?d.charges:[];
+    const profileReady=pay.bankName&&pay.accountNumber;
+    root.innerHTML='<div class="tenant-billing-policy">'
+      +'<div class="tenant-billing-card"><span>免費活動</span><b>'+money(p.freeActivityFee||0)+'</b><span>每個獨立場次</span></div>'
+      +'<div class="tenant-billing-card"><span>收費活動</span><b>'+safe(p.paidActivityRatePercent||0)+'%</b><span>依實收、不含可退押金、不封頂</span></div>'
+      +'<div class="tenant-billing-card"><span>持續預約服務</span><b>'+money(p.bookingMonthlyFee||0)+'</b><span>每個營運帳號／月</span></div></div>'
+      +'<div class="tenant-billing-summary"><div class="tenant-billing-card"><span>目前可用額度</span><b>'+money(d.platformCredit||0)+'</b></div><div class="tenant-billing-card"><span>尚待處理</span><b>'+money(d.summary?.outstanding||0)+'</b></div><div class="tenant-billing-card"><span>付款確認中</span><b>'+money(d.summary?.reported||0)+'</b></div></div>'
+      +'<div class="tenant-payment-box"><h3>平台繳費資料</h3>'+(profileReady?'<p><b>'+safe(pay.bankName)+(pay.bankCode?'（'+safe(pay.bankCode)+'）':'')+'</b></p><p>戶名：'+safe(pay.accountName||'—')+'</p><p>帳號：'+safe(pay.accountNumber)+'</p>':'<p>平台尚未設定轉帳帳號，請先聯繫 DOING 客服。</p>')+(pay.paymentNote?'<p>'+safe(pay.paymentNote)+'</p>':'')+(d.support?.supportEmail?'<p>客服：'+safe(d.support.supportEmail)+'</p>':'')+'</div>'
+      +'<div class="tenant-charge-list">'+(lines.length?lines.map(line=>'<article class="tenant-charge"><div><span class="tenant-billing-status '+tenantBillingStatusClass(line)+'">'+tenantBillingStatusText(line)+'</span><h3>'+safe(line.name||'系統費')+'</h3><div class="tenant-charge-meta">'+safe(line.ruleLabel||'')+(line.netReceived!==undefined?'｜目前實收計費基礎 '+money(line.netReceived):'')+'</div></div><div class="tenant-charge-amount"><span>本筆系統費</span><b>'+money(line.totalFee||0)+'</b><span>尚待處理 '+money(line.outstanding||0)+'</span>'+(Number(line.outstanding||0)>0?'<div class="tenant-charge-actions"><button class="btn small" onclick="openTenantBillingReport(\''+attr(line.chargeKey)+'\')">回報付款</button></div>':'')+'</div></article>').join(''):'<div class="empty">目前沒有系統費紀錄。</div>')+'</div>';
+    AdminState.billingData=d;
+  }catch(e){root.innerHTML='<div class="empty">系統帳務載入失敗：'+safe(e.message)+'</div>'}
+}
+function openTenantBillingReport(chargeKey){const d=AdminState.billingData||{},line=(d.charges||[]).find(x=>String(x.chargeKey)===String(chargeKey));if(!line)return toast('找不到這筆帳務');openPanel('回報系統費付款',safe(line.name||'')+'｜'+money(line.outstanding||0),'<div class="notice">完成轉帳後填寫帳號末五碼。平台確認後，狀態會自動更新。</div><div class="form-field"><label>轉帳帳號末五碼</label><input id="billing_last5" inputmode="numeric" maxlength="5" placeholder="12345"></div><div class="form-field"><label>備註（選填）</label><input id="billing_note" maxlength="120"></div><div class="card-actions"><button class="btn" onclick="submitTenantBillingReport(\''+attr(chargeKey)+'\',this)">送出付款回報</button></div>')}
+async function submitTenantBillingReport(chargeKey,btn){const last5=String($('billing_last5')?.value||'').replace(/\D/g,'');if(last5.length!==5)return toast('請輸入轉帳帳號末五碼');const old=btn.textContent;btn.disabled=true;btn.textContent='送出中…';try{await apiPost({action:'reportOperatingPayment',chargeKey,last5,note:String($('billing_note')?.value||'').trim()});closeAllPanels();await loadTenantBillingPage();toast('付款回報已送出，等待平台確認')}catch(e){toast('送出失敗：'+e.message,6000);btn.disabled=false;btn.textContent=old}}
 function sessionId(s){return String(s.id||s.sessionId||s.session_id||'');}
 function sessionName(s){return s.name||s.title||s.sessionName||'未命名場次';}
 function regSessionId(r){ return String(r.sessionId||r.session_id||r.sessionID||r.session_id_text||''); } // 報名所屬場次 ID 相容函式
@@ -4296,7 +4322,7 @@ function sessionSettingsForm(s, agreementTemplates=[]){
   +'<div class="form-field"><label>多日優惠總價</label><input id="set_fee" type="number" value="'+attr(s.fee||0)+'"><div class="sub">0＝不設優惠</div></div>'
   +'<input id="set_deposit" type="hidden" value="'+attr(s.deposit||0)+'">'
   +'<div class="form-field"><label>營運計費類型</label><select id="set_operatingMode"><option value="activity" '+(mods.operatingMode!=='booking'?'selected':'')+'>活動型｜依平台正式費率計費</option><option value="booking" '+(mods.operatingMode==='booking'?'selected':'')+'>預約型｜固定月費、不抽服務營業額</option></select></div>'
-  +'<div class="form-field"><label>多日期活動規則</label><label class="tight-check"><input id="set_activityDatesTogether" type="checkbox" '+(mods.activityDatesTogether?'checked':'')+'> 多日期為同一完整活動，參加者必須一次報名全部日期</label><div class="sub">未勾選時，多個可獨立報名日期必須拆成不同場次，每場各 NT$100。</div></div>'
+  +'<div class="form-field"><label>多日期活動規則</label><label class="tight-check"><input id="set_activityDatesTogether" type="checkbox" '+(mods.activityDatesTogether?'checked':'')+'> 多日期為同一完整活動，參加者必須一次報名全部日期</label><div class="sub">未勾選時，多個可獨立報名日期必須拆成不同場次，每個獨立場次各 NT$200。</div></div>'
   +'<div class="form-field"><label>押金公式</label><select id="set_depositCalcType"><option value="fixed" '+((mods.depositPolicy?.calcType||'fixed')==='fixed'?'selected':'')+'>固定金額</option><option value="percent" '+(mods.depositPolicy?.calcType==='percent'?'selected':'')+'>基本費用百分比</option><option value="per_unit" '+(mods.depositPolicy?.calcType==='per_unit'?'selected':'')+'>每單位／每攤</option></select></div>'
   +'<div class="form-field"><label>押金公式值（金額或 %）</label><input id="set_depositPolicyValue" type="number" min="0" value="'+attr(mods.depositPolicy?.value||0)+'"></div>'
   +'<div class="form-field"><label>押金最高上限（0＝不限）</label><input id="set_depositPolicyCap" type="number" min="0" value="'+attr(mods.depositPolicy?.cap||0)+'"></div>'

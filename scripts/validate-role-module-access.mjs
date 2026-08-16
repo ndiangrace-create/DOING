@@ -5,11 +5,11 @@ const admin=fs.readFileSync('admin.html','utf8');
 const worker=fs.readFileSync('worker.js','utf8');
 
 const cases={
-  platform_super_admin:['todos','sessions','calendar','finance','members','onsite','settings'],
-  organizer_owner:['todos','sessions','calendar','finance','members','onsite','settings'],
-  organizer_admin:['todos','sessions','calendar','finance','members','onsite','settings'],
+  platform_super_admin:['todos','sessions','calendar','finance','billing','members','onsite','settings'],
+  organizer_owner:['todos','sessions','calendar','finance','billing','members','onsite','settings'],
+  organizer_admin:['todos','sessions','calendar','finance','billing','members','onsite','settings'],
   session_admin:['todos','sessions','calendar','members','onsite'],
-  finance_admin:['todos','sessions','calendar','finance','members'],
+  finance_admin:['todos','sessions','calendar','finance','billing','members'],
   onsite_staff:[]
 };
 for(const [role,pages] of Object.entries(cases)){

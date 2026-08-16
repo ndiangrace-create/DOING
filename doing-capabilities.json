@@ -194,7 +194,7 @@
       "route": "platform.html#platform-billing",
       "features": [
         {
-          "label": "免費活動每場 NT$100",
+          "label": "免費活動每個獨立場次 NT$200",
           "status": "done",
           "evidence": "platform_billing_policy.freeActivityFee"
         },
@@ -212,6 +212,16 @@
           "label": "收費活動不封頂",
           "status": "done",
           "evidence": "platform_billing_policy.noCap"
+        },
+        {
+          "label": "租戶後台系統帳務與付款回報",
+          "status": "done",
+          "evidence": "admin.html#billing / getOperatingBillingStatus / reportOperatingPayment"
+        },
+        {
+          "label": "平台查看並確認租戶付款回報",
+          "status": "done",
+          "evidence": "platform.html#platform-tenants / confirmReportedOperatingPayment"
         },
         {
           "label": "押金不列入1%計費",
