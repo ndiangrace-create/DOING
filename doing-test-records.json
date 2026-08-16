@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-17T00:40:00+08:00",
-  "sourceFingerprint": "001d66a326b3d29e996fabba2da1276305581150124543f553db082d17b8ca11",
+  "recordedAt": "2026-08-17T01:02:00+08:00",
+  "sourceFingerprint": "26702306325c9c8825ba42175e5a1cf0b69b41e6a0a879c499033d0089fd4085",
   "environment": "本機隔離模擬；Supabase、LINE、Google、Resend 全部使用 mock",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
@@ -108,6 +108,12 @@
       "command": "node scripts/validate-admin-operations.mjs",
       "result": "PASS",
       "scope": "主辦營運操作"
+    },
+    {
+      "id": "tenant-billing",
+      "command": "node scripts/validate-tenant-billing.mjs",
+      "result": "PASS",
+      "scope": "租戶帳務頁、免費活動 NT$200、收費活動實收 1%、持續預約 NT$688、付款回報、平台確認與文字不裁切"
     },
     {
       "id": "worker-sync",
