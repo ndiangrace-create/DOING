@@ -38,7 +38,7 @@ assert.match(files.worker,/platform_member_id/,'管理權限未連到共用會�
 assert.match(files.worker,/roles\.push\('platform_admin'\)/,'共用會員資料未回傳平台總管理者身分');
 assert.match(files.worker,/platformAccess:platformStaff/,'會員中心缺少安全綁定後的平台入口資料');
 assert.match(files.member,/進入平台總管理者/,'會員中心缺少平台總管理者入口');
-assert.match(files.member,/同步原本的 Google 帳號完成安全接回/,'會員中心未說明既有平台權限的安全接回方式');
+assert.match(files.member,/需要備援登入時，可同步本人的 Google 帳號/,'會員中心未提供 Google 備援同步入口');
 assert.match(files.platform,/同步登入帳號/,'平台登入頁缺少安全接回指引');
 assert.match(files.worker,/issueStaffInviteToken/,'缺少管理人員簽名邀請');
 assert.match(files.worker,/acceptStaffInvite/,'缺少本人 LINE 接受管理邀請流程');

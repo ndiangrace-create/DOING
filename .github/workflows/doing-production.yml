@@ -52,6 +52,8 @@ jobs:
         run: node scripts/validate-data-sources.mjs
       - name: Validate responsive mobile and desktop framework
         run: node scripts/validate-responsive-layout.mjs
+      - name: Validate frontstage user-facing copy
+        run: node scripts/validate-frontstage-copy.mjs
       - name: Validate platform attribution flow
         run: node scripts/validate-platform-attribution.mjs
       - name: Validate capability world map

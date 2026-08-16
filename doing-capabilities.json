@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "updatedAt": "2026-08-16",
   "statusLabels": {
     "done": "已完成",
@@ -446,14 +446,29 @@
           "evidence": "getPlatformMemberProfile"
         },
         {
-          "label": "我的活動",
+          "label": "我的報名",
           "status": "done",
-          "evidence": "member.html activities"
+          "evidence": "member.html#activities"
         },
         {
           "label": "我的品牌",
           "status": "done",
           "evidence": "member.html#brands / saveMemberBrand"
+        },
+        {
+          "label": "只有一個可管理品牌時直接開啟編輯",
+          "status": "done",
+          "evidence": "member.html / goPage / editableBrands"
+        },
+        {
+          "label": "我的報名與我的營運分開呈現",
+          "status": "done",
+          "evidence": "member.html#activities / member.html#operations"
+        },
+        {
+          "label": "前台只顯示使用者操作文字，不顯示內部實作說明",
+          "status": "done",
+          "evidence": "validate-frontstage-copy.mjs"
         },
         {
           "label": "一個會員管理多個獨立品牌",
@@ -1163,6 +1178,11 @@
         {
           "label": "套票、次數券與會員方案",
           "status": "later"
+        },
+        {
+          "label": "美業服務、通用服務人員、預約、合約、加購與多語言完整組合",
+          "status": "later",
+          "note": "先完成跨產業工作流程，再定義功能表；不可固定命名為美甲師。"
         },
         {
           "label": "AI活動主視覺生成",

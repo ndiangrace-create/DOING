@@ -16,7 +16,10 @@ assert.match(sql,/accept_registration_member_invite_atomic[\s\S]*?security invok
 assert.match(sql,/revoke all on function public\.accept_registration_member_invite_atomic\(text,text,timestamptz\) from public, anon, authenticated/,'邀請交易不可由瀏覽器角色直接呼叫');
 assert.match(sql,/grant execute on function public\.accept_registration_member_invite_atomic\(text,text,timestamptz\) to service_role/,'邀請交易只供後端服務呼叫');
 assert.match(memberPage,/data-page="brands"/);assert.match(memberPage,/邀請出攤夥伴/);
-assert.match(registerPage,/第一次申請直接填寫即可，系統會在背景比對，不用先搜尋/);
+assert.match(registerPage,/第一次申請可直接填寫/);
+assert.doesNotMatch(registerPage,/系統會在背景比對/);
+assert.match(memberPage,/function goPage\(page\)/);
+assert.match(memberPage,/if\(rows\.length===1\)openBrandForm\(rows\[0\]\)/);
 
 const tables=new Proxy({
   platform_members:[],platform_member_identities:[],brands:[],brand_members:[],brand_access_requests:[],
