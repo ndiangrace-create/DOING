@@ -1815,7 +1815,8 @@ async function getSessionType(){ return '活動場次'; }
 const DEFAULT_TENANT_MODULE_FLAGS = {
   registration: true, review: true, payment: true, equipment: true, seatSelection: true,
   checkin: true, invoice: true, workshopSlots: true, service: true, resource: true,
-  participants: true, customFields: true, addons: true, agreement: true, i18n: true, googleCalendar: true
+  participants: true, customFields: true, addons: true, agreement: true, i18n: true, googleCalendar: true,
+  themeEvents: false, photoFrames: false, ai_visual: false
 };
 
 function normalizeApprovedModuleFlags(raw,fallback={}){
@@ -1918,12 +1919,12 @@ async function hGetTenantTheme(env,p){
 }
 async function hSaveTenantTheme(env,b){
   const T=b._tenantId;if(!await verifyStaff(env,b.email,b.token,T,'settings'))return jsonErr('無權限');
-  const key=String(b.themeKey||b.key||'').trim();if(!TENANT_THEME_KEYS.has(key))return jsonErr('不支援的品牌風格');
-  const value={key,updatedAt:nowIso()};
+  const key=String(b.themeKey||b.key||'').trim();if(!TENANT_THEME_KEYS.has(key))return jsonErr('不支援的品牌模板');
+  const before=await getTenantTheme(env,T),value={key,updatedAt:nowIso(),managedBy:'tenant',updatedBy:b.email||''};
   const row=await getTenantSettingsRow(env,T);
   if(row)await dbUpdate(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(T)}`,{theme_json:JSON.stringify(value),updated_at:nowIso()});
   else await dbInsert(env,'tenant_settings',{tenant_id:T,module_flags_json:await getTenantModuleFlags(env,T),theme_json:value});
-  await writeAuditLog(env,T,b.email||'','organizer','save_tenant_theme','tenant_settings',T,null,value).catch(()=>{});
+  await writeAuditLog(env,T,b.email||'','organizer','save_tenant_theme','tenant_settings',T,before,value).catch(()=>{});
   return jsonOk(value);
 }
 async function hGetPlatformTenantModules(env,p){
@@ -1938,6 +1939,22 @@ async function hSavePlatformTenantModules(env,b){
   if(row)await dbUpdate(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(T)}`,{module_flags_json:JSON.stringify(flags),updated_at:nowIso()});
   else await dbInsert(env,'tenant_settings',{tenant_id:T,module_flags_json:flags,theme_json:{key:'cute_pastel',updatedAt:nowIso()}});
   await writeAuditLog(env,T,jwt.email||'','platform_super_admin','approve_tenant_modules','tenant_settings',T,current,flags).catch(()=>{});return jsonOk({flags});
+}
+async function hGetPlatformTenantTheme(env,p){
+  if(!await platformSupportAuth(env,p))return jsonErr('無權限');
+  const T=String(p.target_tenant_id||'').trim().toLowerCase();if(!T)return jsonErr('請選擇主辦');
+  return jsonOk(await getTenantTheme(env,T));
+}
+async function hSavePlatformTenantTheme(env,b){
+  const jwt=await platformSupportAuth(env,b);if(!jwt)return jsonErr('無權限');
+  const T=String(b.target_tenant_id||'').trim().toLowerCase(),key=String(b.themeKey||b.key||'').trim();
+  if(!T)return jsonErr('請選擇主辦');if(!TENANT_THEME_KEYS.has(key))return jsonErr('不支援的品牌模板');
+  const before=await getTenantTheme(env,T),value={key,updatedAt:nowIso(),managedBy:'platform'};
+  const row=await getTenantSettingsRow(env,T);
+  if(row)await dbUpdate(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(T)}`,{theme_json:JSON.stringify(value),updated_at:nowIso()});
+  else await dbInsert(env,'tenant_settings',{tenant_id:T,module_flags_json:await getTenantModuleFlags(env,T),theme_json:value});
+  await writeAuditLog(env,T,jwt.email||'','platform_super_admin','set_tenant_theme','tenant_settings',T,before,value).catch(()=>{});
+  return jsonOk(value);
 }
 
 function cleanSupportText(value,max){return String(value||'').trim().slice(0,max)}
@@ -2006,6 +2023,7 @@ const TENANT_FEATURE_ACTIONS = {
     'getSeatMap','selectStall','claimPaidSeat','saveSeatMap','saveSeatMapImage',
     'listVenueMaps','saveVenueMap','applyVenueMap','deleteVenueMap'
   ]),
+  photoFrames: new Set(['listPhotoActivities','savePhotoActivity','savePhotoActivityFrame','deletePhotoActivityFrame','deletePhotoActivity','listPhotoLeads']),
   checkin: new Set([
     'onsiteSessions','onsiteRegs','onsitePasscodeVerify','onsitePasscodeList',
     'onsitePasscodeGenerate','onsitePasscodeToggle','onsiteShiftStart','onsiteShiftEnd','onsiteShiftList','checkin','onsiteMark','markClear'
@@ -2041,7 +2059,7 @@ async function enforceTenantFeature(env, tenantId, action) {
 const TENANT_ROLE_ACTIONS = {
   owner: new Set(['saveTenantModuleProfile','addStaff','removeStaff','setStaffActive','setStaffScope','updateStaffPerms','updateStaffScope','updateStaffSessions']),
   settingsRead: new Set(['getTenantModuleProfile','getTenantTheme','getStaff','getCompanySettings','getSiteConfig','getEmailTemplates','getPaymentSettings','getPaymentProfiles','getAgreementTemplate','getAgreementTemplates','listVenueMaps','listPhotoActivities']),
-  settings: new Set(['saveTenantTheme','saveCompanySettings','saveSiteConfig','saveEmailTemplate','testEmail','savePaymentSettings','savePaymentProfile','disablePaymentProfile','saveAgreementTemplate','saveAgreementTemplates','saveVenueMap','applyVenueMap','deleteVenueMap','savePhotoActivity','deletePhotoActivity','savePhotoActivityFrame','deletePhotoActivityFrame','savePromotionRule','deletePromotionRule']),
+  settings: new Set(['saveCompanySettings','saveSiteConfig','saveEmailTemplate','testEmail','savePaymentSettings','savePaymentProfile','disablePaymentProfile','saveAgreementTemplate','saveAgreementTemplates','saveVenueMap','applyVenueMap','deleteVenueMap','savePhotoActivity','deletePhotoActivity','savePhotoActivityFrame','deletePhotoActivityFrame','savePromotionRule','deletePromotionRule']),
   finance: new Set(['financeOverview','financeReport','adminFinanceAnomalies','getFinance','getPayments','getFinancePaymentGroups','getSessionCashbook','saveFinanceItem','deleteFinanceItem','saveSessionCashItem','deleteSessionCashItem','confirmPayment','confirmRefund','confirmForceRefund','refundDeposit','applyForceRefund','applyForceRefundFM','markPaymentScreenshot','sendPaymentReminder','getInvoiceList','updateInvoiceStatus','downloadSession']),
   sessions: new Set(['getDashboard','adminBusinessOverview','getSessionDashboard','getAdminSessionsDashboard','getAdminSessionDashboard','getEventsAdmin','getSessionsAdmin','getOperationUnitsAdmin','getBookingCalendarAdmin','getPromotionRulesAdmin','createEvent','updateEvent','deleteEvent','createSession','updateSession','copySession','deleteSession','toggleSession','toggleSessionStatus','saveOperationUnit','deleteOperationUnit','saveAnnouncement','deleteAnnouncement','sendNotify','resendInvite','resendRegConfirm']),
   review: new Set(['getSessionRegistrations','getRegs','getRegsBySession','approveReg','updateRegStatus','batchUpdateStatus','adminCancelReg','saveRegNote','saveMemberNote','updateRegistrationAction','setFastPass','previewForceCancelSession','forceCancelSession','runForceChoiceDeadline']),
@@ -3709,6 +3727,50 @@ async function hRejectApply(env,b){
 // GET /apply/list — 查詢申請列表（平台管理員用）
 // GET /getTenantsAdmin — 平台管理員查詢所有租戶
 // BUG-B FIX 2025-06
+function platformIssueKey(parts){return parts.map(x=>String(x||'').trim().replaceAll('|','/')).join('|').slice(0,900)}
+function platformRevenueLog(x){const t=String(x&&x.billing_type||'');return t==='booking_monthly'||t.startsWith('activity_publish:')||t.startsWith('activity_rate:')||t.startsWith('activity_unit:')||t.startsWith('setup_feature:')||t.startsWith('exposure:')}
+async function hGetPlatformOperationsCenter(env,p){
+  const pay=await verifyAdminJwt(p.token,env);if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限');
+  const monthAgo=new Date(Date.now()-30*86400000).toISOString();
+  const [tenants,sessions,regs,errors,logs,applications,stored]=await Promise.all([
+    dbGet(env,'tenants','select=id,name,status,is_locked,locked_reason,created_at').catch(()=>[]),
+    dbGet(env,'sessions','select=id,tenant_id,name,status,venue,dates_json,payment_profile_id,created_at,updated_at').catch(()=>[]),
+    dbGet(env,'registrations','select=id,tenant_id,session_id,operation_unit_id,name,brand_name,email,review_status,registration_status,payment_status,amount,total_amount,paid_amount,deposit,payment_method,payment_last5,payment_reported_at,transfer_status,refund_amount,created_at,updated_at').catch(()=>[]),
+    dbGet(env,'error_logs',`created_at=gte.${encodeURIComponent(monthAgo)}&select=id,tenant_id,level,source,action,reg_id,session_id,message,created_at&order=created_at.desc&limit=500`).catch(()=>[]),
+    dbGet(env,'billing_logs','select=id,tenant_id,billing_type,amount,total,status,session_id,created_at&order=created_at.desc&limit=3000').catch(()=>[]),
+    dbGet(env,'tenant_apply_logs','status=in.(pending,supplement_required)&select=id,status,created_at').catch(()=>[]),
+    dbGet(env,'platform_issue_records','select=*&order=last_seen_at.desc&limit=1000').catch(()=>[])
+  ]);
+  const now=nowIso(),tenantMap=Object.fromEntries(tenants.map(x=>[String(x.id),x])),sessionMap=Object.fromEntries(sessions.map(x=>[String(x.id),x])),existing=Object.fromEntries(stored.map(x=>[String(x.source_key),x])),detected=[];
+  const pushIssue=x=>{const key=platformIssueKey(x.key);if(!key)return;detected.push({source_key:key,issue_type:x.type,severity:x.severity||'warning',title:x.title,detail:x.detail||'',tenant_id:String(x.tenantId||''),session_id:String(x.sessionId||''),registration_id:String(x.registrationId||''),source_table:x.sourceTable||'',source_id:String(x.sourceId||''),last_seen_at:now,metadata_json:x.meta||{}})};
+  for(const t of tenants)if(t.is_locked===true)pushIssue({key:['tenant_locked',t.id],type:'tenant',severity:'critical',title:'租戶目前遭鎖定',detail:t.locked_reason||'請確認欠費或帳號狀態',tenantId:t.id,sourceTable:'tenants',sourceId:t.id});
+  for(const s of sessions){
+    if(['停用','關閉','已關閉','封存','archived'].includes(String(s.status||'')))continue;
+    const dates=safeJson(s.dates_json,[]);
+    if(!Array.isArray(dates)||!dates.length)pushIssue({key:['session_dates',s.id],type:'session_config',title:'場次缺少日期',detail:s.name||'未命名場次',tenantId:s.tenant_id,sessionId:s.id,sourceTable:'sessions',sourceId:s.id});
+    if(!String(s.venue||'').trim())pushIssue({key:['session_venue',s.id],type:'session_config',title:'場次缺少地點',detail:s.name||'未命名場次',tenantId:s.tenant_id,sessionId:s.id,sourceTable:'sessions',sourceId:s.id});
+  }
+  for(const r of regs)for(const issue of _financeIssuesForReg(r))pushIssue({key:['finance',r.id,issue],type:'finance',severity:issue.includes('已取消')||issue.includes('已付款')?'critical':'warning',title:issue,detail:[r.brand_name||r.name||r.email,sessionMap[String(r.session_id||'')]?.name].filter(Boolean).join('｜'),tenantId:r.tenant_id,sessionId:r.session_id,registrationId:r.id,sourceTable:'registrations',sourceId:r.id});
+  const errorGroups={};for(const e of errors){const key=platformIssueKey(['system',e.tenant_id,e.source,e.action,e.session_id,e.reg_id]),g=errorGroups[key]||(errorGroups[key]={...e,count:0});g.count++;if(new Date(e.created_at||0)>new Date(g.created_at||0))Object.assign(g,e)}
+  for(const [key,e] of Object.entries(errorGroups))pushIssue({key:[key],type:'system_error',severity:String(e.level)==='error'?'critical':'warning',title:'系統異常：'+(e.source||e.action||'未分類'),detail:(e.message||'系統已留下錯誤紀錄')+(e.count>1?`｜近 30 日 ${e.count} 次`:''),tenantId:e.tenant_id,sessionId:e.session_id,registrationId:e.reg_id,sourceTable:'error_logs',sourceId:e.id,meta:{count:e.count,action:e.action||''}});
+  const detectedKeys=new Set(detected.map(x=>x.source_key)),upserts=detected.map(x=>{const old=existing[x.source_key];return {...x,first_seen_at:old?.first_seen_at||now,status:old?.status==='resolved'?'open':(old?.status||'open'),resolved_at:old?.status==='resolved'?null:(old?.resolved_at||null),resolved_by:old?.status==='resolved'?'':(old?.resolved_by||''),resolution_note:old?.status==='resolved'?'':(old?.resolution_note||''),updated_at:now}});
+  if(upserts.length)await dbUpsert(env,'platform_issue_records',upserts,'source_key').catch(e=>logError(env,{source:'platformIssueSync',message:'問題紀錄同步失敗',error:e}));
+  for(const old of stored)if(old.status!=='resolved'&&old.issue_type!=='system_error'&&!detectedKeys.has(String(old.source_key||'')))await dbUpdate(env,'platform_issue_records',`id=eq.${encodeURIComponent(old.id)}`,{status:'resolved',resolved_at:now,resolved_by:'system:auto',resolution_note:'來源資料已恢復正常',updated_at:now}).catch(()=>{});
+  const issueRows=await dbGet(env,'platform_issue_records','status=neq.resolved&select=*&order=severity.asc,last_seen_at.desc&limit=500').catch(()=>upserts),issueByTenant={};for(const x of issueRows){const id=String(x.tenant_id||'');if(id)issueByTenant[id]=(issueByTenant[id]||0)+1}
+  const revenueLogs=logs.filter(x=>x.status==='confirmed'&&platformRevenueLog(x)),allRevenue=revenueLogs.reduce((n,x)=>n+Math.max(0,safeNum(x.total||x.amount)),0),monthRevenue=revenueLogs.filter(x=>new Date(x.created_at||0)>=new Date(monthAgo)).reduce((n,x)=>n+Math.max(0,safeNum(x.total||x.amount)),0),tenantRevenue={};for(const x of revenueLogs){const id=String(x.tenant_id||'');tenantRevenue[id]=(tenantRevenue[id]||0)+Math.max(0,safeNum(x.total||x.amount))}
+  const activeIds=new Set();for(const s of sessions)if(new Date(s.updated_at||s.created_at||0)>=new Date(monthAgo))activeIds.add(String(s.tenant_id||''));for(const r of regs)if(new Date(r.updated_at||r.created_at||0)>=new Date(monthAgo))activeIds.add(String(r.tenant_id||''));
+  const fallbackSummary={monthRevenue,allRevenue,openIssueCount:issueRows.length,criticalIssueCount:issueRows.filter(x=>x.severity==='critical').length,affectedTenantCount:new Set(issueRows.map(x=>x.tenant_id).filter(Boolean)).size,pendingApplicationCount:applications.length,tenantCount:tenants.length,activeTenant30d:activeIds.size};
+  const fallbackHealth=tenants.map(t=>({tenantId:t.id,tenantName:t.name||'租戶名稱待設定',status:t.status||'',locked:t.is_locked===true,issueCount:issueByTenant[String(t.id)]||0,sessionCount:sessions.filter(s=>String(s.tenant_id)===String(t.id)).length,registrationCount:regs.filter(r=>String(r.tenant_id)===String(t.id)).length,revenue:tenantRevenue[String(t.id)]||0,active30d:activeIds.has(String(t.id))})).sort((a,b)=>b.issueCount-a.issueCount||b.revenue-a.revenue);
+  const exact=await dbRpc(env,'doing_platform_operations_summary',{}).catch(()=>null),summary=exact?.summary||fallbackSummary,tenantHealth=Array.isArray(exact?.tenantHealth)?exact.tenantHealth:fallbackHealth;
+  return jsonOk({summary,issues:issueRows.map(x=>({...x,tenantName:tenantMap[String(x.tenant_id||'')]?.name||'租戶名稱待設定',sessionName:sessionMap[String(x.session_id||'')]?.name||''})),tenantHealth});
+}
+async function hUpdatePlatformIssueStatus(env,b){
+  const pay=await verifyAdminJwt(b.token,env);if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限');
+  const id=String(b.issueId||b.id||'').trim(),status=String(b.status||'').trim(),note=String(b.note||'').trim().slice(0,1000);if(!id||!['open','acknowledged','resolved'].includes(status))return jsonErr('問題狀態不正確');
+  const rows=await dbGet(env,'platform_issue_records',`id=eq.${encodeURIComponent(id)}&select=*`).catch(()=>[]),old=rows[0];if(!old)return jsonErr('找不到問題紀錄');
+  const now=nowIso(),next={status,resolution_note:note,updated_at:now,resolved_at:status==='resolved'?now:null,resolved_by:status==='resolved'?(pay.email||''):''};await dbUpdate(env,'platform_issue_records',`id=eq.${encodeURIComponent(id)}`,next);
+  await writeAuditLog(env,old.tenant_id||'',pay.email||'','platform_super_admin','update_platform_issue_status','platform_issue_records',id,{status:old.status},{status,note}).catch(()=>{});return jsonOk({ok:true,id,status});
+}
 async function hGetPlatformDashboard(env,p){
   const pay=await verifyAdminJwt(p.token,env);if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限');
   const [tenants,sessions,units,regs,logs,members]=await Promise.all([
@@ -10950,6 +11012,7 @@ async function routeGet(env, action, p, req) {
   if (action==='applyList') return await hApplyList(env, p);
   if (action==='getTenantsAdmin') return await hGetTenantsAdmin(env, p);
   if (action==='getPlatformDashboard') return await hGetPlatformDashboard(env,p);
+  if (action==='getPlatformOperationsCenter') return await hGetPlatformOperationsCenter(env,p);
   if (action==='getPlatformMetricDetails') return await hGetPlatformMetricDetails(env,p);
   if (action==='getSystemDataCatalog') return await hGetSystemDataCatalog(env,p);
   if (action==='getPlatformMembersAdmin') return await hGetPlatformMembersAdmin(env,p);
@@ -10962,6 +11025,7 @@ async function routeGet(env, action, p, req) {
   if (action==='getPlatformSupportThreads') return await hGetPlatformSupportThreads(env,p);
   if (action==='getPlatformSupportMessages') return await hGetPlatformSupportMessages(env,p);
   if (action==='getPlatformTenantModules') return await hGetPlatformTenantModules(env,p);
+  if (action==='getPlatformTenantTheme') return await hGetPlatformTenantTheme(env,p);
   if (action==='platformTenantOwnerStatus') return await hPlatformTenantOwnerStatus(env, p);
   if (action==='platformTenantSessions') return await hPlatformTenantSessions(env,p);
   if (action==='platformTenantOperationUnits') return await hPlatformTenantOperationUnits(env,p);
@@ -11124,6 +11188,8 @@ async function routePost(env, action, b, ctx, req) {
   if(action==='sendPlatformSupportMessage')return hSendPlatformSupportMessage(env,b);
   if(action==='markPlatformSupportRead')return hMarkPlatformSupportRead(env,b);
   if(action==='savePlatformTenantModules')return hSavePlatformTenantModules(env,b);
+  if(action==='savePlatformTenantTheme')return hSavePlatformTenantTheme(env,b);
+  if(action==='updatePlatformIssueStatus')return hUpdatePlatformIssueStatus(env,b);
       if(action==='recordPlatformServiceSale')return hRecordPlatformServiceSale(env,b);
   // DOING：寫入操作的租戶由 JWT / 場次 / 報名關聯解析；正式 handler 仍會做權限與 tenant 驗證。
   const TENANT = await resolveTenantForRequest(env, b, req);

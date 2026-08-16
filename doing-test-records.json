@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-17T03:10:00+08:00",
-  "sourceFingerprint": "3d0f864bd0c68d845286e4d0e3c700013b14ac291ca84008c9b0b635f2534bf1",
+  "recordedAt": "2026-08-17T03:28:00+08:00",
+  "sourceFingerprint": "853668ba1003950cf3b00733ec63f3d4ae754bc8d70827ba555c7d94ded743f9",
   "environment": "本機隔離模擬；Supabase、LINE、Google、Resend 全部使用 mock",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
@@ -119,7 +119,13 @@
       "id": "navigation-actions",
       "command": "node scripts/validate-navigation-actions.mjs",
       "result": "PASS",
-      "scope": "平台十張數字卡使用唯一明確路由表、API 類型與標題錯接阻擋、舊請求不得覆蓋新畫面；明細桌機與平板每排 8 張、手機每排 4 張迷你小卡，只顯示租戶正常名稱且不露出代碼；每頁 24 筆、租戶篩選、關鍵字搜尋與站內上一頁；租戶後台 KPI、總帳轉帳設定、全站共同入口"
+      "scope": "平台營運 KPI、問題中心、租戶健康狀態、問題直達指定租戶／場次／訂單、新分頁保留總管登入；租戶後台 KPI、總帳轉帳設定、租戶自由選擇五套模板、平台控制進階功能、全站共同入口"
+    },
+    {
+      "id": "platform-operations-e2e",
+      "command": "node scripts/validate-platform-operations-e2e.mjs",
+      "result": "PASS",
+      "scope": "兩租戶模擬鎖定、場次設定與付款異常；問題唯一鍵、租戶問題數、正式處理紀錄、租戶／場次／訂單深連結、自動完成與人工稽核閉環；正式資料 0 寫入"
     },
     {
       "id": "worker-sync",

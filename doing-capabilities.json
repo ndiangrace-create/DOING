@@ -149,7 +149,22 @@
         {
           "label": "平台進入指定租戶後台",
           "status": "done",
-          "evidence": "platformEnterTenant"
+          "evidence": "platformEnterTenant / 新分頁保留總管登入"
+        },
+        {
+          "label": "營運總覽與租戶健康狀態",
+          "status": "done",
+          "evidence": "getPlatformOperationsCenter"
+        },
+        {
+          "label": "問題中心保留來源與處理紀錄",
+          "status": "done",
+          "evidence": "platform_issue_records"
+        },
+        {
+          "label": "問題直達指定場次或訂單",
+          "status": "done",
+          "evidence": "platform issue deep link"
         },
         {
           "label": "查看租戶場次與營運項目",
@@ -182,7 +197,8 @@
           "staff",
           "staff_session_permissions",
           "platform_staff",
-          "audit_logs"
+          "audit_logs",
+          "platform_issue_records"
         ]
       }
     },
@@ -1098,33 +1114,38 @@
       "features": [
         {
           "label": "可愛粉彩 cute_pastel",
-          "status": "verify",
-          "note": "基礎色彩與主題鍵已存在"
+          "status": "done",
+          "evidence": "doing-five-distinct-themes-20260817"
         },
         {
           "label": "清新極簡 fresh_minimal",
-          "status": "verify",
-          "note": "基礎色彩與主題鍵已存在"
+          "status": "done",
+          "evidence": "doing-five-distinct-themes-20260817"
         },
         {
           "label": "黑白動漫 mono_anime",
-          "status": "verify",
-          "note": "基礎色彩與主題鍵已存在"
+          "status": "done",
+          "evidence": "doing-five-distinct-themes-20260817"
         },
         {
           "label": "溫暖手作 warm_handmade",
-          "status": "verify",
-          "note": "基礎色彩與主題鍵已存在"
+          "status": "done",
+          "evidence": "doing-five-distinct-themes-20260817"
         },
         {
           "label": "亮眼活潑 vivid_pop",
-          "status": "verify",
-          "note": "基礎色彩與主題鍵已存在"
+          "status": "done",
+          "evidence": "doing-five-distinct-themes-20260817"
         },
         {
-          "label": "租戶後台選擇並儲存模板",
+          "label": "租戶自由選擇並儲存模板",
           "status": "done",
           "evidence": "saveTenantTheme"
+        },
+        {
+          "label": "模板切換保留原功能與正式資料",
+          "status": "done",
+          "evidence": "tenant_settings.theme_json / shared functionality"
         },
         {
           "label": "前台、會員頁與租戶後台完整套用",

@@ -50,7 +50,8 @@
         "staff",
         "staff_session_permissions",
         "platform_staff",
-        "audit_logs"
+        "audit_logs",
+        "platform_issue_records"
       ]
     },
     {
@@ -1131,6 +1132,41 @@
       "moduleKeys": [
         "platform-tenant",
         "tenant-onsite"
+      ],
+      "state": "active"
+    },
+    {
+      "name": "platform_issue_records",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "source_key",
+        "issue_type",
+        "severity",
+        "status",
+        "title",
+        "detail",
+        "tenant_id",
+        "session_id",
+        "registration_id",
+        "source_table",
+        "source_id",
+        "first_seen_at",
+        "last_seen_at",
+        "resolved_at",
+        "resolved_by",
+        "resolution_note",
+        "metadata_json",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "platform-tenant"
       ],
       "state": "active"
     },
