@@ -468,7 +468,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
       const applicationId=pageUrl.searchParams.get('application_id')||'';
       if(applicationStatus==='pending')b.innerHTML='<b>營運帳號申請已送出，等待 DOING 審核。</b><br>'+(applicationId?'申請編號：<strong>'+applicationId+'</strong><br>':'')+'審核結果會寄到你填寫的 Email。<br><a href="platform.html">DOING 平台管理者前往大平台後台審核</a>';
       if(applicationStatus==='supplement_submitted')b.innerHTML='<b>補件已重新送出。</b><br>DOING 會再依你最新補充的資料進行審核。';
-      if(applicationStatus==='identity_resolution_required')b.innerHTML='<b>LINE 登入已成功，申請草稿也已保留。</b><br>這組 Email 或手機可能已有 DOING 帳號；請先到會員資料同步原 Google 帳號，無法使用舊登入時請聯絡平台協助。';
+      if(applicationStatus==='identity_resolution_required')b.innerHTML='<b>LINE 登入已成功，申請草稿也已保留。</b><br>這個 Email 可能已有 DOING 帳號；請先到會員資料同步原 Google 帳號，無法使用舊登入時請聯絡平台協助。未經簡訊驗證的電話不會拿來合併帳號。';
     }
     document.getElementById('apply')?.scrollIntoView({block:'start'});
     const clean=new URL(location.href);clean.searchParams.delete('application_status');clean.searchParams.delete('application_id');history.replaceState({},'',clean.pathname+clean.search+clean.hash);

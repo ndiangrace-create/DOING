@@ -48,12 +48,13 @@ if(missingRoutes.length)fail(`前台呼叫但 Worker 沒有路由：${missingRou
 
 if(read('worker.txt')!==worker)fail('worker.js 與正式部署副本 worker.txt 不一致');
 const platformPage=read('platform.html'),memberPage=read('member.html'),adminPage=read('admin.html');
-for(const page of ['world','applications','tenants','billing','exposure','support','members']){
+for(const page of ['world','access','applications','tenants','billing','exposure','support','members']){
   if(!platformPage.includes(`data-platform-page="${page}"`))fail(`平台切頁缺少入口：${page}`);
   if(!platformPage.includes(`data-platform-panel="${page}"`))fail(`平台切頁缺少內容：${page}`);
 }
 if(platformPage.includes('scrollIntoView({behavior:\'smooth\''))fail('平台仍存在舊式長頁捲動導覽');
-if(memberPage.includes('查看品牌')||memberPage.includes('data-page="brands"'))fail('會員中心仍存在重複品牌跳頁');
+if(memberPage.includes('查看品牌'))fail('會員中心仍存在語意不明的重複品牌跳頁');
+if((memberPage.match(/data-page="brands"/g)||[]).length!==1||(memberPage.match(/data-panel="brands"/g)||[]).length!==1)fail('會員中心必須只有一個正式「我的品牌」分頁與內容面板');
 for(const field of ['approvedAt','paymentReportedAt','paidAt','checkinAt','refundedAt','participants','addonQty'])if(!worker.includes(field))fail(`會員活動回傳缺少欄位：${field}`);
 for(const marker of ['application_created','application_submitted','application_approved','supplement_requested','application_rejected'])if(!worker.includes(marker))fail(`申請時間軸缺少事件：${marker}`);
 if(!adminPage.includes('admin-final-responsive-fix'))fail('主辦後台缺少最終響應式修正');

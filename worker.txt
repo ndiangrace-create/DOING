@@ -1353,15 +1353,15 @@ function defaultEmailTemplates() {
       subject:'【[主辦名稱]】您已被授權為活動管理員',
       body:`親愛的 [顯示名稱]，
 
-[主辦名稱] 已開通您的後台管理權限。
+[主辦名稱] 邀請您成為管理人員。
 
 角色：[管理員角色]
 權限：[權限]
 管理範圍：[管理範圍]
 
-請從前台進入後台登入。
+請點下方按鈕，再用自己的 LINE 登入並接受邀請。接受後，這個 LINE、日後同步的 Google 與此 Email 都會連到同一個 DOING 會員。
 
-[按鈕:前往後台登入]`,
+[按鈕:接受管理邀請]`,
       is_active:true,
       group:'系統管理'
     },
@@ -1399,7 +1399,8 @@ function renderEmailTemplateBody(body, vars, tenantCtx, regId) {
     if (m) {
       const label = m[1].trim();
       let href = '';
-      if (label.includes('後台')) href = (tenantCtx && tenantCtx.siteUrl) || FALLBACK_SITE_URL;
+      if (label.includes('邀請') || (label.includes('後台') && vars && vars['邀請連結'])) href = (vars && vars['邀請連結']) || '';
+      else if (label.includes('後台')) href = (tenantCtx && tenantCtx.siteUrl) || FALLBACK_SITE_URL;
       else if (label.includes('繳費') || label.includes('我的紀錄') || label.includes('報名紀錄') || label.includes('會員')) href = memberUrl(regId || null, tenantCtx);
       else if (label.includes('LINE') || label.includes('客服')) href = (tenantCtx && tenantCtx.lineUrl) || '';
       else if (label.includes('活動')) href = (tenantCtx && tenantCtx.siteUrl) || FALLBACK_SITE_URL;
@@ -1779,7 +1780,7 @@ async function mailForceRefundDone(env, email, displayName, sesName, refundAmoun
 }
 
 // 管理員邀請
-async function mailStaffInvite(env, email, name, role, perms, limitSessions, tenantCtx=null) {
+async function mailStaffInvite(env, email, name, role, perms, limitSessions, tenantCtx=null, inviteUrl='') {
   const labels = {review:'審核報名',checkin:'現場報到',sessions:'管理場次',events:'管理活動',finance:'財務管理',announce:'公告管理'};
   const permText = (role==='superadmin'||role==='超級管理員'||role==='platform_super_admin')
     ? '所有功能（超級管理員）'
@@ -1792,6 +1793,7 @@ async function mailStaffInvite(env, email, name, role, perms, limitSessions, ten
     '管理員角色': role || '',
     '權限': permText,
     '管理範圍': sesText,
+    '邀請連結': inviteUrl || '',
   };
   return sendTemplateEmail(env, tenantId, 'staff_invite', email, vars, tenantCtx, '', {targetTable:'staff', targetId:email});
 }
@@ -2518,7 +2520,7 @@ async function hGetMyRegsGlobal(env,p){
   if(!verified||!platformMemberComplete(verified.row))return jsonErr('會員登入已失效，請重新使用 LINE 登入');
   const memberId=String(verified.row.id||'').trim();
   if(!memberId)return jsonErr('找不到會員資料，請重新使用 LINE 登入');
-  const regs=await dbGet(env,'registrations',`platform_member_id=eq.${encodeURIComponent(memberId)}&select=*&order=created_at.desc&limit=500`).catch(()=>[]);
+  const accessible=await memberRegistrationRows(env,memberId),regs=accessible.rows,membershipMap=accessible.membershipMap;
   if(!regs.length)return jsonOk([]);
   const tenantIds=[...new Set(regs.map(r=>String(r.tenant_id||'')).filter(Boolean))];
   const sessionIds=[...new Set(regs.map(r=>String(r.session_id||'')).filter(Boolean))];
@@ -2551,11 +2553,12 @@ async function hGetMyRegsGlobal(env,p){
       if(uts.length)displayDates=uts.map(x=>({date:x.date_key,label:x.label||x.date_key,start:x.start_text||'',end:x.end_text||'',timeslotId:x.id,limit:safeNum(x.capacity)}));
     }
     const cfg=safeJson(t.config_json,{});
+    const membership=membershipMap[String(r.id)]||null,memberPermissions=membership?safeJson(membership.permissions_json,{}):registrationSubmitterPermissions();
     out.push({
       tenantId:T,tenantName:t.name||T,tenantSlug:t.slug||T,tenantLogo:String(cfg.logoUrl||cfg.logo_url||''),tenantLineUrl:String(cfg.lineUrl||cfg.line_url||''),
       eventId:r.event_id||s.event_id||'',eventTitle:ev.title||'',
       id:r.id,sessionId:r.session_id,sessionName:s.name||r.session_id,operationUnitId:r.operation_unit_id||'',operationUnitName:u?.name||'',
-      name:r.name||'',brand:r.brand_name||'',venue:s.venue||'',sessionDates:displayDates,
+      name:r.name||'',brandId:r.brand_id||'',brand:r.brand_name||'',memberRole:membership?.role||'submitter',memberPermissions,venue:s.venue||'',sessionDates:displayDates,
       status:r.review_status,payStatus:r.payment_status,amount:Number(r.amount||0),total:Number(r.total_amount||r.amount||0),paid:Number(r.paid_amount||0),
       due:(()=>{const snap=selectedModuleSnapshot(r),paid=safeNum(r.paid_amount),total=safeNum(r.total_amount||r.amount);const first=safeNum(snap.amountDueNow);return Math.max(0,(paid<=0&&first>0?first:total)-paid)})(),
       deposit:Number(r.deposit||0),stallCount:Number(r.stall_count||1),selectedDates:safeJson(r.selected_dates_json,[]),equip:safeJson(r.equipment_json,{}),addonQty:safeJson(r.addon_qty_json,{}),participants:safeJson(r.participants_json,{}),
@@ -2564,7 +2567,7 @@ async function hGetMyRegsGlobal(env,p){
       bundleId:r.bundle_id||'',bundleGroupId:r.bundle_group_id||'',paymentDueAt:r.payment_due_at||'',paymentReminderAt:r.payment_reminder_at||'',paymentExpiredAt:r.payment_expired_at||'',seatHoldExpiresAt:r.seat_hold_expires_at||'',
       transferCreditAmount:safeNum(r.transfer_credit_amount),transferBalanceDue:safeNum(r.transfer_balance_due),transferRefundDue:safeNum(r.transfer_refund_due),
       seatPricingEnabled:(s.seat_pricing_enabled===true||s.seat_pricing_enabled==='true'),seatHoldHours:safeNum(s.seat_hold_hours)||SEAT_HOLD_HOURS,
-      seatMapUrl:s.seat_map_url||'',seatFeeTotal:safeNum(r.seat_fee_total),payMethod:r.payment_method||'',payLast5:r.payment_last5||'',checkin:r.checkin_status,createdAt:r.created_at,approvedAt:r.approved_at||'',paymentReportedAt:r.payment_reported_at||'',paidAt:r.paid_at||'',checkinAt:r.checkin_at||'',
+      seatMapUrl:s.seat_map_url||'',seatFeeTotal:safeNum(r.seat_fee_total),payMethod:r.payment_method||'',payLast5:r.payment_last5||'',checkin:r.checkin_status,teardownStatus:r.teardown_status||'未撤場',clearStatus:r.clear_status||'未清場',createdAt:r.created_at,approvedAt:r.approved_at||'',paymentReportedAt:r.payment_reported_at||'',paidAt:r.paid_at||'',checkinAt:r.checkin_at||'',
       transferStatus:r.transfer_status||'',refundAmount:safeNum(r.refund_amount),refundedAt:r.refunded_at||'',refundNote:r.refund_note||'',forceStatus:r.force_status||(s.force_cancel?'pending_force_choice':null),
       forceChoiceDeadline:s.force_cancel_deadline||'',forceCancelled:s.force_cancel||false,forceTransferTargetSessionId:r.transferred_to_session_id||s.force_cancel_target_id||'',
       modules:normalizeSessionModules(u?safeJson(u.modules_json,{}):safeJson(s.modules_json,{})),
@@ -3167,6 +3170,211 @@ async function verifiedPlatformMember(env, token){
   return null;
 }
 
+// ── 會員／品牌／報名協作模型 ─────────────────────────────────────
+// 品牌名稱只做候選比對，不是身分證明；同名品牌可並存，必須由會員明確選擇。
+function normalizeBrandName(v){
+  return String(v||'').normalize('NFKC').trim().toLowerCase().replace(/[\s\u3000]+/g,'');
+}
+function brandProfileFromRow(row){
+  if(!row)return null;
+  return {id:row.id||'',name:row.display_name||'',displayName:row.display_name||'',category:row.category||'',intro:row.intro||'',items:row.items||'',facebook:row.facebook_url||'',instagram:row.instagram_url||'',photoUrl:row.profile_url||'',company:row.company_name||'',taxId:row.tax_id||'',status:row.status||'active'};
+}
+function brandMembershipPayload(row,brand){
+  return {...brandProfileFromRow(brand),membershipId:row.id||'',role:row.role||'member',membershipStatus:row.status||'pending',permissions:safeJson(row.permissions_json,{})};
+}
+function brandOwnerPermissions(){return {edit_brand:true,manage_members:true,submit_registration:true}}
+function registrationSubmitterPermissions(){return {view:true,manage_registration:true,invite_team:true,checkin:true,request_teardown:true}}
+function registrationOnsitePermissions(){return {view:true,checkin:true,request_teardown:true}}
+
+async function activeBrandMemberships(env,memberId,{includePending=false}={}){
+  const id=String(memberId||'').trim();if(!id)return [];
+  const statuses=includePending?'active,pending':'active';
+  const rows=await dbGet(env,'brand_members',`platform_member_id=eq.${encodeURIComponent(id)}&status=in.(${statuses})&select=*&order=created_at.asc`).catch(()=>[]);
+  const ids=[...new Set(rows.map(x=>String(x.brand_id||'')).filter(Boolean))];
+  if(!ids.length)return [];
+  const brands=await dbGet(env,'brands',`id=in.(${ids.map(x=>'"'+x.replace(/"/g,'')+'"').join(',')})&select=*`).catch(()=>[]),map=Object.fromEntries(brands.map(x=>[String(x.id),x]));
+  return rows.filter(x=>map[String(x.brand_id)]).map(x=>({membership:x,brand:map[String(x.brand_id)]}));
+}
+
+async function exactBrandCandidates(env,name,excludeMemberId=''){
+  const key=normalizeBrandName(name);if(!key)return [];
+  const rows=await dbGet(env,'brands',`normalized_name=eq.${encodeURIComponent(key)}&status=in.(active,pending_review)&select=*&order=created_at.asc&limit=8`).catch(()=>[]);
+  if(!excludeMemberId)return rows;
+  const memberships=await dbGet(env,'brand_members',`platform_member_id=eq.${encodeURIComponent(excludeMemberId)}&status=eq.active&select=brand_id`).catch(()=>[]),own=new Set(memberships.map(x=>String(x.brand_id||'')));
+  return rows.filter(x=>!own.has(String(x.id||'')));
+}
+
+async function hGetMyBrands(env,p){
+  const verified=await verifiedPlatformMember(env,p.member_token||p.memberToken||p.token);
+  if(!verified)return jsonErr('會員登入已失效，請重新使用 LINE 登入',401);
+  const memberId=String(verified.row.id||''),links=await activeBrandMemberships(env,memberId,{includePending:true});
+  const requests=await dbGet(env,'brand_access_requests',`platform_member_id=eq.${encodeURIComponent(memberId)}&select=*&order=created_at.desc&limit=50`).catch(()=>[]);
+  return jsonOk({brands:links.map(x=>brandMembershipPayload(x.membership,x.brand)),requests:requests.map(x=>({id:x.id,brandId:x.brand_id,status:x.status,requestType:x.request_type,requestedRole:x.requested_role,note:x.note||'',createdAt:x.created_at||'',resolvedAt:x.resolved_at||''}))});
+}
+
+async function hMatchBrandCandidates(env,p){
+  const verified=await verifiedPlatformMember(env,p.member_token||p.memberToken||p.token);
+  if(!verified)return jsonErr('會員登入已失效，請重新使用 LINE 登入',401);
+  const name=String(p.brandName||p.brand_name||p.name||'').trim();if(!name)return jsonOk({matches:[]});
+  const rows=await exactBrandCandidates(env,name,String(verified.row.id||''));
+  return jsonOk({matches:rows.map(x=>({id:x.id,name:x.display_name||'',category:x.category||'',company:x.company_name||'',profileUrl:x.profile_url||'',status:x.status||'active'})),rule:'品牌同名只提示，不會自動合併會員或品牌'});
+}
+
+async function syncPrimaryBrandSnapshot(env,memberId,brand){
+  if(!brand)return;
+  const vendorJson={brandId:brand.id||'',brandName:brand.display_name||'',brandIntro:brand.intro||'',category:brand.category||'',items:brand.items||'',facebook:brand.facebook_url||'',instagram:brand.instagram_url||'',photoUrl:brand.profile_url||'',company:brand.company_name||'',taxId:brand.tax_id||''};
+  await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(memberId)}`,{vendor_json:vendorJson,updated_at:nowIso()});
+}
+
+async function hSaveMemberBrand(env,b){
+  const verified=await verifiedPlatformMember(env,b.member_token||b.memberToken||b.token);
+  if(!verified)return jsonErr('會員登入已失效，請重新使用 LINE 登入',401);
+  const memberId=String(verified.row.id||''),data=b.brand&&typeof b.brand==='object'?b.brand:b;
+  const name=String(data.displayName||data.brandName||data.name||'').trim(),key=normalizeBrandName(name);
+  if(!name||!key)return jsonErr('請填寫品牌名稱');
+  const allowed=['餐飲美食','手作設計','文創選物','服飾配件','生活用品','親子兒童','寵物相關','收藏娛樂','美業服務','體驗／服務','其他'];
+  const category=String(data.category||'').trim();if(category&&!allowed.includes(category))return jsonErr('請重新選擇正式品牌類別');
+  const values={display_name:name,normalized_name:key,category,intro:String(data.intro||data.brandIntro||'').trim(),items:String(data.items||'').trim(),facebook_url:String(data.facebook||'').trim(),instagram_url:String(data.instagram||'').trim(),profile_url:String(data.photoUrl||data.profileUrl||'').trim(),company_name:String(data.company||data.companyName||'').trim(),tax_id:String(data.taxId||'').trim(),updated_at:nowIso()};
+  const brandId=String(data.brandId||b.brandId||'').trim();
+  if(brandId){
+    const links=await dbGet(env,'brand_members',`brand_id=eq.${encodeURIComponent(brandId)}&platform_member_id=eq.${encodeURIComponent(memberId)}&status=eq.active&select=*`).catch(()=>[]),link=links[0];
+    if(!link||!['owner','manager'].includes(String(link.role||''))||safeJson(link.permissions_json,{}).edit_brand===false)return jsonErr('你沒有編輯這個品牌的權限',403);
+    await dbUpdate(env,'brands',`id=eq.${encodeURIComponent(brandId)}&status=neq.merged`,values);
+    const brand={id:brandId,...values};await syncPrimaryBrandSnapshot(env,memberId,brand);
+    return jsonOk({ok:true,brand:brandMembershipPayload(link,brand),updated:true});
+  }
+  const candidates=await exactBrandCandidates(env,name,memberId),resolution=String(b.resolution||data.resolution||'').trim();
+  if(candidates.length&&!resolution)return jsonOk({needsResolution:true,matches:candidates.map(x=>({id:x.id,name:x.display_name||'',category:x.category||'',company:x.company_name||'',profileUrl:x.profile_url||''})),message:'系統找到可能相同的品牌，請確認一次即可'});
+  if(candidates.length&&resolution==='join'){
+    const target=String(b.candidateBrandId||data.candidateBrandId||candidates[0].id),candidate=candidates.find(x=>String(x.id)===target);
+    if(!candidate)return jsonErr('請重新選擇要加入的品牌');
+    const requestType='brand_member',requestId=genId('BAR'),now=nowIso();
+    const existing=await dbGet(env,'brand_access_requests',`brand_id=eq.${encodeURIComponent(target)}&platform_member_id=eq.${encodeURIComponent(memberId)}&request_type=eq.${requestType}&status=eq.pending&select=*`).catch(()=>[]);
+    if(!existing[0])await dbInsert(env,'brand_access_requests',{id:requestId,brand_id:target,platform_member_id:memberId,request_type:requestType,status:'pending',requested_role:'member',note:String(b.note||data.note||'').trim(),created_at:now,updated_at:now});
+    if(requestType==='brand_member'){
+      const links=await dbGet(env,'brand_members',`brand_id=eq.${encodeURIComponent(target)}&platform_member_id=eq.${encodeURIComponent(memberId)}&select=*`).catch(()=>[]);
+      if(!links[0])await dbInsert(env,'brand_members',{id:genId('BM'),brand_id:target,platform_member_id:memberId,role:'member',status:'pending',permissions_json:{},invited_by_member_id:null,joined_at:null,created_at:now,updated_at:now});
+    }
+    return jsonOk({ok:true,pendingApproval:true,brandId:target,message:'已送出加入品牌申請，品牌管理者確認後即可共同管理'});
+  }
+  if(candidates.length&&resolution!=='separate')return jsonErr('請確認你與同名品牌的關係');
+  if(candidates.length&&resolution==='separate'){
+    const distinguish=String(b.distinguishingInfo||data.distinguishingInfo||values.company_name||values.profile_url||'').trim();
+    if(!distinguish)return jsonErr('同名但不同品牌時，請補充地區、公司名稱或介紹網址，避免後台再次誤判');
+    values.intro=[values.intro,`辨識資訊：${distinguish}`].filter(Boolean).join('\n');
+  }
+  const id=genId('BRD'),now=nowIso(),brand={id,...values,status:'active',created_by_member_id:memberId,created_at:now,updated_at:now};
+  await dbInsert(env,'brands',brand);
+  const link={id:genId('BM'),brand_id:id,platform_member_id:memberId,role:'owner',status:'active',permissions_json:brandOwnerPermissions(),invited_by_member_id:memberId,joined_at:now,created_at:now,updated_at:now};
+  try{await dbInsert(env,'brand_members',link)}catch(e){await dbDelete(env,'brands',`id=eq.${encodeURIComponent(id)}`).catch(()=>{});throw e}
+  await syncPrimaryBrandSnapshot(env,memberId,brand);
+  return jsonOk({ok:true,created:true,brand:brandMembershipPayload(link,brand)});
+}
+
+async function hGetBrandAccessRequests(env,p){
+  const verified=await verifiedPlatformMember(env,p.member_token||p.memberToken||p.token);if(!verified)return jsonErr('會員登入已失效',401);
+  const memberId=String(verified.row.id||''),links=await activeBrandMemberships(env,memberId),managed=links.filter(x=>['owner','manager'].includes(String(x.membership.role||''))&&safeJson(x.membership.permissions_json,{}).manage_members!==false);
+  const brandIds=managed.map(x=>String(x.brand.id||''));if(!brandIds.length)return jsonOk([]);
+  const rows=await dbGet(env,'brand_access_requests',`brand_id=in.(${brandIds.map(x=>'"'+x.replace(/"/g,'')+'"').join(',')})&status=eq.pending&select=*&order=created_at.asc`).catch(()=>[]),memberIds=[...new Set(rows.map(x=>String(x.platform_member_id||'')).filter(Boolean))];
+  const members=memberIds.length?await dbGet(env,'platform_members',`id=in.(${memberIds.map(x=>'"'+x.replace(/"/g,'')+'"').join(',')})&select=id,name,display_name`).catch(()=>[]):[],mm=Object.fromEntries(members.map(x=>[String(x.id),x]));
+  return jsonOk(rows.map(x=>({id:x.id,brandId:x.brand_id,memberId:x.platform_member_id,memberName:mm[x.platform_member_id]?.name||mm[x.platform_member_id]?.display_name||'DOING 會員',requestType:x.request_type,requestedRole:x.requested_role,note:x.note||'',createdAt:x.created_at||''})));
+}
+
+async function hResolveBrandAccessRequest(env,b){
+  const verified=await verifiedPlatformMember(env,b.member_token||b.memberToken||b.token);if(!verified)return jsonErr('會員登入已失效',401);
+  const memberId=String(verified.row.id||''),requestId=String(b.requestId||b.id||''),approved=b.approved===true||b.approved==='true';
+  const rows=await dbGet(env,'brand_access_requests',`id=eq.${encodeURIComponent(requestId)}&status=eq.pending&select=*`).catch(()=>[]),req=rows[0];if(!req)return jsonErr('找不到待處理申請');
+  const links=await dbGet(env,'brand_members',`brand_id=eq.${encodeURIComponent(req.brand_id)}&platform_member_id=eq.${encodeURIComponent(memberId)}&status=eq.active&select=*`).catch(()=>[]),link=links[0];
+  if(!link||!['owner','manager'].includes(String(link.role||''))||safeJson(link.permissions_json,{}).manage_members===false)return jsonErr('你沒有管理這個品牌成員的權限',403);
+  const now=nowIso();await dbUpdate(env,'brand_access_requests',`id=eq.${encodeURIComponent(req.id)}`,{status:approved?'approved':'rejected',resolved_by_member_id:memberId,resolved_at:now,updated_at:now});
+  if(req.request_type==='brand_member'){
+    const memberLinks=await dbGet(env,'brand_members',`brand_id=eq.${encodeURIComponent(req.brand_id)}&platform_member_id=eq.${encodeURIComponent(req.platform_member_id)}&select=*`).catch(()=>[]),ml=memberLinks[0];
+    if(approved){const data={role:req.requested_role||'member',status:'active',permissions_json:{edit_brand:false,manage_members:false,submit_registration:true},invited_by_member_id:memberId,joined_at:now,updated_at:now};if(ml)await dbUpdate(env,'brand_members',`id=eq.${encodeURIComponent(ml.id)}`,data);else await dbInsert(env,'brand_members',{id:genId('BM'),brand_id:req.brand_id,platform_member_id:req.platform_member_id,...data,created_at:now})}
+    else if(ml)await dbUpdate(env,'brand_members',`id=eq.${encodeURIComponent(ml.id)}`,{status:'rejected',updated_at:now});
+  }
+  return jsonOk({ok:true,approved});
+}
+
+async function ensureRegistrationBrand(env,memberId,b){
+  const name=String(b.brand||'').trim();if(!name)return {brandId:'',brand:null};
+  const requested=String(b.brandId||b.brand_id||'').trim(),links=await activeBrandMemberships(env,memberId);
+  if(requested){const found=links.find(x=>String(x.brand.id)===requested);if(!found)return {error:'你目前沒有使用這個品牌報名的權限'};if(safeJson(found.membership.permissions_json,{}).submit_registration===false)return {error:'你可以查看這個品牌，但尚未取得送出報名的權限'};return {brandId:requested,brand:found.brand}}
+  const key=normalizeBrandName(name),own=links.filter(x=>normalizeBrandName(x.brand.display_name)===key);
+  if(own.length===1){if(safeJson(own[0].membership.permissions_json,{}).submit_registration===false)return {error:'你可以查看這個品牌，但尚未取得送出報名的權限'};return {brandId:own[0].brand.id,brand:own[0].brand}}
+  if(own.length>1)return {error:'你有多個同名品牌，請先到「我的 DOING」選擇正確品牌'};
+  const candidates=await exactBrandCandidates(env,name,memberId);
+  if(candidates.length)return {error:'系統找到同名品牌。請先到「我的 DOING」確認是加入既有品牌，或建立同名但不同的品牌；不會自動合併'};
+  const now=nowIso(),id=genId('BRD'),brand={id,display_name:name,normalized_name:key,category:String(b.sellCat||b.sellCategory||''),intro:String(b.brandIntro||''),items:String(b.sellItem||b.sellItems||''),facebook_url:String(b.fb||''),instagram_url:String(b.ig||''),profile_url:String(b.photo||''),company_name:String(b.company||b.invoiceTitle||''),tax_id:String(b.taxId||''),status:'active',created_by_member_id:memberId,created_at:now,updated_at:now};
+  await dbInsert(env,'brands',brand);try{await dbInsert(env,'brand_members',{id:genId('BM'),brand_id:id,platform_member_id:memberId,role:'owner',status:'active',permissions_json:brandOwnerPermissions(),invited_by_member_id:memberId,joined_at:now,created_at:now,updated_at:now})}catch(e){await dbDelete(env,'brands',`id=eq.${encodeURIComponent(id)}`).catch(()=>{});throw e}
+  await syncPrimaryBrandSnapshot(env,memberId,brand).catch(()=>{});return {brandId:id,brand};
+}
+
+async function ensureRegistrationSubmitter(env,TENANT,registrationId,memberId,brandId){
+  const existing=await dbGet(env,'registration_members',`registration_id=eq.${encodeURIComponent(registrationId)}&platform_member_id=eq.${encodeURIComponent(memberId)}&select=id`).catch(()=>[]);if(existing[0])return;
+  const now=nowIso();await dbInsert(env,'registration_members',{id:genId('RM'),tenant_id:TENANT,registration_id:registrationId,platform_member_id:memberId,brand_id:brandId||null,role:'submitter',status:'active',permissions_json:registrationSubmitterPermissions(),invited_by_member_id:memberId,accepted_at:now,created_at:now,updated_at:now});
+}
+
+async function registrationMembership(env,registrationId,memberId){
+  const rows=await dbGet(env,'registration_members',`registration_id=eq.${encodeURIComponent(registrationId)}&platform_member_id=eq.${encodeURIComponent(memberId)}&status=eq.active&select=*`).catch(()=>[]);return rows[0]||null;
+}
+
+async function issueRegistrationInviteToken(env,invite){
+  const now=Date.now();return signAdminJwt({iss:'DOING',type:'registration_member_invite',invite_id:invite.id,registration_id:invite.registration_id,tenant_id:invite.tenant_id,role:invite.role,issued_at:now,expires_at:now+7*24*60*60*1000},env);
+}
+async function verifyRegistrationInviteToken(env,token){const p=await verifyAdminJwt(String(token||''),env).catch(()=>null);return p&&p.iss==='DOING'&&p.type==='registration_member_invite'&&p.invite_id&&p.registration_id?p:null}
+function registrationInviteUrl(env,token){const u=new URL(doingPageUrl(env,'member.html'));u.searchParams.set('registration_invite',token);u.hash='activities';return u.toString()}
+
+async function hCreateRegistrationMemberInvite(env,b){
+  const verified=await verifiedPlatformMember(env,b.member_token||b.memberToken||b.token);if(!verified)return jsonErr('會員登入已失效',401);
+  const memberId=String(verified.row.id||''),regId=String(b.registrationId||b.regId||''),membership=await registrationMembership(env,regId,memberId);
+  if(!membership||safeJson(membership.permissions_json,{}).invite_team!==true)return jsonErr('只有報名送出者或被授權管理者可以邀請出攤夥伴',403);
+  const regs=await dbGet(env,'registrations',`id=eq.${encodeURIComponent(regId)}&select=id,tenant_id,brand_id,review_status,transfer_status`).catch(()=>[]),reg=regs[0];if(!reg)return jsonErr('找不到報名');
+  if(['已取消','不錄取'].includes(String(reg.review_status||''))||['已退費','已退款'].includes(String(reg.transfer_status||'')))return jsonErr('已結束的報名不能再邀請出攤夥伴');
+  const role=String(b.role||'onsite_representative');if(!['onsite_representative','assistant'].includes(role))return jsonErr('邀請角色不正確');
+  const now=nowIso(),id=genId('RMI'),expires=new Date(Date.now()+7*24*60*60*1000).toISOString(),invite={id,tenant_id:reg.tenant_id,registration_id:reg.id,brand_id:reg.brand_id||null,role,status:'pending',invited_by_member_id:memberId,accepted_by_member_id:null,expires_at:expires,accepted_at:null,revoked_at:null,created_at:now,updated_at:now};
+  await dbInsert(env,'registration_member_invites',invite);const token=await issueRegistrationInviteToken(env,invite);
+  return jsonOk({ok:true,inviteId:id,url:registrationInviteUrl(env,token),expiresAt:expires,message:'把連結傳給實際出攤者；對方用自己的 LINE 接受後，就能報到與申請撤場'});
+}
+
+async function hAcceptRegistrationMemberInvite(env,b){
+  const verified=await verifiedPlatformMember(env,b.member_token||b.memberToken||b.token);if(!verified)return jsonErr('請先使用自己的 LINE 登入，再接受出攤邀請',401);
+  const token=await verifyRegistrationInviteToken(env,b.invite_token||b.inviteToken||b.registration_invite);if(!token)return jsonErr('出攤邀請已失效，請報名人重新分享',400);
+  const result=await dbRpc(env,'accept_registration_member_invite_atomic',{p_invite_id:String(token.invite_id),p_member_id:String(verified.row.id||''),p_now:nowIso()}).catch(e=>({ok:false,error:e&&e.message?e.message:'接受邀請失敗'}));
+  if(!result||result.ok===false)return jsonErr(result?.error||'出攤邀請已失效，請報名人重新分享',409);
+  return jsonOk({ok:true,accepted:true,alreadyAccepted:!!result.alreadyAccepted,registrationId:result.registrationId||token.registration_id,message:result.alreadyAccepted?'你已經加入這筆活動':'已加入這筆活動；你可以查看位置、設備、報到與申請撤場'});
+}
+
+async function hGetRegistrationTeam(env,p){
+  const verified=await verifiedPlatformMember(env,p.member_token||p.memberToken||p.token);if(!verified)return jsonErr('會員登入已失效',401);
+  const regId=String(p.registrationId||p.regId||''),memberId=String(verified.row.id||''),self=await registrationMembership(env,regId,memberId);if(!self)return jsonErr('你不是這筆報名的成員',403);
+  const rows=await dbGet(env,'registration_members',`registration_id=eq.${encodeURIComponent(regId)}&status=eq.active&select=*&order=created_at.asc`).catch(()=>[]),ids=[...new Set(rows.map(x=>String(x.platform_member_id||'')).filter(Boolean))];
+  const members=ids.length?await dbGet(env,'platform_members',`id=in.(${ids.map(x=>'"'+x.replace(/"/g,'')+'"').join(',')})&select=id,name,display_name`).catch(()=>[]):[],mm=Object.fromEntries(members.map(x=>[String(x.id),x]));
+  return jsonOk(rows.map(x=>({memberId:x.platform_member_id,name:mm[x.platform_member_id]?.name||mm[x.platform_member_id]?.display_name||'DOING 會員',role:x.role,status:x.status,permissions:safeJson(x.permissions_json,{}),isMe:String(x.platform_member_id)===memberId})));
+}
+
+async function hMemberOnsiteAction(env,b){
+  const verified=await verifiedPlatformMember(env,b.member_token||b.memberToken||b.token);if(!verified)return jsonErr('會員登入已失效',401);
+  const regId=String(b.registrationId||b.regId||''),memberId=String(verified.row.id||''),membership=await registrationMembership(env,regId,memberId);if(!membership)return jsonErr('你不是這筆報名的現場人員',403);
+  const perms=safeJson(membership.permissions_json,{}),action=String(b.onsiteAction||b.mode||'');
+  const rows=await dbGet(env,'registrations',`id=eq.${encodeURIComponent(regId)}&select=*`).catch(()=>[]),reg=rows[0];if(!reg)return jsonErr('找不到報名');
+  const now=nowIso(),operator=verified.row.name||verified.row.display_name||memberId;
+  if(action==='checkin'){
+    if(perms.checkin!==true)return jsonErr('你沒有這筆報名的報到權限',403);const err=checkinGuard(reg,false);if(err)return jsonErr(err);
+    if(String(reg.checkin_status)==='已報到')return jsonOk({ok:true,alreadyDone:true,status:'已報到',at:reg.checkin_at||''});
+    await dbUpdate(env,'registrations',`id=eq.${encodeURIComponent(regId)}&tenant_id=eq.${encodeURIComponent(reg.tenant_id)}`,checkinData(false,now));
+    await dbInsert(env,'seat_operation_logs',{id:genId('OPL'),tenant_id:reg.tenant_id,session_id:reg.session_id||null,registration_id:regId,stall_id:null,action:'participant_checkin',operator_type:'participant',operator_id:operator,note:'member:'+memberId,created_at:now}).catch(()=>{});
+    return jsonOk({ok:true,status:'已報到',at:now});
+  }
+  if(action==='request_teardown'){
+    if(perms.request_teardown!==true)return jsonErr('你沒有這筆報名的撤場權限',403);if(String(reg.checkin_status)!=='已報到')return jsonErr('尚未完成報到，不能申請撤場');
+    if(String(reg.teardown_status)==='已申請撤場'||String(reg.clear_status)==='已清場')return jsonOk({ok:true,alreadyDone:true,status:reg.clear_status==='已清場'?'已清場':'已申請撤場'});
+    await dbUpdate(env,'registrations',`id=eq.${encodeURIComponent(regId)}&tenant_id=eq.${encodeURIComponent(reg.tenant_id)}`,{teardown_status:'已申請撤場',updated_at:now});
+    await dbInsert(env,'seat_operation_logs',{id:genId('OPL'),tenant_id:reg.tenant_id,session_id:reg.session_id||null,registration_id:regId,stall_id:null,action:'participant_teardown_request',operator_type:'participant',operator_id:operator,note:'member:'+memberId,created_at:now}).catch(()=>{});
+    return jsonOk({ok:true,status:'已申請撤場',at:now});
+  }
+  return jsonErr('未知的現場操作');
+}
+
 async function hGetPlatformMemberProfile(env,p){
   const verified=await verifiedPlatformMember(env,p.member_token||p.token);
   if(!verified)return jsonErr('會員登入已失效，請重新登入');
@@ -3177,8 +3385,10 @@ async function hGetPlatformMemberProfile(env,p){
   const workspaces=await findAdminWorkspacesByMemberId(env,memberId);
   const identities=await dbGet(env,'platform_member_identities',`member_id=eq.${encodeURIComponent(memberId)}&select=provider,provider_email,last_login_at&order=last_login_at.desc`).catch(()=>[]);
   const platformRows=await dbGet(env,'platform_staff',`platform_member_id=eq.${encodeURIComponent(memberId)}&is_active=eq.true&select=id,name,role,normalized_role&limit=1`).catch(()=>[]),platformStaff=platformRows[0]||null;
-  const roles=['participant'];if(v.brandName)roles.push('vendor');if(applications.length)roles.push('organizer_applicant');if(workspaces.length)roles.push('organizer');if(platformStaff)roles.push('platform_admin');
-  return jsonOk({profile:{id:memberId,email,name:verified.row.name||verified.row.display_name||'',phone:verified.row.phone||'',lineId:verified.row.line_id||'',city:verified.row.city||'',brand:v.brandName||'',brand_name:v.brandName||'',brandIntro:v.brandIntro||'',sellCat:v.category||'',sellItem:v.items||'',fb:v.facebook||'',ig:v.instagram||'',photo:v.photoUrl||'',company:v.company||'',taxId:v.taxId||''},complete:platformMemberComplete(verified.row),provider:verified.row._identity?.provider||'',linkedProviders:[...new Set(identities.map(x=>String(x.provider||'')).filter(Boolean))],roles,platformAccess:platformStaff?{role:'platform_super_admin',name:platformStaff.name||'DOING 平台總管理者'}:null,applications:applications.map(x=>{const a=safeJson(x.application_json,{});return{id:x.id,unitName:a.unitName||x.brand_name||'',industryCategories:Array.isArray(a.industryCategories)?a.industryCategories:[],useCases:Array.isArray(a.useCases)?a.useCases:[],status:x.status||'pending',createdAt:x.created_at||'',approvedAt:x.approved_at||a.approvedAt||'',supplementRequestedAt:x.supplement_requested_at||a.supplementRequestedAt||'',supplementSubmittedAt:x.supplement_submitted_at||a.supplementSubmittedAt||'',rejectedAt:x.rejected_at||a.rejectedAt||'',tenantId:x.tenant_id||'',timeline:Array.isArray(a.timeline)?a.timeline:[]}}),workspaces:workspaces.map(x=>({id:x.tenant_id||x.id,name:x.name||x.tenant_id||x.id,role:x.role||'',isLocked:!!x.is_locked,lockedReason:x.locked_reason||''}))});
+  const brandLinks=await activeBrandMemberships(env,memberId,{includePending:true}),brands=brandLinks.map(x=>brandMembershipPayload(x.membership,x.brand)),primary=brands.find(x=>x.membershipStatus==='active')||null;
+  const roles=['participant'];if(primary||v.brandName)roles.push('vendor');if(applications.length)roles.push('organizer_applicant');if(workspaces.length)roles.push('organizer');if(platformStaff)roles.push('platform_admin');
+  const brandName=primary?.name||v.brandName||'',brandIntro=primary?.intro||v.brandIntro||'',brandCategory=primary?.category||v.category||'',brandItems=primary?.items||v.items||'';
+  return jsonOk({profile:{id:memberId,email,name:verified.row.name||verified.row.display_name||'',phone:verified.row.phone||'',lineId:verified.row.line_id||'',city:verified.row.city||'',primaryBrandId:primary?.id||v.brandId||'',brand:brandName,brand_name:brandName,brandIntro,sellCat:brandCategory,sellItem:brandItems,fb:primary?.facebook||v.facebook||'',ig:primary?.instagram||v.instagram||'',photo:primary?.photoUrl||v.photoUrl||'',company:primary?.company||v.company||'',taxId:primary?.taxId||v.taxId||''},brands,complete:platformMemberComplete(verified.row),provider:verified.row._identity?.provider||'',linkedProviders:[...new Set(identities.map(x=>String(x.provider||'')).filter(Boolean))],roles,platformAccess:platformStaff?{role:'platform_super_admin',name:platformStaff.name||'DOING 平台總管理者'}:null,applications:applications.map(x=>{const a=safeJson(x.application_json,{});return{id:x.id,unitName:a.unitName||x.brand_name||'',industryCategories:Array.isArray(a.industryCategories)?a.industryCategories:[],useCases:Array.isArray(a.useCases)?a.useCases:[],status:x.status||'pending',createdAt:x.created_at||'',approvedAt:x.approved_at||a.approvedAt||'',supplementRequestedAt:x.supplement_requested_at||a.supplementRequestedAt||'',supplementSubmittedAt:x.supplement_submitted_at||a.supplementSubmittedAt||'',rejectedAt:x.rejected_at||a.rejectedAt||'',tenantId:x.tenant_id||'',timeline:Array.isArray(a.timeline)?a.timeline:[]}}),workspaces:workspaces.map(x=>({id:x.tenant_id||x.id,name:x.name||x.tenant_id||x.id,role:x.role||'',isLocked:!!x.is_locked,lockedReason:x.locked_reason||''}))});
 }
 
 function platformContactEmail(row){return normEmail(row&&(row.contact_email||row.email))}
@@ -3196,7 +3406,11 @@ async function platformIdentityCollision(env,memberId,contactEmail,phone){
     const phoneHit=!!normalizedPhone&&normPhone(row.phone_normalized||row.phone)===normalizedPhone&&!!(row.completed_at||row.name);
     return emailHit||phoneHit;
   });
-  return {found:matches.length>0,emailMatch:matches.some(row=>normEmail(row.email)===email||normEmail(row.contact_email)===email||verifiedEmailMemberIds.has(String(row.id||''))),phoneMatch:matches.some(row=>normalizedPhone&&normPhone(row.phone_normalized||row.phone)===normalizedPhone)};
+  const emailMatch=matches.some(row=>normEmail(row.email)===email||normEmail(row.contact_email)===email||verifiedEmailMemberIds.has(String(row.id||'')));
+  const phoneMatch=matches.some(row=>normalizedPhone&&normPhone(row.phone_normalized||row.phone)===normalizedPhone);
+  // 手機目前只是聯絡／風險提示資料，尚未做 SMS OTP，不能據此合併會員、授權或阻擋登入。
+  // 例如夫妻可能共用聯絡電話；兩個不同 LINE 身分仍必須保留為兩位會員。
+  return {found:emailMatch,emailMatch,phoneMatch,phoneVerified:false};
 }
 
 async function hSavePlatformMemberProfile(env,b){
@@ -3207,13 +3421,14 @@ async function hSavePlatformMemberProfile(env,b){
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return jsonErr('Email 格式不正確');
   if(phone.length<9)return jsonErr('手機格式不正確');
   const collision=await platformIdentityCollision(env,verified.row.id,email,phone);
-  if(collision.found)return jsonErr('登入已成功，但這組聯絡 Email 或手機可能屬於既有 DOING 帳號。為避免建立重複資料，請先連結原 LINE／Google 帳號；無法使用舊登入時請聯絡平台協助。');
-  const vendor=b.vendor&&typeof b.vendor==='object'?b.vendor:{};
+  if(collision.found)return jsonErr('登入已成功，但這個 Email 已連結既有 DOING 帳號。請先使用原 LINE／Google 登入並連結帳號；無法使用舊登入時請聯絡平台協助。');
+  const hasVendor=Object.prototype.hasOwnProperty.call(b,'vendor'),vendor=hasVendor&&b.vendor&&typeof b.vendor==='object'?b.vendor:safeJson(verified.row.vendor_json,{});
   const allowedVendorCategories=['餐飲美食','手作設計','文創選物','服飾配件','生活用品','親子兒童','寵物相關','收藏娛樂','美業服務','體驗／服務','其他'];
   const vendorCategory=String(vendor.category||'').trim();
   if(vendorCategory&&!allowedVendorCategories.includes(vendorCategory))return jsonErr('請重新選擇正式品牌類別');
   const vendorJson={brandName:String(vendor.brandName||'').trim(),brandIntro:String(vendor.brandIntro||'').trim(),category:vendorCategory,items:String(vendor.items||'').trim(),facebook:String(vendor.facebook||'').trim(),instagram:String(vendor.instagram||'').trim(),photoUrl:String(vendor.photoUrl||'').trim(),company:String(vendor.company||'').trim(),taxId:String(vendor.taxId||'').trim()};
-  const update={contact_email:email,phone,phone_normalized:phone,name,line_id:String(b.lineId||'').trim(),city:String(b.city||'').trim(),vendor_json:vendorJson,completed_at:nowIso(),updated_at:nowIso()};
+  const update={contact_email:email,phone,phone_normalized:phone,name,line_id:String(b.lineId||'').trim(),city:String(b.city||'').trim(),completed_at:nowIso(),updated_at:nowIso()};
+  if(hasVendor)update.vendor_json=vendorJson;
   await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(verified.row.id)}`,update);
   let applicationId='';
   const sys=b.systemApplication&&typeof b.systemApplication==='object'?b.systemApplication:null;
@@ -3230,17 +3445,31 @@ async function hSavePlatformMemberProfile(env,b){
   return jsonOk({ok:true,complete:true,applicationId});
 }
 
+async function memberRegistrationRows(env,memberId,tenantId=''){
+  const id=String(memberId||'').trim();if(!id)return {rows:[],membershipMap:{}};
+  const tenantFilter=tenantId?`tenant_id=eq.${encodeURIComponent(tenantId)}&`:'';
+  const [direct,submitted,memberships]=await Promise.all([
+    dbGet(env,'registrations',`${tenantFilter}platform_member_id=eq.${encodeURIComponent(id)}&select=*&order=created_at.desc&limit=500`).catch(()=>[]),
+    dbGet(env,'registrations',`${tenantFilter}submitted_by_member_id=eq.${encodeURIComponent(id)}&select=*&order=created_at.desc&limit=500`).catch(()=>[]),
+    dbGet(env,'registration_members',`${tenantFilter}platform_member_id=eq.${encodeURIComponent(id)}&status=eq.active&select=*&order=created_at.desc&limit=500`).catch(()=>[])
+  ]);
+  const teamIds=[...new Set(memberships.map(x=>String(x.registration_id||'')).filter(Boolean))],team=teamIds.length?await dbGet(env,'registrations',`${tenantFilter}id=in.(${teamIds.map(x=>'"'+x.replace(/"/g,'')+'"').join(',')})&select=*&order=created_at.desc&limit=500`).catch(()=>[]):[];
+  const map=new Map();for(const r of [...direct,...submitted,...team])if(r&&r.id&&!map.has(String(r.id)))map.set(String(r.id),r);
+  const membershipMap=Object.fromEntries(memberships.map(x=>[String(x.registration_id),x]));
+  return {rows:[...map.values()].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0)),membershipMap};
+}
+
 // getMyRegs
 async function hGetMyRegs(env, p) {
   const TENANT = (p && p._tenantId);
   const verified=await verifiedPlatformMember(env,p&&(p.member_token||p.memberToken||p.token));
   if(!verified||!platformMemberComplete(verified.row))return jsonErr('會員登入已失效，請重新使用 LINE 登入');
   const platformMemberId=String(verified.row.id||'').trim();
-  const email=normEmail(verified.row.email);
+  const email=platformContactEmail(verified.row);
   if(!platformMemberId)return jsonErr('找不到會員資料，請重新使用 LINE 登入');
 
-  const [regs, sessions, units] = await Promise.all([
-    dbGet(env, 'registrations', `tenant_id=eq.${TENANT}&platform_member_id=eq.${encodeURIComponent(platformMemberId)}&select=*&order=created_at.desc`).catch(()=>[]),
+  const accessible=await memberRegistrationRows(env,platformMemberId,TENANT),regs=accessible.rows,membershipMap=accessible.membershipMap;
+  const [sessions, units] = await Promise.all([
     dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&select=id,name,event_id,venue,dates_json,equip_json,basic_equip,seat_pricing_enabled,seat_hold_hours,seat_map_url,force_cancel,force_cancel_deadline,force_cancel_target_id,modules_json`),
     dbGet(env, 'operation_units', `tenant_id=eq.${TENANT}&select=*`).catch(()=>[]),
   ]);
@@ -3250,9 +3479,10 @@ async function hGetMyRegs(env, p) {
     const paySnap = await ensurePaymentSnapshotForReg(env,TENANT,r,s,{writeIfSafe:true}).catch(()=>_paymentSnapshotFromReg(r));
     const payPub = _paymentSnapshotPublic(paySnap);
     let displayDates=safeJson(s.dates_json,[]);if(u){const uts=await dbGet(env,'timeslots',`tenant_id=eq.${encodeURIComponent(TENANT)}&operation_unit_id=eq.${encodeURIComponent(u.id)}&select=*&order=date_key.asc,start_text.asc`).catch(()=>[]);if(uts.length)displayDates=uts.map(x=>({date:x.date_key,label:x.label||x.date_key,start:x.start_text||'',end:x.end_text||'',timeslotId:x.id,limit:safeNum(x.capacity)}))}
+    const membership=membershipMap[String(r.id)]||null,memberPermissions=membership?safeJson(membership.permissions_json,{}):registrationSubmitterPermissions();
     return {
       id:r.id, sessionId:r.session_id, sessionName:s.name||r.session_id, operationUnitId:r.operation_unit_id||'', operationUnitName:u?.name||'',
-      eventId:r.event_id||s.event_id||'', name:r.name||'', brand:r.brand_name||'',
+      eventId:r.event_id||s.event_id||'', name:r.name||'', brandId:r.brand_id||'',brand:r.brand_name||'',memberRole:membership?.role||'submitter',memberPermissions,
       venue:s.venue||'', sessionDates:displayDates,
       status:r.review_status, payStatus:r.payment_status,
       amount:Number(r.amount||0), total:Number(r.total_amount||r.amount||0), paid:Number(r.paid_amount||0),
@@ -3266,7 +3496,7 @@ async function hGetMyRegs(env, p) {
       transferCreditAmount:safeNum(r.transfer_credit_amount),transferBalanceDue:safeNum(r.transfer_balance_due),transferRefundDue:safeNum(r.transfer_refund_due),transferSettlementId:r.transfer_settlement_id||'',
       seatPricingEnabled:(s.seat_pricing_enabled===true||s.seat_pricing_enabled==='true'), seatHoldHours:safeNum(s.seat_hold_hours)||SEAT_HOLD_HOURS,
       seatMapUrl:s.seat_map_url||'', seatFeeTotal:safeNum(r.seat_fee_total), seatHoldExpiresAt:r.seat_hold_expires_at||'',
-      payMethod:r.payment_method||'', payLast5:r.payment_last5||'', checkin:r.checkin_status, createdAt:r.created_at, approvedAt:r.approved_at||'', paymentReportedAt:r.payment_reported_at||'', paidAt:r.paid_at||'', checkinAt:r.checkin_at||'',
+      payMethod:r.payment_method||'', payLast5:r.payment_last5||'', checkin:r.checkin_status,teardownStatus:r.teardown_status||'未撤場',clearStatus:r.clear_status||'未清場', createdAt:r.created_at, approvedAt:r.approved_at||'', paymentReportedAt:r.payment_reported_at||'', paidAt:r.paid_at||'', checkinAt:r.checkin_at||'',
       transferStatus:r.transfer_status||'', transferChosenAt:r.transfer_chosen_at||'', refundAmount:safeNum(r.refund_amount),
       refundAdminFee:safeNum(r.refund_admin_fee), refundTransferFee:safeNum(r.refund_transfer_fee), refundRuleLabel:r.refund_rule_label||'', refundedAt:r.refunded_at||'', refundNote:r.refund_note||'',
       forceStatus:r.force_status || (s.force_cancel ? (r.transfer_status==='申請退費'?'refund_requested':(r.transfer_status==='已延期'?'transferred':'pending_force_choice')) : null),
@@ -3495,6 +3725,78 @@ async function hGetPlatformMembersAdmin(env,p){
   const identities=await dbGet(env,'platform_member_identities','select=member_id,provider,last_login_at').catch(()=>[]);
   const idMap={};for(const x of identities){if(!idMap[x.member_id])idMap[x.member_id]=[];idMap[x.member_id].push({provider:x.provider,lastLoginAt:x.last_login_at})}
   return jsonOk({members:members.map(x=>{const v=safeJson(x.vendor_json,{});const roles=['participant'];if(v.brandName)roles.push('vendor');return {id:x.id,email:x.email||'',name:x.name||x.display_name||'',phone:x.phone||'',brand:v.brandName||'',category:v.category||'',roles,providers:idMap[x.id]||[],complete:!!x.completed_at,createdAt:x.created_at||'',updatedAt:x.updated_at||''}})});
+}
+
+async function requirePlatformOwner(env,token){
+  const pay=await verifyAdminJwt(String(token||''),env).catch(()=>null);
+  if(!pay||pay.normalized_role!=='platform_super_admin'||!pay.staff_id)return null;
+  const rows=await dbGet(env,'platform_staff',`id=eq.${encodeURIComponent(pay.staff_id)}&is_active=eq.true&normalized_role=eq.platform_super_admin&select=id,email,platform_member_id&limit=1`).catch(()=>[]);
+  return rows[0]?{pay,row:rows[0]}:null;
+}
+
+async function hGetPlatformAccessAssignments(env,p){
+  const owner=await requirePlatformOwner(env,p.token);
+  if(!owner)return jsonErr('只有平台管理者可以設定人員權限',403);
+  const [platformRows,staffRows,tenants,sessions]=await Promise.all([
+    dbGet(env,'platform_staff','select=id,email,name,display_name,role,normalized_role,is_active,platform_member_id,last_login_at,created_at&order=created_at.asc').catch(()=>[]),
+    dbGet(env,'staff','normalized_role=in.(organizer_owner,organizer_admin,session_admin,finance_admin,onsite_staff)&select=id,tenant_id,email,name,display_name,role,normalized_role,is_active,active,platform_member_id,limit_sessions,scope_type,scope_event_id,last_login_at,created_at&order=created_at.asc').catch(()=>[]),
+    dbGet(env,'tenants','select=id,name,status,is_locked&order=created_at.asc').catch(()=>[]),
+    dbGet(env,'sessions','select=id,tenant_id,name,status,dates_json&order=created_at.desc').catch(()=>[])
+  ]);
+  const tenantNames=Object.fromEntries(tenants.map(x=>[String(x.id),x.name||x.id]));
+  const providerRows=await dbGet(env,'platform_member_identities','select=member_id,provider').catch(()=>[]),providerMap={};
+  for(const x of providerRows){if(!providerMap[x.member_id])providerMap[x.member_id]=[];if(!providerMap[x.member_id].includes(x.provider))providerMap[x.member_id].push(x.provider)}
+  const mapRow=(x,type)=>({id:x.id,type,email:x.email||'',name:x.name||x.display_name||x.email||'',role:x.normalized_role||x.role||'',active:(x.is_active!==undefined?x.is_active:x.active)!==false,memberId:x.platform_member_id||'',providers:providerMap[x.platform_member_id]||[],tenantId:x.tenant_id||'',tenantName:tenantNames[String(x.tenant_id)]||'',sessionIds:String(x.limit_sessions||'').split(',').map(v=>v.trim()).filter(Boolean),scopeType:x.scope_type||'all',scopeEventId:x.scope_event_id||'',lastLoginAt:x.last_login_at||'',invitationStatus:x.platform_member_id?'accepted':'pending'});
+  return jsonOk({ownerStaffId:owner.row.id,platform:platformRows.map(x=>mapRow(x,'platform')),tenant:staffRows.map(x=>mapRow(x,'tenant')),tenants,sessions});
+}
+
+async function hCreatePlatformAccessInvite(env,b){
+  const owner=await requirePlatformOwner(env,b.token);
+  if(!owner)return jsonErr('只有平台管理者可以新增管理人員',403);
+  const accessType=String(b.accessType||b.access_type||'').trim(),email=normEmail(b.targetEmail||b.email),name=String(b.targetName||b.name||'').trim();
+  if(!['platform','system','onsite'].includes(accessType))return jsonErr('請選擇管理角色');
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return jsonErr('請輸入正確的 Email');
+  let assignmentId='',tenantId='',role='',perms={},limitSessions=[];
+  if(accessType==='platform'){
+    role='platform_super_admin';
+    const existing=await dbGet(env,'platform_staff',`email=eq.${encodeURIComponent(email)}&select=*`).catch(()=>[]),row=existing[0];
+    assignmentId=row?.id||genId('PST');
+    const data={email,name,display_name:name,role,normalized_role:role,is_active:true,updated_at:nowIso(),note:'由平台人員與權限設定頁邀請'};
+    if(row){if(row.platform_member_id)return jsonErr('這個 Email 已是平台管理者');await dbUpdate(env,'platform_staff',`id=eq.${encodeURIComponent(assignmentId)}`,data)}
+    else await dbInsert(env,'platform_staff',{id:assignmentId,...data});
+  }else{
+    tenantId=String(b.tenantId||b.tenant_id||'').trim().toLowerCase();
+    if(!tenantId)return jsonErr('請選擇管理的營運帳號');
+    const tenantRows=await dbGet(env,'tenants',`id=eq.${encodeURIComponent(tenantId)}&select=id,name&limit=1`).catch(()=>[]);
+    if(!tenantRows[0])return jsonErr('找不到這個營運帳號');
+    role=accessType==='system'?'organizer_admin':'onsite_staff';perms=accessType==='system'?{events:true,sessions:true,review:true,finance:true,checkin:true,announce:true,members:true,settings:true}:{checkin:true};
+    limitSessions=accessType==='onsite'?[...new Set((b.sessionIds||b.limitSessions||[]).map(x=>String(x||'').trim()).filter(Boolean))]:[];
+    if(accessType==='onsite'&&!limitSessions.length)return jsonErr('現場管理至少要選擇一個場次');
+    if(limitSessions.length){const valid=await dbGet(env,'sessions',`tenant_id=eq.${encodeURIComponent(tenantId)}&id=in.(${limitSessions.map(x=>encodeURIComponent(x)).join(',')})&select=id`).catch(()=>[]);if(valid.length!==limitSessions.length)return jsonErr('選擇的場次不屬於這個營運帳號')}
+    const existing=await dbGet(env,'staff',`tenant_id=eq.${encodeURIComponent(tenantId)}&email=eq.${encodeURIComponent(email)}&select=*`).catch(()=>[]),row=existing[0];
+    assignmentId=row?.id||crypto.randomUUID();
+    if(row?.platform_member_id)return jsonErr('此人已是這個營運帳號的管理者，請直接調整既有權限');
+    const data={email,tenant_id:tenantId,name,display_name:name,role,normalized_role:role,role_id:null,perms_json:JSON.stringify(perms),limit_sessions:limitSessions.join(','),scope_type:accessType==='system'?'all':'session',scope_event_id:'',active:true,is_active:true,updated_at:nowIso()};
+    if(row)await dbUpdate(env,'staff',`id=eq.${encodeURIComponent(assignmentId)}`,data);else await dbInsert(env,'staff',{id:assignmentId,...data});
+    await syncStaffSessionPermissions(env,tenantId,email,limitSessions);
+  }
+  const invite=await prepareStaffInvite(env,{assignmentType:accessType==='platform'?'platform':'tenant',assignmentId,tenantId,email,role});
+  const tc=accessType==='platform'?{id:'',name:'DOING 平台',siteUrl:doingSiteUrl(env)}:await getTenantCtx(env,tenantId);
+  const mail=await mailStaffInvite(env,email,name,role,perms,limitSessions,tc,invite.url).catch(()=>null);
+  return jsonOk({success:true,assignmentId,invitationStatus:'pending',emailSent:!!(mail&&mail.ok&&!mail.skipped)});
+}
+
+async function hSetPlatformAccessActive(env,b){
+  const owner=await requirePlatformOwner(env,b.token);
+  if(!owner)return jsonErr('只有平台管理者可以停用或啟用管理人員',403);
+  const assignmentType=String(b.assignmentType||b.assignment_type||''),id=String(b.assignmentId||b.assignment_id||''),active=b.active===true||b.active==='true'||b.active===1||b.active==='1';
+  if(!id||!['platform','tenant'].includes(assignmentType))return jsonErr('缺少管理人員資料');
+  if(assignmentType==='platform'){
+    if(!active&&id===owner.row.id)return jsonErr('不能停用目前登入中的平台管理者');
+    if(!active){const rows=await dbGet(env,'platform_staff','is_active=eq.true&normalized_role=eq.platform_super_admin&select=id').catch(()=>[]);if(rows.length<=1)return jsonErr('至少要保留一位可登入的平台管理者')}
+    await dbUpdate(env,'platform_staff',`id=eq.${encodeURIComponent(id)}`,{is_active:active,updated_at:nowIso()});
+  }else await dbUpdate(env,'staff',`id=eq.${encodeURIComponent(id)}`,{is_active:active,active,updated_at:nowIso()});
+  return jsonOk({success:true,active});
 }
 
 async function hGetTenantsAdmin(env, p) {
@@ -3948,6 +4250,64 @@ async function verifyIdentityLinkStart(env,token,provider){
   return payload;
 }
 
+async function issueStaffInviteToken(env,{assignmentType='tenant',assignmentId='',tenantId='',email='',role=''}){
+  const now=Date.now();
+  return signAdminJwt({
+    iss:'DOING',type:'staff_invite',assignment_type:String(assignmentType||'tenant'),assignment_id:String(assignmentId||''),
+    tenant_id:String(tenantId||'').trim().toLowerCase(),email:normEmail(email),role:String(role||''),
+    issued_at:now,expires_at:now+7*24*60*60*1000
+  },env);
+}
+
+async function verifyStaffInviteToken(env,token){
+  const payload=await verifyAdminJwt(String(token||''),env).catch(()=>null);
+  if(!payload||payload.iss!=='DOING'||payload.type!=='staff_invite'||!payload.assignment_id||!payload.email)return null;
+  return payload;
+}
+
+function staffInviteUrl(env,inviteToken){
+  const u=new URL(doingPageUrl(env,'member.html'));
+  u.searchParams.set('staff_invite',String(inviteToken||''));
+  u.hash='account';
+  return u.toString();
+}
+
+async function prepareStaffInvite(env,{assignmentType='tenant',assignmentId='',tenantId='',email='',role=''}){
+  const token=await issueStaffInviteToken(env,{assignmentType,assignmentId,tenantId,email,role});
+  return {token,url:staffInviteUrl(env,token)};
+}
+
+async function hAcceptStaffInvite(env,b){
+  const verified=await verifiedPlatformMember(env,b.member_token||b.memberToken||b.token);
+  if(!verified)return jsonErr('請先使用自己的 LINE 登入，再接受管理邀請',401);
+  const invite=await verifyStaffInviteToken(env,b.invite_token||b.inviteToken||b.staff_invite);
+  if(!invite)return jsonErr('管理邀請已失效，請管理者重新寄送',400);
+  const assignmentType=String(invite.assignment_type||'tenant'),table=assignmentType==='platform'?'platform_staff':'staff';
+  const filter=`id=eq.${encodeURIComponent(invite.assignment_id)}&select=*`;
+  const rows=await dbGet(env,table,filter).catch(()=>[]),assignment=rows[0];
+  if(!assignment)return jsonErr('找不到這筆管理邀請，請管理者重新寄送',404);
+  const active=assignment.is_active!==undefined?assignment.is_active:assignment.active;
+  if(active===false)return jsonErr('這筆管理邀請已被停用，請聯絡管理者',403);
+  if(normEmail(assignment.email)!==normEmail(invite.email))return jsonErr('管理邀請資料已更新，請使用最新邀請信',409);
+  if(assignmentType!=='platform'&&String(assignment.tenant_id||'').toLowerCase()!==String(invite.tenant_id||'').toLowerCase())return jsonErr('管理邀請的營運空間不一致',409);
+  if(assignment.platform_member_id&&String(assignment.platform_member_id)!==String(verified.row.id))return jsonErr('這筆邀請已由另一個 DOING 會員接受，請管理者確認後重新邀請',409);
+
+  const inviteEmail=normEmail(invite.email),current=verified.row;
+  let member=current;
+  const existing=await dbGet(env,'platform_members',`email=eq.${encodeURIComponent(inviteEmail)}&email_verified_at=not.is.null&id=neq.${encodeURIComponent(current.id)}&select=*&order=created_at.asc&limit=1`).catch(()=>[]);
+  if(existing[0])member=await mergeVerifiedPlatformMembers(env,current,existing[0],inviteEmail,current.id);
+  const memberUpdate={updated_at:nowIso()};
+  if(!normEmail(member.email)){memberUpdate.email=inviteEmail;memberUpdate.email_verified_at=nowIso()}
+  else if(normEmail(member.email)===inviteEmail&&!member.email_verified_at)memberUpdate.email_verified_at=nowIso();
+  if(!platformContactEmail(member))memberUpdate.contact_email=inviteEmail;
+  await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(member.id)}`,memberUpdate).catch(()=>{});
+  await dbUpdate(env,table,`id=eq.${encodeURIComponent(assignment.id)}`,{platform_member_id:member.id,updated_at:nowIso()});
+  await bindLegacyAdminAccessByVerifiedEmails(env,member.id);
+
+  const tenantId=assignmentType==='platform'?'platform':String(assignment.tenant_id||''),role=String(assignment.normalized_role||assignment.role||invite.role||'');
+  return jsonOk({ok:true,accepted:true,assignmentType,tenantId,role,memberId:member.id,message:assignmentType==='platform'?'已完成平台管理者綁定':'已完成管理者綁定'});
+}
+
 function platformMemberComplete(row){return !!(row&&platformContactEmail(row)&&normPhone(row.phone)&&String(row.name||'').trim()&&row.completed_at)}
 
 function platformMemberMergeScore(row){const vendor=safeJson(row&&row.vendor_json,{});return (row&&row.completed_at?8:0)+(row&&row.name?4:0)+(row&&row.phone?2:0)+(vendor&&vendor.brandName?2:0)+(row&&row.email_verified_at?1:0)}
@@ -3993,6 +4353,16 @@ async function mergeVerifiedPlatformMembers(env,left,right,verifiedEmail,preferr
   const identities=await dbGet(env,'platform_member_identities',`member_id=eq.${encodeURIComponent(source.id)}&select=*`).catch(()=>[]);
   for(const identity of identities)await dbUpdate(env,'platform_member_identities',`id=eq.${encodeURIComponent(identity.id)}`,{member_id:target.id,provider_email:identity.provider_email||verifiedEmail}).catch(()=>{});
   await dbUpdate(env,'registrations',`platform_member_id=eq.${encodeURIComponent(source.id)}`,{platform_member_id:target.id}).catch(()=>{});
+  await dbUpdate(env,'registrations',`submitted_by_member_id=eq.${encodeURIComponent(source.id)}`,{submitted_by_member_id:target.id}).catch(()=>{});
+  const sourceBrandLinks=await dbGet(env,'brand_members',`platform_member_id=eq.${encodeURIComponent(source.id)}&select=*`).catch(()=>[]);
+  for(const link of sourceBrandLinks){const duplicate=await dbGet(env,'brand_members',`brand_id=eq.${encodeURIComponent(link.brand_id)}&platform_member_id=eq.${encodeURIComponent(target.id)}&select=id`).catch(()=>[]);if(duplicate[0])await dbDelete(env,'brand_members',`id=eq.${encodeURIComponent(link.id)}`).catch(()=>{});else await dbUpdate(env,'brand_members',`id=eq.${encodeURIComponent(link.id)}`,{platform_member_id:target.id,updated_at:now}).catch(()=>{})}
+  const sourceRegLinks=await dbGet(env,'registration_members',`platform_member_id=eq.${encodeURIComponent(source.id)}&select=*`).catch(()=>[]);
+  for(const link of sourceRegLinks){const duplicate=await dbGet(env,'registration_members',`registration_id=eq.${encodeURIComponent(link.registration_id)}&platform_member_id=eq.${encodeURIComponent(target.id)}&select=id`).catch(()=>[]);if(duplicate[0])await dbDelete(env,'registration_members',`id=eq.${encodeURIComponent(link.id)}`).catch(()=>{});else await dbUpdate(env,'registration_members',`id=eq.${encodeURIComponent(link.id)}`,{platform_member_id:target.id,updated_at:now}).catch(()=>{})}
+  await dbUpdate(env,'brands',`created_by_member_id=eq.${encodeURIComponent(source.id)}`,{created_by_member_id:target.id,updated_at:now}).catch(()=>{});
+  await dbUpdate(env,'brand_access_requests',`platform_member_id=eq.${encodeURIComponent(source.id)}`,{platform_member_id:target.id,updated_at:now}).catch(()=>{});
+  await dbUpdate(env,'brand_access_requests',`resolved_by_member_id=eq.${encodeURIComponent(source.id)}`,{resolved_by_member_id:target.id,updated_at:now}).catch(()=>{});
+  await dbUpdate(env,'registration_member_invites',`invited_by_member_id=eq.${encodeURIComponent(source.id)}`,{invited_by_member_id:target.id,updated_at:now}).catch(()=>{});
+  await dbUpdate(env,'registration_member_invites',`accepted_by_member_id=eq.${encodeURIComponent(source.id)}`,{accepted_by_member_id:target.id,updated_at:now}).catch(()=>{});
   await dbUpdate(env,'staff',`platform_member_id=eq.${encodeURIComponent(source.id)}`,{platform_member_id:target.id}).catch(()=>{});
   await dbUpdate(env,'platform_staff',`platform_member_id=eq.${encodeURIComponent(source.id)}`,{platform_member_id:target.id}).catch(()=>{});
   const applications=await dbGet(env,'tenant_apply_logs','select=id,application_json&limit=1000').catch(()=>[]);
@@ -6088,6 +6458,8 @@ async function hGetStaff(env, p) {
     limitSessions:r.limit_sessions ? String(r.limit_sessions).split(',').filter(Boolean) : [],
     scopeType:r.scope_type || 'all',
     scopeEventId:r.scope_event_id || '',
+    memberId:r.platform_member_id || '',
+    invitationStatus:r.platform_member_id ? 'accepted' : 'pending',
     joinedAt:r.created_at,
     lastLoginAt:r.last_login_at || '',
   })));
@@ -6555,14 +6927,15 @@ async function prepareRegistration(env, b) {
   // 重複報名檢查：已取消、不錄取、已退費 → 視為結束，允許重新報名
   const dupExclude = encodeURIComponent('不錄取') + ',' + encodeURIComponent('已取消');
   const dupUnitFilter=operationUnit?`&operation_unit_id=eq.${encodeURIComponent(operationUnit.id)}`:'&operation_unit_id=is.null';
+  const duplicateOwnerFilter=b.brandId?`brand_id=eq.${encodeURIComponent(b.brandId)}`:`email=ilike.${encodeURIComponent(b.email)}`;
   const dupRaw = await dbGet(env, 'registrations',
-    `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(b.sessionId)}${dupUnitFilter}&email=ilike.${encodeURIComponent(b.email)}&review_status=not.in.(${dupExclude})&select=id,transfer_status`
+    `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(b.sessionId)}${dupUnitFilter}&${duplicateOwnerFilter}&review_status=not.in.(${dupExclude})&select=id,transfer_status`
   ).catch(()=>[]);
   const dup = dupRaw.filter(r => {
     const ts = String(r.transfer_status || '').trim();
     return ts !== '已退費' && ts !== '已退款';
   });
-  if (dup.length) return {error:'您已報名此場次'};
+  if (dup.length) return {error:b.brandId?'這個品牌已報名此場次；請加入既有報名成為現場代表，不要再建立第二筆':'您已報名此場次'};
 
   // 審核規則：以場次設定為基礎；members.fast_pass（免審核會員）直接錄取。fast_pass 只信資料庫。
   const needReview = modules.review && (ses.need_review===true||ses.need_review==='true');
@@ -6620,7 +6993,7 @@ async function prepareRegistration(env, b) {
   const row = {
     id, tenant_id:TENANT, bundle_id:b.bundleId||'', bundle_group_id:b.bundleGroupId||'',
     session_id:b.sessionId, operation_unit_id:operationUnit?operationUnit.id:null, booking_calendar_id:moduleSnapshot.bookingCalendarId||null, event_id:cleanEventId(ses.event_id),
-    email:b.email, platform_member_id:b.platformMemberId||null, name:b.name, phone:String(b.phone||''),
+    email:b.email, platform_member_id:b.platformMemberId||null, submitted_by_member_id:b.platformMemberId||null, brand_id:b.brandId||null, name:b.name, phone:String(b.phone||''),
     brand_name:b.brand||'', brand_intro:b.brandIntro||'',
     sell_category:b.sellCategory||b.sellCat||'', sell_items:b.sellItems||b.sellItem||'',
     sell_link:b.sellLink||'', photo_url:b.photo||'', fb_url:b.fb||'', ig_url:b.ig||'',
@@ -6699,10 +7072,11 @@ async function finalizeRegistration(env, TENANT, b, ses, id, meta, ctx, opts={})
 }
 
 // 找出這個 Email 在某場次「還有效」的既有報名（已取消／不錄取／已退費 視為結束，不算）
-async function findActiveRegForSession(env, TENANT, sessionId, email) {
+async function findActiveRegForSession(env, TENANT, sessionId, email, brandId='') {
   const exclude = encodeURIComponent('不錄取') + ',' + encodeURIComponent('已取消');
+  const ownerFilter=brandId?`brand_id=eq.${encodeURIComponent(brandId)}`:`email=ilike.${encodeURIComponent(email)}`;
   const rows = await dbGet(env, 'registrations',
-    `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sessionId)}&email=ilike.${encodeURIComponent(email)}&review_status=not.in.(${exclude})&select=*`
+    `tenant_id=eq.${TENANT}&session_id=eq.${encodeURIComponent(sessionId)}&${ownerFilter}&review_status=not.in.(${exclude})&select=*`
   ).catch(()=>[]);
   const live = rows.filter(r => {
     const ts = String(r.transfer_status || '').trim();
@@ -6717,8 +7091,9 @@ async function hRegisterBundle(env,b,ctx){
   if(!b.email||!b.phone)return jsonErr('請填寫 Email 與手機');
   const memberVerified=await verifiedPlatformMember(env,b.member_token||b.memberToken);
   if(!memberVerified||!platformMemberComplete(memberVerified.row))return jsonErr('請先登入並完成 DOING 會員資料');
-  if(normEmail(memberVerified.row.email)!==b.email||!phoneMatches(memberVerified.row.phone,b.phone))return jsonErr('報名聯絡資料必須與登入中的會員資料一致');
+  if(platformContactEmail(memberVerified.row)!==b.email||!phoneMatches(memberVerified.row.phone,b.phone))return jsonErr('報名聯絡資料必須與登入中的會員資料一致');
   b.platformMemberId=String(memberVerified.row.id||'');
+  const brandResolution=await ensureRegistrationBrand(env,b.platformMemberId,b);if(brandResolution.error)return jsonErr(brandResolution.error);b.brandId=brandResolution.brandId||'';
   const bundleId=String(b.bundleId||'');
   const rows=await dbGet(env,'session_bundles',`tenant_id=eq.${T}&id=eq.${encodeURIComponent(bundleId)}&active=eq.true&select=*`);
   if(!rows.length)return jsonErr('找不到兩場組合方案');
@@ -6729,7 +7104,7 @@ async function hRegisterBundle(env,b,ctx){
     const ses=await getSessionRow(env,sid,T);
     if(!bundleSessionCompatible(ses))return jsonErr('兩場組合只支援兩個已開放、各自日期明確且可共用同一張表單的場次');
     sessions.push(ses);
-    const existing=await findActiveRegForSession(env,T,sid,b.email);
+    const existing=await findActiveRegForSession(env,T,sid,b.email,b.brandId);
     if(existing)return jsonErr('兩場組合必須一次一起報名；您已經有其中一場的有效報名，不能事後併成組合價');
   }
   // 一起付款的前提：兩場必須使用同一個正式收款設定。
@@ -6771,6 +7146,7 @@ async function hRegisterBundle(env,b,ctx){
   // 兩場 finance items / invoice 先全部建立成功，才進入會員同步與寄信。
   try{
     for(const {bb,prep} of preps){
+      await ensureRegistrationSubmitter(env,T,prep.id,b.platformMemberId,b.brandId);
       await createRegistrationFinanceRecords(env,T,prep.id,bb.sessionId,bb.email,
         prep.meta.fee,prep.meta.deposit,prep.meta.equipTotal,prep.meta.addonTotal,{
           invoice_status:prep.meta.invoiceStatus,invoice_type:bb.invoiceType||'',invoice_title:bb.invoiceTitle||'',
@@ -6807,8 +7183,9 @@ async function hRegister(env, b, ctx) {
   const TENANT = (b && b._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
   const memberVerified=await verifiedPlatformMember(env,b.member_token||b.memberToken);
   if(!memberVerified||!platformMemberComplete(memberVerified.row))return jsonErr('請先登入並完成 DOING 會員資料');
-  if(normEmail(memberVerified.row.email)!==normEmail(b.email)||!phoneMatches(memberVerified.row.phone,b.phone))return jsonErr('報名聯絡資料必須與登入中的會員資料一致');
+  if(platformContactEmail(memberVerified.row)!==normEmail(b.email)||!phoneMatches(memberVerified.row.phone,b.phone))return jsonErr('報名聯絡資料必須與登入中的會員資料一致');
   b.platformMemberId=String(memberVerified.row.id||'');
+  const brandResolution=await ensureRegistrationBrand(env,b.platformMemberId,b);if(brandResolution.error)return jsonErr(brandResolution.error);b.brandId=brandResolution.brandId||'';
   const prep = await prepareRegistration(env, b);
   if (prep.error) return jsonErr(prep.error);
   const { ses, id, row, meta } = prep;
@@ -6831,6 +7208,7 @@ async function hRegister(env, b, ctx) {
 
   try {
     await dbInsert(env, 'registrations', row);
+    await ensureRegistrationSubmitter(env,TENANT,id,b.platformMemberId,b.brandId);
   } catch(e) {
     console.error('DB INSERT registrations failed:', e && e.message ? e.message : e); logError(env, {source:'hRegister', message:'DB INSERT registrations failed:', error:e && e.message ? e.message : e});
     // FIX-02：registrations 寫入失敗，把名額與時段都還回去
@@ -6841,12 +7219,15 @@ async function hRegister(env, b, ctx) {
         p_tenant_id: TENANT, p_session_id: b.sessionId, p_stall_count: meta.stallCount
       });
     } catch(re) { console.error('release_session_slot failed after register error', re&&re.message); logError(env, {source:'hRegister', message:'release_session_slot failed after register error', error:re&&re.message}); }
+    await dbDelete(env,'registration_members',`tenant_id=eq.${TENANT}&registration_id=eq.${encodeURIComponent(id)}`).catch(()=>{});
+    await dbDelete(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(id)}`).catch(()=>{});
     return jsonErr('報名建立失敗，請稍後再試（名額已釋放）');
   }
 
   try{
     await finalizeRegistration(env,TENANT,b,ses,id,meta,ctx);
   }catch(e){
+    await dbDelete(env,'registration_members',`tenant_id=eq.${TENANT}&registration_id=eq.${encodeURIComponent(id)}`).catch(()=>{});
     await dbDelete(env,'invoices',`tenant_id=eq.${TENANT}&registration_id=eq.${encodeURIComponent(id)}`).catch(()=>{});
     await dbDelete(env,'registration_items',`tenant_id=eq.${TENANT}&registration_id=eq.${encodeURIComponent(id)}`).catch(()=>{});
     await dbDelete(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(id)}`).catch(()=>{});
@@ -9010,8 +9391,9 @@ async function hResendInvite(env, b) {
   const s=rows[0];
   const ls=s.limit_sessions?String(s.limit_sessions).split(',').filter(Boolean):[];
   const tc = await getTenantCtx(env, TENANT);
-  try { await mailStaffInvite(env,s.email,s.name||'',s.role||'活動夥伴',safeJson(s.perms_json,{}),ls,tc); } catch(e) { return jsonErr('寄信失敗：'+e.message); }
-  return jsonOk({success:true});
+  const invite=await prepareStaffInvite(env,{assignmentType:'tenant',assignmentId:s.id,tenantId:TENANT,email:s.email,role:s.normalized_role||s.role});
+  try { await mailStaffInvite(env,s.email,s.name||'',s.role||'活動夥伴',safeJson(s.perms_json,{}),ls,tc,invite.url); } catch(e) { return jsonErr('寄信失敗：'+e.message); }
+  return jsonOk({success:true,invitationStatus:s.platform_member_id?'accepted':'pending'});
 }
 
 function normalizeStaffRoleInput(role) {
@@ -9052,19 +9434,22 @@ async function syncStaffSessionPermissions(env, tenantId, staffEmail, sessionIds
 async function hAddStaff(env, b) {
   const TENANT = (b && b._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
   if (!await verifyStaff(env,b.email,b.token,TENANT,'superadmin')) return jsonErr('無權限');
-  const ex = await dbGet(env,'staff',`tenant_id=eq.${TENANT}&email=eq.${encodeURIComponent(b.targetEmail)}&select=email`);
-  if (ex.length) return jsonErr('此帳號已存在');
+  const targetEmail=normEmail(b.targetEmail),targetName=String(b.targetName||'').trim();
+  if(!targetEmail||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(targetEmail))return jsonErr('請輸入正確的 Email');
+  const ex = await dbGet(env,'staff',`tenant_id=eq.${TENANT}&email=eq.${encodeURIComponent(targetEmail)}&select=*`);
   const normalizedRole = normalizeStaffRoleInput(b.role || 'organizer_admin');
+  if(!['organizer_admin','session_admin','finance_admin','onsite_staff'].includes(normalizedRole))return jsonErr('這個角色不能由租戶新增');
   const displayRole = normalizedRole;
   const perms = b.perms || (normalizedRole === 'onsite_staff' ? {checkin:true} : {});
   // 授權範圍：all（全部）/ event（整個系列）/ session（指定場次）
   const scopeType = ['all','event','session'].includes(b.scopeType) ? b.scopeType : 'all';
   const scopeEventId = scopeType==='event' ? String(b.scopeEventId||'').trim() : '';
-  await dbInsert(env,'staff',{
-    id:crypto.randomUUID(),
-    email:b.targetEmail,
+  const staffId=ex[0]?.id||crypto.randomUUID();
+  const data={
+    email:targetEmail,
     tenant_id:TENANT,
-    name:b.targetName||'',
+    name:targetName,
+    display_name:targetName,
     role:displayRole,
     normalized_role:normalizedRole,
     role_id:null,
@@ -9074,11 +9459,17 @@ async function hAddStaff(env, b) {
     scope_event_id:scopeEventId,
     active:true,
     is_active:true,
-  });
-  await syncStaffSessionPermissions(env, TENANT, b.targetEmail, b.limitSessions||[]);
+    updated_at:nowIso(),
+  };
+  if(ex[0]){
+    if(ex[0].platform_member_id)return jsonErr('此人已是管理者，可直接在下方調整角色與場次');
+    await dbUpdate(env,'staff',`id=eq.${encodeURIComponent(staffId)}`,data);
+  }else await dbInsert(env,'staff',{id:staffId,...data});
+  await syncStaffSessionPermissions(env, TENANT, targetEmail, b.limitSessions||[]);
   const tcStaff = await getTenantCtx(env, TENANT);
-  try { await mailStaffInvite(env,b.targetEmail,b.targetName||'',displayRole,perms,b.limitSessions||[],tcStaff); } catch {}
-  return jsonOk({success:true});
+  const invite=await prepareStaffInvite(env,{assignmentType:'tenant',assignmentId:staffId,tenantId:TENANT,email:targetEmail,role:normalizedRole});
+  let sent=true;try { const mail=await mailStaffInvite(env,targetEmail,targetName,displayRole,perms,b.limitSessions||[],tcStaff,invite.url);sent=!!(mail&&mail.ok&&!mail.skipped); } catch { sent=false }
+  return jsonOk({success:true,invitationStatus:'pending',emailSent:sent});
 }
 // setStaffActive（開放／關閉帳號，保留人員資料與場次權限）
 async function hSetStaffActive(env, b) {
@@ -10473,6 +10864,10 @@ async function hGetSystemDataCatalog(env,p){
 
 async function routeGet(env, action, p, req) {
   if (action==='getPlatformMemberProfile') return await hGetPlatformMemberProfile(env,p);
+  if (action==='getMyBrands') return await hGetMyBrands(env,p);
+  if (action==='matchBrandCandidates') return await hMatchBrandCandidates(env,p);
+  if (action==='getBrandAccessRequests') return await hGetBrandAccessRequests(env,p);
+  if (action==='getRegistrationTeam') return await hGetRegistrationTeam(env,p);
   // 不需要 tenant 的路由
   if (action==='publicDiscovery') return await hPublicDiscovery(env,p);
   if (action==='publicExposureFeed') return await hPublicExposureFeed(env,p);
@@ -10489,6 +10884,7 @@ async function routeGet(env, action, p, req) {
   if (action==='getPlatformDashboard') return await hGetPlatformDashboard(env,p);
   if (action==='getSystemDataCatalog') return await hGetSystemDataCatalog(env,p);
   if (action==='getPlatformMembersAdmin') return await hGetPlatformMembersAdmin(env,p);
+  if (action==='getPlatformAccessAssignments') return await hGetPlatformAccessAssignments(env,p);
   if (action==='getPlatformBillingPolicy') return await hGetPlatformBillingPolicy(env,p);
         if (action==='getPlatformServiceSales') return await hGetPlatformServiceSales(env,p);
   if (action==='getPublicBillingPolicy') return await hGetPublicBillingPolicy(env);
@@ -10640,6 +11036,14 @@ async function routePost(env, action, b, ctx, req) {
   // 平台層動作不綁 Tenant。
   if(action==='trackPlatformAttribution')return hTrackPlatformAttribution(env,b);
   if(action==='createIdentityLink')return hCreateIdentityLink(env,b,req);
+  if(action==='acceptStaffInvite')return hAcceptStaffInvite(env,b);
+  if(action==='saveMemberBrand')return hSaveMemberBrand(env,b);
+  if(action==='resolveBrandAccessRequest')return hResolveBrandAccessRequest(env,b);
+  if(action==='createRegistrationMemberInvite')return hCreateRegistrationMemberInvite(env,b);
+  if(action==='acceptRegistrationMemberInvite')return hAcceptRegistrationMemberInvite(env,b);
+  if(action==='memberOnsiteAction')return hMemberOnsiteAction(env,b);
+  if(action==='createPlatformAccessInvite')return hCreatePlatformAccessInvite(env,b);
+  if(action==='setPlatformAccessActive')return hSetPlatformAccessActive(env,b);
   if(action==='savePlatformMemberProfile')return hSavePlatformMemberProfile(env,b);
   if(action==='createOrganizerApplicationDraft')return hCreateOrganizerApplicationDraft(env,b);
   if(action==='approveApply')return hApproveApply(env,b);
