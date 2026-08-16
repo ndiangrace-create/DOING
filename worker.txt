@@ -1922,7 +1922,7 @@ async function hSaveTenantTheme(env,b){
   const key=String(b.themeKey||b.key||'').trim();if(!TENANT_THEME_KEYS.has(key))return jsonErr('不支援的品牌模板');
   const before=await getTenantTheme(env,T),value={key,updatedAt:nowIso(),managedBy:'tenant',updatedBy:b.email||''};
   const row=await getTenantSettingsRow(env,T);
-  if(row)await dbUpdate(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(T)}`,{theme_json:JSON.stringify(value),updated_at:nowIso()});
+  if(row)await dbUpdate(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(T)}`,{theme_json:value,updated_at:nowIso()});
   else await dbInsert(env,'tenant_settings',{tenant_id:T,module_flags_json:await getTenantModuleFlags(env,T),theme_json:value});
   await writeAuditLog(env,T,b.email||'','organizer','save_tenant_theme','tenant_settings',T,before,value).catch(()=>{});
   return jsonOk(value);
@@ -1936,7 +1936,7 @@ async function hSavePlatformTenantModules(env,b){
   for(const key of Object.keys(DEFAULT_TENANT_MODULE_FLAGS))if(Object.prototype.hasOwnProperty.call(incoming,key))flags[key]=incoming[key]===true;
   flags.registration=true;
   const row=await getTenantSettingsRow(env,T);
-  if(row)await dbUpdate(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(T)}`,{module_flags_json:JSON.stringify(flags),updated_at:nowIso()});
+  if(row)await dbUpdate(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(T)}`,{module_flags_json:flags,updated_at:nowIso()});
   else await dbInsert(env,'tenant_settings',{tenant_id:T,module_flags_json:flags,theme_json:{key:'cute_pastel',updatedAt:nowIso()}});
   await writeAuditLog(env,T,jwt.email||'','platform_super_admin','approve_tenant_modules','tenant_settings',T,current,flags).catch(()=>{});return jsonOk({flags});
 }
@@ -1951,7 +1951,7 @@ async function hSavePlatformTenantTheme(env,b){
   if(!T)return jsonErr('請選擇主辦');if(!TENANT_THEME_KEYS.has(key))return jsonErr('不支援的品牌模板');
   const before=await getTenantTheme(env,T),value={key,updatedAt:nowIso(),managedBy:'platform'};
   const row=await getTenantSettingsRow(env,T);
-  if(row)await dbUpdate(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(T)}`,{theme_json:JSON.stringify(value),updated_at:nowIso()});
+  if(row)await dbUpdate(env,'tenant_settings',`tenant_id=eq.${encodeURIComponent(T)}`,{theme_json:value,updated_at:nowIso()});
   else await dbInsert(env,'tenant_settings',{tenant_id:T,module_flags_json:await getTenantModuleFlags(env,T),theme_json:value});
   await writeAuditLog(env,T,jwt.email||'','platform_super_admin','set_tenant_theme','tenant_settings',T,before,value).catch(()=>{});
   return jsonOk(value);
