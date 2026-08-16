@@ -1,0 +1,26 @@
+/* DOING Homepage Pastel v1 — canonical, non-invasive design tokens. */
+:root{
+  --doing-brand-ink:#363341;
+  --doing-brand-muted:#756f7d;
+  --doing-brand-paper:#fffdfd;
+  --doing-brand-white:#fff;
+  --doing-brand-line:rgba(104,86,120,.15);
+  --doing-brand-pink:#efa2c9;
+  --doing-brand-pink-strong:#d86eab;
+  --doing-brand-blue:#91d7f4;
+  --doing-brand-blue-strong:#5db7dc;
+  --doing-brand-yellow:#ffe16a;
+  --doing-brand-yellow-strong:#ffc53e;
+  --doing-brand-mint:#ccefa8;
+  --doing-brand-purple:#cdb8f4;
+  --doing-nav-purple:#e4cff4;
+  --doing-nav-green:#d7efa9;
+  --doing-nav-yellow:#f7e5a5;
+  --doing-nav-pink:#f7ccd5;
+  --doing-nav-blue:#c9eef2;
+  --doing-brand-shadow:0 24px 60px rgba(105,82,118,.14);
+  --doing-brand-card-radius:26px;
+  --doing-brand-hero-radius:38px;
+  --doing-brand-control-radius:14px;
+  --doing-brand-small-tile-radius:14px;
+}
