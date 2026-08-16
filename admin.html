@@ -3848,7 +3848,7 @@ function tenantModulePreset(type){
   const m=genericTenantModules();
   if(type==='market'){Object.assign(m,{review:true,equipment:true,seatSelection:true,addons:true,agreement:true,payment:true,checkin:true,quantityMode:'stall',depositKind:'refundable',operatingMode:'activity'});}
   else if(type==='workshop'){Object.assign(m,{workshopSlots:true,service:true,participants:true,payment:true,checkin:true,googleCalendar:true,quantityMode:'booking',depositKind:'booking',operatingMode:'booking'});}
-  else if(type==='beauty'){Object.assign(m,{workshopSlots:true,service:true,resource:true,payment:true,googleCalendar:true,quantityMode:'booking',depositKind:'booking',operatingMode:'booking'});}
+  else if(type==='beauty'){Object.assign(m,{workshopSlots:true,service:true,resource:true,customFields:true,addons:true,agreement:true,invoice:true,payment:true,checkin:true,googleCalendar:true,i18n:{enabled:true,languages:['zh-TW','en','ja','ko'],translations:{}},quantityMode:'booking',depositKind:'booking',operatingMode:'booking'});}
   else if(type==='service_booking'){Object.assign(m,{workshopSlots:true,service:true,payment:true,googleCalendar:true,quantityMode:'booking',depositKind:'booking',operatingMode:'booking'});}
   else if(type==='resource_booking'){Object.assign(m,{workshopSlots:true,resource:true,payment:true,googleCalendar:true,quantityMode:'booking',depositKind:'booking',operatingMode:'booking'});}
   else if(type==='event'){Object.assign(m,{participants:true,payment:true,checkin:true,quantityMode:'participant',operatingMode:'activity'});}
@@ -3859,7 +3859,7 @@ const TENANT_PRESET_META={
   generic:{title:'通用報名',desc:'適合一般名單收集、審核、付款與報到。'},
   market:{title:'市集／攤位招募',desc:'攤位數、審核、付款、押金、設備、加購、選位與現場報到。'},
   workshop:{title:'手作體驗／工作坊',desc:'日期梯次、名額、服務項目、付款、報到與行事曆。'},
-  beauty:{title:'美業／工作室預約',desc:'日期時段、服務項目、指定人員、訂金、改期與取消規則。'},
+  beauty:{title:'美類',desc:'服務項目、服務人員、日期時段、加購、合約、訂金、顧客到店、改期與多語言。'},
   service_booking:{title:'一般服務預約',desc:'適合顧問、攝影、教學、諮詢等長期時段預約。'},
   resource_booking:{title:'場地／資源預約',desc:'適合空間、設備或其他有限資源的時段預約與收款。'},
   event:{title:'一般活動／講座',desc:'票種／人數、付款、通知與現場報到。'},
@@ -4222,11 +4222,11 @@ function collectRefundRules(){
 
 
 let AdminOperationUnits=[];
-function opUnitTypeLabel(v){return ({market:'市集／攤商',registration:'一般報名',booking:'預約服務',workshop:'手作體驗',course:'課程／梯次',guide:'導覽／體驗',staff:'工作人員',generic:'其他'})[v]||'一般報名'}
+function opUnitTypeLabel(v){return ({market:'市集／攤商',registration:'一般報名',booking:'預約服務',beauty:'美類服務',workshop:'手作體驗',course:'課程／梯次',guide:'導覽／體驗',staff:'工作人員',generic:'其他'})[v]||'一般報名'}
 function operationUnitManagerHtml(sid){return '<div class="report-card" id="operationUnitManager"><div class="report-title">營運項目｜同一場次可有多個報名／預約流程</div><div class="sub">不另開一套系統。每個營運項目共用同一會員、金流、日曆、財務與通知資料庫；只設定自己的名額、費用、時段與規則。</div><div id="operationUnitsBox"><div class="loading">讀取營運項目…</div></div><div class="notice" style="margin-top:10px"><b>本場通知紀錄</b><button type="button" class="btn secondary small" style="margin-left:8px" onclick="loadSessionNotifications(\''+attr(sid)+'\')">重新整理</button><div id="sessionNotificationList" class="sub" style="margin-top:8px">載入中…</div></div><div id="operationUnitEditor" class="notice" style="margin-top:12px">'+operationUnitEditorHtml(sid,null)+'</div></div>'}
 function operationUnitEditorHtml(sid,u){u=u||{};const m=u.modules||{},p=u.pricing||{},pc=u.publicConfig||{};const slots=(u.timeslots||pc.timeslots||[]).map(x=>[x.date||'',x.start||'',x.end||'',x.capacity||0,x.calendarName||''].join('｜').replace(/｜$/,'')).join('\n'),services=(m.services||[]).map(x=>[x.label||x.name||'',x.price||0,x.durationMinutes||0,x.capacity||0].join('｜')).join('\n'),resources=(m.resources||[]).map(x=>[x.label||x.name||'',x.resourceType||'staff',x.capacity||1,x.price||0].join('｜')).join('\n');return '<div class="report-title">'+(u.id?'編輯營運項目':'新增營運項目')+'</div><input type="hidden" id="ou_id" value="'+attr(u.id||'')+'"><div class="form-grid">'
 +'<div class="form-field"><label>名稱</label><input id="ou_name" value="'+attr(u.name||'')+'" placeholder="例如：攤商招募／亮相秀／變妝體驗"></div>'
-+'<div class="form-field"><label>情境</label><select id="ou_type"><option value="market">市集／攤商</option><option value="registration">一般報名</option><option value="booking">預約服務</option><option value="workshop">手作體驗</option><option value="course">課程／梯次</option><option value="guide">導覽／體驗</option><option value="staff">工作人員</option><option value="generic">其他</option></select></div>'
++'<div class="form-field"><label>情境</label><select id="ou_type"><option value="market">市集／攤商</option><option value="registration">一般報名</option><option value="booking">預約服務</option><option value="beauty">美類服務</option><option value="workshop">手作體驗</option><option value="course">課程／梯次</option><option value="guide">導覽／體驗</option><option value="staff">工作人員</option><option value="generic">其他</option></select></div>'
 +'<div class="form-field"><label>狀態</label><select id="ou_status"><option value="draft">草稿</option><option value="open">開放</option><option value="closed">關閉</option><option value="archived">封存</option></select></div>'
 +'<div class="form-field"><label>正式營運方式</label><select id="ou_mode"><option value="activity">活動型｜場次營運權</option><option value="booking">預約型｜月營運權</option></select></div>'
 +'<div class="form-field"><label>基本費用</label><input id="ou_fee" type="number" min="0" value="'+attr(u.fee||0)+'"></div>'

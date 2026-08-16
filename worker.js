@@ -2694,7 +2694,7 @@ async function anyOpenUnitEntitled(env,T,sessionId){
   const rows=await dbGet(env,'operation_units',`tenant_id=eq.${encodeURIComponent(T)}&session_id=eq.${encodeURIComponent(sessionId)}&status=in.(open,active,published)&select=*`).catch(()=>[]);
   for(const u of rows)if(await operationUnitEntitlementActive(env,T,u))return true;return false;
 }
-function unitTypeAllowed(v){return ['market','registration','booking','workshop','course','guide','staff','generic'].includes(String(v||''))?String(v):'registration'}
+function unitTypeAllowed(v){return ['market','registration','booking','beauty','workshop','course','guide','staff','generic'].includes(String(v||''))?String(v):'registration'}
 function unitStatusAllowed(v){return ['draft','pending_payment','open','active','published','closed','archived'].includes(String(v||''))?String(v):'draft'}
 function unitCode(v){return String(v||'').trim().toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)}
 
@@ -3645,7 +3645,7 @@ async function hApproveApply(env,b){
   for(const key of Object.keys(DEFAULT_TENANT_MODULE_FLAGS)){
     if(key==='registration')continue;
     const requestKey=key==='googleCalendar'?'calendar':key;
-    suggestedFlags[key]=requested[requestKey]===true||defaults[key]===true;
+    suggestedFlags[key]=requested[requestKey]===true||(key==='i18n'?defaults.i18n?.enabled===true:defaults[key]===true);
   }
   const approvedFlags=normalizeApprovedModuleFlags(b.module_flags,suggestedFlags);
   approvedFlags.businessType=String(mp.useType||'generic');

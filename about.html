@@ -257,7 +257,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
             <label class="choice"><input type="checkbox" value="event_exhibition"><span><b>活動／展演／社群</b></span></label>
             <label class="choice"><input type="checkbox" value="education"><span><b>課程／講座／教育</b></span></label>
             <label class="choice"><input type="checkbox" value="craft_experience"><span><b>手作／體驗／工作坊</b></span></label>
-            <label class="choice"><input type="checkbox" value="beauty_wellness"><span><b>美業／美容／個人工作室</b></span></label>
+            <label class="choice"><input type="checkbox" value="beauty_wellness"><span><b>美類</b><span>美甲、美睫、美容、美體、按摩、髮型、造型與複合工作室。</span></span></label>
             <label class="choice"><input type="checkbox" value="space_studio"><span><b>場地／教室／攝影棚</b></span></label>
             <label class="choice"><input type="checkbox" value="tour_outdoor"><span><b>導覽／旅遊／戶外體驗</b></span></label>
             <label class="choice"><input type="checkbox" value="professional_service"><span><b>專業服務／一對一預約</b></span></label>
@@ -272,7 +272,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
             <label class="choice"><input type="checkbox" value="market"><span><b>市集／攤商招募</b><span>適合攤商招募、審核、設備、攤位、單場財務與現場管理。</span></span></label>
             <label class="choice"><input type="checkbox" value="event"><span><b>活動／講座／課程報名</b><span>適合一般民眾報名、名額、付款、通知與報到。</span></span></label>
             <label class="choice"><input type="checkbox" value="workshop"><span><b>手作體驗／工作坊</b><span>適合日期、時段、材料與人數控管的體驗活動。</span></span></label>
-            <label class="choice"><input type="checkbox" value="beauty"><span><b>美業／工作室預約</b><span>適合美甲、美睫、美容、造型、攝影等時段預約。</span></span></label>
+            <label class="choice"><input type="checkbox" value="beauty"><span><b>美類服務／預約</b><span>同時管理服務項目、服務人員、時段、加購、合約、收款與顧客到店。</span></span></label>
             <label class="choice"><input type="checkbox" value="service_booking"><span><b>一般服務預約</b><span>適合一對一或小型服務，依日期、時段與方案預約。</span></span></label>
             <label class="choice"><input type="checkbox" value="resource_booking"><span><b>場地／資源預約</b><span>適合教室、器材、場地、老師或人員資源使用。</span></span></label>
             <label class="choice"><input type="checkbox" value="guide"><span><b>導覽／戶外體驗</b><span>適合旅遊導覽、戶外活動與需要天候改期規則的服務。</span></span></label>
@@ -364,10 +364,10 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
   const err=document.getElementById('signupErr');
   const showErr=(m,field)=>{err.textContent=m;err.style.display='block';if(field){field.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>field.focus(),350)}else document.getElementById('apply')?.scrollIntoView({block:'start'})};
   const clearErr=()=>{err.textContent='';err.style.display='none'};
-  const useLabelMap={market:'市集／攤商招募',event:'活動／講座／課程報名',workshop:'手作體驗／工作坊',beauty:'美業／工作室預約',service_booking:'一般服務預約',resource_booking:'場地／資源預約',guide:'導覽／戶外體驗',general:'其他通用報名'};
+  const useLabelMap={market:'市集／攤商招募',event:'活動／講座／課程報名',workshop:'手作體驗／工作坊',beauty:'美類服務／預約',service_booking:'一般服務預約',resource_booking:'場地／資源預約',guide:'導覽／戶外體驗',general:'其他通用報名'};
   const painLabelMap={scattered:'報名資料散落在表單和訊息裡',status:'不清楚誰已錄取、候補或取消',payment:'收款、對帳和退款容易漏掉',schedule:'日期、時段與剩餘名額不好整理',collision:'老師、空間或設備的時間容易排在一起',reschedule:'改期後又要重新整理名單',extras:'設備、材料或加購內容容易對錯',seating:'攤位或座位安排很花時間',notification:'活動前要逐一通知參加者',checkin:'現場報到和名單核對不方便',finance:'活動結束後，財務和紀錄不好整理',repeat_data:'每次都要請客人重新填寫資料',other:'還有其他困擾'};
   const painModules={scattered:['customFields'],status:['review'],payment:['payment'],schedule:['workshopSlots','calendar'],collision:['workshopSlots','resource','calendar'],reschedule:['workshopSlots','notifications'],extras:['equipment','addons'],seating:['seatSelection'],notification:['notifications'],checkin:['checkin'],finance:['payment'],repeat_data:[]};
-  const moduleLabels={registration:'報名／預約核心',review:'審核錄取',payment:'付款確認',equipment:'設備租借',seatSelection:'座位／攤位選位',checkin:'現場報到',invoice:'發票資料',workshopSlots:'日期／時段',service:'服務方案',resource:'人員／資源',participants:'票種／人數',customFields:'自訂問題',addons:'加購',agreement:'條款合約',i18n:'多語言',googleCalendar:'行事曆'};
+  const moduleLabels={registration:'報名／預約核心',review:'審核錄取',payment:'付款確認',equipment:'設備租借',seatSelection:'座位／攤位選位',checkin:'報到（活動／顧客到店）',invoice:'發票資料',workshopSlots:'日期／時段',service:'服務項目／方案',resource:'服務人員／空間／資源',participants:'票種／人數',customFields:'自訂問題',addons:'加購',agreement:'條款合約',i18n:'多語言',googleCalendar:'行事曆'};
   function applicationModuleDefaults(){
     const painPoints=[...document.querySelectorAll('#signupPainPoints input:checked')].map(x=>x.value),useCases=[...document.querySelectorAll('#signupUseCases input:checked')].map(x=>x.value),flags={};
     painPoints.forEach(p=>(painModules[p]||[]).forEach(k=>flags[k]=true));
@@ -377,7 +377,8 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     if(useCases.includes('market'))add({review:true,payment:true,equipment:true,seatSelection:true,addons:true,agreement:true,invoice:true,checkin:true,customFields:true,googleCalendar:true,quantityMode:'stall',depositKind:'refundable'});
     if(useCases.includes('event'))add({review:true,payment:true,participants:true,customFields:true,agreement:true,invoice:true,checkin:true,googleCalendar:true,quantityMode:'participant'});
     if(useCases.includes('workshop'))add({payment:true,workshopSlots:true,service:true,participants:true,customFields:true,addons:true,agreement:true,invoice:true,checkin:true,googleCalendar:true,quantityMode:'participant',depositKind:'booking',operatingMode:'booking'});
-    if(useCases.includes('beauty')||useCases.includes('service_booking'))add({payment:true,workshopSlots:true,service:true,resource:true,customFields:true,agreement:true,invoice:true,googleCalendar:true,quantityMode:'booking',depositKind:'booking',operatingMode:'booking'});
+    if(useCases.includes('beauty'))add({payment:true,workshopSlots:true,service:true,resource:true,customFields:true,addons:true,agreement:true,invoice:true,checkin:true,googleCalendar:true,i18n:{enabled:true,languages:['zh-TW','en','ja','ko'],translations:{}},quantityMode:'booking',depositKind:'booking',operatingMode:'booking'});
+    if(useCases.includes('service_booking'))add({payment:true,workshopSlots:true,service:true,resource:true,customFields:true,agreement:true,invoice:true,googleCalendar:true,quantityMode:'booking',depositKind:'booking',operatingMode:'booking'});
     if(useCases.includes('resource_booking'))add({payment:true,workshopSlots:true,resource:true,customFields:true,agreement:true,invoice:true,googleCalendar:true,quantityMode:'booking',depositKind:'booking',operatingMode:'booking'});
     if(useCases.includes('guide'))add({review:true,payment:true,workshopSlots:true,participants:true,customFields:true,agreement:true,checkin:true,googleCalendar:true,quantityMode:'participant',depositKind:'booking',operatingMode:'booking'});
     if(useCases.includes('general'))add({review:true,customFields:true,agreement:true,googleCalendar:true});
@@ -385,7 +386,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     if(bookingUse)m.operatingMode='booking';if(marketUse)m.quantityMode='stall';
     return m;
   }
-  function refreshModulePreview(){const defaults=applicationModuleDefaults(),keys=Object.keys(moduleLabels).filter(k=>k==='registration'||defaults[k]===true),el=document.getElementById('signupModulePreview');if(el)el.innerHTML=keys.map(k=>'<span>'+moduleLabels[k]+'</span>').join('')}
+  function refreshModulePreview(){const defaults=applicationModuleDefaults(),keys=Object.keys(moduleLabels).filter(k=>k==='registration'||(k==='i18n'?defaults.i18n?.enabled===true:defaults[k]===true)),el=document.getElementById('signupModulePreview');if(el)el.innerHTML=keys.map(k=>'<span>'+moduleLabels[k]+'</span>').join('')}
   const painBox=document.getElementById('signupPainPoints'),primaryPain=document.getElementById('signupPrimaryPainPoint');
   const refreshPrimaryPain=()=>{const selected=[...painBox.querySelectorAll('input:checked')].map(x=>x.value),current=primaryPain.value;primaryPain.innerHTML='<option value="">請選擇一項</option>'+selected.map(x=>'<option value="'+x+'">'+painLabelMap[x]+'</option>').join('');if(selected.includes(current))primaryPain.value=current};
   painBox?.addEventListener('change',e=>{const selected=[...painBox.querySelectorAll('input:checked')];if(selected.length>5){e.target.checked=false;showErr('困擾最多選擇 5 項');}else clearErr();refreshPrimaryPain();refreshModulePreview()});
@@ -437,7 +438,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     const flags={};painPoints.forEach(p=>(painModules[p]||[]).forEach(k=>flags[k]=true));
     const defaults=applicationModuleDefaults();
     const useType=['market','workshop','beauty','service_booking','resource_booking','event','guide'].includes(useCases[0])?useCases[0]:'generic';
-    Object.keys(moduleLabels).forEach(k=>flags[k]=k==='registration'||defaults[k]===true);
+    Object.keys(moduleLabels).forEach(k=>flags[k]=k==='registration'||(k==='i18n'?defaults.i18n?.enabled===true:defaults[k]===true));
     const moduleProfile={configured:true,useType,useCases,defaults};
     const applicationPayload={
       unitName,companyName,taxId,region,businessIntro,ownerName,contactName,contactEmail,phone,lineId,billingName,operationStage,startTime,

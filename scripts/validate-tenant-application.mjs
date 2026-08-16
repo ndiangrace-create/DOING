@@ -34,12 +34,13 @@ const blueprints={
   market:['registration','review','payment','equipment','seatSelection','addons','agreement','invoice','checkin','customFields','googleCalendar'],
   event:['registration','review','payment','participants','customFields','agreement','invoice','checkin','googleCalendar'],
   workshop:['registration','payment','workshopSlots','service','participants','customFields','addons','agreement','invoice','checkin','googleCalendar'],
+  beauty:['registration','payment','workshopSlots','service','resource','customFields','addons','agreement','invoice','checkin','i18n','googleCalendar'],
   service_booking:['registration','payment','workshopSlots','service','resource','customFields','agreement','invoice','googleCalendar'],
   resource_booking:['registration','payment','workshopSlots','resource','customFields','agreement','invoice','googleCalendar']
 };
 for(const [type,keys] of Object.entries(blueprints)){
   for(const key of keys){
-    const marker=key==='registration'?'registration:true':`${key}:true`;
+    const marker=key==='registration'?'registration:true':(key==='i18n'?"i18n:{enabled:true":`${key}:true`);
     if(!about.includes(marker))throw new Error(`${type} 問卷配套缺少 ${key}`);
   }
 }
@@ -67,4 +68,4 @@ for(const [key,markers] of Object.entries(functionalEvidence)){
   for(const marker of markers)if(!whole.includes(marker))throw new Error(`${key} 缺少可操作功能證據：${marker}`);
 }
 
-console.log('問卷配套 → 平台核准 → 主辦設定 → 前台操作 → Worker 強制檢查：五種營運流程驗證通過');
+console.log('問卷配套 → 平台核准 → 主辦設定 → 前台操作 → Worker 強制檢查：六種營運流程驗證通過');

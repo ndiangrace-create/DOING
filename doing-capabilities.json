@@ -563,6 +563,23 @@
           "evidence": "workshop/course"
         },
         {
+          "label": "美類問卷與初始模組統一",
+          "status": "done",
+          "note": "問卷正式統稱美類，預設包含服務、人員、時段、加購、合約、付款、發票、顧客到店、行事曆與多語言。",
+          "evidence": "about.html / DOING_美類營運流程.md / validate-beauty-workflow.mjs"
+        },
+        {
+          "label": "美類完整顧客與店家工作流程",
+          "status": "done",
+          "note": "先固定操作順序，再依順序製作功能表。",
+          "evidence": "DOING_美類營運流程.md"
+        },
+        {
+          "label": "美類營運項目類型",
+          "status": "done",
+          "evidence": "admin.html / worker.js unitTypeAllowed"
+        },
+        {
           "label": "人員、場地與資源",
           "status": "done",
           "evidence": "resources"
@@ -1214,12 +1231,13 @@
         },
         {
           "label": "套票、次數券與會員方案",
-          "status": "later"
+          "status": "later",
+          "note": "已完成票券所在流程與三種第一階段類型；待定案共享、核銷、退款及跨品牌規則後實作。"
         },
         {
-          "label": "美業服務、通用服務人員、預約、合約、加購與多語言完整組合",
+          "label": "美類服務功能表與顧客到店／開始／完成操作",
           "status": "later",
-          "note": "先完成跨產業工作流程，再定義功能表；不可固定命名為美甲師。"
+          "note": "工作流程與問卷對應已完成；下一步依流程製作功能表，不可固定命名為美甲師。"
         },
         {
           "label": "AI活動主視覺生成",
