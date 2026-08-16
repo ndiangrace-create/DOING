@@ -42,13 +42,13 @@ function selectedRows(table,url){
 }
 const jsonResponse=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json'}});
 
-const realFetch=globalThis.fetch;let emailCalls=0,lineNonce='',googleMockEmail='formal-flow-test@doing.invalid',googleMockSubject='google-test-subject';
+const realFetch=globalThis.fetch;let emailCalls=0,lineNonce='',lineMockEmail='formal-flow-test@doing.invalid',lineMockSubject='line-test-subject',lineMockName='DOING 測試人員',googleMockEmail='formal-flow-test@doing.invalid',googleMockSubject='google-test-subject';
 globalThis.fetch=async(input,init={})=>{
   const url=new URL(typeof input==='string'?input:input.url),method=String(init.method||(typeof input==='string'?'GET':input.method)||'GET').toUpperCase();
   if(url.origin==='https://api.line.me'&&url.pathname==='/oauth2/v2.1/token')return jsonResponse({access_token:'mock-line-access-token',id_token:'mock-line-id-token'});
-  if(url.origin==='https://api.line.me'&&url.pathname==='/oauth2/v2.1/verify')return jsonResponse({aud:'mock-line-client',sub:'line-test-subject',name:'DOING 測試人員',picture:'https://example.invalid/avatar.png',email:'formal-flow-test@doing.invalid',nonce:lineNonce});
+  if(url.origin==='https://api.line.me'&&url.pathname==='/oauth2/v2.1/verify')return jsonResponse({aud:'mock-line-client',sub:lineMockSubject,name:lineMockName,picture:'https://example.invalid/avatar.png',email:lineMockEmail,nonce:lineNonce});
   if(url.origin==='https://oauth2.googleapis.com'&&url.pathname==='/token')return jsonResponse({id_token:'mock-google-id-token'});
-  if(url.origin==='https://oauth2.googleapis.com'&&url.pathname==='/tokeninfo')return jsonResponse({aud:'mock-google-client',email:googleMockEmail,name:'DOING 測試人員',sub:googleMockSubject});
+  if(url.origin==='https://oauth2.googleapis.com'&&url.pathname==='/tokeninfo')return jsonResponse({aud:'mock-google-client',email:googleMockEmail,email_verified:true,name:'DOING 測試人員',sub:googleMockSubject});
   if(url.origin==='https://api.resend.com'){emailCalls++;return jsonResponse({id:'mock-email-'+emailCalls});}
   if(url.origin!=='https://mock.supabase.local')throw new Error('測試禁止連線外部服務：'+url.origin);
   const parts=url.pathname.split('/').filter(Boolean),table=parts[2];
@@ -181,11 +181,14 @@ try{
 
   tables.platform_member_identities=tables.platform_member_identities.filter(x=>x.provider!=='google');
   googleMockEmail='different-google@doing.invalid';googleMockSubject='google-different-email-subject';
+  tables.tenants.push({id:'legacy-google-tenant',name:'不同 Email 舊主辦'});
+  tables.staff.push({id:'STF_LEGACY_GOOGLE',tenant_id:'legacy-google-tenant',email:googleMockEmail,name:'舊主辦',role:'organizer_owner',normalized_role:'organizer_owner',is_active:true,active:true,platform_member_id:null});
   const separateGoogleStart=await request('/auth/google/start?mode=member&return_url='+encodeURIComponent('https://site.test/member.html'));
   const separateGoogleState=new URL(separateGoogleStart.headers.get('location')).searchParams.get('state');
   const separateGoogleCallback=await request('/auth/google/callback?code=mock-code&state='+encodeURIComponent(separateGoogleState));
   const separateGoogleToken=new URL(separateGoogleCallback.headers.get('location')).searchParams.get('member_token');assert.ok(separateGoogleToken,'不同 Email 的 Google 驗證成功後仍必須能登入');
   assert.equal(tables.platform_members.length,2,'不同已驗證 Email 在未確認前不可誤合併');
+  assert.ok(tables.staff.find(x=>x.id==='STF_LEGACY_GOOGLE').platform_member_id,'Google 已驗證 Email 應先接回原管理權');
   const collisionSave=await jsonAction('savePlatformMemberProfile',{member_token:separateGoogleToken,name:'可能重複會員',email:'another-contact@doing.invalid',phone:'+886 911-222-333',systemApplication:{enabled:false}});
   assert.match(collisionSave.error,/登入已成功.*可能屬於既有 DOING 帳號/,'同電話只暫停重複建檔，不可說成登入失敗');
   assert.equal(tables.platform_members.filter(x=>x.completed_at).length,1,'重複疑慮未解除前不可建立第二份完整會員資料');
@@ -198,14 +201,38 @@ try{
   assert.equal(tables.platform_members.length,1,'使用者明確登入兩邊帳號後必須合併成一份會員');
   assert.ok(tables.platform_member_identities.every(x=>x.member_id===canonicalMemberId),'不同 Email 的 Google 身分也必須連到原 LINE 會員');
   assert.equal(tables.platform_members[0].email,'formal-flow-test@doing.invalid','同步不同 Email 的 Google 後不可反覆改寫主要登入 Email');
+  assert.equal(tables.staff.find(x=>x.id==='STF_LEGACY_GOOGLE').platform_member_id,canonicalMemberId,'雙 OAuth 同步後舊主辦權限必須移到共用會員');
   const linkedProfile=await (await request('/?action=getPlatformMemberProfile&member_token='+encodeURIComponent(linkReturn.searchParams.get('member_token')))).json();
   assert.deepEqual(linkedProfile.linkedProviders.sort(),['google','line']);
+
+  const legacyOwnerResults=[];
+  for(let i=1;i<=4;i++){
+    const legacyTenant='legacy-owner-'+i,legacyEmail=`legacy-owner-${i}@doing.invalid`,staffId='STF_LEGACY_OWNER_'+i;
+    tables.tenants.push({id:legacyTenant,name:'既有主辦 '+i});
+    tables.staff.push({id:staffId,tenant_id:legacyTenant,email:legacyEmail,name:'既有主辦 '+i,role:'organizer_owner',normalized_role:'organizer_owner',is_active:true,active:true,platform_member_id:null});
+    lineMockEmail=legacyEmail;lineMockSubject='line-legacy-owner-'+i;lineMockName='既有主辦 '+i;
+    const legacyStart=await request('/auth/line/start?mode=admin&tenant='+encodeURIComponent(legacyTenant));
+    const legacyStartUrl=new URL(legacyStart.headers.get('location'));lineNonce=legacyStartUrl.searchParams.get('nonce');
+    const legacyCallback=await request('/auth/line/callback?code=mock-code&state='+encodeURIComponent(legacyStartUrl.searchParams.get('state')));
+    const legacyReturn=new URL(legacyCallback.headers.get('location'));
+    assert.equal(legacyReturn.pathname,'/admin.html');assert.ok(legacyReturn.searchParams.get('admin_token'),'既有主辦 '+i+' LINE 登入未取得管理權');
+    assert.ok(tables.staff.find(x=>x.id===staffId).platform_member_id,'既有主辦 '+i+' 未綁定共用會員');legacyOwnerResults.push(legacyTenant);
+  }
+
+  const legacyPlatformEmail='legacy-platform@doing.invalid';
+  tables.platform_staff.push({id:'PST_LEGACY_PLATFORM',email:legacyPlatformEmail,name:'既有平台管理者',role:'platform_super_admin',normalized_role:'platform_super_admin',is_active:true,active:true,platform_member_id:null});
+  lineMockEmail=legacyPlatformEmail;lineMockSubject='line-legacy-platform';lineMockName='既有平台管理者';
+  const platformLineStart=await request('/auth/line/start?mode=platform&tenant=platform'),platformLineStartUrl=new URL(platformLineStart.headers.get('location'));lineNonce=platformLineStartUrl.searchParams.get('nonce');
+  const platformLineCallback=await request('/auth/line/callback?code=mock-code&state='+encodeURIComponent(platformLineStartUrl.searchParams.get('state'))),platformLineReturn=new URL(platformLineCallback.headers.get('location'));
+  assert.equal(platformLineReturn.pathname,'/platform.html');assert.ok(platformLineReturn.searchParams.get('admin_token'),'既有平台管理者 LINE 登入未取得管理權');
+  assert.ok(tables.platform_staff.find(x=>x.id==='PST_LEGACY_PLATFORM').platform_member_id,'既有平台管理者未綁定共用會員');
 
   await Promise.all(jobs);
   assert.ok(emailCalls>=2,'申請送出與審核通過通知信未完整觸發');
   console.log(JSON.stringify({
     result:'PASS',applicationId:draft.applicationId,tenantId,
-    stages:['問卷草稿','模擬 LINE 驗證','平台核准','建立租戶','建立負責人','LINE 進入主辦後台','LINE／Google 共用會員','Google 以共用會員進入主辦後台','合併舊重複會員與關聯資料','手填 Email 與驗證 Email 分流','不同 Email 的 Google 仍可登入','同電話暫停重複建檔但不擋登入','使用者明確同步 LINE／Google','寫入模組','建立核准場次','阻擋未核准模組'],
+    stages:['問卷草稿','模擬 LINE 驗證','平台核准','建立租戶','建立負責人','LINE 進入主辦後台','LINE／Google 共用會員','Google 以共用會員進入主辦後台','合併舊重複會員與關聯資料','手填 Email 與驗證 Email 分流','不同 Email 的 Google 仍可登入','同電話暫停重複建檔但不擋登入','使用者明確同步 LINE／Google','不同 Email 的舊主辦權限移到共用會員','4 個既有主辦以 LINE 接回管理權','既有平台管理者以 LINE 接回管理權','寫入模組','建立核准場次','阻擋未核准模組'],
+    legacyOwnersBound:legacyOwnerResults.length,legacyPlatformAdminBound:true,
     approvedModules:Object.entries(approvedFlags).filter(([,v])=>v).map(([k])=>k),
     platformDisabled:['invoice','resource','i18n'],emailNotifications:emailCalls,productionWrites:0
   },null,2));

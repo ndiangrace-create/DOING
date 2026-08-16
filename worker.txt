@@ -3951,6 +3951,37 @@ function platformMemberComplete(row){return !!(row&&platformContactEmail(row)&&n
 
 function platformMemberMergeScore(row){const vendor=safeJson(row&&row.vendor_json,{});return (row&&row.completed_at?8:0)+(row&&row.name?4:0)+(row&&row.phone?2:0)+(vendor&&vendor.brandName?2:0)+(row&&row.email_verified_at?1:0)}
 
+async function verifiedProviderEmailsForMember(env,memberId){
+  const id=String(memberId||'').trim();if(!id)return [];
+  const emails=new Set(),member=await getPlatformMemberById(env,id);
+  if(member&&member.email_verified_at){const email=normEmail(member.email);if(email)emails.add(email)}
+  const identities=await dbGet(env,'platform_member_identities',`member_id=eq.${encodeURIComponent(id)}&select=provider,provider_email`).catch(()=>[]);
+  for(const identity of identities){
+    if(!['line','google'].includes(String(identity.provider||'').trim().toLowerCase()))continue;
+    const email=normEmail(identity.provider_email);if(email)emails.add(email);
+  }
+  return [...emails];
+}
+
+async function bindLegacyAdminAccessByVerifiedEmails(env,memberId){
+  const id=String(memberId||'').trim(),linked={tenantStaff:0,platformStaff:0};if(!id)return linked;
+  for(const email of await verifiedProviderEmailsForMember(env,id)){
+    const tenantRows=await dbGet(env,'staff',`email=eq.${encodeURIComponent(email)}&select=id,platform_member_id,is_active,active`).catch(()=>[]);
+    for(const row of tenantRows){
+      const active=row.is_active!==undefined?row.is_active:row.active;
+      if(active===false||String(row.platform_member_id||'').trim())continue;
+      await dbUpdate(env,'staff',`id=eq.${encodeURIComponent(row.id)}`,{platform_member_id:id});linked.tenantStaff++;
+    }
+    const platformRows=await dbGet(env,'platform_staff',`email=eq.${encodeURIComponent(email)}&select=id,platform_member_id,is_active,active`).catch(()=>[]);
+    for(const row of platformRows){
+      const active=row.is_active!==undefined?row.is_active:row.active;
+      if(active===false||String(row.platform_member_id||'').trim())continue;
+      await dbUpdate(env,'platform_staff',`id=eq.${encodeURIComponent(row.id)}`,{platform_member_id:id});linked.platformStaff++;
+    }
+  }
+  return linked;
+}
+
 async function mergeVerifiedPlatformMembers(env,left,right,verifiedEmail,preferredMemberId=''){
   if(!left||!right||String(left.id)===String(right.id))return left||right;
   const preferred=[left,right].find(row=>String(row.id)===String(preferredMemberId||''));
@@ -3967,6 +3998,7 @@ async function mergeVerifiedPlatformMembers(env,left,right,verifiedEmail,preferr
   for(const application of applications){const data=safeJson(application.application_json,{});if(String(data.memberId||'')===String(source.id))await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(application.id)}`,{application_json:{...data,memberId:target.id,identityMergedAt:now}}).catch(()=>{})}
   await dbDelete(env,'platform_members',`id=eq.${encodeURIComponent(source.id)}`).catch(()=>{});
   const identity=await dbGet(env,'platform_member_identities',`member_id=eq.${encodeURIComponent(target.id)}&select=*&order=last_login_at.desc&limit=1`).catch(()=>[]);
+  await bindLegacyAdminAccessByVerifiedEmails(env,target.id);
   return {...target,email:primaryEmail||null,contact_email:contactEmail||null,email_verified_at:target.email_verified_at||source.email_verified_at||now,phone:phone||null,phone_normalized:phone||null,name:target.name||source.name||null,line_id:target.line_id||source.line_id||null,city:target.city||source.city||null,display_name:target.display_name||source.display_name||'',avatar_url:target.avatar_url||source.avatar_url||'',vendor_json:mergedVendor,completed_at:target.completed_at||source.completed_at||null,_identity:identity[0]||target._identity};
 }
 
@@ -3974,13 +4006,32 @@ async function upsertPlatformIdentity(env,{provider,subject,email='',displayName
   const now=nowIso();
   const normalizedEmail=normEmail(email);
   let member=await getPlatformMemberByProvider(env,provider,subject);
-  if(member){if(normalizedEmail){const matches=await dbGet(env,'platform_members',`email=ilike.${encodeURIComponent(normalizedEmail)}&id=neq.${encodeURIComponent(member.id)}&email_verified_at=not.is.null&select=*&order=created_at.asc`).catch(()=>[]);if(matches[0]){await mergeVerifiedPlatformMembers(env,member,matches[0],normalizedEmail,preferredMemberId);member=await getPlatformMemberByProvider(env,provider,subject)}}const update={display_name:displayName||member.display_name||'',avatar_url:avatarUrl||member.avatar_url||'',updated_at:now};if(normalizedEmail&&!normEmail(member.email)){update.email=normalizedEmail;update.email_verified_at=now}await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(member.id)}`,update).catch(()=>{});if(member._identity)await dbUpdate(env,'platform_member_identities',`id=eq.${encodeURIComponent(member._identity.id)}`,{provider_email:normalizedEmail||member._identity.provider_email||null,last_login_at:now}).catch(()=>{});return {...member,...update}}
+  if(member){
+    if(normalizedEmail){
+      const matches=await dbGet(env,'platform_members',`email=eq.${encodeURIComponent(normalizedEmail)}&id=neq.${encodeURIComponent(member.id)}&email_verified_at=not.is.null&select=*&order=created_at.asc`).catch(()=>[]);
+      if(matches[0]){await mergeVerifiedPlatformMembers(env,member,matches[0],normalizedEmail,preferredMemberId);member=await getPlatformMemberByProvider(env,provider,subject)}
+    }
+    const update={display_name:displayName||member.display_name||'',avatar_url:avatarUrl||member.avatar_url||'',updated_at:now};
+    if(normalizedEmail&&!normEmail(member.email)){update.email=normalizedEmail;update.email_verified_at=now}
+    await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(member.id)}`,update).catch(()=>{});
+    if(member._identity)await dbUpdate(env,'platform_member_identities',`id=eq.${encodeURIComponent(member._identity.id)}`,{provider_email:normalizedEmail||member._identity.provider_email||null,last_login_at:now}).catch(()=>{});
+    await bindLegacyAdminAccessByVerifiedEmails(env,member.id);
+    return {...member,...update};
+  }
   if(normalizedEmail){
-    const byEmail=await dbGet(env,'platform_members',`email=ilike.${encodeURIComponent(normalizedEmail)}&select=*`).catch(()=>[]);
-    if(byEmail[0]){member=byEmail[0];if(!member.email_verified_at)throw new Error('email_link_requires_existing_login');await dbInsert(env,'platform_member_identities',{id:genId('MID'),member_id:member.id,provider,provider_subject:subject,provider_email:normalizedEmail,created_at:now,last_login_at:now});await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(member.id)}`,{display_name:displayName||member.display_name||'',avatar_url:avatarUrl||member.avatar_url||'',updated_at:now});return member}
+    const byEmail=await dbGet(env,'platform_members',`email=eq.${encodeURIComponent(normalizedEmail)}&select=*`).catch(()=>[]);
+    if(byEmail[0]){
+      member=byEmail[0];if(!member.email_verified_at)throw new Error('email_link_requires_existing_login');
+      await dbInsert(env,'platform_member_identities',{id:genId('MID'),member_id:member.id,provider,provider_subject:subject,provider_email:normalizedEmail,created_at:now,last_login_at:now});
+      await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(member.id)}`,{display_name:displayName||member.display_name||'',avatar_url:avatarUrl||member.avatar_url||'',updated_at:now});
+      await bindLegacyAdminAccessByVerifiedEmails(env,member.id);
+      return member;
+    }
   }
   const row={id:genId('MEM'),email:normalizedEmail||null,contact_email:normalizedEmail||null,phone:null,phone_normalized:null,name:null,line_id:null,city:null,display_name:displayName,avatar_url:avatarUrl,vendor_json:{},created_at:now,updated_at:now,completed_at:null,email_verified_at:normalizedEmail?now:null};
-  await dbInsert(env,'platform_members',row);await dbInsert(env,'platform_member_identities',{id:genId('MID'),member_id:row.id,provider,provider_subject:subject,provider_email:normalizedEmail||null,created_at:now,last_login_at:now});return row;
+  await dbInsert(env,'platform_members',row);await dbInsert(env,'platform_member_identities',{id:genId('MID'),member_id:row.id,provider,provider_subject:subject,provider_email:normalizedEmail||null,created_at:now,last_login_at:now});
+  await bindLegacyAdminAccessByVerifiedEmails(env,row.id);
+  return row;
 }
 
 async function hLineStart(env,url){
@@ -4195,8 +4246,9 @@ async function hGoogleCallback(env, url) {
   }
 
   const googleEmail = String(userInfo.email || '').trim().toLowerCase();
+  const googleEmailVerified=userInfo.email_verified===true||String(userInfo.email_verified||'').toLowerCase()==='true';
   const googleName = userInfo.name || '';
-  if (!googleEmail) return failRedirect('no_email', tenant === 'platform' ? platformUrl : loginUrl);
+  if (!googleEmail||!googleEmailVerified) return failRedirect('no_verified_email', tenant === 'platform' ? platformUrl : loginUrl);
   const googleSubject=String(userInfo.sub||googleEmail);
   let member;
   try{member=await upsertPlatformIdentity(env,{provider:'google',subject:googleSubject,email:googleEmail,displayName:googleName,avatarUrl:String(userInfo.picture||''),preferredMemberId:statePayload.mode==='link'?statePayload.link_member_id:''})}
