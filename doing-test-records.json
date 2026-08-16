@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "recordedAt": "2026-08-16T22:56:30+08:00",
-  "sourceFingerprint": "395893ecf61f01321f1afc2086c8198b16aee0d46160cfbb1dac40ddf0a5f8bf",
+  "sourceFingerprint": "74040e8bc9a6c1915beaffa4019e4d2ef90ea208f1d53e151fb59e36fe888dc1",
   "environment": "本機隔離模擬；Supabase、LINE、Google、Resend 全部使用 mock",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
