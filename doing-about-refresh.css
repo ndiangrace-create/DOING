@@ -180,17 +180,17 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
 .doing-smart-helper-section{overflow:visible!important;contain:none!important}
 #doingOrganizerDetails{overflow:visible!important}
 .doing-organizer-content .doing-smart-helper-section{
-  width:min(1440px,calc(100vw - 32px))!important;
+  width:min(1680px,calc(100vw - 20px))!important;
   max-width:none!important;
   margin-left:50%!important;
   margin-right:0!important;
   transform:translateX(-50%);
 }
 .smart-application-shell{
-  width:min(1240px,calc(100vw - 48px))!important;
-  max-width:1240px!important;
+  width:min(1500px,calc(100vw - 36px))!important;
+  max-width:1500px!important;
   height:auto!important;
-  min-height:clamp(720px,78vh,920px)!important;
+  min-height:clamp(780px,84vh,1040px)!important;
   margin:0 auto!important;
   display:flex!important;
   flex-direction:column!important;
@@ -218,7 +218,7 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
 .doing-helper-stage{
   width:100%;
   min-width:0;
-  min-height:590px;
+  min-height:650px;
   flex:1 0 auto;
   padding:28px 30px 34px;
   background:#f5faf9;
@@ -228,7 +228,7 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
 .smart-application-shell .doing-helper-welcome{
   width:100%!important;
   max-width:none!important;
-  min-height:530px!important;
+  min-height:590px!important;
   margin:0!important;
   padding:0!important;
   display:flex;
@@ -240,8 +240,8 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
 }
 .smart-application-shell .doing-conversation-output{
   width:100%;
-  min-height:clamp(340px,42vh,520px)!important;
-  max-height:58vh!important;
+  min-height:clamp(420px,48vh,620px)!important;
+  max-height:68vh!important;
   flex:1 1 auto;
   padding:22px!important;
 }
@@ -250,7 +250,7 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
 .smart-application-shell .apply-form.is-smart-flow{
   width:100%!important;
   min-width:0!important;
-  min-height:530px!important;
+  min-height:590px!important;
   margin:0!important;
   padding:0!important;
   border:0!important;
@@ -307,12 +307,12 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
   .doing-helper-frame-head .doing-helper-start-actions{grid-template-columns:1fr 1fr;gap:8px}
   .doing-helper-frame-head .doing-helper-start-actions button{min-height:48px;padding:9px 8px}
   .doing-helper-stage{
-    min-height:calc(100svh - 250px);
+    min-height:calc(100svh - 224px);
     padding:16px 12px 24px;
     border-radius:0 0 16px 16px;
   }
   .smart-application-shell .doing-helper-welcome,
-  .smart-application-shell .apply-form.is-smart-flow{min-height:calc(100svh - 286px)!important}
+  .smart-application-shell .apply-form.is-smart-flow{min-height:calc(100svh - 248px)!important}
   .smart-application-shell .doing-conversation-output{
     min-height:clamp(300px,48svh,520px)!important;
     max-height:62svh!important;

@@ -80,7 +80,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
 @media(max-width:820px){.apply-form.is-smart-flow,.smart-flow-guide{scroll-margin-top:138px}.apply-form.is-smart-flow{padding-top:28px!important}.apply-form.is-smart-flow .form-head{padding-top:4px}}
 </style>
 <link rel="stylesheet" href="doing-system.css?v=20260816-system4">
-<link rel="stylesheet" href="doing-about-refresh.css?v=20260817i">
+<link rel="stylesheet" href="doing-about-refresh.css?v=20260817j">
 <link rel="stylesheet" href="doing-design-tokens.css?v=20260816a">
 <link rel="stylesheet" href="doing-pastel-pages.css?v=20260816a">
 </head>
@@ -215,13 +215,16 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
       </div>
       <div class="doing-helper-stage">
       <div id="doingHelperWelcome" class="doing-helper-welcome" aria-live="polite">
-        <div id="doingConversationOutput" class="doing-conversation-output"><div id="doingWelcomeMessage" class="doing-chat-bubble assistant">我只協助 DOING 的申請、使用方式、資料安排與費用問題。</div></div>
+        <div id="doingConversationOutput" class="doing-conversation-output"><div id="doingWelcomeMessage" class="doing-chat-bubble assistant">你好！我可以說明 DOING 的功能、申請、活動報名、預約、付款、資料安全與操作方式。你可以直接問，也可以先選常見問題。</div></div>
         <div id="doingSupportChoices" class="doing-support-choices" hidden>
-          <p>你想先了解哪一件事？</p>
+          <p>大家第一次最常問</p>
           <div class="doing-helper-actions">
-            <button type="button" data-entry-helper-topic="data">不同工作資料會混在一起嗎？</button>
-            <button type="button" data-entry-helper-topic="billing">費用怎麼算？</button>
-            <button type="button" data-entry-helper-topic="adjust">之後可以調整嗎？</button>
+            <button type="button" data-entry-helper-question="DOING 可以幫我做什麼？">DOING 可以幫我做什麼？</button>
+            <button type="button" data-entry-helper-question="如何申請 DOING 營運帳號？">如何申請營運帳號？</button>
+            <button type="button" data-entry-helper-question="活動報名和日常預約怎麼使用？">活動報名／預約怎麼用？</button>
+            <button type="button" data-entry-helper-question="我的資料會和其他營運單位共用嗎？">我的資料會和別人共用嗎？</button>
+            <button type="button" data-entry-helper-question="DOING 費用怎麼算？">費用怎麼算？</button>
+            <button type="button" data-entry-helper-question="操作遇到問題時怎麼取得協助？">遇到問題怎麼辦？</button>
           </div>
         </div>
         <div class="doing-chat-input-row">
@@ -413,9 +416,9 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
   const welcome=document.getElementById('doingHelperWelcome'),form=document.getElementById('signupForm'),welcomeMessage=document.getElementById('doingWelcomeMessage'),supportChoices=document.getElementById('doingSupportChoices'),chatShell=welcome?.closest('.smart-application-shell');
   const applicationBtn=document.getElementById('startDoingApplication'),supportBtn=document.getElementById('startDoingSupport');
   const setChatMode=mode=>{chatShell?.classList.toggle('is-application-mode',mode==='application');chatShell?.classList.toggle('is-support-mode',mode==='support');applicationBtn?.setAttribute('aria-pressed',String(mode==='application'));supportBtn?.setAttribute('aria-pressed',String(mode==='support'))};
-  const keepPagePosition=action=>{const pageY=window.scrollY;action();requestAnimationFrame(()=>{window.scrollTo({top:pageY,behavior:'auto'});requestAnimationFrame(()=>window.scrollTo({top:pageY,behavior:'auto'}))})};
-  applicationBtn?.addEventListener('click',()=>keepPagePosition(()=>{setChatMode('application');if(welcome)welcome.hidden=true;if(form)form.hidden=false;if(supportChoices)supportChoices.hidden=true}));
-  supportBtn?.addEventListener('click',()=>keepPagePosition(()=>{setChatMode('support');if(welcome)welcome.hidden=false;if(form)form.hidden=true;if(supportChoices)supportChoices.hidden=false;if(welcomeMessage)welcomeMessage.textContent='可以，直接輸入問題或先選一個常見問題；客服與申請都在這個大型對話區切換。'}));
+  const showHelperFromTop=action=>{action();requestAnimationFrame(()=>requestAnimationFrame(()=>scrollBelowFixedNav(chatShell,'smooth')))};
+  applicationBtn?.addEventListener('click',()=>showHelperFromTop(()=>{setChatMode('application');if(welcome)welcome.hidden=true;if(form)form.hidden=false;if(supportChoices)supportChoices.hidden=true}));
+  supportBtn?.addEventListener('click',()=>showHelperFromTop(()=>{setChatMode('support');if(welcome)welcome.hidden=false;if(form)form.hidden=true;if(supportChoices)supportChoices.hidden=false;if(welcomeMessage)welcomeMessage.textContent='你好！我可以說明 DOING 的功能、申請、活動報名、預約、付款、資料安全與操作方式。你可以直接問，也可以先選常見問題。'}));
   const conversation=document.getElementById('doingConversationOutput'),questionInput=document.getElementById('doingConversationInput');
   const addBubble=(text,role)=>{const bubble=document.createElement('div');bubble.className='doing-chat-bubble '+role;bubble.textContent=String(text||'');conversation?.appendChild(bubble);conversation?.scrollTo({top:conversation.scrollHeight,behavior:'smooth'});return bubble};
   const entryConversationHistory=()=>[...(conversation?.querySelectorAll('.doing-chat-bubble.user,.doing-chat-bubble.assistant')||[])].slice(-8).map(x=>({role:x.classList.contains('user')?'user':'assistant',content:String(x.childNodes[0]?.textContent||x.textContent||'').trim().slice(0,500)})).filter(x=>x.content);
@@ -433,7 +436,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     catch(e){waiting.textContent=entryFallback(question);if(supportChoices)supportChoices.hidden=false}
     finally{clearTimeout(timer)}
   }
-  document.querySelectorAll('[data-entry-helper-topic]').forEach(btn=>btn.addEventListener('click',()=>askEntrySupport(btn.dataset.entryHelperTopic,btn.textContent.trim())));
+  document.querySelectorAll('[data-entry-helper-question]').forEach(btn=>btn.addEventListener('click',()=>askEntrySupport('question',btn.dataset.entryHelperQuestion||btn.textContent.trim())));
   const sendQuestion=()=>{const question=String(questionInput?.value||'').trim();if(!question)return;if(questionInput)questionInput.value='';askEntrySupport('question',question)};
   document.getElementById('sendDoingQuestion')?.addEventListener('click',sendQuestion);
   questionInput?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendQuestion()}});
