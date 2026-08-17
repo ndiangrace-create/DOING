@@ -30,8 +30,14 @@ assert.match(files.worker,/googleEmailVerified/,'Google Email 必須確認為已
 assert.match(files.worker,/createIdentityLink/,'缺少使用者明確登入兩邊帳號的同步流程');
 assert.match(files.worker,/identity_resolution_required/,'缺少登入成功、重複建檔暫停的身分處理流程');
 assert.match(files.worker,/contact_email:email,phone,phone_normalized:phone/,'手填聯絡資料不可再覆蓋登入服務已驗證 Email');
-assert.match(files.worker,/return \{found:emailMatch,emailMatch,phoneMatch,phoneVerified:false\}/,'未做簡訊 OTP 的電話不得成為合併或阻擋登入依據');
-assert.match(files.worker,/手機目前只是聯絡／風險提示資料/,'缺少電話非登入證明規則');
+assert.match(files.worker,/return \{found:emailMatch\|\|phoneMatch,emailMatch,phoneMatch,phoneVerified:false\}/,'Email 或電話任一相同都必須阻擋第二會員建檔');
+assert.match(files.worker,/不得再完成第二個會員帳號/,'缺少 Email／電話會員唯一性規則');
+assert.match(files.worker,/電話未做 OTP 前也不能拿來冒認原帳號/,'缺少電話只阻擋重複、不可冒認合併的安全規則');
+assert.match(files.worker,/contact_email=ilike\.\$\{encodeURIComponent\(normalizedEmail\)\}/,'OAuth 建立會員前未檢查既有聯絡 Email');
+assert.match(files.worker,/duplicate\|unique\|23505/,'缺少同時送出時的資料庫唯一衝突處理');
+assert.match(files.schema,/create unique index if not exists platform_members_contact_email_unique_idx/,'聯絡 Email 缺少資料庫唯一索引');
+assert.match(files.schema,/create unique index if not exists platform_members_phone_normalized_unique_idx/,'電話缺少資料庫唯一索引');
+assert.match(files.schema,/create unique index if not exists platform_members_email_normalized_unique_idx/,'登入 Email 缺少不分大小寫唯一索引');
 assert.match(files.worker,/status=in\.\(line_verification_pending,google_verification_pending\)/,'Google 保留流程必須能接續目前申請草稿');
 assert.match(files.worker,/loginProvider:'google'/,'Google 申請完成後必須連到共用會員');
 assert.match(files.worker,/platform_member_id/,'管理權限未連到共用會員編號');
@@ -53,4 +59,4 @@ for(const tableName of ['staff','platform_staff']){
 }
 const platformMembers=catalog.tables.find(x=>x.name==='platform_members');assert.ok(platformMembers);for(const column of ['contact_email','phone_normalized'])assert.ok(platformMembers.columns.includes(column),`platform_members 未登記 ${column}`);
 
-console.log(JSON.stringify({result:'PASS',publicLogin:'line',managementBackupLogin:'google_visible_after_account_sync',lineEmail:'optional_until_provider_permission_is_enabled',identityAuthority:'provider_subject',accountMerge:'same_verified_provider_email_or_explicit_dual_login',phonePolicy:'contact_and_risk_signal_only_until_sms_otp',loginPolicy:'oauth_login_allowed_duplicate_formal_write_paused',adminBinding:'signed_email_invite_then_authenticated_line_accept',legacyAdminBinding:'verified_provider_email_only'},null,2));
+console.log(JSON.stringify({result:'PASS',publicLogin:'line',managementBackupLogin:'google_visible_after_account_sync',lineEmail:'optional_until_provider_permission_is_enabled',identityAuthority:'provider_subject',accountMerge:'same_verified_provider_email_or_explicit_dual_login',emailPolicy:'unique_member_contact',phonePolicy:'unique_member_contact_without_identity_impersonation',loginPolicy:'oauth_login_allowed_duplicate_formal_write_blocked',adminBinding:'signed_email_invite_then_authenticated_line_accept',legacyAdminBinding:'verified_provider_email_only'},null,2));

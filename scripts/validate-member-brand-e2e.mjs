@@ -86,7 +86,7 @@ try{
   const now=new Date().toISOString();
   tables.platform_members.push(
     {id:'MEM_A',email:null,contact_email:'a@doing.invalid',name:'報名人',phone:'0911000000',completed_at:now,vendor_json:{}},
-    {id:'MEM_B',email:null,contact_email:'b@doing.invalid',name:'實際出攤者',phone:'0911000000',completed_at:now,vendor_json:{}},
+    {id:'MEM_B',email:null,contact_email:'b@doing.invalid',name:'實際出攤者',phone:'0911000001',completed_at:now,vendor_json:{}},
     {id:'MEM_C',email:null,contact_email:'c@doing.invalid',name:'另一支手機',phone:'0922000000',completed_at:now,vendor_json:{}}
   );
   tables.platform_member_identities.push(
@@ -108,7 +108,7 @@ try{
   const request=tables.brand_access_requests[0];
   const approved=await post('resolveBrandAccessRequest',{member_token:tokenA,requestId:request.id,approved:true});
   assert.equal(approved.approved,true);assert.equal(tables.brand_members.find(x=>x.platform_member_id==='MEM_B').status,'active');
-  assert.equal(tables.platform_members.filter(x=>['MEM_A','MEM_B'].includes(x.id)).length,2,'共用電話仍必須保留兩位獨立會員');
+  assert.equal(tables.platform_members.filter(x=>['MEM_A','MEM_B'].includes(x.id)).length,2,'不同 Email 與電話的兩位真人應保留獨立會員');
   assert.equal(tables.brands.length,1,'共同品牌主檔只保留一份');
 
   tables.registrations.push({id:'REG_A',tenant_id:'TENANT_A',session_id:'SESSION_A',brand_id:brandId,brand_name:'夜貓美甲',platform_member_id:'MEM_A',submitted_by_member_id:'MEM_A',review_status:'已錄取',payment_status:'已繳費',checkin_status:'未報到',teardown_status:'未撤場',clear_status:'未清場',transfer_status:'',created_at:now});
