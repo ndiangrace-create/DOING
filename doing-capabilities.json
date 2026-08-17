@@ -1,5 +1,5 @@
 {
-  "version": 15,
+  "version": 16,
   "updatedAt": "2026-08-17",
   "statusLabels": {
     "done": "已完成",
@@ -74,7 +74,12 @@
         {
           "label": "一般使用者常見問題使用已審核快速回答；自由提問才呼叫 AI，並區分參加者、申請者與主辦角色",
           "status": "verify",
-          "evidence": "supabase_doing_helper_consumer_faq_v3.sql / doingHelperConsumerCanonicalReply / doingHelperAudience"
+          "evidence": "supabase_doing_helper_consumer_faq_v3.sql / entryQuickAnswer / doingHelperConsumerCanonicalReply / doingHelperAudience"
+        },
+        {
+          "label": "後台可一鍵發布全部已核准及官方可確認的安全答案；不確定或敏感內容保留待審",
+          "status": "verify",
+          "evidence": "bulkPublishDoingHelperKnowledge / doingHelperPublishableAnswer / bulkPublishHelperBtn"
         },
         {
           "label": "客服入口顯示第一次使用者常見問題，切換後自動露出完整智慧介面頂端",
