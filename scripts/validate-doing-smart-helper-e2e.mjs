@@ -15,7 +15,7 @@ for(const copy of ['DOING 智慧小幫手','DOING 線上智能客服','我只能
 for(const value of ['team','appointment','deposit','shared_customers','multi_brand','one_brand_many_jobs','no_show','staff_mix'])assert(page.includes(`value="${value}"`),`問卷缺少 ${value}`);
 assert(page.includes('data-helper-topic="data"')&&page.includes('data-helper-topic="billing"')&&page.includes('data-helper-topic="adjust"'),'缺少 DOING 範圍內的客服快問');
 assert(page.includes('setupSmartApplicationFlow')&&page.includes("form.classList.add('is-smart-flow')"),'申請仍是舊式長問卷，未改成智慧引導頁');
-assert(home.includes('doing-about-refresh.css?v=20260817h'),'首頁未載入最新智慧申請樣式');
+assert(home.includes('doing-about-refresh.css?v=20260817i'),'首頁未載入最新智慧申請樣式');
 assert(css.includes('.apply-form.is-smart-flow>.group{display:none!important}')&&css.includes('.apply-form.is-smart-flow>.group.is-active{display:block!important}'),'首頁未限制為一次只顯示一個主題區段');
 assert(page.includes('class="doing-helper-frame-head"')&&page.includes('class="doing-helper-stage"'),'智慧小幫手缺少單一大型框架與共用內容舞台');
 assert(page.includes("if(welcome)welcome.hidden=true")&&page.includes("if(form)form.hidden=false")&&page.includes("if(welcome)welcome.hidden=false")&&page.includes("if(form)form.hidden=true"),'申請與客服未在同一內容舞台互斥切換');
@@ -30,6 +30,7 @@ assert(!css.includes('height:min(82vh,860px)')&&!css.includes('height:calc(100sv
 assert(css.includes('.smart-application-shell .doing-conversation-output{')&&css.includes('max-height:58vh!important')&&css.includes('overflow:auto'),'只有真正的聊天訊息區可以保留獨立捲動');
 assert(css.includes('.doing-helper-stage>[hidden]{display:none!important}')&&css.includes('border:0!important')&&css.includes('background:transparent!important'),'申請仍可能在對話框下方形成第二個大框');
 assert(css.includes('width:calc(100vw - 12px)!important')&&css.includes('min-height:calc(100svh - 112px)!important'),'手機版智慧介面未接近滿寬滿高');
+assert(css.includes('#doingOrganizerDetails{overflow:visible!important}')&&css.includes('width:min(1440px,calc(100vw - 32px))!important')&&css.includes('transform:translateX(-50%)'),'智慧介面仍可能被最外層主辦內容裁切');
 assert(page.includes('const keepPagePosition=action=>')&&css.includes('overflow-anchor:none'),'切換申請或客服時仍可能帶動整頁跳動');
 assert(page.includes('跟著 DOING 智慧小幫手完成申請'),'缺少智慧申請頁標題');
 assert(page.includes('id="doingHelperWelcome"')&&page.includes('id="startDoingApplication"')&&page.includes('id="startDoingSupport"'),'申請入口必須先顯示含「開始申請／詢問客服」的智慧小幫手框');
