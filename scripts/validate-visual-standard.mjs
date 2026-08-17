@@ -2,12 +2,17 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const home=fs.readFileSync(new URL('../doing-home-refresh.css',import.meta.url),'utf8');
+const homeScript=fs.readFileSync(new URL('../doing-home-refresh.js',import.meta.url),'utf8');
 const tokens=fs.readFileSync(new URL('../doing-design-tokens.css',import.meta.url),'utf8');
 const pageStyles=fs.readFileSync(new URL('../doing-pastel-pages.css',import.meta.url),'utf8');
 const rules=fs.readFileSync(new URL('../DOING_首頁視覺基準.md',import.meta.url),'utf8');
 const capabilities=JSON.parse(fs.readFileSync(new URL('../doing-capabilities.json',import.meta.url),'utf8'));
 const pages=['member.html','register.html','about.html','admin.html','platform.html','onsite.html','photo.html'];
 assert(home.includes('.price-card.primary .price-label')&&home.includes('color:#173943!important'),'收費方案白色標題膠囊必須使用深色文字，避免標題消失');
+assert(!homeScript.includes('doing-proof-section')&&!homeScript.includes('doingSupportMount'),'首頁不得保留重複流程說明或另一套客服面板');
+assert(homeScript.includes("loadOrganizerDetails('support-helper')"),'首頁客服必須進入 DOING 智慧小幫手');
+assert.match(home,/首頁互動元件形狀契約[\s\S]*?\.doing-carousel-arrow[\s\S]*?border-radius:12px!important/);
+assert.match(home,/\.doing-member-close,[\s\S]*?border-radius:10px!important/);
 
 const palette={
   ink:'#363341',muted:'#756f7d',paper:'#fffdfd',pink:'#efa2c9',pinkStrong:'#d86eab',

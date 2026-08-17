@@ -89,11 +89,11 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
 .smart-application-shell{
   width:min(100%,1160px)!important;
   max-width:1160px!important;
-  height:min(82vh,860px);
-  min-height:720px;
-  display:flex!important;
-  flex-direction:column;
-  overflow:hidden;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  display:block!important;
+  overflow:visible!important;
   overflow-anchor:none;
   border:2px solid #b9d7d2;
   border-radius:28px;
@@ -126,17 +126,18 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
 .smart-application-shell .apply-form.is-smart-flow{
   width:100%;
   max-width:none;
-  min-height:0;
-  flex:1 1 auto;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  flex:none;
   margin:0;
   padding:24px 28px 36px!important;
-  overflow-x:hidden!important;
-  overflow-y:auto!important;
+  overflow:visible!important;
   border:0!important;
   border-top:1px solid #c8dfdb!important;
   border-radius:0!important;
   box-shadow:inset 0 10px 24px rgba(36,111,105,.04)!important;
-  overscroll-behavior:contain;
+  overscroll-behavior:auto;
 }
 .smart-application-shell .apply-form.is-smart-flow>.smart-answer-card{width:min(94%,900px)}
 .smart-application-shell .smart-flow-guide{width:min(92%,900px)}
@@ -147,9 +148,10 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
   .doing-helper-section-head p{font-size:16px}
   .smart-application-shell{
     width:100%!important;
-    height:calc(100svh - 150px);
-    min-height:620px;
-    max-height:820px;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
     border-radius:20px;
   }
   .smart-application-shell .doing-helper-welcome{padding:16px 14px 12px}

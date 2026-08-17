@@ -1,5 +1,5 @@
 {
-  "version": 11,
+  "version": 12,
   "updatedAt": "2026-08-17",
   "statusLabels": {
     "done": "已完成",
@@ -32,9 +32,14 @@
           "evidence": "callDoingHelperAI / entryFallback / production question smoke test"
         },
         {
-          "label": "申請與客服共用單一 LINE 式對話框，桌機加寬加高、手機響應式",
+          "label": "申請與客服共用單一 LINE 式對話區塊，桌機加寬、手機響應式",
           "status": "verify",
           "evidence": "smart-application-shell / is-application-mode / validate-doing-smart-helper-e2e"
+        },
+        {
+          "label": "申請內容依頁面自然延伸，不使用固定高度或表單內層捲軸",
+          "status": "verify",
+          "evidence": "smart-application-shell height:auto / apply-form overflow:visible / validate-doing-smart-helper-e2e"
         },
         {
           "label": "DOING 智慧小幫手為獨立首頁區塊，與收費說明清楚分隔",
