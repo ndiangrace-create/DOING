@@ -74,6 +74,18 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
 }
 
 /* 智慧小幫手是單一對話視窗：申請與客服都在框內切換，不離開目前頁面。 */
+.doing-smart-helper-section{
+  margin-top:72px!important;
+  padding:58px clamp(14px,3vw,38px) 64px!important;
+  border:4px solid #fff;
+  border-radius:42px;
+  background:linear-gradient(145deg,#eef9fb,#f1faf4);
+  box-shadow:0 24px 60px rgba(36,111,105,.12);
+}
+.doing-helper-section-head{max-width:860px;margin:0 auto 30px;text-align:center}
+.doing-helper-section-head .section-kicker{margin:0 auto}
+.doing-helper-section-head h2{margin:14px 0 8px}
+.doing-helper-section-head p{margin:0;font-size:18px}
 .smart-application-shell{
   width:min(100%,1160px)!important;
   max-width:1160px!important;
@@ -127,6 +139,10 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
 .smart-application-shell .apply-form.is-smart-flow>.smart-answer-card{width:min(94%,900px)}
 .smart-application-shell .smart-flow-guide{width:min(92%,900px)}
 @media(max-width:760px){
+  .doing-smart-helper-section{margin-top:44px!important;padding:34px 10px 40px!important;border-radius:26px}
+  .doing-helper-section-head{margin-bottom:20px;padding:0 8px}
+  .doing-helper-section-head h2{font-size:30px}
+  .doing-helper-section-head p{font-size:16px}
   .smart-application-shell{
     width:100%!important;
     height:calc(100svh - 150px);
