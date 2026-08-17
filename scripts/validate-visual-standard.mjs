@@ -7,6 +7,7 @@ const pageStyles=fs.readFileSync(new URL('../doing-pastel-pages.css',import.meta
 const rules=fs.readFileSync(new URL('../DOING_首頁視覺基準.md',import.meta.url),'utf8');
 const capabilities=JSON.parse(fs.readFileSync(new URL('../doing-capabilities.json',import.meta.url),'utf8'));
 const pages=['member.html','register.html','about.html','admin.html','platform.html','onsite.html','photo.html'];
+assert(home.includes('.price-card.primary .price-label')&&home.includes('color:#173943!important'),'收費方案白色標題膠囊必須使用深色文字，避免標題消失');
 
 const palette={
   ink:'#363341',muted:'#756f7d',paper:'#fffdfd',pink:'#efa2c9',pinkStrong:'#d86eab',
