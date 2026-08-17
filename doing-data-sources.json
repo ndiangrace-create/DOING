@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "auditedAt": "2026-08-17",
   "authority": {
     "projectName": "DOING_SaaS",
@@ -26,6 +26,10 @@
         "platform_members",
         "platform_member_identities",
         "member_helper_traces",
+        "doing_helper_knowledge_entries",
+        "member_helper_conversations",
+        "member_helper_messages",
+        "doing_helper_improvement_queue",
         "tenant_apply_logs",
         "tenants",
         "tenant_settings",
@@ -262,6 +266,38 @@
       "moduleKeys": [
         "platform-application"
       ],
+      "state": "active"
+    },
+    {
+      "name": "doing_helper_knowledge_entries",
+      "rlsEnabled": true,
+      "columns": ["id","knowledge_key","version","category","title","content","keywords","source_type","source_ref","approval_status","is_public","supersedes_id","created_by","approved_by","created_at","published_at"],
+      "workerAccess": ["get","insert"],
+      "moduleKeys": ["platform-application"],
+      "state": "active"
+    },
+    {
+      "name": "member_helper_conversations",
+      "rlsEnabled": true,
+      "columns": ["id","member_id","status","started_at","last_message_at"],
+      "workerAccess": ["get","insert","update"],
+      "moduleKeys": ["platform-application"],
+      "state": "active"
+    },
+    {
+      "name": "member_helper_messages",
+      "rlsEnabled": true,
+      "columns": ["id","conversation_id","member_id","role","body","reply_source","knowledge_keys","confidence","created_at"],
+      "workerAccess": ["get","insert"],
+      "moduleKeys": ["platform-application"],
+      "state": "active"
+    },
+    {
+      "name": "doing_helper_improvement_queue",
+      "rlsEnabled": true,
+      "columns": ["id","member_id","assistant_message_id","question","answer","rating","reason","knowledge_keys","review_status","review_note","reviewed_by","reviewed_at","created_at"],
+      "workerAccess": ["get","insert","update"],
+      "moduleKeys": ["platform-application"],
       "state": "active"
     },
     {

@@ -1,5 +1,5 @@
 {
-  "version": 10,
+  "version": 11,
   "updatedAt": "2026-08-17",
   "statusLabels": {
     "done": "已完成",
@@ -45,6 +45,21 @@
           "label": "未登入不留存；登入後才保存個人互動軌跡",
           "status": "verify",
           "evidence": "member_helper_traces / verifiedPlatformMember"
+        },
+        {
+          "label": "只檢索已發布的 DOING 正式知識，費用即時讀取平台設定",
+          "status": "verify",
+          "evidence": "doing_helper_knowledge_entries / platform_billing_policy / doingHelperKnowledgeContext"
+        },
+        {
+          "label": "登入會員可續接個人對話；未登入只使用目前畫面脈絡",
+          "status": "verify",
+          "evidence": "member_helper_conversations / member_helper_messages / conversationHistory"
+        },
+        {
+          "label": "低信心與沒解決的回答進入待審改善，不會自行發布",
+          "status": "verify",
+          "evidence": "doing_helper_improvement_queue / reviewDoingHelperImprovement"
         },
         {
           "label": "會員提出營運帳號申請",
@@ -95,6 +110,10 @@
           "platform_members",
           "platform_member_identities",
           "member_helper_traces",
+          "doing_helper_knowledge_entries",
+          "member_helper_conversations",
+          "member_helper_messages",
+          "doing_helper_improvement_queue",
           "tenant_apply_logs",
           "tenants",
           "tenant_settings",

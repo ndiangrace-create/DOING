@@ -119,6 +119,7 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
   scroll-behavior:smooth;
 }
 .smart-application-shell .doing-chat-bubble{font-size:17px;line-height:1.55}
+.doing-chat-feedback{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:10px;padding-top:9px;border-top:1px solid #e1ece9;color:#6a7b78;font-size:13px}.doing-chat-feedback button{min-height:34px;padding:5px 10px;border:1px solid #c7dcd8;border-radius:10px;background:#f7fbfa;color:#285f59;font-size:13px;font-weight:800}.doing-chat-feedback button:hover{background:#eaf6f3}.doing-chat-feedback button:disabled{opacity:.55;cursor:default}
 .smart-application-shell .doing-chat-input-row textarea{min-height:64px;max-height:150px}
 .smart-application-shell .doing-helper-start-actions button[aria-pressed="true"]{background:#246f69;color:#fff;box-shadow:inset 0 0 0 2px rgba(255,255,255,.5)}
 .smart-application-shell.is-application-mode .doing-conversation-output{min-height:96px;max-height:150px}
