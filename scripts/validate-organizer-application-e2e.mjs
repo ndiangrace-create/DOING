@@ -191,9 +191,11 @@ try{
   const separateGoogleToken=new URL(separateGoogleCallback.headers.get('location')).searchParams.get('member_token');assert.ok(separateGoogleToken,'不同 Email 的 Google 驗證成功後仍必須能登入');
   assert.equal(tables.platform_members.length,2,'不同已驗證 Email 在未確認前不可誤合併');
   assert.ok(tables.staff.find(x=>x.id==='STF_LEGACY_GOOGLE').platform_member_id,'Google 已驗證 Email 應先接回原管理權');
-  const collisionSave=await jsonAction('savePlatformMemberProfile',{member_token:separateGoogleToken,name:'共用電話的第二位會員',email:'another-contact@doing.invalid',phone:'+886 911-222-333',systemApplication:{enabled:false}});
-  assert.equal(collisionSave.ok,true,'未做簡訊 OTP 時，同電話不得阻擋第二位真實會員完成資料');
-  assert.equal(tables.platform_members.filter(x=>x.completed_at).length,2,'夫妻或共用電話者必須保留為兩位會員');
+  const emailCollisionSave=await jsonAction('savePlatformMemberProfile',{member_token:separateGoogleToken,name:'重複 Email 的第二個帳號',email:'contact-main@doing.invalid',phone:'0922333444',systemApplication:{enabled:false}});
+  assert.match(emailCollisionSave.error||'',/Email 或手機已綁定既有 DOING 帳號/,'同一 Email 必須阻擋第二會員完成建檔');
+  const collisionSave=await jsonAction('savePlatformMemberProfile',{member_token:separateGoogleToken,name:'重複電話的第二個帳號',email:'another-contact@doing.invalid',phone:'+886 911-222-333',systemApplication:{enabled:false}});
+  assert.match(collisionSave.error||'',/Email 或手機已綁定既有 DOING 帳號/,'同一電話必須阻擋第二會員完成建檔');
+  assert.equal(tables.platform_members.filter(x=>x.completed_at).length,1,'同一電話只能有一個已完成會員');
 
   const linkRequest=await jsonAction('createIdentityLink',{member_token:canonicalToken,provider:'google',return_url:'https://site.test/member.html#account'});
   assert.equal(linkRequest.ok,true);assert.match(linkRequest.url,/\/auth\/google\/start/);
@@ -280,7 +282,7 @@ try{
   assert.ok(emailCalls>=2,'申請送出與審核通過通知信未完整觸發');
   console.log(JSON.stringify({
     result:'PASS',applicationId:draft.applicationId,tenantId,
-    stages:['問卷草稿','模擬 LINE 驗證','LINE 未提供 Email 仍完成申請','平台核准','建立租戶','建立負責人','無 Email LINE 身分登入主辦後台','LINE 進入主辦後台','LINE／Google 共用會員','Google 以共用會員進入主辦後台','合併舊重複會員與關聯資料','手填 Email 與驗證 Email 分流','不同 Email 的 Google 仍可登入','同電話保留兩位會員且不阻擋','使用者明確同步 LINE／Google','不同 Email 的舊主辦權限移到共用會員','4 個既有主辦以 LINE 接回管理權','既有平台管理者以 LINE 接回管理權','Email 管理邀請','本人 LINE 接受後綁定','受邀者 LINE 登入後台','現場管理必選場次','會員中心顯示平台總管理者入口','寫入模組','建立核准場次','阻擋未核准模組'],
+    stages:['問卷草稿','模擬 LINE 驗證','LINE 未提供 Email 仍完成申請','平台核准','建立租戶','建立負責人','無 Email LINE 身分登入主辦後台','LINE 進入主辦後台','LINE／Google 共用會員','Google 以共用會員進入主辦後台','合併舊重複會員與關聯資料','手填 Email 與驗證 Email 分流','不同 Email 的 Google 仍可登入','同電話阻擋第二會員建檔','使用者明確同步 LINE／Google','不同 Email 的舊主辦權限移到共用會員','4 個既有主辦以 LINE 接回管理權','既有平台管理者以 LINE 接回管理權','Email 管理邀請','本人 LINE 接受後綁定','受邀者 LINE 登入後台','現場管理必選場次','會員中心顯示平台總管理者入口','寫入模組','建立核准場次','阻擋未核准模組'],
     legacyOwnersBound:legacyOwnerResults.length,legacyPlatformAdminBound:true,
     approvedModules:Object.entries(approvedFlags).filter(([,v])=>v).map(([k])=>k),
     platformDisabled:['invoice','resource','i18n'],emailNotifications:emailCalls,productionWrites:0

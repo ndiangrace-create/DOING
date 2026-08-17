@@ -109,9 +109,9 @@
           "evidence": "platform.html / admin.html / member identity link"
         },
         {
-          "label": "電話未經簡訊驗證不合併、不授權、不阻擋",
+          "label": "同一 Email 或電話不得建立第二會員",
           "status": "done",
-          "evidence": "platformIdentityCollision / validate-login-providers"
+          "evidence": "platformIdentityCollision / 唯一索引 / validate-login-providers"
         }
       ],
       "dataSource": {

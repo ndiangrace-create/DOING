@@ -3435,9 +3435,10 @@ async function platformIdentityCollision(env,memberId,contactEmail,phone){
   });
   const emailMatch=matches.some(row=>normEmail(row.email)===email||normEmail(row.contact_email)===email||verifiedEmailMemberIds.has(String(row.id||'')));
   const phoneMatch=matches.some(row=>normalizedPhone&&normPhone(row.phone_normalized||row.phone)===normalizedPhone);
-  // 手機目前只是聯絡／風險提示資料，尚未做 SMS OTP，不能據此合併會員、授權或阻擋登入。
-  // 例如夫妻可能共用聯絡電話；兩個不同 LINE 身分仍必須保留為兩位會員。
-  return {found:emailMatch,emailMatch,phoneMatch,phoneVerified:false};
+  // Email 或電話任一相同，都不得再完成第二個會員帳號。
+  // 這只負責阻擋重複建檔；不得因手填資料相同就自動合併或授權。
+  // 使用者必須登入原帳號，再完成 LINE／Google 身分綁定；電話未做 OTP 前也不能拿來冒認原帳號。
+  return {found:emailMatch||phoneMatch,emailMatch,phoneMatch,phoneVerified:false};
 }
 
 async function hSavePlatformMemberProfile(env,b){
@@ -3448,7 +3449,7 @@ async function hSavePlatformMemberProfile(env,b){
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return jsonErr('Email 格式不正確');
   if(phone.length<9)return jsonErr('手機格式不正確');
   const collision=await platformIdentityCollision(env,verified.row.id,email,phone);
-  if(collision.found)return jsonErr('登入已成功，但這個 Email 已連結既有 DOING 帳號。請先使用原 LINE／Google 登入並連結帳號；無法使用舊登入時請聯絡平台協助。');
+  if(collision.found)return jsonErr('這個 Email 或手機已綁定既有 DOING 帳號，不能再建立第二個會員。請先登入原帳號，再連結目前的 LINE／Google；無法使用原登入時請聯絡平台協助。');
   const hasVendor=Object.prototype.hasOwnProperty.call(b,'vendor'),vendor=hasVendor&&b.vendor&&typeof b.vendor==='object'?b.vendor:safeJson(verified.row.vendor_json,{});
   const allowedVendorCategories=['餐飲美食','手作設計','文創選物','服飾配件','生活用品','親子兒童','寵物相關','收藏娛樂','美類','美業服務','體驗／服務','其他'];
   const vendorCategory=String(vendor.category||'').trim();
@@ -3456,7 +3457,10 @@ async function hSavePlatformMemberProfile(env,b){
   const vendorJson={brandName:String(vendor.brandName||'').trim(),brandIntro:String(vendor.brandIntro||'').trim(),category:vendorCategory,items:String(vendor.items||'').trim(),facebook:String(vendor.facebook||'').trim(),instagram:String(vendor.instagram||'').trim(),photoUrl:String(vendor.photoUrl||'').trim(),company:String(vendor.company||'').trim(),taxId:String(vendor.taxId||'').trim()};
   const update={contact_email:email,phone,phone_normalized:phone,name,line_id:String(b.lineId||'').trim(),city:String(b.city||'').trim(),completed_at:nowIso(),updated_at:nowIso()};
   if(hasVendor)update.vendor_json=vendorJson;
-  await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(verified.row.id)}`,update);
+  try{await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(verified.row.id)}`,update)}catch(e){
+    if(/duplicate|unique|23505/i.test(String(e&&e.message||e)))return jsonErr('這個 Email 或手機已綁定既有 DOING 帳號，不能再建立第二個會員。請先登入原帳號，再連結目前的 LINE／Google。');
+    throw e;
+  }
   let applicationId='';
   const sys=b.systemApplication&&typeof b.systemApplication==='object'?b.systemApplication:null;
   if(sys&&sys.enabled){
@@ -4486,7 +4490,10 @@ async function upsertPlatformIdentity(env,{provider,subject,email='',displayName
     return {...member,...update};
   }
   if(normalizedEmail){
-    const byEmail=await dbGet(env,'platform_members',`email=eq.${encodeURIComponent(normalizedEmail)}&select=*`).catch(()=>[]);
+    const [byEmail,byContactEmail]=await Promise.all([
+      dbGet(env,'platform_members',`email=eq.${encodeURIComponent(normalizedEmail)}&select=*`).catch(()=>[]),
+      dbGet(env,'platform_members',`contact_email=ilike.${encodeURIComponent(normalizedEmail)}&select=*`).catch(()=>[])
+    ]);
     if(byEmail[0]){
       member=byEmail[0];if(!member.email_verified_at)throw new Error('email_link_requires_existing_login');
       await dbInsert(env,'platform_member_identities',{id:genId('MID'),member_id:member.id,provider,provider_subject:subject,provider_email:normalizedEmail,created_at:now,last_login_at:now});
@@ -4494,6 +4501,8 @@ async function upsertPlatformIdentity(env,{provider,subject,email='',displayName
       await bindLegacyAdminAccessByVerifiedEmails(env,member.id);
       return member;
     }
+    // 手填聯絡 Email 相同時只阻擋第二會員；必須先登入原帳號再做雙 OAuth 綁定，不能直接冒認。
+    if(byContactEmail[0])throw new Error('email_link_requires_existing_login');
   }
   const row={id:genId('MEM'),email:normalizedEmail||null,contact_email:normalizedEmail||null,phone:null,phone_normalized:null,name:null,line_id:null,city:null,display_name:displayName,avatar_url:avatarUrl,vendor_json:{},created_at:now,updated_at:now,completed_at:null,email_verified_at:normalizedEmail?now:null};
   await dbInsert(env,'platform_members',row);await dbInsert(env,'platform_member_identities',{id:genId('MID'),member_id:row.id,provider,provider_subject:subject,provider_email:normalizedEmail||null,created_at:now,last_login_at:now});

@@ -31,13 +31,19 @@ create index if not exists platform_staff_platform_member_idx
   on public.platform_staff (platform_member_id)
   where platform_member_id is not null;
 
-create index if not exists platform_members_contact_email_idx
-  on public.platform_members (lower(contact_email))
-  where contact_email is not null;
+drop index if exists public.platform_members_contact_email_idx;
+create unique index if not exists platform_members_contact_email_unique_idx
+  on public.platform_members (lower(btrim(contact_email)))
+  where contact_email is not null and btrim(contact_email) <> '';
 
-create index if not exists platform_members_phone_normalized_idx
+drop index if exists public.platform_members_phone_normalized_idx;
+create unique index if not exists platform_members_phone_normalized_unique_idx
   on public.platform_members (phone_normalized)
-  where phone_normalized is not null;
+  where phone_normalized is not null and btrim(phone_normalized) <> '';
+
+create unique index if not exists platform_members_email_normalized_unique_idx
+  on public.platform_members (lower(btrim(email)))
+  where email is not null and btrim(email) <> '';
 
 comment on column public.staff.platform_member_id is
   'DOING 共用會員編號；LINE 與 Google 身分經驗證後都連到此會員。';
@@ -49,7 +55,7 @@ comment on column public.platform_members.email is
   '主要登入服務已驗證 Email；不可被使用者手填聯絡信箱覆蓋。不同登入服務的 Email 保存在 platform_member_identities。';
 
 comment on column public.platform_members.contact_email is
-  '會員手填聯絡 Email；可用於通知與重複資料提示，但不可單獨作為登入身分或自動合併依據。';
+  '會員聯絡 Email；同一 Email 不得建立第二會員。手填值不可單獨作為登入身分、合併或授權依據。';
 
 comment on column public.platform_members.phone_normalized is
-  '正規化聯絡電話；僅作重複資料提示。電話相同不會阻擋 OAuth 登入，也不會自動合併會員。';
+  '正規化聯絡電話；同一電話不得建立第二會員。電話相同只阻擋重複建檔，不會自動合併或授權。';
