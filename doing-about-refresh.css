@@ -24,7 +24,7 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
 @media(max-width:1100px){body.doing-about-refresh .hero{grid-template-columns:1fr}.scenario-shell{grid-template-columns:1fr}.scenario-tabs{position:static;display:flex;overflow:auto;padding-bottom:6px}.scenario-tabs button{min-width:170px}.capability-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fee-examples{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){body.doing-about-refresh .hero-main{border-radius:28px;padding:28px 20px}body.doing-about-refresh h1{font-size:40px}.hero-points,.scenario-compare,.capability-grid,.pricing-three,.fee-examples{grid-template-columns:1fr!important}.scenario-stage{border-radius:28px;padding:22px 16px}.scenario-result{align-items:flex-start;flex-direction:column}.scenario-result .btn{width:100%}body.doing-about-refresh #pricing{padding:25px 12px;border-radius:28px}.quick-nav{border-radius:20px!important;top:64px}.doing-day-card{display:none}.apply-gate{padding:28px 18px;border-radius:28px}}
 
-/* 首頁載入申請片段時，也必須保留「一次只問一題」的客服式流程。 */
+/* 首頁載入申請片段時，也必須保留「一次一個主題區段」的客服式流程。 */
 .doing-helper{border:2px solid #b9d7d2;background:#f5faf9;padding:18px;border-radius:18px}
 .doing-helper-welcome{max-width:720px;margin:0 auto;padding:24px;border:2px solid #b9d7d2;border-radius:22px;background:#f5faf9;box-shadow:0 14px 36px rgba(36,111,105,.1)}
 .doing-helper-start-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}.doing-helper-start-actions button{min-height:54px;border-radius:14px;border:1px solid #bdd5d1;background:#fff;color:#245e59;font-weight:900}.doing-helper-start-actions button.primary{background:#246f69;color:#fff}.doing-support-choices{margin-top:16px;padding-top:14px;border-top:1px solid #d7e5e2}.doing-support-choices p{margin:0 0 10px;font-weight:900}
@@ -71,4 +71,77 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
   .apply-form.is-smart-flow,.smart-flow-guide{scroll-margin-top:138px!important}
   .apply-form.is-smart-flow{padding-top:28px!important}
   .apply-form.is-smart-flow .form-head{padding-top:4px!important}
+}
+
+/* 智慧小幫手是單一對話視窗：申請與客服都在框內切換，不離開目前頁面。 */
+.smart-application-shell{
+  width:min(100%,1160px)!important;
+  max-width:1160px!important;
+  height:min(82vh,860px);
+  min-height:720px;
+  display:flex!important;
+  flex-direction:column;
+  overflow:hidden;
+  border:2px solid #b9d7d2;
+  border-radius:28px;
+  background:#f5faf9;
+  box-shadow:0 20px 50px rgba(36,111,105,.14);
+}
+.smart-application-shell .doing-helper-welcome{
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:24px 28px 18px;
+  border:0;
+  border-radius:0;
+  background:#f5faf9;
+  box-shadow:none;
+  flex:0 0 auto;
+}
+.smart-application-shell .doing-conversation-output{
+  min-height:150px;
+  max-height:260px;
+  padding:18px;
+  border-radius:20px;
+  scroll-behavior:smooth;
+}
+.smart-application-shell .doing-chat-bubble{font-size:17px;line-height:1.55}
+.smart-application-shell .doing-chat-input-row textarea{min-height:64px;max-height:150px}
+.smart-application-shell .doing-helper-start-actions button[aria-pressed="true"]{background:#246f69;color:#fff;box-shadow:inset 0 0 0 2px rgba(255,255,255,.5)}
+.smart-application-shell.is-application-mode .doing-conversation-output{min-height:96px;max-height:150px}
+.smart-application-shell .apply-form.is-smart-flow{
+  width:100%;
+  max-width:none;
+  min-height:0;
+  flex:1 1 auto;
+  margin:0;
+  padding:24px 28px 36px!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  border:0!important;
+  border-top:1px solid #c8dfdb!important;
+  border-radius:0!important;
+  box-shadow:inset 0 10px 24px rgba(36,111,105,.04)!important;
+  overscroll-behavior:contain;
+}
+.smart-application-shell .apply-form.is-smart-flow>.smart-answer-card{width:min(94%,900px)}
+.smart-application-shell .smart-flow-guide{width:min(92%,900px)}
+@media(max-width:760px){
+  .smart-application-shell{
+    width:100%!important;
+    height:calc(100svh - 150px);
+    min-height:620px;
+    max-height:820px;
+    border-radius:20px;
+  }
+  .smart-application-shell .doing-helper-welcome{padding:16px 14px 12px}
+  .smart-application-shell .doing-helper-head b{font-size:18px}
+  .smart-application-shell .doing-conversation-output{min-height:130px;max-height:220px;padding:12px}
+  .smart-application-shell.is-application-mode .doing-conversation-output{min-height:82px;max-height:120px}
+  .smart-application-shell .doing-chat-bubble{max-width:90%;font-size:16px}
+  .smart-application-shell .doing-chat-input-row{grid-template-columns:minmax(0,1fr) 62px;gap:8px}
+  .smart-application-shell .doing-chat-input-row textarea{min-width:0;min-height:54px;padding:12px}
+  .smart-application-shell .doing-chat-input-row button{min-width:62px;min-height:54px;padding:8px}
+  .smart-application-shell .apply-form.is-smart-flow{padding:18px 14px 30px!important}
+  .smart-application-shell .apply-form.is-smart-flow>.smart-answer-card,.smart-application-shell .smart-flow-guide{width:100%}
 }
