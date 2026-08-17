@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const page=fs.readFileSync('about.html','utf8');
+const platform=fs.readFileSync('platform.html','utf8');
 const home=fs.readFileSync('index.html','utf8');
 const homeRefresh=fs.readFileSync('doing-home-refresh.js','utf8');
 const css=fs.readFileSync('doing-about-refresh.css','utf8');
@@ -10,12 +11,13 @@ const mirror=fs.readFileSync('worker.txt','utf8');
 const sql=fs.readFileSync('supabase_doing_helper_traces.sql','utf8');
 const knowledgeSql=fs.readFileSync('supabase_doing_helper_knowledge.sql','utf8');
 const knowledgeV2Sql=fs.readFileSync('supabase_doing_helper_knowledge_v2.sql','utf8');
+const consumerFaqSql=fs.readFileSync('supabase_doing_helper_consumer_faq_v3.sql','utf8');
 
 for(const copy of ['DOING 智慧小幫手','DOING 線上智能客服','我只能協助 DOING 系統','scopeStatus:\'out_of_scope\'','dataPolicy:\'same_brand_customer_shared_work_records_separate\'']){
   assert(page.includes(copy)||worker.includes(copy),`缺少範圍或資料規則：${copy}`);
 }
 for(const value of ['team','appointment','deposit','shared_customers','multi_brand','one_brand_many_jobs','no_show','staff_mix'])assert(page.includes(`value="${value}"`),`問卷缺少 ${value}`);
-for(const question of ['DOING 可以幫我做什麼？','如何申請 DOING 營運帳號？','活動報名和日常預約怎麼使用？','我的資料會和其他營運單位共用嗎？','DOING 費用怎麼算？','操作遇到問題時怎麼取得協助？'])assert(page.includes(`data-entry-helper-question="${question}"`),`缺少第一次使用者常見問題：${question}`);
+for(const question of ['第一次要怎麼報名或預約？','報名後要去哪裡看進度與紀錄？','為什麼我的報名顯示待審核？名額滿了可以候補嗎？','付款後要怎麼確認有沒有成功？','我想取消報名、改時間或申請退款，該怎麼辦？','我沒有收到錄取、付款或行前通知，該怎麼辦？','到活動現場要怎麼報到？','我的資料會被不同主辦看到嗎？'])assert(page.includes(`data-entry-helper-question="${question}"`),`缺少一般使用者常見問題：${question}`);
 assert(page.includes('setupSmartApplicationFlow')&&page.includes("form.classList.add('is-smart-flow')"),'申請仍是舊式長問卷，未改成智慧引導頁');
 assert(home.includes('doing-about-refresh.css?v=20260817k'),'首頁未載入最新智慧申請樣式');
 assert(css.includes('.apply-form.is-smart-flow>.group{display:none!important}')&&css.includes('.apply-form.is-smart-flow>.group.is-active{display:block!important}'),'首頁未限制為一次只顯示一個主題區段');
@@ -56,13 +58,13 @@ assert(worker.includes('整段最多 420 個中文字')&&worker.includes('max_ou
 assert(worker.includes('doingHelperKnowledgeContext')&&worker.includes("dbGet(env,'doing_helper_knowledge_entries'")&&worker.includes('approval_status=eq.published&is_public=eq.true'),'AI 未限制為只檢索已發布的正式知識');
 assert(worker.includes('conversationHistory:memberContext.history')&&worker.includes("dbGet(env,'member_helper_messages'")&&page.includes('conversationHistory'),'對話未依登入狀態續接目前畫面或個人紀錄');
 assert(worker.includes('doing_helper_improvement_queue')&&worker.includes('hRateDoingHelperReply')&&page.includes('attachEntryFeedback'),'回答品質未形成待審改善流程');
-assert(worker.includes('const controller=new AbortController()')&&worker.includes("'api_timeout':'api_unavailable'"),'AI 逾時或中斷時仍可能讓客服卡住');
+assert(worker.includes('const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000)')&&worker.includes("'api_timeout':'api_unavailable'"),'AI 逾時或中斷時仍可能讓客服卡住');
 assert(worker.includes('不得回答一般知識、生活建議、其他品牌或其他系統'),'AI 缺少 DOING 內容鎖');
 assert(worker.includes('doingHelperSafeReply'),'缺少回覆洩漏攔截');
 assert(worker.includes('doingHelperSensitiveQuestion')&&worker.includes('doingHelperSensitiveReply')&&worker.includes("scopeStatus:'protected'"),'AI 缺少輸入端機密問題攔截');
 assert(worker.includes("engineStatus:'authoritative_privacy_rule'")&&worker.includes('不同營運單位的客戶、活動、預約、收付款與人員資料彼此分開'),'資料隔離問題未提供明確且不令人恐慌的正式回答');
 assert(!worker.includes('tenant_apply_logs|其他租戶|別的品牌資料'),'安全過濾器仍會誤擋正常的資料隔離回答');
-assert(page.includes('const entryFallback=question=>')&&page.includes('但不會讓你卡住'),'前端缺少客服失效時的不中斷備援');
+assert(page.includes('const entryFallback=question=>')&&page.includes('我先不猜答案'),'前端缺少客服失效時的安全備援');
 assert(worker.includes('doingApplicationPlan'),'正式功能判斷未保留在後端');
 assert(page.includes("localStorage.getItem('doing_member_token')")&&page.includes('member_token:memberToken'),'登入狀態未傳給小幫手');
 assert(worker.includes('verifiedPlatformMember(env,token)')&&worker.includes("dbInsert(env,'member_helper_traces'"),'登入會員軌跡未經身分驗證後寫入');
@@ -73,6 +75,12 @@ assert(sql.includes('grant select, insert on table public.member_helper_traces t
 assert(!/grant[^;]*(update|delete|truncate)/i.test(sql),'個人軌跡不得允許覆寫或刪除');
 for(const table of ['doing_helper_knowledge_entries','member_helper_conversations','member_helper_messages','doing_helper_improvement_queue'])assert(knowledgeSql.includes(`alter table public.${table} enable row level security`),`${table} 未啟用 RLS`);
 for(const key of ['tenant_data_isolation','member_login_identity','activity_setup_publish','registration_review_waitlist','booking_schedule_resources','market_equipment_seating','payment_refund_records','notifications_calendar','onsite_checkin_closeout','staff_roles_permissions','support_escalation','knowledge_governance','confidentiality_boundary'])assert(knowledgeV2Sql.includes(`'${key}'`),`公開知識 v2 缺少 ${key}`);
+for(const key of ['consumer_start_registration','consumer_view_registration','consumer_review_waitlist','consumer_pending_review','consumer_waitlist','consumer_payment_status','consumer_cancel_reschedule','consumer_missing_notification','consumer_onsite_checkin','consumer_support_routing'])assert(consumerFaqSql.includes(`'${key}'`),`一般使用者知識 v3 缺少 ${key}`);
+assert(worker.indexOf('doingHelperConsumerCanonicalReply(question)')<worker.indexOf('Promise.all([doingHelperMemberMemory(env,b),platformBillingPolicy(env),doingHelperKnowledgeContext'),'常見問答未在資料庫與 AI 呼叫前快速回覆');
+assert(worker.includes("engineStatus:'approved_consumer_knowledge'")&&worker.includes("return 'participant'")&&worker.includes('不可把參加者與主辦後台步驟混在一起'),'小幫手未區分一般使用者與主辦角色');
+assert(platform.includes('data-platform-page="helper"')&&platform.includes('id="platformHelperSection"'),'DOING 營運後台缺少智慧小幫手管理入口');
+assert(platform.includes('id="helperKnowledgeList"')&&platform.includes('id="helperReviewList"')&&platform.includes("get('getDoingHelperKnowledgeAdmin')"),'DOING 營運後台缺少可見知識庫或回答審核區');
+assert(platform.includes("post('publishDoingHelperKnowledge'")&&platform.includes("post('reviewDoingHelperImprovement'"),'DOING 營運後台缺少知識發布或審核操作');
 assert(knowledgeV2Sql.includes("('service_scope',2")&&knowledgeV2Sql.includes("('brand_data_boundary',2")&&knowledgeV2Sql.includes("('conversation_privacy',2"),'公開知識 v2 未修正既有模糊回答');
 assert(knowledgeSql.includes("approval_status in ('draft','published','rejected')")&&knowledgeSql.includes("approval_status=eq.published")===false,'正式知識缺少受控發布狀態');
 assert(knowledgeSql.includes("low_confidence")&&knowledgeSql.includes("review_status in ('pending','approved','rejected','applied')"),'改善候選缺少人工審核狀態');

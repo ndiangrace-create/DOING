@@ -215,20 +215,22 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
       </div>
       <div class="doing-helper-stage">
       <div id="doingHelperWelcome" class="doing-helper-welcome" aria-live="polite">
-        <div id="doingConversationOutput" class="doing-conversation-output"><div id="doingWelcomeMessage" class="doing-chat-bubble assistant">你好！我可以說明 DOING 的功能、申請、活動報名、預約、付款、資料安全與操作方式。你可以直接問，也可以先選常見問題。</div></div>
+        <div id="doingConversationOutput" class="doing-conversation-output"><div id="doingWelcomeMessage" class="doing-chat-bubble assistant">你好！第一次使用 DOING 嗎？我可以陪你找活動、完成報名／預約、查看進度、付款與處理現場問題；想經營活動或服務，也可以問我營運帳號怎麼申請。</div></div>
         <div id="doingSupportChoices" class="doing-support-choices" hidden>
           <p>大家第一次最常問</p>
           <div class="doing-helper-actions">
-            <button type="button" data-entry-helper-question="DOING 可以幫我做什麼？">DOING 可以幫我做什麼？</button>
-            <button type="button" data-entry-helper-question="如何申請 DOING 營運帳號？">如何申請營運帳號？</button>
-            <button type="button" data-entry-helper-question="活動報名和日常預約怎麼使用？">活動報名／預約怎麼用？</button>
-            <button type="button" data-entry-helper-question="我的資料會和其他營運單位共用嗎？">我的資料會和別人共用嗎？</button>
-            <button type="button" data-entry-helper-question="DOING 費用怎麼算？">費用怎麼算？</button>
-            <button type="button" data-entry-helper-question="操作遇到問題時怎麼取得協助？">遇到問題怎麼辦？</button>
+            <button type="button" data-entry-helper-question="第一次要怎麼報名或預約？">第一次怎麼報名？</button>
+            <button type="button" data-entry-helper-question="報名後要去哪裡看進度與紀錄？">報名後在哪看進度？</button>
+            <button type="button" data-entry-helper-question="為什麼我的報名顯示待審核？名額滿了可以候補嗎？">待審核／候補是什麼？</button>
+            <button type="button" data-entry-helper-question="付款後要怎麼確認有沒有成功？">付款後怎麼確認？</button>
+            <button type="button" data-entry-helper-question="我想取消報名、改時間或申請退款，該怎麼辦？">取消／改期／退款</button>
+            <button type="button" data-entry-helper-question="我沒有收到錄取、付款或行前通知，該怎麼辦？">收不到通知怎麼辦？</button>
+            <button type="button" data-entry-helper-question="到活動現場要怎麼報到？">現場怎麼報到？</button>
+            <button type="button" data-entry-helper-question="我的資料會被不同主辦看到嗎？">不同主辦會看到資料嗎？</button>
           </div>
         </div>
         <div class="doing-chat-input-row">
-          <textarea id="doingConversationInput" rows="2" placeholder="直接輸入你想問的 DOING 申請或使用問題…"></textarea>
+          <textarea id="doingConversationInput" rows="2" placeholder="直接說你現在想完成什麼，或描述卡住的畫面…"></textarea>
           <button type="button" id="sendDoingQuestion">送出</button>
         </div>
         <p class="doing-helper-note">未登入時不保存對話；重整或換瀏覽器後就會清除。</p>
@@ -426,12 +428,12 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
   const entryFallback=question=>{
     const value=String(question||'').trim();
     if(/申請|開通|帳號/.test(value))return '你可以按「開始申請」，依主題區段一起勾選或填寫，完成後使用 LINE 驗證送出。申請本身不會先產生費用。';
-    if(/費用|收費|價格|月費|多少錢/.test(value))return '我目前沒有連上即時智慧回答。你仍可按下方「費用怎麼算？」查看 DOING 的正式計費說明。';
-    return '我目前沒有連上即時智慧回答，但不會讓你卡住。你可以先選擇「資料安排、費用、之後調整」，或稍後再送出這個問題。';
+    if(/費用|收費|價格|月費|多少錢/.test(value))return '這題需要讀取 DOING 當下的正式計費設定；目前回覆較慢，請稍後再送一次，或由 DOING 客服協助確認。';
+    return '這題目前需要多一點時間確認，我先不猜答案。你可以換一種說法再問一次；若涉及個別活動、付款或帳號狀態，請改由該活動主辦或 DOING 客服查正式紀錄。';
   };
   async function askEntrySupport(topic,question=''){
     if(question)addBubble(question,'user');const conversationHistory=entryConversationHistory(),waiting=addBubble('我正在整理最清楚的回答…','assistant');
-    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),16000);
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
     try{let memberToken='';try{memberToken=localStorage.getItem('doing_member_token')||''}catch(e){}const response=await fetch(API+'?action=analyzeDoingApplication',{method:'POST',headers:{'Content-Type':'application/json;charset=UTF-8'},body:JSON.stringify({action:'analyzeDoingApplication',topic,question,useCases:['general'],painPoints:['other'],workSituations:[],conversationHistory,member_token:memberToken}),signal:controller.signal});const result=await response.json();if(!response.ok||result.error)throw new Error(result.error||'客服暫時無法回覆');waiting.textContent=String(result.reply||entryFallback(question));waiting.dataset.replySource=String(result.source||'rules');attachEntryFeedback(waiting,result.exchangeId)}
     catch(e){waiting.textContent=entryFallback(question);if(supportChoices)supportChoices.hidden=false}
     finally{clearTimeout(timer)}
