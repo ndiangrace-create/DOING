@@ -20,6 +20,9 @@ assert(page.includes('跟著 DOING 智慧小幫手完成申請'),'缺少智慧�
 assert(page.includes('id="doingHelperWelcome"')&&page.includes('id="startDoingApplication"')&&page.includes('id="startDoingSupport"'),'申請入口必須先顯示含「開始申請／詢問客服」的智慧小幫手框');
 assert(page.includes('id="signupForm" onsubmit="return false" hidden'),'未選擇開始申請前，不得先攤開申請內容');
 assert(page.includes('id="signupIndustryOpen"')&&page.includes('id="signupWorkOpen"')&&page.includes('openAnswers:helperOpenAnswers()'),'區段回答必須同時支援勾選與開放文字');
+assert(page.includes('id="doingConversationOutput"')&&page.includes('id="doingConversationInput"')&&page.includes('id="sendDoingQuestion"'),'客服必須分開顯示小幫手回覆框與使用者輸入框');
+assert(!page.includes('class="apply-gate"'),'智慧小幫手不得預設收合在另一層申請按鈕後');
+assert(worker.includes("'question'")&&worker.includes("const question=String(b&&b.question"),'客服輸入未接入 DOING 限定回覆');
 assert(!page.includes('id="signupGoogleBtn"'),'公開申請不得顯示 Google 驗證');
 assert(!page.includes('先回公開活動入口'),'智慧申請頁不得殘留舊返回按鈕');
 assert(!page.includes('id="signupModulePreview"'),'首頁不得顯示內部功能清單');

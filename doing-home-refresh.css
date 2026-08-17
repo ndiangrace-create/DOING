@@ -186,6 +186,8 @@ html.doing-public-refactor body>.top,html.doing-public-refactor body>.bottom-nav
 .doing-organizer-details>summary,.doing-organizer-heading{background:linear-gradient(110deg,#e8f8ff,#fff 52%,#edf8df)!important}
 .doing-organizer-content .pricing-three .price-card.primary{background:linear-gradient(145deg,#78c9e8,#79bea9)!important;color:#fff!important;box-shadow:0 24px 50px rgba(63,150,169,.2)!important}
 .doing-organizer-content .pricing-three .price-card.primary p{color:#f8ffff!important}
+.doing-organizer-content .pricing-three .price-card.primary .price-label{background:#fff!important;color:#173943!important;border-color:rgba(23,57,67,.15)!important}
+.doing-organizer-content .pricing-three .price-card.primary .price small{color:#f8ffff!important}
 .doing-organizer-section{background:linear-gradient(135deg,#eaf9ff,#fff 48%,#f4fbea)!important}
 .doing-organizer-icon{background:linear-gradient(145deg,#91d7f4,#9dbedc)!important}
 .doing-proof-story article>span,.doing-proof-story small{color:#4f9eba!important}

@@ -54,6 +54,7 @@ function buildHeader(){
   if(p.search)p.search.textContent='找活動';
   if(p.my)p.my.textContent='我的報名';
   if(p.support)p.support.textContent='客服';
+  if(p.support){p.support.dataset.organizerTarget='support-helper';p.support.classList.add('doing-organizer-nav')}
   if(p.pricing){
     p.pricing.textContent='主辦方案';
     p.pricing.href='#doingOrganizerDetails';
@@ -432,7 +433,9 @@ async function loadOrganizerDetails(target='scenes',shouldScroll=true){
     }).catch(error=>{content.innerHTML='<div class="doing-organizer-loading">'+esc(error.message||'主辦方案讀取失敗，請稍後再試。')+'</div>';organizerLoadPromise=null});
   }
   await organizerLoadPromise;
-  const section=content.querySelector('#'+CSS.escape(target))||content.querySelector('#scenes');
+  const helperMode=target==='support-helper',actualTarget=helperMode?'apply':target;
+  const section=content.querySelector('#'+CSS.escape(actualTarget))||content.querySelector('#scenes');
+  if(helperMode){content.querySelector('#doingHelperWelcome')?.removeAttribute('hidden');content.querySelector('#signupForm')?.setAttribute('hidden','');content.querySelector('#startDoingSupport')?.click()}
   if(shouldScroll)setTimeout(()=>smoothTo(section||details),60);
 }
 window.openDoingOrganizerDetails=loadOrganizerDetails;

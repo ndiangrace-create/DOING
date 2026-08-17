@@ -3614,7 +3614,7 @@ const DOING_HELPER_ALLOWED=Object.freeze({
   useCases:new Set(['market','event','workshop','beauty','service_booking','resource_booking','guide','general']),
   painPoints:new Set(['scattered','status','payment','schedule','collision','reschedule','extras','seating','notification','checkin','finance','repeat_data','no_show','staff_mix','other']),
   workSituations:new Set(['team','appointment','deposit','shared_customers','multi_brand','one_brand_many_jobs']),
-  topics:new Set(['summary','data','billing','adjust'])
+  topics:new Set(['summary','data','billing','adjust','question'])
 });
 const DOING_HELPER_SCOPE_REPLY='我只能協助 DOING 系統的申請、工作方式、資料安排、費用與使用問題。';
 function doingHelperSelections(b,key){const allowed=DOING_HELPER_ALLOWED[key];return [...new Set((Array.isArray(b&&b[key])?b[key]:[]).map(String).filter(x=>allowed.has(x)))].slice(0,12)}
@@ -3697,6 +3697,12 @@ async function hAnalyzeDoingApplication(env,b){
   if(topic==='data')return doingHelperResult(env,b,{reply:workSituations.includes('multi_brand')?'不同品牌會分開保存營運、客戶與帳務資料；只有你本人的 DOING 登入身分共用。同一品牌內的不同工作，可共用客人基本資料，但預約、報名、帳務與人員權限會分開。':'同一品牌可以同時做多種工作，不用為美甲、課程或活動重複申請。客人基本資料可以共用，各工作的預約、報名、帳務與人員權限則分開。',topic,scopeStatus:'doing_only',source:'rules',summaryId:genId('HLP')},selections);
   if(topic==='billing'){const fees=await platformBillingPolicy(env);return doingHelperResult(env,b,{reply:`免費活動每場 NT$${fees.freeActivityFee}；收費活動按實收 ${fees.paidActivityRatePercent}% 計算；需要長期接預約的營運帳號為每月 NT$${fees.bookingMonthlyFee}。小幫手只做說明，不會自行替你收費或開通。`,topic,scopeStatus:'doing_only',source:'rules',summaryId:genId('HLP')},selections)}
   if(topic==='adjust')return doingHelperResult(env,b,{reply:'可以。這次先依你現在的工作方式整理；之後工作內容改變時，可以再提出調整。涉及金流、特殊權限或額外費用時，DOING 會先清楚告知，不會由小幫手自行決定。',topic,scopeStatus:'doing_only',source:'rules',summaryId:genId('HLP')},selections);
+  if(topic==='question'){
+    const question=String(b&&b.question||'').trim().slice(0,500);if(!question)return jsonErr('請輸入想詢問的內容');
+    if(/(費用|收費|價格|多少錢|月費)/.test(question)){const fees=await platformBillingPolicy(env);return doingHelperResult(env,b,{reply:`免費活動每場 NT$${fees.freeActivityFee}；收費活動按實收 ${fees.paidActivityRatePercent}% 計算；需要長期接預約的營運帳號為每月 NT$${fees.bookingMonthlyFee}。`,topic,scopeStatus:'doing_only',source:'rules',summaryId:genId('HLP')},selections)}
+    const fallback=/申請|開通|帳號/.test(question)?'你可以在這個小幫手按「開始申請」，依主題區段回答，最後使用 LINE 驗證送出。申請本身不會先產生費用。':DOING_HELPER_SCOPE_REPLY;
+    const answer=await callDoingHelperAI(env,{question,serviceScope:'DOING 申請、工作方式、資料安排、費用與使用'},fallback);return doingHelperResult(env,b,{reply:answer.reply,topic,scopeStatus:'doing_only',source:answer.source,engineStatus:answer.engineStatus,summaryId:genId('HLP')},selections)
+  }
   const fallback=doingHelperFallback(useCases,painPoints,workSituations),answer=await callDoingHelperAI(env,{useCases,painPoints,workSituations,openAnswers},fallback);
   return doingHelperResult(env,b,{reply:answer.reply,topic,scopeStatus:'doing_only',source:answer.source,engineStatus:answer.engineStatus,summaryId:genId('HLP')},selections);
 }

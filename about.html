@@ -195,16 +195,12 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
   </section>
 
   <section id="apply">
-    <div class="apply-gate">
-      <div class="apply-gate-copy"><span class="section-kicker pink">準備開始了嗎？</span><h2>把報名、預約和收款整理在一起。</h2><p>選出你現在最常遇到的困擾，我們就能更快了解你準備怎麼使用 DOING；申請本身不會產生費用。</p></div>
-      <div class="apply-gate-action"><button class="btn primary" type="button" id="openApplication">申請 DOING 營運帳號</button><small>一般報名者不需要申請</small></div>
-    </div>
-    <div id="applicationPanel" hidden>
+    <div id="applicationPanel">
     <div id="applicationPendingBanner" class="banner"><b>申請已送出，等待 DOING 審核。</b><br>審核通過後才會建立正式營運帳號；需要補件時會另外通知。</div>
     <div class="apply-wrap smart-application-shell">
       <div id="doingHelperWelcome" class="doing-helper-welcome" aria-live="polite">
         <div class="doing-helper-head"><div class="doing-helper-mark">D</div><div><b>嗨，我是 DOING 智慧小幫手</b><span>想申請使用，還是先問問我？</span></div></div>
-        <div id="doingWelcomeMessage" class="doing-helper-message">我只協助 DOING 的申請、使用方式、資料安排與費用問題。</div>
+        <div id="doingConversationOutput" class="doing-conversation-output"><div id="doingWelcomeMessage" class="doing-chat-bubble assistant">我只協助 DOING 的申請、使用方式、資料安排與費用問題。</div></div>
         <div class="doing-helper-start-actions">
           <button class="primary" type="button" id="startDoingApplication">開始申請</button>
           <button type="button" id="startDoingSupport">詢問客服</button>
@@ -216,6 +212,10 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
             <button type="button" data-entry-helper-topic="billing">費用怎麼算？</button>
             <button type="button" data-entry-helper-topic="adjust">之後可以調整嗎？</button>
           </div>
+        </div>
+        <div class="doing-chat-input-row">
+          <textarea id="doingConversationInput" rows="2" placeholder="直接輸入你想問的 DOING 申請或使用問題…"></textarea>
+          <button type="button" id="sendDoingQuestion">送出</button>
         </div>
         <p class="doing-helper-note">未登入時不保存對話；重整或換瀏覽器後就會清除。</p>
       </div>
@@ -394,12 +394,17 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
   const welcome=document.getElementById('doingHelperWelcome'),form=document.getElementById('signupForm'),welcomeMessage=document.getElementById('doingWelcomeMessage'),supportChoices=document.getElementById('doingSupportChoices');
   document.getElementById('startDoingApplication')?.addEventListener('click',()=>{if(welcome)welcome.hidden=true;if(form)form.hidden=false;form?.scrollIntoView({behavior:'smooth',block:'start'})});
   document.getElementById('startDoingSupport')?.addEventListener('click',()=>{if(supportChoices)supportChoices.hidden=false;if(welcomeMessage)welcomeMessage.textContent='可以，先不用填申請。選一個你想了解的問題，我只會回答 DOING 相關內容。'});
-  async function askEntrySupport(topic){
-    if(welcomeMessage)welcomeMessage.textContent='我正在整理最清楚的回答…';
-    try{let memberToken='';try{memberToken=localStorage.getItem('doing_member_token')||''}catch(e){}const response=await fetch(API+'?action=analyzeDoingApplication',{method:'POST',headers:{'Content-Type':'application/json;charset=UTF-8'},body:JSON.stringify({action:'analyzeDoingApplication',topic,useCases:['general'],painPoints:['other'],workSituations:[],member_token:memberToken})});const result=await response.json();if(!response.ok||result.error)throw new Error(result.error||'客服暫時無法回覆');if(welcomeMessage)welcomeMessage.textContent=String(result.reply||'')}
-    catch(e){if(welcomeMessage)welcomeMessage.textContent='我現在暫時無法回覆，請稍後再試一次。'}
+  const conversation=document.getElementById('doingConversationOutput'),questionInput=document.getElementById('doingConversationInput');
+  const addBubble=(text,role)=>{const bubble=document.createElement('div');bubble.className='doing-chat-bubble '+role;bubble.textContent=String(text||'');conversation?.appendChild(bubble);conversation?.scrollTo({top:conversation.scrollHeight,behavior:'smooth'});return bubble};
+  async function askEntrySupport(topic,question=''){
+    if(question)addBubble(question,'user');const waiting=addBubble('我正在整理最清楚的回答…','assistant');
+    try{let memberToken='';try{memberToken=localStorage.getItem('doing_member_token')||''}catch(e){}const response=await fetch(API+'?action=analyzeDoingApplication',{method:'POST',headers:{'Content-Type':'application/json;charset=UTF-8'},body:JSON.stringify({action:'analyzeDoingApplication',topic,question,useCases:['general'],painPoints:['other'],workSituations:[],member_token:memberToken})});const result=await response.json();if(!response.ok||result.error)throw new Error(result.error||'客服暫時無法回覆');waiting.textContent=String(result.reply||'')}
+    catch(e){waiting.textContent='我現在暫時無法回覆，請稍後再試一次。'}
   }
-  document.querySelectorAll('[data-entry-helper-topic]').forEach(btn=>btn.addEventListener('click',()=>askEntrySupport(btn.dataset.entryHelperTopic)));
+  document.querySelectorAll('[data-entry-helper-topic]').forEach(btn=>btn.addEventListener('click',()=>askEntrySupport(btn.dataset.entryHelperTopic,btn.textContent.trim())));
+  const sendQuestion=()=>{const question=String(questionInput?.value||'').trim();if(!question)return;if(questionInput)questionInput.value='';askEntrySupport('question',question)};
+  document.getElementById('sendDoingQuestion')?.addEventListener('click',sendQuestion);
+  questionInput?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendQuestion()}});
   const invalidateHelper=()=>{helperAnalysis=null;if(helperConfirm)helperConfirm.checked=false;if(helperMessage)helperMessage.textContent='你的選擇有變動。按「幫我整理」，我會重新理解一次。'};
   async function askDoingHelper(topic='summary'){
     const useCases=selectedValues('signupUseCases'),painPoints=selectedValues('signupPainPoints'),workSituations=selectedValues('signupWorkSituations');
