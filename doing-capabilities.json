@@ -1,5 +1,5 @@
 {
-  "version": 8,
+  "version": 9,
   "updatedAt": "2026-08-17",
   "statusLabels": {
     "done": "已完成",
@@ -30,6 +30,11 @@
           "label": "DOING 範圍自由問答、AI 逾時不中斷與基本規則備援",
           "status": "verify",
           "evidence": "callDoingHelperAI / entryFallback / production question smoke test"
+        },
+        {
+          "label": "申請與客服共用單一 LINE 式對話框，桌機加寬加高、手機響應式",
+          "status": "verify",
+          "evidence": "smart-application-shell / is-application-mode / validate-doing-smart-helper-e2e"
         },
         {
           "label": "未登入不留存；登入後才保存個人互動軌跡",

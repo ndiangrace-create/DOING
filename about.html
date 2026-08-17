@@ -79,7 +79,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
 @media(max-width:820px){.apply-form.is-smart-flow,.smart-flow-guide{scroll-margin-top:138px}.apply-form.is-smart-flow{padding-top:28px!important}.apply-form.is-smart-flow .form-head{padding-top:4px}}
 </style>
 <link rel="stylesheet" href="doing-system.css?v=20260816-system4">
-<link rel="stylesheet" href="doing-about-refresh.css?v=20260817b">
+<link rel="stylesheet" href="doing-about-refresh.css?v=20260817c">
 <link rel="stylesheet" href="doing-design-tokens.css?v=20260816a">
 <link rel="stylesheet" href="doing-pastel-pages.css?v=20260816a">
 </head>
@@ -392,7 +392,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
   };
   const lineBtn=document.getElementById('signupLineBtn');
   const err=document.getElementById('signupErr');
-  const showErr=(m,field)=>{err.textContent=m;err.style.display='block';if(field){scrollBelowFixedNav(field);setTimeout(()=>field.focus?.(),350)}else scrollBelowFixedNav(document.getElementById('apply'))};
+  const showErr=(m,field)=>{err.textContent=m;err.style.display='block';const activeForm=document.getElementById('signupForm');if(field&&activeForm?.contains(field)){const formBox=activeForm.getBoundingClientRect(),fieldBox=field.getBoundingClientRect();activeForm.scrollTo({top:Math.max(0,activeForm.scrollTop+fieldBox.top-formBox.top-32),behavior:'smooth'});setTimeout(()=>field.focus?.(),350)}else if(field){scrollBelowFixedNav(field);setTimeout(()=>field.focus?.(),350)}else scrollBelowFixedNav(document.getElementById('apply'))};
   const clearErr=()=>{err.textContent='';err.style.display='none'};
   const useLabelMap={market:'市集／攤商招募',event:'活動／講座／課程報名',workshop:'手作體驗／工作坊',beauty:'美類服務／預約',service_booking:'一般服務預約',resource_booking:'場地／資源預約',guide:'導覽／戶外體驗',general:'其他通用報名'};
   const painLabelMap={scattered:'報名資料散落在表單和訊息裡',status:'不清楚誰已錄取、候補或取消',payment:'收款、對帳和退款容易漏掉',schedule:'日期、時段與剩餘名額不好整理',collision:'老師、空間或設備的時間容易排在一起',reschedule:'改期後又要重新整理名單',extras:'設備、材料或加購內容容易對錯',seating:'攤位或座位安排很花時間',notification:'活動前要逐一通知參加者',checkin:'現場報到和名單核對不方便',finance:'活動結束後，財務和紀錄不好整理',repeat_data:'每次都要請客人重新填寫資料',no_show:'沒有先收訂金，客人容易臨時不來',staff_mix:'人員權限和工作內容容易混在一起',other:'還有其他困擾'};
@@ -400,9 +400,11 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
   const selectedValues=id=>[...document.querySelectorAll('#'+id+' input:checked')].map(x=>x.value);
   const helperOpenAnswers=()=>({industry:String(document.getElementById('signupIndustryOpen')?.value||'').trim(),work:String(document.getElementById('signupWorkOpen')?.value||'').trim(),pain:String(document.getElementById('signupOtherPainPoint')?.value||'').trim()});
   const helper=document.getElementById('doingSmartHelper'),helperMessage=document.getElementById('doingHelperMessage'),helperConfirm=document.getElementById('confirmHelperUnderstanding');
-  const welcome=document.getElementById('doingHelperWelcome'),form=document.getElementById('signupForm'),welcomeMessage=document.getElementById('doingWelcomeMessage'),supportChoices=document.getElementById('doingSupportChoices');
-  document.getElementById('startDoingApplication')?.addEventListener('click',()=>{if(welcome)welcome.hidden=true;if(form)form.hidden=false;requestAnimationFrame(()=>scrollBelowFixedNav(form))});
-  document.getElementById('startDoingSupport')?.addEventListener('click',()=>{if(supportChoices)supportChoices.hidden=false;if(welcomeMessage)welcomeMessage.textContent='可以，先不用填申請。選一個你想了解的問題，我只會回答 DOING 相關內容。'});
+  const welcome=document.getElementById('doingHelperWelcome'),form=document.getElementById('signupForm'),welcomeMessage=document.getElementById('doingWelcomeMessage'),supportChoices=document.getElementById('doingSupportChoices'),chatShell=welcome?.closest('.smart-application-shell');
+  const applicationBtn=document.getElementById('startDoingApplication'),supportBtn=document.getElementById('startDoingSupport');
+  const setChatMode=mode=>{chatShell?.classList.toggle('is-application-mode',mode==='application');chatShell?.classList.toggle('is-support-mode',mode==='support');applicationBtn?.setAttribute('aria-pressed',String(mode==='application'));supportBtn?.setAttribute('aria-pressed',String(mode==='support'))};
+  applicationBtn?.addEventListener('click',()=>{setChatMode('application');if(form)form.hidden=false;if(supportChoices)supportChoices.hidden=true;if(!applicationBtn.dataset.announced){addBubble('好，我們就在這個對話框裡完成申請。一次整理一個主題區段，同一區段可以一起勾選或填寫。','assistant');applicationBtn.dataset.announced='true'}requestAnimationFrame(()=>form?.scrollTo({top:0,behavior:'smooth'}))});
+  supportBtn?.addEventListener('click',()=>{setChatMode('support');if(form)form.hidden=true;if(supportChoices)supportChoices.hidden=false;if(welcomeMessage)welcomeMessage.textContent='可以，先不用填申請。你可以直接打字，或先選一個常見問題；我們都留在這個對話框裡。'});
   const conversation=document.getElementById('doingConversationOutput'),questionInput=document.getElementById('doingConversationInput');
   const addBubble=(text,role)=>{const bubble=document.createElement('div');bubble.className='doing-chat-bubble '+role;bubble.textContent=String(text||'');conversation?.appendChild(bubble);conversation?.scrollTo({top:conversation.scrollHeight,behavior:'smooth'});return bubble};
   const entryFallback=question=>{
@@ -465,7 +467,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
       clearErr();return true;
     };
     let current=0;
-    const showStep=index=>{current=Math.max(0,Math.min(groups.length-1,index));groups.forEach((g,i)=>g.classList.toggle('is-active',i===current));field('smartFlowTitle').textContent=titles[current]||'完成申請';field('smartFlowMessage').textContent=messages[current]||'';field('smartFlowProgress').textContent='主題 '+(current+1)+'／'+groups.length;if(current>0&&!document.getElementById('applicationPanel')?.hidden)requestAnimationFrame(()=>scrollBelowFixedNav(guide));if(current===groups.length-1&&!helperAnalysis)askDoingHelper('summary')};
+    const showStep=index=>{current=Math.max(0,Math.min(groups.length-1,index));groups.forEach((g,i)=>g.classList.toggle('is-active',i===current));field('smartFlowTitle').textContent=titles[current]||'完成申請';field('smartFlowMessage').textContent=messages[current]||'';field('smartFlowProgress').textContent='主題 '+(current+1)+'／'+groups.length;if(current>0&&!document.getElementById('applicationPanel')?.hidden)requestAnimationFrame(()=>form.scrollTo({top:0,behavior:'smooth'}));if(current===groups.length-1&&!helperAnalysis)askDoingHelper('summary')};
     groups.forEach((group,index)=>{group.classList.add('smart-answer-card');if(index===groups.length-1)return;const nav=document.createElement('div');nav.className='smart-flow-nav';if(index>0){const back=document.createElement('button');back.type='button';back.className='back';back.textContent='回上一段';back.addEventListener('click',()=>showStep(index-1));nav.appendChild(back)}const next=document.createElement('button');next.type='button';next.className='next';next.textContent=index===groups.length-2?'請小幫手幫我整理':'這一段回答好了';next.addEventListener('click',()=>{if(validStep(index))showStep(index+1)});nav.appendChild(next);group.appendChild(nav)});
     showStep(0);
   }
