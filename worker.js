@@ -3674,6 +3674,7 @@ function doingHelperAudience(question){
 }
 function doingHelperConsumerCanonicalReply(question){
   const text=String(question||'');
+  if(/DOING.{0,8}(可以|能).{0,8}(幫|做|功能)|DOING.{0,8}(有哪些|能做什麼)|可以幫我做什麼/.test(text))return {key:'consumer_doing_overview',reply:'DOING 可以陪你完成「找活動或服務 → 報名／預約 → 查看審核與付款 → 接收行前資訊 → 現場報到」；如果你是主辦或服務提供者，也能申請營運帳號來建立內容、管理名單、收付款、通知與現場流程。你可以直接告訴我現在想完成哪一件事，我會只說你這個角色需要的步驟。'};
   if(/(怎麼|如何|第一次).{0,5}(報名|預約)|我要(報名|預約)/.test(text))return {key:'consumer_start_registration',reply:'先在 DOING 首頁選擇活動或可預約內容，進入公開頁後按「查看並報名／預約」，依畫面完成場次、個人資料與必要選項，最後確認送出。送出後可從「我的報名」查看審核、付款與後續通知。'};
   if(/報名後.{0,10}(哪|哪裡|進度|紀錄)|去哪.{0,5}(看|查)|我的報名.{0,5}(在哪|怎麼)/.test(text))return {key:'consumer_view_registration',reply:'請按首頁上方的「我的報名」，使用本人的 LINE 登入後即可查看所有 DOING 報名／預約紀錄，包括審核、付款、位置、改期、退款與行前資訊。若剛送出還沒顯示，先重新整理一次；仍沒有再聯絡該活動主辦。'};
   if(/待審核/.test(text)&&/(名額滿|候補)/.test(text))return {key:'consumer_review_waitlist',reply:'「待審核」表示資料已送出，正在等主辦確認，不需要重複報名；「候補」則表示目前沒有正式名額。請到「我的報名」查看同一筆紀錄，若候補轉為錄取，狀態會直接更新。審核時間、候補順序與是否釋出名額由該活動主辦決定。'};

@@ -5,6 +5,7 @@ begin;
 insert into public.doing_helper_knowledge_entries
   (knowledge_key, version, category, title, content, keywords, source_type, source_ref, approval_status, is_public, created_by, approved_by, published_at)
 values
+  ('consumer_doing_overview',1,'scope','DOING 可以幫我做什麼？','DOING 可以陪你完成「找活動或服務 → 報名／預約 → 查看審核與付款 → 接收行前資訊 → 現場報到」；如果你是主辦或服務提供者，也能申請營運帳號來建立內容、管理名單、收付款、通知與現場流程。你可以直接告訴小幫手現在想完成哪一件事，它會只說你這個角色需要的步驟。',array['DOING 可以幫我做什麼','DOING 功能','有哪些功能','能做什麼','第一次使用'],'approved_answer','DOING 一般使用者操作情境驗收','published',true,'consumer_faq_seed_v3','platform_super_admin',now()),
   ('consumer_start_registration',1,'workflow','第一次要怎麼報名或預約？','先在 DOING 首頁選擇活動或可預約內容，進入公開頁後按「查看並報名／預約」，依畫面完成場次、個人資料與必要選項，最後確認送出。送出後可從「我的報名」查看審核、付款與後續通知。',array['第一次','怎麼報名','如何報名','預約','公開頁','送出','我的報名'],'approved_answer','DOING 一般使用者操作情境驗收','published',true,'consumer_faq_seed_v3','platform_super_admin',now()),
   ('consumer_view_registration',1,'workflow','報名後要去哪裡看進度與紀錄？','請按首頁上方的「我的報名」，使用本人的 LINE 登入後即可查看所有 DOING 報名／預約紀錄，包括審核、付款、位置、改期、退款與行前資訊。若剛送出還沒顯示，先重新整理一次；仍沒有再聯絡該活動主辦。',array['報名後','哪裡看','進度','紀錄','我的報名','LINE 登入'],'approved_answer','DOING 一般使用者操作情境驗收','published',true,'consumer_faq_seed_v3','platform_super_admin',now()),
   ('consumer_review_waitlist',1,'workflow','待審核與候補有什麼不同？','「待審核」表示資料已送出，正在等主辦確認，不需要重複報名；「候補」則表示目前沒有正式名額。請到「我的報名」查看同一筆紀錄，若候補轉為錄取，狀態會直接更新。審核時間、候補順序與是否釋出名額由該活動主辦決定。',array['待審核','候補','名額滿','錄取','不用重複報名'],'approved_answer','DOING 一般使用者操作情境驗收','published',true,'consumer_faq_seed_v3','platform_super_admin',now()),
