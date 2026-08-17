@@ -1,6 +1,6 @@
 {
-  "version": 6,
-  "updatedAt": "2026-08-16",
+  "version": 7,
+  "updatedAt": "2026-08-17",
   "statusLabels": {
     "done": "已完成",
     "verify": "已有功能，待實際確認",
@@ -21,6 +21,16 @@
       "summary": "從會員提出申請，到平台核准並建立正式營運空間。",
       "route": "platform.html#platform-applications",
       "features": [
+        {
+          "label": "首頁 DOING 智慧小幫手依工作方式整理申請",
+          "status": "verify",
+          "evidence": "about.html / analyzeDoingApplication / validate-doing-smart-helper-e2e"
+        },
+        {
+          "label": "未登入不留存；登入後才保存個人互動軌跡",
+          "status": "verify",
+          "evidence": "member_helper_traces / verifiedPlatformMember"
+        },
         {
           "label": "會員提出營運帳號申請",
           "status": "done",
@@ -69,6 +79,7 @@
         "tables": [
           "platform_members",
           "platform_member_identities",
+          "member_helper_traces",
           "tenant_apply_logs",
           "tenants",
           "tenant_settings",
@@ -1232,6 +1243,24 @@
           "evidence": "doing-capabilities.json / platform.html"
         },
         {
+          "label": "Persistent Change Ledger 永久追加變更、決策、修正、部署與正式驗證紀錄",
+          "status": "verify",
+          "note": "正式資料結構與 Pending 紀錄已建立；待 API 部署及 Production Verification 後改為 done",
+          "evidence": "supabase_persistent_change_ledger.sql / worker.js getPersistentChangeLedger + appendPersistentChangeLedger"
+        },
+        {
+          "label": "Incremental Verification 依範圍、共用核心與依賴傳播自動將受影響驗收標記 Stale",
+          "status": "verify",
+          "note": "本機 E2E 已通過；待正式 Worker 驗證",
+          "evidence": "worker.js hAppendPersistentChangeLedger / scripts/validate-persistent-change-ledger-e2e.mjs"
+        },
+        {
+          "label": "Production Verification 通過後建立 Verified Baseline，供下次 Current Baseline Sync 接續",
+          "status": "verify",
+          "note": "未部署前不得建立 Verified Baseline",
+          "evidence": "platform_verified_baselines / platform_verification_records / getPersistentChangeLedger"
+        },
+        {
           "label": "首頁LOGO長按3秒進入平台總管",
           "status": "done",
           "evidence": "index.html long press"
@@ -1242,7 +1271,12 @@
         "project": "DOING_SaaS",
         "schema": "public",
         "tables": [
-          "platform_settings"
+          "platform_settings",
+          "platform_change_ledger",
+          "platform_feature_versions",
+          "platform_dependency_versions",
+          "platform_verification_records",
+          "platform_verified_baselines"
         ]
       }
     },

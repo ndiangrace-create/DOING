@@ -326,6 +326,12 @@ DIY 手作課程：
 
 ### 2026-08-17
 
+- `已確認；待部署`：首頁申請使用 DOING 智慧小幫手，以多選工作方式與困擾進行互動，不顯示內部功能名稱或對照規則。
+- `已確認；待部署`：公開營運申請改為智慧小幫手逐步引導頁，最後只使用 LINE 驗證送出，不顯示 Google 申請入口。
+- `已確認；待部署`：智慧小幫手只回答 DOING 的申請、工作方式、資料安排、費用與使用問題；不得成為一般聊天或其他品牌顧問。
+- `已確認；待部署`：AI 只負責理解與客服式表達，不得自行決定費用、權限、核准或功能開通。
+- `已確認；待部署`：同一品牌的不同工作共用客人基本資料，但預約、報名、帳務與人員權限分開；不同品牌只共用本人登入身分。
+- `已確認；待部署`：未登入互動不寫入任何資料庫，重整或換瀏覽器即清除；只有有效 DOING 會員登入後才可追加個人互動軌跡。
 - `已確認`：同一 Email 或同一電話不得建立第二個 DOING 會員。
 - `已確認`：資料相同只阻擋重複建檔，不得直接冒認合併或授予權限；須登入原帳號後綁定新的 LINE／Google。
 - `已確認`：不同真人共同經營品牌時，必須各自使用不同 Email 與電話，再以品牌成員或活動成員關係共同管理。
@@ -353,3 +359,15 @@ DIY 手作課程：
 - `已確認`：持續預約／工作室服務，每個營運帳號每月 NT$688，不抽取服務營業額。
 - `已確認`：租戶後台必須提供「系統帳務」頁，顯示計費規則、逐場金額、平台繳費資料、付款回報與確認狀態；平台總管可查看並確認回報。
 - `權威資料來源`：Supabase `platform_settings.platform_billing_policy`；程式預設值、公開說明、主辦後台、平台總管與功能世界樹必須保持一致。
+
+## 十一、Persistent Change Ledger／Incremental Verification
+
+- `正式來源`：Supabase 的 `platform_change_ledger`、`platform_feature_versions`、`platform_dependency_versions`、`platform_verification_records`、`platform_verified_baselines`。
+- `寫入原則`：只追加；修正、失效、停用及新版均以 `supersedes_id` 串接，不靜默覆寫或刪除歷史。
+- `授權邊界`：資料表啟用 RLS，`anon`、`authenticated` 與租戶角色均無權限；只有 `tobeloved-api` 使用 `service_role` 且 API 已確認 `platform_super_admin` 與有效 `platform_staff` 身分後可讀寫。
+- `基準規則`：最後通過 production 驗收的列為最新 Verified Baseline。每次開工先讀取該基準，再比較 GitHub main、正式部署與最新變更。
+- `增量規則`：程式指紋、權限、資料結構、依賴與執行條件未變的驗收可沿用；只重測變更範圍與依賴傳播範圍。
+- `失效規則`：Auth、RLS、Schema、API Contract、付款、權限或上游依賴變更時，受影響的最新 Verified 驗收必須追加 Stale 版本並重測。
+- `全量條件`：只有沒有可信基準、依賴不明、重大版本或共用核心層異動，才可進行全系統盤點。
+- `完成規則`：部署前追加 Pending；失敗追加 Failed 並修正、重測；正式環境通過後才追加 Verified、建立新 Baseline，並同步決策樹、功能樹、依賴、證據、回復點與剩餘事項。
+- `範圍鎖`：只適用 DOING／`tobeloved-api`，永久禁止寫入或部署 `2bl-v7`。

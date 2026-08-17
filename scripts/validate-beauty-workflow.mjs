@@ -13,10 +13,10 @@ const flow=read('DOING_美類營運流程.md');
 const requireText=(source,text,label)=>{if(!source.includes(text))throw new Error(`美類驗收缺少：${label}`)};
 
 requireText(about,'value="beauty_wellness"><span><b>美類</b>','問卷產業統稱美類');
-requireText(about,'value="beauty"><span><b>美類服務／預約</b>','問卷營運情境統稱美類');
+requireText(about,'value="beauty"><span><b>我提供美類或到店服務</b>','問卷以工作方式統稱美類');
 requireText(platform,"beauty:'美類服務／預約'",'平台審核使用相同名稱');
 requireText(platform,"beauty_wellness:'美類'",'平台產業統計使用相同名稱');
-requireText(about,"if(useCases.includes('beauty'))add({payment:true,workshopSlots:true,service:true,resource:true,customFields:true,addons:true,agreement:true,invoice:true,checkin:true,googleCalendar:true,i18n:{enabled:true",'美類完整初始模組');
+requireText(worker,"if(useCases.includes('beauty'))add({payment:true,workshopSlots:true,service:true,resource:true,customFields:true,addons:true,agreement:true,invoice:true,checkin:true,googleCalendar:true,i18n:{enabled:true",'美類完整初始模組位於後端');
 requireText(admin,"beauty:{title:'美類'",'主辦美類預設');
 requireText(admin,'<option value="beauty">美類服務</option>','營運項目可選美類');
 requireText(worker,"'booking','beauty','workshop'",'Worker 接受美類營運項目');

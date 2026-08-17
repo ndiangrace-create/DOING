@@ -14,7 +14,8 @@ for(const [name,source] of Object.entries({index:files.index,register:files.regi
 for(const [name,source] of Object.entries({index:files.index,register:files.register,admin:files.admin,platform:files.platform})){
   assert.match(source,/Google 備援登入/,`${name} 的管理入口缺少 Google 備援登入`);
 }
-for(const [name,source] of Object.entries({about:files.about,home:files.home})){
+assert.doesNotMatch(files.about,/id="signupGoogleBtn"/,'公開營運申請目前只能顯示 LINE 驗證');
+for(const [name,source] of Object.entries({home:files.home})){
   const googleButtons=[...source.matchAll(/<button[^>]*(?:Google|google)[^>]*>/gi)].map(x=>x[0]);
   assert.ok(googleButtons.length,`${name} 應保留 Google 按鈕程式`);
   for(const button of googleButtons)assert.match(button,/hidden/,`${name} 的一般會員／申請 Google 按鈕目前必須隱藏`);

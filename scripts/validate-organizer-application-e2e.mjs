@@ -98,10 +98,16 @@ async function signToken(payload){
 }
 
 try{
+  const anonymousHelper=await jsonAction('analyzeDoingApplication',{topic:'summary',useCases:['beauty','event'],painPoints:['collision','no_show'],workSituations:['appointment','deposit','shared_customers']});
+  assert.equal(anonymousHelper.saved,false);assert.match(anonymousHelper.reply,/預約|活動/);assert.equal(tables.member_helper_traces.length,0,'未登入小幫手不得寫入資料庫');
+  const scopedHelper=await jsonAction('analyzeDoingApplication',{topic:'weather',useCases:['event'],painPoints:['schedule'],workSituations:[]});
+  assert.equal(scopedHelper.scopeStatus,'out_of_scope');assert.match(scopedHelper.reply,/只能協助 DOING 系統/);
   const questionnaire={
     unitName:'DOING 正式申請流程測試',ownerName:'DOING 測試人員',contactEmail:'formal-flow-test@doing.invalid',phone:'0900000000',
     industryCategories:['market_retail','craft_experience'],useCases:['market','workshop'],
+    workSituations:['team','appointment','deposit'],
     painPoints:['payment','schedule','extras','seating','checkin'],primaryPainPoint:'payment',noPublicLink:true,publicLinks:[],
+    assistantAnalysis:{reply:'已依工作方式完成整理',summaryId:'HLP_TEST',topic:'summary',scope:'doing_only',confirmed:true},
     confirmations:{confirmReal:true,confirmUse:true,confirmReview:true},
     needFlags:{payment:true,workshopSlots:true,calendar:true,equipment:true,addons:true,seatSelection:true,checkin:true},
     moduleProfile:{configured:true,useType:'market',useCases:['market','workshop'],defaults:{
@@ -119,10 +125,14 @@ try{
   const start=await request('/auth/line/start?mode=organizer_signup&application_id='+encodeURIComponent(draft.applicationId));
   assert.equal(start.status,302);const lineStartUrl=new URL(start.headers.get('location')),state=lineStartUrl.searchParams.get('state');lineNonce=lineStartUrl.searchParams.get('nonce');assert.ok(state);assert.ok(lineNonce);assert.match(lineStartUrl.searchParams.get('scope'),/email/);
   const callback=await request('/auth/line/callback?code=mock-code&state='+encodeURIComponent(state));
-  assert.equal(callback.status,302);assert.equal(new URL(callback.headers.get('location')).searchParams.get('application_status'),'pending');
+  const callbackUrl=new URL(callback.headers.get('location'));
+  assert.equal(callback.status,302);assert.equal(callbackUrl.searchParams.get('application_status'),'pending');
   row=tables.tenant_apply_logs.find(x=>x.id===draft.applicationId);
   assert.equal(row.status,'pending');assert.equal(row.contact_email,'formal-flow-test@doing.invalid');assert.equal(row.application_json.loginProvider,'line');assert.ok(row.application_json.memberId);
   assert.equal(tables.platform_members.length,1);assert.equal(tables.platform_member_identities.filter(x=>x.provider==='line').length,1);
+  const memberNow=Date.now(),applicationMemberToken=await signToken({iss:'DOING',type:'member',email:'formal-flow-test@doing.invalid',provider:'line',provider_subject:lineMockSubject,issued_at:memberNow,expires_at:memberNow+3600000});
+  const savedHelper=await jsonAction('analyzeDoingApplication',{member_token:applicationMemberToken,topic:'data',useCases:['beauty','event'],painPoints:['repeat_data'],workSituations:['shared_customers','one_brand_many_jobs']});
+  assert.equal(savedHelper.saved,true);assert.equal(tables.member_helper_traces.length,1);assert.equal(tables.member_helper_traces[0].member_id,row.application_json.memberId);
 
   const now=Date.now(),platformToken=await signToken({iss:'DOING',email:'platform-test@doing.invalid',tenant_id:'platform',role:'platform_super_admin',normalized_role:'platform_super_admin',issued_at:now,expires_at:now+3600000});
   const approvedFlags={registration:true,review:true,payment:true,equipment:true,seatSelection:true,checkin:true,invoice:false,workshopSlots:true,service:true,resource:false,participants:true,customFields:true,addons:true,agreement:true,i18n:false,googleCalendar:true};

@@ -8,12 +8,13 @@ for(const key of requiredKeys){
   if(!worker.includes(`${key}: true`))throw new Error(`Worker 核准模組缺少 ${key}`);
   if(!platform.includes(`${key}:`))throw new Error(`平台模組標籤缺少 ${key}`);
 }
-for(const marker of ['signupModulePreview','applicationModuleDefaults','confirmations.confirmReal','module_flags','approvedModuleFlags']){
+for(const marker of ['doingSmartHelper','doingApplicationPlan','confirmations.confirmReal','module_flags','approvedModuleFlags']){
   if(!(about+worker+platform).includes(marker))throw new Error(`申請流程缺少 ${marker}`);
 }
 for(const useCase of ['market','event','workshop','beauty','service_booking','resource_booking','guide','general']){
-  if(!about.includes(`useCases.includes('${useCase}')`))throw new Error(`問卷沒有完整處理營運情境 ${useCase}`);
+  if(!worker.includes(`useCases.includes('${useCase}')`))throw new Error(`後端沒有完整處理營運情境 ${useCase}`);
 }
+if(about.includes('applicationModuleDefaults')||about.includes('signupModulePreview'))throw new Error('公開問卷不得暴露內部功能判斷');
 if(!platform.includes('data-application-module'))throw new Error('平台審核沒有可調整的模組勾選');
 if(!platform.includes('platformModuleDescriptions'))throw new Error('平台審核沒有說明每個模組的實際功能');
 if(!platform.includes("post('approveApply',{apply_id:selectedApplication.id,module_flags})"))throw new Error('平台核准未傳遞模組設定');
@@ -41,7 +42,7 @@ const blueprints={
 for(const [type,keys] of Object.entries(blueprints)){
   for(const key of keys){
     const marker=key==='registration'?'registration:true':(key==='i18n'?"i18n:{enabled:true":`${key}:true`);
-    if(!about.includes(marker))throw new Error(`${type} 問卷配套缺少 ${key}`);
+    if(!worker.includes(marker))throw new Error(`${type} 問卷配套缺少 ${key}`);
   }
 }
 
