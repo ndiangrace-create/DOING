@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-17T14:18:02+08:00",
-  "sourceFingerprint": "80d09cda67a907644ebc23cf3723415d1f46a6b14a1b2ab7215cf9e7250a5cae",
+  "recordedAt": "2026-08-17T20:30:00+08:00",
+  "sourceFingerprint": "6312c88fb67cf59832ed4ea5f5643805b57a2fdb98e28c2aa36f5d6425cb2f9a",
   "environment": "LINE、Google、Resend 與業務流程使用本機 mock；Supabase 正式庫只套用唯一索引，並以交易 rollback 驗證，測試資料留存 0 筆",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
@@ -132,6 +132,18 @@
       "command": "node scripts/validate-platform-operations-e2e.mjs",
       "result": "PASS",
       "scope": "兩租戶模擬鎖定、場次設定與付款異常；問題唯一鍵、租戶問題數、正式處理紀錄、租戶／場次／訂單深連結、自動完成與人工稽核閉環；正式資料 0 寫入"
+    },
+    {
+      "id": "persistent-change-ledger-e2e",
+      "command": "node scripts/validate-persistent-change-ledger-e2e.mjs",
+      "result": "PASS",
+      "scope": "五張 append-only 表、RLS 與 service_role 最小授權、平台最高管理者 API、敏感欄位排除、Verified Baseline、受影響驗收 Stale、未變更驗收沿用、全量盤點安全鎖"
+    },
+    {
+      "id": "doing-smart-helper-e2e",
+      "command": "node scripts/validate-doing-smart-helper-e2e.mjs",
+      "result": "PASS",
+      "scope": "首頁多選互動、DOING 內容鎖、內部功能不曝光、同品牌共用與工作紀錄分隔、未登入零留存、登入後才寫入個人軌跡、RLS 與最小權限"
     },
     {
       "id": "worker-sync",

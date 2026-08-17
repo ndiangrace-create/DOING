@@ -71,6 +71,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
 .confirm-box{display:grid;gap:10px;margin-top:16px}.confirm-box label{display:flex;gap:10px;align-items:flex-start;padding:13px;border-radius:16px;background:#fafcfb;border:1px solid #e0e8e5}.confirm-box input{width:20px;min-height:auto;height:20px;accent-color:var(--brand);margin-top:2px}
 .inline-tip{padding:12px 14px;border-radius:16px;background:#f4faf8;border:1px solid #dce9e5;color:#406360;font-size:16px;line-height:1.62}
 .module-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.module-preview span{display:inline-flex;align-items:center;min-height:38px;padding:7px 11px;border-radius:999px;background:#fff;border:1px solid #cfe2dc;color:#285f59;font-size:15px;font-weight:900}
+.doing-helper{border:2px solid #b9d7d2;background:#f5faf9;padding:18px;border-radius:18px}.doing-helper-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}.doing-helper-mark{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:#246f69;color:#fff;font-weight:1000}.doing-helper-head b{display:block;font-size:20px}.doing-helper-head span{display:block;color:var(--muted);font-size:14px}.doing-helper-message{background:#fff;border:1px solid #d7e5e2;padding:14px;border-radius:14px;white-space:pre-line}.doing-helper-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.doing-helper-actions button{background:#fff;border:1px solid #bdd5d1;color:#245e59}.doing-helper-actions button.primary{background:#246f69;color:#fff}.doing-helper-note{margin:10px 0 0;color:var(--muted);font-size:14px}.doing-helper-confirm{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px;background:#fff;border:1px solid #d7e5e2;border-radius:14px}.doing-helper-confirm input{width:20px;height:20px;min-height:auto;margin-top:2px}.doing-helper[aria-busy="true"] .doing-helper-message{opacity:.62}.smart-application-shell{display:block;max-width:900px;margin:auto}.smart-flow-guide{display:flex;gap:12px;align-items:flex-start;padding:15px;border:2px solid #c8dfdb;background:#f5faf9;border-radius:18px;margin-bottom:14px}.smart-flow-guide .doing-helper-mark{flex:0 0 auto}.smart-flow-guide b{display:block;font-size:18px}.smart-flow-guide p{margin:3px 0 0;color:var(--muted)}.smart-flow-progress{margin-left:auto;white-space:nowrap;color:#246f69;font-weight:900}.apply-form.is-smart-flow>.group{display:none}.apply-form.is-smart-flow>.group.is-active{display:block}.smart-flow-nav{display:flex;justify-content:space-between;gap:10px;margin-top:18px}.smart-flow-nav button{min-width:120px}.smart-flow-nav .next{margin-left:auto;background:#246f69;color:#fff}.smart-flow-nav .back{background:#fff;border:1px solid #c6d8d5;color:#3d625f}
 .error{display:none;margin-top:14px;color:#b14f45;font-weight:900}.footer{margin-top:28px;padding-top:22px;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:16px}
 @media(max-width:1100px){.hero{grid-template-columns:1fr}.hero-points,.feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.flow{grid-template-columns:repeat(3,minmax(0,1fr))}.apply-wrap{grid-template-columns:1fr}.topin,.shell{width:min(100%,calc(100vw - 28px))}}
 @media(max-width:760px){body{font-size:17px}.topin,.shell{width:100%;padding-left:12px;padding-right:12px}.topin{min-height:64px}.brand-title{font-size:22px}.top-actions .link{display:none}.hero-main,.apply-form,.side-panel,.side-card,.card,.step,.price-card{border-radius:22px}.hero-points,.grid-3,.feature-grid,.field-grid,.choice-grid,.pricing{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.quick-nav{top:64px}}
@@ -200,29 +201,12 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     </div>
     <div id="applicationPanel" hidden>
     <div id="applicationPendingBanner" class="banner"><b>申請已送出，等待 DOING 審核。</b><br>審核通過後才會建立正式營運帳號；需要補件時會另外通知。</div>
-    <div class="apply-wrap">
-      <div class="apply-side">
-        <div class="side-panel">
-          <h3>DOING 營運帳號申請</h3>
-          <p>無論你正在辦市集、開課，或經營美甲與工作室預約，都可以申請一個自己的 DOING 營運帳號。</p>
-          <ul>
-            <li>建立活動、服務、日期、時段與報名內容。</li>
-            <li>集中處理名單、付款、通知、改期與現場報到。</li>
-            <li>依活動或預約方式，選擇適合的收費方式。</li>
-          </ul>
-          <div class="mini">一般參加者不需要申請；這裡是提供給要建立活動、服務或預約內容的人。</div>
-        </div>
-        <article class="card">
-          <h3>申請前建議先準備</h3>
-          <p>品牌／單位名稱、負責人與聯絡資料、主要提供的活動或服務，以及可辨識的公開資訊。</p>
-        </article>
-      </div>
-
+    <div class="apply-wrap smart-application-shell">
       <form class="apply-form" id="signupForm" onsubmit="return false">
         <div class="form-head">
           <div>
-            <h2>申請你的營運帳號</h2>
-            <p>填完資料後，會進入 LINE 驗證，送出後待 DOING 審核。</p>
+            <h2>跟著 DOING 智慧小幫手完成申請</h2>
+            <p>我會一次帶你完成一個階段，最後使用 LINE 驗證送出。</p>
           </div>
         </div>
 
@@ -234,7 +218,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
             <div class="field"><label for="signupCompanyName">公司／商號名稱</label><input id="signupCompanyName" placeholder="若與品牌不同可填寫"></div>
             <div class="field"><label for="signupTaxId">統一編號</label><input id="signupTaxId" inputmode="numeric" placeholder="可先選填，正式收費時仍可再確認"></div>
             <div class="field"><label class="required" for="signupRegion">所在地區</label><select id="signupRegion"><option value="">請選擇</option><option>台北市</option><option>新北市</option><option>桃園市</option><option>新竹市／新竹縣</option><option>苗栗縣</option><option>台中市</option><option>彰化縣</option><option>南投縣</option><option>雲林縣</option><option>嘉義市／嘉義縣</option><option>台南市</option><option>高雄市</option><option>屏東縣</option><option>宜蘭縣</option><option>花蓮縣</option><option>台東縣</option><option>離島／其他</option></select></div>
-            <div class="field full"><label class="required" for="signupBusinessIntro">主要營運內容</label><textarea id="signupBusinessIntro" placeholder="請簡單說明你目前主要提供的活動、服務或體驗內容。"></textarea></div>
+            <div class="field full"><label for="signupBusinessIntro">還有想補充的營運內容</label><textarea id="signupBusinessIntro" placeholder="選填；如果上面的選項已經能說明你的工作，可以先不填。"></textarea></div>
           </div>
         </div>
 
@@ -267,17 +251,25 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
         </div>
 
         <div class="group">
-          <h3>四、你要怎麼使用 DOING？</h3>
-          <div class="desc">請勾選你主要想用的營運情境；可複選，不必只限單一類型。</div>
+          <h3>四、你平常怎麼工作？</h3>
+          <div class="desc">可複選。只要選你的實際工作方式，不需要研究 DOING 有哪些功能。</div>
           <div id="signupUseCases" class="choice-grid">
-            <label class="choice"><input type="checkbox" value="market"><span><b>市集／攤商招募</b><span>適合攤商招募、審核、設備、攤位、單場財務與現場管理。</span></span></label>
-            <label class="choice"><input type="checkbox" value="event"><span><b>活動／講座／課程報名</b><span>適合一般民眾報名、名額、付款、通知與報到。</span></span></label>
-            <label class="choice"><input type="checkbox" value="workshop"><span><b>手作體驗／工作坊</b><span>適合日期、時段、材料與人數控管的體驗活動。</span></span></label>
-            <label class="choice"><input type="checkbox" value="beauty"><span><b>美類服務／預約</b><span>同時管理服務項目、服務人員、時段、加購、合約、收款與顧客到店。</span></span></label>
-            <label class="choice"><input type="checkbox" value="service_booking"><span><b>一般服務預約</b><span>適合一對一或小型服務，依日期、時段與方案預約。</span></span></label>
-            <label class="choice"><input type="checkbox" value="resource_booking"><span><b>場地／資源預約</b><span>適合教室、器材、場地、老師或人員資源使用。</span></span></label>
-            <label class="choice"><input type="checkbox" value="guide"><span><b>導覽／戶外體驗</b><span>適合旅遊導覽、戶外活動與需要天候改期規則的服務。</span></span></label>
-            <label class="choice"><input type="checkbox" value="general"><span><b>其他通用報名</b><span>若你的營運型態較複合，可先勾此項並在說明中補充。</span></span></label>
+            <label class="choice"><input type="checkbox" value="market"><span><b>我會招募攤商或辦市集</b></span></label>
+            <label class="choice"><input type="checkbox" value="event"><span><b>我會開課、辦講座或活動</b></span></label>
+            <label class="choice"><input type="checkbox" value="workshop"><span><b>我會辦手作或分梯體驗</b></span></label>
+            <label class="choice"><input type="checkbox" value="beauty"><span><b>我提供美類或到店服務</b></span></label>
+            <label class="choice"><input type="checkbox" value="service_booking"><span><b>客人需要預約我的時間</b></span></label>
+            <label class="choice"><input type="checkbox" value="resource_booking"><span><b>我會出租場地、教室或器材</b></span></label>
+            <label class="choice"><input type="checkbox" value="guide"><span><b>我會辦導覽或戶外體驗</b></span></label>
+            <label class="choice"><input type="checkbox" value="general"><span><b>我的工作很多元，以上不只一種</b></span></label>
+          </div>
+          <div id="signupWorkSituations" class="choice-grid" style="margin-top:10px">
+            <label class="choice"><input type="checkbox" value="team"><span><b>有其他老師或夥伴一起工作</b></span></label>
+            <label class="choice"><input type="checkbox" value="appointment"><span><b>客人需要選日期或時段</b></span></label>
+            <label class="choice"><input type="checkbox" value="deposit"><span><b>我需要先收訂金</b></span></label>
+            <label class="choice"><input type="checkbox" value="shared_customers"><span><b>不同工作會遇到同一批客人</b></span></label>
+            <label class="choice"><input type="checkbox" value="multi_brand"><span><b>我同時經營不同品牌</b></span></label>
+            <label class="choice"><input type="checkbox" value="one_brand_many_jobs"><span><b>同一品牌有多種工作內容</b></span></label>
           </div>
           <div class="field-grid" style="margin-top:8px">
             <div class="field"><label class="required" for="signupOperationStage">目前營運狀態</label><select id="signupOperationStage"><option value="">請選擇</option><option value="operating">已經開始營運</option><option value="preparing">正在籌備中</option></select></div>
@@ -301,6 +293,8 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
             <label class="choice"><input type="checkbox" value="checkin"><span><b>現場報到和名單核對不方便</b></span></label>
             <label class="choice"><input type="checkbox" value="finance"><span><b>活動結束後，財務和紀錄不好整理</b></span></label>
             <label class="choice"><input type="checkbox" value="repeat_data"><span><b>每次都要請客人重新填寫資料</b></span></label>
+            <label class="choice"><input type="checkbox" value="no_show"><span><b>沒有先收訂金，客人容易臨時不來</b></span></label>
+            <label class="choice"><input type="checkbox" value="staff_mix"><span><b>人員權限和工作內容容易混在一起</b></span></label>
             <label class="choice"><input type="checkbox" value="other"><span><b>還有其他困擾</b></span></label>
           </div>
           <div class="field-grid" style="margin-top:14px">
@@ -322,13 +316,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
         </div>
 
         <div class="group">
-          <h3>七、申請開通功能</h3>
-          <div class="desc">依你選的營運情境與困擾自動整理，不需要自己研究模組名稱。平台審核時會再確認，之後也能申請增減。</div>
-          <div id="signupModulePreview" class="module-preview"><span>先完成上方選擇，這裡會立即顯示</span></div>
-        </div>
-
-        <div class="group">
-          <h3>八、送出前確認</h3>
+          <h3>七、送出前確認</h3>
           <div class="confirm-box">
             <label><input id="confirmReal" type="checkbox"><span>我確認以上資料真實，且可供 DOING 審核營運帳號使用資格。</span></label>
             <label><input id="confirmUse" type="checkbox"><span>我申請的是營運帳號（活動、品牌、工作室、服務或預約使用），不是一般參加者帳號。</span></label>
@@ -336,10 +324,24 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
           </div>
         </div>
 
-        <div class="hero-actions" style="margin-top:20px">
-          <button class="btn primary" type="button" id="signupLineBtn">使用 LINE 驗證並送出申請</button>
-          <button class="btn primary" type="button" id="signupGoogleBtn" hidden aria-hidden="true" tabindex="-1">使用 Google 驗證並送出申請</button>
-          <a class="btn secondary" href="index.html">先回公開活動入口</a>
+        <div class="group">
+          <h3>八、請 DOING 智慧小幫手整理並送出申請</h3>
+          <div class="desc">它只協助 DOING 的申請、工作方式、資料安排、費用與使用問題，不是一般聊天機器人。</div>
+          <div id="doingSmartHelper" class="doing-helper" aria-live="polite" aria-busy="false">
+            <div class="doing-helper-head"><div class="doing-helper-mark">D</div><div><b>DOING 智慧小幫手</b><span>DOING 線上智能客服</span></div></div>
+            <div id="doingHelperMessage" class="doing-helper-message">我會先整理你上面勾選的工作方式與困擾。確認正確後，再使用 LINE 驗證送出申請。</div>
+            <div class="doing-helper-actions">
+              <button class="primary" type="button" id="doingHelperAnalyze">幫我整理</button>
+              <button type="button" data-helper-topic="data">資料會混在一起嗎？</button>
+              <button type="button" data-helper-topic="billing">費用怎麼算？</button>
+              <button type="button" data-helper-topic="adjust">之後可以調整嗎？</button>
+            </div>
+            <p class="doing-helper-note" id="doingHelperPrivacy">未登入時只保留在目前畫面，重整或換瀏覽器就會消失。小幫手不會替你決定付款、權限或正式開通。</p>
+            <label class="doing-helper-confirm"><input id="confirmHelperUnderstanding" type="checkbox"><span>對，這樣理解我的工作方式；請把這份整理放進申請。</span></label>
+            <div class="hero-actions" style="margin-top:16px">
+              <button class="btn primary" type="button" id="signupLineBtn">使用 LINE 驗證並送出申請</button>
+            </div>
+          </div>
         </div>
         <div id="signupErr" class="error"></div>
       </form>
@@ -361,37 +363,62 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
 (()=>{
   const API='https://tobeloved-api.ndiangrace.workers.dev';
   const lineBtn=document.getElementById('signupLineBtn');
-  const googleBtn=document.getElementById('signupGoogleBtn');
   const err=document.getElementById('signupErr');
   const showErr=(m,field)=>{err.textContent=m;err.style.display='block';if(field){field.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>field.focus(),350)}else document.getElementById('apply')?.scrollIntoView({block:'start'})};
   const clearErr=()=>{err.textContent='';err.style.display='none'};
   const useLabelMap={market:'市集／攤商招募',event:'活動／講座／課程報名',workshop:'手作體驗／工作坊',beauty:'美類服務／預約',service_booking:'一般服務預約',resource_booking:'場地／資源預約',guide:'導覽／戶外體驗',general:'其他通用報名'};
-  const painLabelMap={scattered:'報名資料散落在表單和訊息裡',status:'不清楚誰已錄取、候補或取消',payment:'收款、對帳和退款容易漏掉',schedule:'日期、時段與剩餘名額不好整理',collision:'老師、空間或設備的時間容易排在一起',reschedule:'改期後又要重新整理名單',extras:'設備、材料或加購內容容易對錯',seating:'攤位或座位安排很花時間',notification:'活動前要逐一通知參加者',checkin:'現場報到和名單核對不方便',finance:'活動結束後，財務和紀錄不好整理',repeat_data:'每次都要請客人重新填寫資料',other:'還有其他困擾'};
-  const painModules={scattered:['customFields'],status:['review'],payment:['payment'],schedule:['workshopSlots','calendar'],collision:['workshopSlots','resource','calendar'],reschedule:['workshopSlots','notifications'],extras:['equipment','addons'],seating:['seatSelection'],notification:['notifications'],checkin:['checkin'],finance:['payment'],repeat_data:[]};
-  const moduleLabels={registration:'報名／預約核心',review:'審核錄取',payment:'付款確認',equipment:'設備租借',seatSelection:'座位／攤位選位',checkin:'報到（活動／顧客到店）',invoice:'發票資料',workshopSlots:'日期／時段',service:'服務項目／方案',resource:'服務人員／空間／資源',participants:'票種／人數',customFields:'自訂問題',addons:'加購',agreement:'條款合約',i18n:'多語言',googleCalendar:'行事曆'};
-  function applicationModuleDefaults(){
-    const painPoints=[...document.querySelectorAll('#signupPainPoints input:checked')].map(x=>x.value),useCases=[...document.querySelectorAll('#signupUseCases input:checked')].map(x=>x.value),flags={};
-    painPoints.forEach(p=>(painModules[p]||[]).forEach(k=>flags[k]=true));
-    const bookingUse=useCases.some(x=>['workshop','beauty','service_booking','resource_booking','guide'].includes(x)),marketUse=useCases.includes('market');
-    const m={registration:true,review:false,workshopSlots:false,service:false,resource:false,participants:false,customFields:false,equipment:false,seatSelection:false,addons:false,agreement:false,invoice:false,payment:false,checkin:false,googleCalendar:false,quantityMode:'booking',depositKind:'none',operatingMode:'activity',notifications:true,rewards:false,i18n:{enabled:false,languages:['zh-TW'],translations:{}}};
-    const add=x=>Object.assign(m,x);
-    if(useCases.includes('market'))add({review:true,payment:true,equipment:true,seatSelection:true,addons:true,agreement:true,invoice:true,checkin:true,customFields:true,googleCalendar:true,quantityMode:'stall',depositKind:'refundable'});
-    if(useCases.includes('event'))add({review:true,payment:true,participants:true,customFields:true,agreement:true,invoice:true,checkin:true,googleCalendar:true,quantityMode:'participant'});
-    if(useCases.includes('workshop'))add({payment:true,workshopSlots:true,service:true,participants:true,customFields:true,addons:true,agreement:true,invoice:true,checkin:true,googleCalendar:true,quantityMode:'participant',depositKind:'booking',operatingMode:'booking'});
-    if(useCases.includes('beauty'))add({payment:true,workshopSlots:true,service:true,resource:true,customFields:true,addons:true,agreement:true,invoice:true,checkin:true,googleCalendar:true,i18n:{enabled:true,languages:['zh-TW','en','ja','ko'],translations:{}},quantityMode:'booking',depositKind:'booking',operatingMode:'booking'});
-    if(useCases.includes('service_booking'))add({payment:true,workshopSlots:true,service:true,resource:true,customFields:true,agreement:true,invoice:true,googleCalendar:true,quantityMode:'booking',depositKind:'booking',operatingMode:'booking'});
-    if(useCases.includes('resource_booking'))add({payment:true,workshopSlots:true,resource:true,customFields:true,agreement:true,invoice:true,googleCalendar:true,quantityMode:'booking',depositKind:'booking',operatingMode:'booking'});
-    if(useCases.includes('guide'))add({review:true,payment:true,workshopSlots:true,participants:true,customFields:true,agreement:true,checkin:true,googleCalendar:true,quantityMode:'participant',depositKind:'booking',operatingMode:'booking'});
-    if(useCases.includes('general'))add({review:true,customFields:true,agreement:true,googleCalendar:true});
-    if(flags.review)m.review=true;if(flags.payment)m.payment=true;if(flags.workshopSlots)m.workshopSlots=true;if(flags.service)m.service=true;if(flags.resource)m.resource=true;if(flags.customFields)m.customFields=true;if(flags.equipment)m.equipment=true;if(flags.seatSelection)m.seatSelection=true;if(flags.addons)m.addons=true;if(flags.agreement)m.agreement=true;if(flags.invoice)m.invoice=true;if(flags.checkin)m.checkin=true;if(flags.calendar)m.googleCalendar=true;
-    if(bookingUse)m.operatingMode='booking';if(marketUse)m.quantityMode='stall';
-    return m;
+  const painLabelMap={scattered:'報名資料散落在表單和訊息裡',status:'不清楚誰已錄取、候補或取消',payment:'收款、對帳和退款容易漏掉',schedule:'日期、時段與剩餘名額不好整理',collision:'老師、空間或設備的時間容易排在一起',reschedule:'改期後又要重新整理名單',extras:'設備、材料或加購內容容易對錯',seating:'攤位或座位安排很花時間',notification:'活動前要逐一通知參加者',checkin:'現場報到和名單核對不方便',finance:'活動結束後，財務和紀錄不好整理',repeat_data:'每次都要請客人重新填寫資料',no_show:'沒有先收訂金，客人容易臨時不來',staff_mix:'人員權限和工作內容容易混在一起',other:'還有其他困擾'};
+  let helperAnalysis=null;
+  const selectedValues=id=>[...document.querySelectorAll('#'+id+' input:checked')].map(x=>x.value);
+  const helper=document.getElementById('doingSmartHelper'),helperMessage=document.getElementById('doingHelperMessage'),helperConfirm=document.getElementById('confirmHelperUnderstanding');
+  const invalidateHelper=()=>{helperAnalysis=null;if(helperConfirm)helperConfirm.checked=false;if(helperMessage)helperMessage.textContent='你的選擇有變動。按「幫我整理」，我會重新理解一次。'};
+  async function askDoingHelper(topic='summary'){
+    const useCases=selectedValues('signupUseCases'),painPoints=selectedValues('signupPainPoints'),workSituations=selectedValues('signupWorkSituations');
+    if(!useCases.length)return showErr('請先勾選至少一種工作方式');
+    if(!painPoints.length)return showErr('請先勾選至少一項困擾');
+    clearErr();helper?.setAttribute('aria-busy','true');if(helperMessage)helperMessage.textContent='我正在整理你的工作方式…';
+    try{
+      let memberToken='';try{memberToken=localStorage.getItem('doing_member_token')||''}catch(e){}
+      const response=await fetch(API+'?action=analyzeDoingApplication',{method:'POST',headers:{'Content-Type':'application/json;charset=UTF-8'},body:JSON.stringify({action:'analyzeDoingApplication',topic,useCases,painPoints,workSituations,member_token:memberToken})});
+      const result=await response.json();if(!response.ok||result.error)throw new Error(result.error||'小幫手暫時無法回覆');
+      helperAnalysis={reply:String(result.reply||''),summaryId:String(result.summaryId||''),topic:String(result.topic||topic),source:String(result.source||'rules'),scope:'doing_only',confirmed:false};
+      if(helperMessage)helperMessage.textContent=helperAnalysis.reply;
+      const privacy=document.getElementById('doingHelperPrivacy');if(privacy)privacy.textContent=result.saved?'你已登入，這次整理已安全記錄在你的 DOING 個人軌跡。':'未登入時只保留在目前畫面，重整或換瀏覽器就會消失。';
+    }catch(e){if(helperMessage)helperMessage.textContent='我現在暫時無法整理，但你的勾選都還在。請稍後再按一次「幫我整理」。';showErr(e.message||'小幫手暫時無法回覆')}
+    finally{helper?.setAttribute('aria-busy','false')}
   }
-  function refreshModulePreview(){const defaults=applicationModuleDefaults(),keys=Object.keys(moduleLabels).filter(k=>k==='registration'||(k==='i18n'?defaults.i18n?.enabled===true:defaults[k]===true)),el=document.getElementById('signupModulePreview');if(el)el.innerHTML=keys.map(k=>'<span>'+moduleLabels[k]+'</span>').join('')}
   const painBox=document.getElementById('signupPainPoints'),primaryPain=document.getElementById('signupPrimaryPainPoint');
   const refreshPrimaryPain=()=>{const selected=[...painBox.querySelectorAll('input:checked')].map(x=>x.value),current=primaryPain.value;primaryPain.innerHTML='<option value="">請選擇一項</option>'+selected.map(x=>'<option value="'+x+'">'+painLabelMap[x]+'</option>').join('');if(selected.includes(current))primaryPain.value=current};
-  painBox?.addEventListener('change',e=>{const selected=[...painBox.querySelectorAll('input:checked')];if(selected.length>5){e.target.checked=false;showErr('困擾最多選擇 5 項');}else clearErr();refreshPrimaryPain();refreshModulePreview()});
-  document.getElementById('signupUseCases')?.addEventListener('change',refreshModulePreview);
+  painBox?.addEventListener('change',e=>{const selected=[...painBox.querySelectorAll('input:checked')];if(selected.length>5){e.target.checked=false;showErr('困擾最多選擇 5 項');}else clearErr();refreshPrimaryPain();invalidateHelper()});
+  document.getElementById('signupUseCases')?.addEventListener('change',invalidateHelper);
+  document.getElementById('signupWorkSituations')?.addEventListener('change',invalidateHelper);
+  document.getElementById('doingHelperAnalyze')?.addEventListener('click',()=>askDoingHelper('summary'));
+  document.querySelectorAll('[data-helper-topic]').forEach(btn=>btn.addEventListener('click',()=>askDoingHelper(btn.dataset.helperTopic||'summary')));
+  helperConfirm?.addEventListener('change',()=>{if(helperAnalysis)helperAnalysis.confirmed=helperConfirm.checked});
+  function setupSmartApplicationFlow(){
+    const form=document.getElementById('signupForm'),groups=[...form.querySelectorAll(':scope > .group')];if(!form||!groups.length)return;
+    form.classList.add('is-smart-flow');
+    const guide=document.createElement('div');guide.className='smart-flow-guide';guide.innerHTML='<div class="doing-helper-mark">D</div><div><b id="smartFlowTitle">先認識你的品牌</b><p id="smartFlowMessage">不用一次看完整張表，我會陪你一步一步完成。</p></div><span class="smart-flow-progress" id="smartFlowProgress"></span>';
+    form.querySelector('.form-head')?.after(guide);
+    const titles=['先認識你的品牌','留下方便聯絡的方式','你目前在哪些領域工作？','你平常怎麼工作？','現在最想解決什麼？','讓我們確認這是你的品牌','送出前一起確認','我已經幫你整理好了'];
+    const messages=['品牌名稱與所在地就可以，其他內容可以之後補。','這些資料只用於 DOING 申請、審核與必要聯絡。','可以複選，不用把自己限制在單一產業。','斜槓工作可以同時選，不需要分開申請。','最多選五項，我會先抓出最需要處理的問題。','提供一個可辨識頁面；還在籌備也可以直接勾選。','確認資料與申請用途正確後，就到最後一步。','看看我理解得對不對，再用 LINE 驗證送出申請。'];
+    const field=id=>document.getElementById(id),checked=id=>selectedValues(id);
+    const validStep=index=>{
+      if(index===0){if(!field('signupUnitName').value.trim()){showErr('請先填寫品牌或營運單位名稱',field('signupUnitName'));return false}if(!field('signupRegion').value){showErr('請選擇所在地區',field('signupRegion'));return false}}
+      if(index===1){if(!field('signupOwnerName').value.trim()){showErr('請先填寫姓名',field('signupOwnerName'));return false}if(!field('signupPhone').value.trim()){showErr('請先填寫聯絡電話',field('signupPhone'));return false}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field('signupEmail').value.trim())){showErr('請填寫正確的 Email',field('signupEmail'));return false}}
+      if(index===2&&!checked('signupIndustries').length){showErr('請至少選擇一個產業類別',field('signupIndustries'));return false}
+      if(index===3){if(!checked('signupUseCases').length){showErr('請至少選擇一種工作方式',field('signupUseCases'));return false}if(!field('signupOperationStage').value){showErr('請選擇目前營運狀態',field('signupOperationStage'));return false}}
+      if(index===4){if(!checked('signupPainPoints').length){showErr('請至少選擇一項困擾',field('signupPainPoints'));return false}if(!field('signupPrimaryPainPoint').value){showErr('請選擇最想先解決的一項',field('signupPrimaryPainPoint'));return false}if(checked('signupPainPoints').includes('other')&&!field('signupOtherPainPoint').value.trim()){showErr('請補充你的其他困擾',field('signupOtherPainPoint'));return false}}
+      if(index===5){const links=publicLinkIds.map(id=>field(id).value.trim()).filter(Boolean);if(!links.length&&!field('signupNoPublicLink').checked){showErr('請提供一個公開頁面，或勾選目前尚未建立',field('signupWebsite'));return false}}
+      if(index===6&&!field('confirmReal').checked||index===6&&!field('confirmUse').checked||index===6&&!field('confirmReview').checked){showErr('請完成三項送出前確認',groups[index]);return false}
+      clearErr();return true;
+    };
+    let current=0;
+    const showStep=index=>{current=Math.max(0,Math.min(groups.length-1,index));groups.forEach((g,i)=>g.classList.toggle('is-active',i===current));field('smartFlowTitle').textContent=titles[current]||'完成申請';field('smartFlowMessage').textContent=messages[current]||'';field('smartFlowProgress').textContent=(current+1)+'／'+groups.length;if(current>0&&!document.getElementById('applicationPanel')?.hidden)guide.scrollIntoView({behavior:'smooth',block:'start'});if(current===groups.length-1&&!helperAnalysis)askDoingHelper('summary')};
+    groups.forEach((group,index)=>{if(index===groups.length-1)return;const nav=document.createElement('div');nav.className='smart-flow-nav';if(index>0){const back=document.createElement('button');back.type='button';back.className='back';back.textContent='上一步';back.addEventListener('click',()=>showStep(index-1));nav.appendChild(back)}const next=document.createElement('button');next.type='button';next.className='next';next.textContent=index===groups.length-2?'交給小幫手整理':'繼續';next.addEventListener('click',()=>{if(validStep(index))showStep(index+1)});nav.appendChild(next);group.appendChild(nav)});
+    showStep(0);
+  }
+  setupSmartApplicationFlow();
   const publicLinkIds=['signupWebsite','signupFacebook','signupInstagram','signupOtherLink'];
   const noPublic=document.getElementById('signupNoPublicLink');
   publicLinkIds.forEach(id=>document.getElementById(id)?.addEventListener('input',e=>{if(e.target.value.trim())noPublic.checked=false}));
@@ -419,10 +446,10 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     const confirmUse=!!document.getElementById('confirmUse').checked;
     const confirmReview=!!document.getElementById('confirmReview').checked;
     const useCases=[...document.querySelectorAll('#signupUseCases input:checked')].map(x=>x.value);
+    const workSituations=selectedValues('signupWorkSituations');
     const industryCategories=[...document.querySelectorAll('#signupIndustries input:checked')].map(x=>x.value);
     if(!unitName)return showErr('請先填寫營運單位名稱',document.getElementById('signupUnitName'));
     if(!region)return showErr('請先選擇所在地區',document.getElementById('signupRegion'));
-    if(!businessIntro)return showErr('請先填寫主要營運內容',document.getElementById('signupBusinessIntro'));
     if(!ownerName)return showErr('請先填寫姓名',document.getElementById('signupOwnerName'));
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail))return showErr('請填寫正確的 Email',document.getElementById('signupEmail'));
     if(!phone)return showErr('請先填寫聯絡電話',document.getElementById('signupPhone'));
@@ -433,21 +460,16 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     if(painPoints.includes('other')&&!otherPainPoint)return showErr('請補充你的其他困擾');
     if(!operationStage)return showErr('請先選擇目前營運狀態');
     if(!publicLinks.length && !noPublicLink)return showErr('請至少提供網站、Facebook、Instagram 或其他公開介紹網址其中一項',document.getElementById('signupWebsite'));
+    if(!helperAnalysis||!helperConfirm?.checked)return showErr('請先讓 DOING 智慧小幫手整理，並確認它理解正確',helper);
     if(!confirmReal || !confirmUse || !confirmReview)return showErr('請先完成送出前確認');
     clearErr();
 
-    const flags={};painPoints.forEach(p=>(painModules[p]||[]).forEach(k=>flags[k]=true));
-    const defaults=applicationModuleDefaults();
-    const useType=['market','workshop','beauty','service_booking','resource_booking','event','guide'].includes(useCases[0])?useCases[0]:'generic';
-    Object.keys(moduleLabels).forEach(k=>flags[k]=k==='registration'||(k==='i18n'?defaults.i18n?.enabled===true:defaults[k]===true));
-    const moduleProfile={configured:true,useType,useCases,defaults};
     const applicationPayload={
       unitName,companyName,taxId,region,businessIntro,ownerName,contactName,contactEmail,phone,lineId,billingName,operationStage,startTime,
       industryCategories,publicLinks,noPublicLink,
-      useCases,useCaseLabels:useCases.map(x=>useLabelMap[x]||x),
+      useCases,useCaseLabels:useCases.map(x=>useLabelMap[x]||x),workSituations,
       painPoints,painPointLabels:painPoints.map(x=>painLabelMap[x]||x),primaryPainPoint,primaryPainPointLabel:painLabelMap[primaryPainPoint]||primaryPainPoint,otherPainPoint,
-      needFlags:flags,
-      moduleProfile,
+      assistantAnalysis:{...helperAnalysis,confirmed:true},dataPolicy:'same_brand_customer_shared_work_records_separate',
       confirmations:{confirmReal,confirmUse,confirmReview}
     };
 
@@ -460,8 +482,6 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     }catch(e){showErr(e.message||'申請資料保存失敗，請稍後再試');btn.disabled=false;btn.textContent=provider==='google'?'使用 Google 驗證並送出申請':'使用 LINE 驗證並送出申請'}
   };
   lineBtn?.addEventListener('click',()=>submitApplication('line',lineBtn));
-  googleBtn?.addEventListener('click',()=>submitApplication('google',googleBtn));
-  refreshModulePreview();
 
   const pageUrl=new URL(location.href);
   const applicationStatus=pageUrl.searchParams.get('application_status')||'';

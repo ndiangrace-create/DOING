@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "auditedAt": "2026-08-16",
+  "version": 3,
+  "auditedAt": "2026-08-17",
   "authority": {
     "projectName": "DOING_SaaS",
     "projectRef": "nayonqbzejoojexxxkyg",
@@ -14,6 +14,7 @@
       "doing_admin_token_pending",
       "doing_login_error_pending",
       "doing_platform_token",
+      "doing_member_token",
       "doing_lang",
       "doing_my_email"
     ]
@@ -24,6 +25,7 @@
       "tables": [
         "platform_members",
         "platform_member_identities",
+        "member_helper_traces",
         "tenant_apply_logs",
         "tenants",
         "tenant_settings",
@@ -224,7 +226,12 @@
     {
       "key": "platform-map",
       "tables": [
-        "platform_settings"
+        "platform_settings",
+        "platform_change_ledger",
+        "platform_feature_versions",
+        "platform_dependency_versions",
+        "platform_verification_records",
+        "platform_verified_baselines"
       ]
     },
     {
@@ -235,6 +242,28 @@
     }
   ],
   "tables": [
+    {
+      "name": "member_helper_traces",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "member_id",
+        "topic",
+        "use_cases_json",
+        "pain_points_json",
+        "work_situations_json",
+        "reply",
+        "reply_source",
+        "created_at"
+      ],
+      "workerAccess": [
+        "insert"
+      ],
+      "moduleKeys": [
+        "platform-application"
+      ],
+      "state": "active"
+    },
     {
       "name": "tenants",
       "rlsEnabled": true,
@@ -1168,6 +1197,46 @@
       "moduleKeys": [
         "platform-tenant"
       ],
+      "state": "active"
+    },
+    {
+      "name": "platform_change_ledger",
+      "rlsEnabled": true,
+      "columns": ["id","work_key","record_type","lifecycle_status","project_key","deployment_target","goal","module_key","change_reason","before_json","after_json","impact_json","affected_scopes","core_layers","dependency_keys","dependency_json","git_json","deployment_json","recovery_json","outstanding_json","risk_json","metadata_json","supersedes_id","recorded_by","recorded_at"],
+      "workerAccess": ["get","insert"],
+      "moduleKeys": ["platform-map"],
+      "state": "active"
+    },
+    {
+      "name": "platform_feature_versions",
+      "rlsEnabled": true,
+      "columns": ["id","feature_key","feature_name","feature_status","contract_json","state_json","source_change_id","supersedes_id","recorded_by","recorded_at"],
+      "workerAccess": ["get","insert"],
+      "moduleKeys": ["platform-map"],
+      "state": "active"
+    },
+    {
+      "name": "platform_dependency_versions",
+      "rlsEnabled": true,
+      "columns": ["id","dependency_key","upstream_key","downstream_key","dependency_type","edge_status","contract_json","source_change_id","supersedes_id","recorded_by","recorded_at"],
+      "workerAccess": ["get","insert"],
+      "moduleKeys": ["platform-map"],
+      "state": "active"
+    },
+    {
+      "name": "platform_verification_records",
+      "rlsEnabled": true,
+      "columns": ["id","verification_key","work_key","verification_status","environment","test_type","covered_scopes","core_layers","dependency_keys","conditions_json","fingerprints_json","result_json","evidence_json","invalidation_reason","source_change_id","supersedes_id","recorded_by","recorded_at"],
+      "workerAccess": ["get","insert"],
+      "moduleKeys": ["platform-map"],
+      "state": "active"
+    },
+    {
+      "name": "platform_verified_baselines",
+      "rlsEnabled": true,
+      "columns": ["id","baseline_key","project_key","deployment_target","source_change_id","production_verification_id","git_commit","deployment_version","fingerprints_json","production_result_json","recovery_json","outstanding_json","risk_json","supersedes_id","verified_by","verified_at"],
+      "workerAccess": ["get","insert"],
+      "moduleKeys": ["platform-map"],
       "state": "active"
     },
     {
