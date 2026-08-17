@@ -1,5 +1,5 @@
 {
-  "version": 14,
+  "version": 15,
   "updatedAt": "2026-08-17",
   "statusLabels": {
     "done": "已完成",
@@ -65,6 +65,16 @@
           "label": "低信心與沒解決的回答進入待審改善，不會自行發布",
           "status": "verify",
           "evidence": "doing_helper_improvement_queue / reviewDoingHelperImprovement"
+        },
+        {
+          "label": "平台後台可查看、搜尋、發布 DOING 智慧小幫手正式知識，並審核回答改善候選",
+          "status": "verify",
+          "evidence": "platform.html#platform-helper / getDoingHelperKnowledgeAdmin / publishDoingHelperKnowledge"
+        },
+        {
+          "label": "一般使用者常見問題使用已審核快速回答；自由提問才呼叫 AI，並區分參加者、申請者與主辦角色",
+          "status": "verify",
+          "evidence": "supabase_doing_helper_consumer_faq_v3.sql / doingHelperConsumerCanonicalReply / doingHelperAudience"
         },
         {
           "label": "客服入口顯示第一次使用者常見問題，切換後自動露出完整智慧介面頂端",
