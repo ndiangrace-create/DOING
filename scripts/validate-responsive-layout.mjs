@@ -7,6 +7,7 @@ for(const page of pages){
   const source=fs.readFileSync(root+'/'+page,'utf8');
   if(!/<meta[^>]+name=["']viewport["']/i.test(source))fail(page+' 缺少 viewport');
   if(!source.includes('doing-system.css'))fail(page+' 未載入全系統框架');
+  if(!source.includes('doing-system.css?v=20260817-system5'))fail(page+' 未載入最新防裁切框架');
   if(!/class=["'][^"']*\bdoing-app\b/.test(source))fail(page+' 缺少 doing-app');
 }
 const css=fs.readFileSync(root+'/doing-system.css','utf8');
@@ -31,5 +32,8 @@ for(const token of ['.doing-card-copy h3','-webkit-line-clamp:unset!important','
 }
 for(const token of ['body.doing-app.doing-admin :where(.tabs .tab,.etc-sub,.equip-name-readonly,.equip-table-name)','body.doing-app.doing-member .overview-secondary']){
   if(!css.includes(token))fail('內頁文字完整顯示契約缺少：'+token);
+}
+for(const token of ['DOING_NO_BROKEN_VIEWPORT_CONTRACT_V1','html,body{max-width:100%!important;overflow-x:auto!important}','flex-wrap:wrap!important;overflow:visible!important','flex-wrap:nowrap!important;overflow-x:auto!important','body.doing-app table:not(.seat-map){display:block!important']){
+  if(!css.includes(token))fail('全站防橫向裁切契約缺少：'+token);
 }
 console.log('響應式框架驗證完成：'+pages.length+' 個正式頁面，手機／電腦共用契約、登入後會員按鈕與文字不裁切規則有效。');

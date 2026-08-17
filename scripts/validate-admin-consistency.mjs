@@ -30,7 +30,7 @@ for(const marker of [
   '第一步：先看每一場賺多少'
 ])assert(admin.includes(marker),`缺少後台一致性標記：${marker}`);
 
-assert(admin.includes('doing-system.css?v=20260816-system4'),'主辦後台必須套用最新共用響應式框架');
+assert(admin.includes('doing-system.css?v=20260817-system5'),'主辦後台必須套用最新共用響應式框架');
 
 assert(!/linear-gradient|radial-gradient/i.test(admin),'主辦後台不得包含任何漸層');
 for(const color of ['#f7f2e5','#dfd3b8','#d3ad47','#fffdf9','#f7f6f1','#f4f0ea','#fbf8f1']){

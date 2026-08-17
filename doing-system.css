@@ -371,3 +371,22 @@ body.doing-app.doing-member .overview-secondary{
     height:auto!important;
   }
 }
+
+/* DOING_NO_BROKEN_VIEWPORT_CONTRACT_V1
+   全站禁止用 overflow-x:hidden 掩蓋破版；桌機按鈕列換行，手機按鈕列可完整橫滑。 */
+html,body{max-width:100%!important;overflow-x:auto!important}
+body.doing-app :where(main,.wrap,.shell,.container,.app,.page,section,article,header,footer,nav,form,fieldset){min-width:0!important;max-width:100%!important}
+body.doing-app :where(.grid,.cards,.metrics,.detail-grid,.compact-grid,.field-grid,.choice-grid)>*{min-width:0!important;max-width:100%!important}
+body.doing-app :where(img,svg,video,canvas,iframe){max-width:100%!important}
+body.doing-app :where(pre,code){max-width:100%!important;overflow-x:auto!important;overflow-wrap:normal!important}
+body.doing-app :where(.table-wrap,.table-scroll,.data-table-wrap){width:100%!important;max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+body.doing-app :where(.tabs,.platform-nav,.scenario-tabs,.portal-row,.doing-quick-tags,.filter-row,.toolbar,.subtabs){min-width:0!important;max-width:100%!important;scroll-padding-inline:12px;overscroll-behavior-inline:contain}
+@media (min-width:761px){
+  body.doing-app :where(.tabs,.platform-nav,.scenario-tabs,.portal-row,.doing-quick-tags,.filter-row,.toolbar,.subtabs){display:flex!important;flex-wrap:wrap!important;overflow:visible!important}
+  body.doing-app :where(.scenario-tabs,.portal-row,.doing-quick-tags)>*{min-width:0!important;max-width:100%!important;flex:0 1 auto!important}
+}
+@media (max-width:760px){
+  body.doing-app :where(.tabs,.platform-nav,.scenario-tabs,.portal-row,.doing-quick-tags,.filter-row,.subtabs){display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:visible!important;padding-inline:12px!important;scrollbar-width:auto!important}
+  body.doing-app :where(.tabs,.platform-nav,.scenario-tabs,.portal-row,.doing-quick-tags,.filter-row,.subtabs)>*{flex:0 0 auto!important;max-width:calc(100vw - 36px)!important}
+  body.doing-app table:not(.seat-map){display:block!important;width:100%!important;max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+}
