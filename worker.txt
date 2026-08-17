@@ -3656,7 +3656,7 @@ function doingHelperFallback(useCases,painPoints,workSituations){
 }
 function doingHelperSafeReply(text,fallback){
   const value=String(text||'').trim().slice(0,700);
-  if(!value||/(system prompt|developer message|內部指令|功能樹|moduleProfile|needFlags|tenant_apply_logs|其他租戶|別的品牌資料)/i.test(value))return fallback;
+  if(!value||/(system prompt|developer message|內部指令|功能樹|moduleProfile|needFlags|tenant_apply_logs)/i.test(value))return fallback;
   return value;
 }
 async function callDoingHelperAI(env,input,fallback){
