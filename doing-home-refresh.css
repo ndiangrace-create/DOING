@@ -254,29 +254,29 @@ html.doing-public-refactor body>.top,html.doing-public-refactor body>.bottom-nav
 }
 
 /* 首頁互動元件形狀契約：最後載入，統一為方形小圓角。 */
-#doingGlobalFixedNav .g-pill,
-#doingGlobalFixedNav .doing-nav-action,
-.doing-public-app button,
-.doing-public-app a[data-organizer-target],
-.doing-public-app .doing-card-cta,
-.doing-public-app .btn,
-.doing-member-gate button,
-.modal .close{border-radius:12px!important}
-.doing-search-box{border-radius:16px!important}
-.doing-search-box button,
-.doing-quick-tags button,
-.doing-organizer-content .scenario-tabs button,
-.doing-chat-feedback button{border-radius:10px!important}
-.doing-carousel-arrow{border-radius:12px!important}
-.doing-activity-dots button,
-.doing-activity-dots button.active{border-radius:3px!important}
-.doing-my-entry-close,
-.doing-member-close,
-.modal .close{
+body.doing-app #doingGlobalFixedNav .g-pill,
+body.doing-app #doingGlobalFixedNav .doing-nav-action,
+body.doing-app .doing-public-app button,
+body.doing-app .doing-public-app a[data-organizer-target],
+body.doing-app .doing-public-app .doing-card-cta,
+body.doing-app .doing-public-app .btn,
+body.doing-app .doing-member-gate button,
+body.doing-app .modal .close{border-radius:12px!important}
+body.doing-app .doing-search-box{border-radius:16px!important}
+body.doing-app .doing-search-box button,
+body.doing-app .doing-quick-tags button,
+body.doing-app .doing-organizer-content .scenario-tabs button,
+body.doing-app .doing-chat-feedback button{border-radius:10px!important}
+body.doing-app .doing-carousel-arrow{border-radius:12px!important}
+body.doing-app .doing-activity-dots button,
+body.doing-app .doing-activity-dots button.active{border-radius:3px!important}
+body.doing-app .doing-my-entry-close,
+body.doing-app .doing-member-close,
+body.doing-app .modal .close{
   width:40px!important;
   height:40px!important;
   min-height:40px!important;
   padding:0!important;
   border-radius:10px!important;
 }
-.doing-organizer-details>summary:after{border-radius:10px!important}
+body.doing-app .doing-organizer-details>summary:after{border-radius:10px!important}
