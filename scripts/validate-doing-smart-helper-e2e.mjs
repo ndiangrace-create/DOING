@@ -14,10 +14,13 @@ for(const copy of ['DOING 智慧小幫手','DOING 線上智能客服','我只能
 for(const value of ['team','appointment','deposit','shared_customers','multi_brand','one_brand_many_jobs','no_show','staff_mix'])assert(page.includes(`value="${value}"`),`問卷缺少 ${value}`);
 assert(page.includes('data-helper-topic="data"')&&page.includes('data-helper-topic="billing"')&&page.includes('data-helper-topic="adjust"'),'缺少 DOING 範圍內的客服快問');
 assert(page.includes('setupSmartApplicationFlow')&&page.includes("form.classList.add('is-smart-flow')"),'申請仍是舊式長問卷，未改成智慧引導頁');
-assert(home.includes('doing-about-refresh.css?v=20260817b'),'首頁未載入最新智慧申請樣式');
+assert(home.includes('doing-about-refresh.css?v=20260817c'),'首頁未載入最新智慧申請樣式');
 assert(css.includes('.apply-form.is-smart-flow>.group{display:none!important}')&&css.includes('.apply-form.is-smart-flow>.group.is-active{display:block!important}'),'首頁未限制為一次只顯示一個主題區段');
-assert(page.includes('scrollBelowFixedNav')&&page.includes('requestAnimationFrame(()=>scrollBelowFixedNav(form))'),'開始申請後未避開固定導覽列');
+assert(page.includes("chatShell?.classList.toggle('is-application-mode'")&&page.includes("form?.scrollTo({top:0,behavior:'smooth'})"),'開始申請後未留在同一個對話框');
 assert(css.includes('只修正固定導覽與容器裁切文字')&&css.includes('overflow:visible!important')&&css.includes('scroll-margin-top:138px!important'),'申請框架仍可能裁切標題或欄位文字');
+assert(css.includes('單一對話視窗')&&css.includes('width:min(100%,1160px)!important')&&css.includes('height:min(82vh,860px)'),'電腦版對話框未加寬或加高');
+assert(css.includes('height:calc(100svh - 150px)')&&css.includes('grid-template-columns:minmax(0,1fr) 62px'),'手機版未維持響應式對話框與 LINE 式輸入列');
+assert(css.includes('overflow-y:auto!important')&&page.includes("activeForm.scrollTo({top:Math.max(0"),'申請內容未限制在對話框內捲動');
 assert(page.includes('跟著 DOING 智慧小幫手完成申請'),'缺少智慧申請頁標題');
 assert(page.includes('id="doingHelperWelcome"')&&page.includes('id="startDoingApplication"')&&page.includes('id="startDoingSupport"'),'申請入口必須先顯示含「開始申請／詢問客服」的智慧小幫手框');
 assert(page.includes('id="signupForm" onsubmit="return false" hidden'),'未選擇開始申請前，不得先攤開申請內容');
