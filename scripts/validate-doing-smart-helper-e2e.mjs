@@ -12,12 +12,18 @@ const sql=fs.readFileSync('supabase_doing_helper_traces.sql','utf8');
 const knowledgeSql=fs.readFileSync('supabase_doing_helper_knowledge.sql','utf8');
 const knowledgeV2Sql=fs.readFileSync('supabase_doing_helper_knowledge_v2.sql','utf8');
 const consumerFaqSql=fs.readFileSync('supabase_doing_helper_consumer_faq_v3.sql','utf8');
+const consumerFaqV4Sql=fs.readFileSync('supabase_doing_helper_consumer_faq_v4.sql','utf8');
 
 for(const copy of ['DOING 智慧小幫手','DOING 線上智能客服','我只能協助 DOING 系統','scopeStatus:\'out_of_scope\'','dataPolicy:\'same_brand_customer_shared_work_records_separate\'']){
   assert(page.includes(copy)||worker.includes(copy),`缺少範圍或資料規則：${copy}`);
 }
 for(const value of ['team','appointment','deposit','shared_customers','multi_brand','one_brand_many_jobs','no_show','staff_mix'])assert(page.includes(`value="${value}"`),`問卷缺少 ${value}`);
-for(const question of ['DOING 可以幫我做什麼？','第一次要怎麼報名或預約？','報名後要去哪裡看進度與紀錄？','為什麼我的報名顯示待審核？名額滿了可以候補嗎？','付款後要怎麼確認有沒有成功？','我想取消報名、改時間或申請退款，該怎麼辦？','我沒有收到錄取、付款或行前通知，該怎麼辦？','到活動現場要怎麼報到？','我的資料會被不同主辦看到嗎？'])assert(page.includes(`data-entry-helper-question="${question}"`),`缺少一般使用者常見問題：${question}`);
+for(const question of ['第一次要怎麼報名或預約？','報名送出後，要怎麼確認有沒有成功？','報名後要去哪裡看進度與紀錄？','為什麼我的報名顯示待審核？名額滿了可以候補嗎？','付款後要怎麼確認有沒有成功？','報名資料填錯了，送出後還可以修改嗎？','我想取消報名、改時間或申請退款，該怎麼辦？','我沒有收到錄取、付款或行前通知，該怎麼辦？','到活動現場要怎麼報到？','我要怎麼聯絡活動主辦？','我的資料會被不同主辦看到嗎？'])assert(page.includes(`data-entry-helper-question="${question}"`),`缺少報名／預約者常見問題：${question}`);
+assert(homeRefresh.includes('id="doingOrganizerDetails" class="doing-organizer-details" hidden')&&!homeRefresh.includes("loadOrganizerDetails('scenes',false);"),'首頁仍會自動顯示舊主辦長頁');
+assert(homeRefresh.includes("section.hidden=section.id!==actualTarget")&&homeRefresh.includes('helperStartActions.hidden=true'),'報名客服、主辦資訊與申請仍同時堆在畫面上');
+assert(homeRefresh.includes("applicationMode=target==='apply'")&&homeRefresh.includes("content.querySelector('#startDoingApplication')?.click()")&&homeRefresh.includes("content.querySelector('#startDoingSupport')?.click()"),'報名客服與營運申請未依入口直接進入各自模式');
+assert(homeRefresh.indexOf('id="doingPublicActivityList"')<homeRefresh.indexOf('id="doingPublicActivities"'),'搜尋結果仍隔著近期開放活動，搜尋後會造成跨區跳動');
+assert(homeRefresh.includes("details.hidden=true")&&homeRefresh.includes('id="closeDoingOrganizerDetails"'),'首頁按需內容缺少關閉功能');
 assert(page.includes('setupSmartApplicationFlow')&&page.includes("form.classList.add('is-smart-flow')"),'申請仍是舊式長問卷，未改成智慧引導頁');
 assert(home.includes('doing-about-refresh.css?v=20260817k'),'首頁未載入最新智慧申請樣式');
 assert(css.includes('.apply-form.is-smart-flow>.group{display:none!important}')&&css.includes('.apply-form.is-smart-flow>.group.is-active{display:block!important}'),'首頁未限制為一次只顯示一個主題區段');
@@ -78,6 +84,7 @@ assert(!/grant[^;]*(update|delete|truncate)/i.test(sql),'個人軌跡不得允�
 for(const table of ['doing_helper_knowledge_entries','member_helper_conversations','member_helper_messages','doing_helper_improvement_queue'])assert(knowledgeSql.includes(`alter table public.${table} enable row level security`),`${table} 未啟用 RLS`);
 for(const key of ['tenant_data_isolation','member_login_identity','activity_setup_publish','registration_review_waitlist','booking_schedule_resources','market_equipment_seating','payment_refund_records','notifications_calendar','onsite_checkin_closeout','staff_roles_permissions','support_escalation','knowledge_governance','confidentiality_boundary'])assert(knowledgeV2Sql.includes(`'${key}'`),`公開知識 v2 缺少 ${key}`);
 for(const key of ['consumer_doing_overview','consumer_start_registration','consumer_view_registration','consumer_review_waitlist','consumer_pending_review','consumer_waitlist','consumer_payment_status','consumer_cancel_reschedule','consumer_missing_notification','consumer_onsite_checkin','consumer_support_routing'])assert(consumerFaqSql.includes(`'${key}'`),`一般使用者知識 v3 缺少 ${key}`);
+for(const key of ['consumer_registration_submitted','consumer_edit_registration'])assert(consumerFaqV4Sql.includes(`'${key}'`),`報名／預約者知識 v4 缺少 ${key}`);
 assert(worker.indexOf('doingHelperConsumerCanonicalReply(question)')<worker.indexOf('Promise.all([doingHelperMemberMemory(env,b),platformBillingPolicy(env),doingHelperKnowledgeContext'),'常見問答未在資料庫與 AI 呼叫前快速回覆');
 assert(worker.includes("engineStatus:'approved_consumer_knowledge'")&&worker.includes("return 'participant'")&&worker.includes('不可把參加者與主辦後台步驟混在一起'),'小幫手未區分一般使用者與主辦角色');
 assert(platform.includes('data-platform-page="helper"')&&platform.includes('id="platformHelperSection"'),'DOING 營運後台缺少智慧小幫手管理入口');

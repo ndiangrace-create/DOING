@@ -201,7 +201,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     <div class="section-head doing-helper-section-head">
       <span class="section-kicker blue">DOING 智慧服務</span>
       <h2 id="doingSmartHelperSectionTitle">DOING 智慧小幫手</h2>
-      <p>申請營運帳號或詢問使用問題，都在這個獨立對話區完成。</p>
+      <p>報名／預約問題與營運帳號申請，都能在這個獨立對話區完成。</p>
     </div>
     <div id="applicationPanel">
     <div id="applicationPendingBanner" class="banner"><b>申請已送出，等待 DOING 審核。</b><br>審核通過後才會建立正式營運帳號；需要補件時會另外通知。</div>
@@ -219,14 +219,16 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
         <div id="doingSupportChoices" class="doing-support-choices" hidden>
           <p>大家第一次最常問</p>
           <div class="doing-helper-actions">
-            <button type="button" data-entry-helper-question="DOING 可以幫我做什麼？">DOING 可以幫我做什麼？</button>
             <button type="button" data-entry-helper-question="第一次要怎麼報名或預約？">第一次怎麼報名？</button>
+            <button type="button" data-entry-helper-question="報名送出後，要怎麼確認有沒有成功？">怎麼確認報名成功？</button>
             <button type="button" data-entry-helper-question="報名後要去哪裡看進度與紀錄？">報名後在哪看進度？</button>
             <button type="button" data-entry-helper-question="為什麼我的報名顯示待審核？名額滿了可以候補嗎？">待審核／候補是什麼？</button>
             <button type="button" data-entry-helper-question="付款後要怎麼確認有沒有成功？">付款後怎麼確認？</button>
+            <button type="button" data-entry-helper-question="報名資料填錯了，送出後還可以修改嗎？">報名資料填錯怎麼辦？</button>
             <button type="button" data-entry-helper-question="我想取消報名、改時間或申請退款，該怎麼辦？">取消／改期／退款</button>
             <button type="button" data-entry-helper-question="我沒有收到錄取、付款或行前通知，該怎麼辦？">收不到通知怎麼辦？</button>
             <button type="button" data-entry-helper-question="到活動現場要怎麼報到？">現場怎麼報到？</button>
+            <button type="button" data-entry-helper-question="我要怎麼聯絡活動主辦？">怎麼聯絡活動主辦？</button>
             <button type="button" data-entry-helper-question="我的資料會被不同主辦看到嗎？">不同主辦會看到資料嗎？</button>
           </div>
         </div>
@@ -436,11 +438,13 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     const text=String(question||'');
     if(/DOING.{0,8}(可以|能).{0,8}(幫|做|功能)|DOING.{0,8}(有哪些|能做什麼)|可以幫我做什麼/.test(text))return 'DOING 可以陪你完成「找活動或服務 → 報名／預約 → 查看審核與付款 → 接收行前資訊 → 現場報到」；如果你是主辦或服務提供者，也能申請營運帳號來建立內容、管理名單、收付款、通知與現場流程。你可以直接告訴我現在想完成哪一件事，我會只說你這個角色需要的步驟。';
     if(/(怎麼|如何|第一次).{0,5}(報名|預約)|我要(報名|預約)/.test(text))return '先在 DOING 首頁選擇活動或可預約內容，進入公開頁後按「查看並報名／預約」，依畫面完成場次、個人資料與必要選項，最後確認送出。送出後可從「我的報名」查看審核、付款與後續通知。';
+    if(/報名.{0,6}(送出|成功).{0,8}(確認|怎麼知道|有沒有)|怎麼確認.{0,5}報名/.test(text))return '送出後，畫面會顯示完成訊息，並在「我的報名」建立同一筆紀錄；看到該筆活動與目前狀態，就代表系統已收到。若畫面中斷或「我的報名」沒有紀錄，先不要重複送出，請重新整理後再確認。';
     if(/報名後.{0,10}(哪|哪裡|進度|紀錄)|去哪.{0,5}(看|查)|我的報名.{0,5}(在哪|怎麼)/.test(text))return '請按首頁上方的「我的報名」，使用本人的 LINE 登入後即可查看所有 DOING 報名／預約紀錄，包括審核、付款、位置、改期、退款與行前資訊。若剛送出還沒顯示，先重新整理一次；仍沒有再聯絡該活動主辦。';
     if(/待審核/.test(text)&&/(名額滿|候補)/.test(text))return '「待審核」表示資料已送出，正在等主辦確認，不需要重複報名；「候補」則表示目前沒有正式名額。請到「我的報名」查看同一筆紀錄，若候補轉為錄取，狀態會直接更新。審核時間、候補順序與是否釋出名額由該活動主辦決定。';
     if(/待審核|為什麼.{0,6}審核/.test(text))return '「待審核」表示資料已送出，但該活動設定為由主辦確認後才錄取，目前不需要重複報名。請到「我的報名」留意狀態與補件通知；實際審核時間與錄取條件由該活動主辦決定。';
     if(/名額滿|候補/.test(text))return '是否能候補要看該活動是否開放候補。若報名頁顯示候補，就可依畫面送出；候補轉為錄取時，狀態會更新在同一筆「我的報名」紀錄，不用重新填一次。沒有候補入口時，請直接詢問該活動主辦。';
     if(/付款後|付款.{0,8}(成功|確認|入帳)|有沒有.{0,5}付款/.test(text))return '完成付款後，仍要回到「我的報名」送出付款回報；畫面顯示「付款待確認」代表主辦尚在核帳，顯示「已繳費」才是確認完成。若長時間沒有更新，請把付款時間、金額與報名紀錄提供給該活動主辦核對。';
+    if(/報名.{0,8}(資料|內容).{0,8}(填錯|修改|更改)|送出後.{0,8}(修改|改資料)/.test(text))return '先到「我的報名」打開該筆紀錄；若畫面有「補件」或「編輯」入口，可直接依提示修改。已進入審核、付款或錄取流程而沒有修改按鈕時，請聯絡該活動主辦協助，不要重新報名，以免產生重複紀錄。';
     if(/取消|改期|改時間|換時間|退款/.test(text))return '請先到「我的報名」打開該筆紀錄：尚未付款且畫面有「取消報名」時可直接取消；已付款、需要改期或涉及退款時，請聯絡該活動主辦依公告規則處理。DOING 小幫手不會自行承諾退款金額或修改正式紀錄。';
     if(/收不到.{0,5}(通知|信)|沒有收到.{0,5}(通知|信)/.test(text))return '先到「我的報名」確認最新狀態，再檢查垃圾郵件與報名時使用的聯絡資料。單一活動的錄取、付款、位置或行前通知由該活動主辦發送；紀錄已更新但仍沒收到通知時，請直接聯絡主辦補發。';
     if(/現場.{0,6}報到|到.{0,5}(活動|現場).{0,5}報到|怎麼報到/.test(text))return '活動當天先打開「我的報名」找到該場紀錄，依主辦通知出示報名資料、位置或 QR／核銷資訊。若畫面有開放本人報到按鈕，可直接操作；沒有按鈕時由現場工作人員核對。報到時間與方式以該活動最新通知為準。';

@@ -329,8 +329,8 @@ function publicAppHTML(){
       <span class="doing-hero-blob blob-a" aria-hidden="true"></span><span class="doing-hero-blob blob-b" aria-hidden="true"></span>
       <div class="doing-hero-copy" id="doingPublicSearch">
         <div class="doing-hero-logo" aria-label="DOING 活動預約營運管理系統"><img src="doing-logo.png?v=20260815k" alt="DOING 活動預約營運管理系統"></div>
-        <h1>表單只收到報名，<br>DOING 幫你把活動做完。</h1>
-        <p class="doing-hero-desc">從找活動、報名與付款，到主辦端的審核、通知、選位、現場報到、退款與財務結案，每一步都沿用同一筆正式資料，不必再整理五張表。</p>
+        <h1>找活動、報名、預約，<br>進度都在 DOING。</h1>
+        <p class="doing-hero-desc">從找活動、送出報名，到查看審核、付款、候補、位置與行前通知，都能從「我的報名」接著處理，不用到處找訊息。</p>
         <div class="doing-search-box">
           <span class="doing-search-icon" aria-hidden="true"></span>
           <input id="doingPublicSearchInput" type="search" placeholder="搜尋活動、課程、體驗或地點" aria-label="搜尋活動、課程、體驗或地點" autocomplete="off">
@@ -352,6 +352,11 @@ function publicAppHTML(){
       </div>
     </section>
 
+    <section class="doing-public-section doing-list-section" aria-label="所有開放活動">
+      <div class="doing-list-head"><div><span class="doing-kicker">找活動</span><h2>搜尋結果與所有開放活動</h2></div><span>左右滑動查看更多活動</span></div>
+      <div id="doingPublicActivityList" class="doing-public-activity-list" aria-live="polite"></div>
+    </section>
+
     <section class="doing-public-section doing-activities-section" id="doingPublicActivities" aria-label="近期開放活動廣告輪播">
       <div class="doing-section-title row">
         <div><span class="doing-kicker">活動快訊</span><h2 id="doingActivityLabel">近期開放活動</h2><p>付費曝光中的活動會在這裡隨機輪播，點進去即可查看完整內容。</p></div>
@@ -364,11 +369,6 @@ function publicAppHTML(){
         <button id="doingActivityNext" class="doing-carousel-arrow next" type="button" aria-label="下一個活動">›</button>
         <div class="doing-carousel-footer"><div id="doingActivityDots" class="doing-activity-dots" aria-label="活動頁數"></div><span id="doingActivityCount">1 / 5</span></div>
       </div>
-    </section>
-
-    <section class="doing-public-section doing-list-section" aria-label="所有開放活動">
-      <div class="doing-list-head"><div><span class="doing-kicker">找活動</span><h2>所有開放活動</h2></div><span>左右滑動查看更多活動</span></div>
-      <div id="doingPublicActivityList" class="doing-public-activity-list" aria-live="polite"></div>
     </section>
 
     <section class="doing-my-highlight" aria-label="快速報名功能亮點">
@@ -384,8 +384,8 @@ function publicAppHTML(){
       <div class="doing-organizer-actions"><a href="#doingOrganizerDetails" data-organizer-target="apply">申請營運帳號</a><a class="secondary" href="#doingOrganizerDetails" data-organizer-target="pricing">查看主辦方案</a></div>
     </section>
 
-    <section id="doingOrganizerDetails" class="doing-organizer-details">
-      <header class="doing-organizer-heading"><h2>主辦方案與營運情境</h2><p>情境、功能、費用與申請都直接顯示在這一頁。</p></header>
+    <section id="doingOrganizerDetails" class="doing-organizer-details" hidden>
+      <header class="doing-organizer-heading"><div><h2>主辦方案與營運情境</h2><p>需要時才展開，不占用報名者首頁。</p></div><button id="closeDoingOrganizerDetails" type="button" aria-label="關閉主辦方案或客服">關閉</button></header>
       <div id="doingOrganizerContent" class="doing-organizer-content"><div class="doing-organizer-loading">準備主辦方案…</div></div>
     </section>
 
@@ -421,9 +421,26 @@ async function loadOrganizerDetails(target='scenes',shouldScroll=true){
     }).catch(error=>{content.innerHTML='<div class="doing-organizer-loading">'+esc(error.message||'主辦方案讀取失敗，請稍後再試。')+'</div>';organizerLoadPromise=null});
   }
   await organizerLoadPromise;
-  const helperMode=target==='support-helper',actualTarget=helperMode?'apply':target;
+  const helperMode=target==='support-helper',applicationMode=target==='apply',actualTarget=helperMode||applicationMode?'apply':target;
+  details.hidden=false;
+  const heading=details.querySelector('.doing-organizer-heading'),headingTitle=heading?.querySelector('h2'),headingText=heading?.querySelector('p');
+  if(headingTitle)headingTitle.textContent=helperMode?'報名／預約智慧客服':applicationMode?'營運帳號智慧申請':'主辦方案與營運情境';
+  if(headingText)headingText.textContent=helperMode?'給一般報名與預約者使用；直接說你卡在哪個步驟。':applicationMode?'給主辦或服務提供者申請 DOING 營運帳號。':'只顯示你選擇的主辦資訊，不再展開整頁舊內容。';
+  [...content.children].forEach(section=>{if(section.matches('section'))section.hidden=section.id!==actualTarget});
   const section=content.querySelector('#'+CSS.escape(actualTarget))||content.querySelector('#scenes');
-  if(helperMode){content.querySelector('#doingHelperWelcome')?.removeAttribute('hidden');content.querySelector('#signupForm')?.setAttribute('hidden','');content.querySelector('#startDoingSupport')?.click()}
+  const helperSection=content.querySelector('#apply'),helperHeading=helperSection?.querySelector('.doing-helper-section-head'),helperStartActions=content.querySelector('.doing-helper-start-actions');
+  if(helperMode){
+    if(helperHeading){helperHeading.querySelector('h2').textContent='DOING 報名／預約小幫手';helperHeading.querySelector('p').textContent='回答找活動、報名、預約、審核、候補、付款、通知、改期、退款與現場報到問題。'}
+    if(helperStartActions)helperStartActions.hidden=true;
+    content.querySelector('#doingHelperWelcome')?.removeAttribute('hidden');content.querySelector('#signupForm')?.setAttribute('hidden','');content.querySelector('#startDoingSupport')?.click();
+  }else if(applicationMode){
+    if(helperHeading){helperHeading.querySelector('h2').textContent='DOING 營運帳號智慧申請';helperHeading.querySelector('p').textContent='一次完成一個申請主題，可勾選也可補充文字。';}
+    if(helperStartActions)helperStartActions.hidden=true;
+    content.querySelector('#doingHelperWelcome')?.removeAttribute('hidden');content.querySelector('#signupForm')?.setAttribute('hidden','');content.querySelector('#startDoingApplication')?.click();
+  }else{
+    if(helperHeading){helperHeading.querySelector('h2').textContent='DOING 智慧小幫手';helperHeading.querySelector('p').textContent='申請營運帳號或詢問使用問題，都在這個獨立對話區完成。'}
+    if(helperStartActions)helperStartActions.hidden=false;
+  }
   if(shouldScroll)setTimeout(()=>smoothTo(helperMode?(content.querySelector('.smart-application-shell')||section||details):(section||details)),60);
 }
 window.openDoingOrganizerDetails=loadOrganizerDetails;
@@ -450,7 +467,7 @@ function buildPublicApp(){
   const support=$('pageSupport');if(support)support.remove();
   const oldSingle=$('doingSinglePageSections');if(oldSingle)oldSingle.remove();
   const oldModal=$('globalSearchModal');if(oldModal)oldModal.classList.remove('show');
-  loadOrganizerDetails('scenes',false);
+  $('closeDoingOrganizerDetails')?.addEventListener('click',()=>{const details=$('doingOrganizerDetails');if(details)details.hidden=true;window.scrollTo({top:0,behavior:'smooth'})});
 }
 
 function openMyEntry(){if(memberAuth.complete){location.href='member.html';return}const modal=$('doingMyEntryModal');if(modal){modal.hidden=false;document.body.style.overflow='hidden';modal.querySelector('[data-my-action="login"]')?.focus()}}

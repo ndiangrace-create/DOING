@@ -1,5 +1,5 @@
 {
-  "version": 16,
+  "version": 17,
   "updatedAt": "2026-08-17",
   "statusLabels": {
     "done": "已完成",
@@ -74,7 +74,7 @@
         {
           "label": "一般使用者常見問題使用已審核快速回答；自由提問才呼叫 AI，並區分參加者、申請者與主辦角色",
           "status": "verify",
-          "evidence": "supabase_doing_helper_consumer_faq_v3.sql / entryQuickAnswer / doingHelperConsumerCanonicalReply / doingHelperAudience"
+          "evidence": "supabase_doing_helper_consumer_faq_v3.sql / supabase_doing_helper_consumer_faq_v4.sql / entryQuickAnswer / doingHelperConsumerCanonicalReply / doingHelperAudience"
         },
         {
           "label": "後台可一鍵發布全部已核准及官方可確認的安全答案；不確定或敏感內容保留待審",
@@ -85,6 +85,11 @@
           "label": "客服入口顯示第一次使用者常見問題，切換後自動露出完整智慧介面頂端",
           "status": "verify",
           "evidence": "data-entry-helper-question / showHelperFromTop / loadOrganizerDetails"
+        },
+        {
+          "label": "首頁不再自動展開舊主辦長頁；報名客服、營運申請與主辦資訊依入口獨立顯示",
+          "status": "verify",
+          "evidence": "doingOrganizerDetails hidden / helperMode / applicationMode / closeDoingOrganizerDetails"
         },
         {
           "label": "不同營運單位資料明確隔離，同一登入身分不代表營運資料共用",
