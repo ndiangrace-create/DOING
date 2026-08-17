@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const page=fs.readFileSync('about.html','utf8');
+const home=fs.readFileSync('index.html','utf8');
+const css=fs.readFileSync('doing-about-refresh.css','utf8');
 const worker=fs.readFileSync('worker.js','utf8');
 const mirror=fs.readFileSync('worker.txt','utf8');
 const sql=fs.readFileSync('supabase_doing_helper_traces.sql','utf8');
@@ -12,7 +14,12 @@ for(const copy of ['DOING 智慧小幫手','DOING 線上智能客服','我只能
 for(const value of ['team','appointment','deposit','shared_customers','multi_brand','one_brand_many_jobs','no_show','staff_mix'])assert(page.includes(`value="${value}"`),`問卷缺少 ${value}`);
 assert(page.includes('data-helper-topic="data"')&&page.includes('data-helper-topic="billing"')&&page.includes('data-helper-topic="adjust"'),'缺少 DOING 範圍內的客服快問');
 assert(page.includes('setupSmartApplicationFlow')&&page.includes("form.classList.add('is-smart-flow')"),'申請仍是舊式長問卷，未改成智慧引導頁');
+assert(home.includes('doing-about-refresh.css?v=20260817a'),'首頁未載入智慧申請樣式');
+assert(css.includes('.apply-form.is-smart-flow>.group{display:none!important}')&&css.includes('.apply-form.is-smart-flow>.group.is-active{display:block!important}'),'首頁未限制為一次只顯示一題');
 assert(page.includes('跟著 DOING 智慧小幫手完成申請'),'缺少智慧申請頁標題');
+assert(page.includes('id="doingHelperWelcome"')&&page.includes('id="startDoingApplication"')&&page.includes('id="startDoingSupport"'),'申請入口必須先顯示含「開始申請／詢問客服」的智慧小幫手框');
+assert(page.includes('id="signupForm" onsubmit="return false" hidden'),'未選擇開始申請前，不得先攤開申請內容');
+assert(page.includes('id="signupIndustryOpen"')&&page.includes('id="signupWorkOpen"')&&page.includes('openAnswers:helperOpenAnswers()'),'區段回答必須同時支援勾選與開放文字');
 assert(!page.includes('id="signupGoogleBtn"'),'公開申請不得顯示 Google 驗證');
 assert(!page.includes('先回公開活動入口'),'智慧申請頁不得殘留舊返回按鈕');
 assert(!page.includes('id="signupModulePreview"'),'首頁不得顯示內部功能清單');

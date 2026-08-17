@@ -77,7 +77,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
 @media(max-width:760px){body{font-size:17px}.topin,.shell{width:100%;padding-left:12px;padding-right:12px}.topin{min-height:64px}.brand-title{font-size:22px}.top-actions .link{display:none}.hero-main,.apply-form,.side-panel,.side-card,.card,.step,.price-card{border-radius:22px}.hero-points,.grid-3,.feature-grid,.field-grid,.choice-grid,.pricing{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.quick-nav{top:64px}}
 </style>
 <link rel="stylesheet" href="doing-system.css?v=20260816-system4">
-<link rel="stylesheet" href="doing-about-refresh.css?v=20260815b">
+<link rel="stylesheet" href="doing-about-refresh.css?v=20260817a">
 <link rel="stylesheet" href="doing-design-tokens.css?v=20260816a">
 <link rel="stylesheet" href="doing-pastel-pages.css?v=20260816a">
 </head>
@@ -202,11 +202,28 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     <div id="applicationPanel" hidden>
     <div id="applicationPendingBanner" class="banner"><b>申請已送出，等待 DOING 審核。</b><br>審核通過後才會建立正式營運帳號；需要補件時會另外通知。</div>
     <div class="apply-wrap smart-application-shell">
-      <form class="apply-form" id="signupForm" onsubmit="return false">
+      <div id="doingHelperWelcome" class="doing-helper-welcome" aria-live="polite">
+        <div class="doing-helper-head"><div class="doing-helper-mark">D</div><div><b>嗨，我是 DOING 智慧小幫手</b><span>想申請使用，還是先問問我？</span></div></div>
+        <div id="doingWelcomeMessage" class="doing-helper-message">我只協助 DOING 的申請、使用方式、資料安排與費用問題。</div>
+        <div class="doing-helper-start-actions">
+          <button class="primary" type="button" id="startDoingApplication">開始申請</button>
+          <button type="button" id="startDoingSupport">詢問客服</button>
+        </div>
+        <div id="doingSupportChoices" class="doing-support-choices" hidden>
+          <p>你想先了解哪一件事？</p>
+          <div class="doing-helper-actions">
+            <button type="button" data-entry-helper-topic="data">不同工作資料會混在一起嗎？</button>
+            <button type="button" data-entry-helper-topic="billing">費用怎麼算？</button>
+            <button type="button" data-entry-helper-topic="adjust">之後可以調整嗎？</button>
+          </div>
+        </div>
+        <p class="doing-helper-note">未登入時不保存對話；重整或換瀏覽器後就會清除。</p>
+      </div>
+      <form class="apply-form" id="signupForm" onsubmit="return false" hidden>
         <div class="form-head">
           <div>
             <h2>跟著 DOING 智慧小幫手完成申請</h2>
-            <p>我會一次帶你完成一個階段，最後使用 LINE 驗證送出。</p>
+            <p>我們會像聊天一樣，一次完成一個主題區段；同一區段可以一起勾選或填寫。</p>
           </div>
         </div>
 
@@ -248,6 +265,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
             <label class="choice"><input type="checkbox" value="professional_service"><span><b>專業服務／一對一預約</b></span></label>
             <label class="choice"><input type="checkbox" value="other"><span><b>其他通用營運</b></span></label>
           </div>
+          <div class="field" style="margin-top:12px"><label for="signupIndustryOpen">選項沒說完整？也可以自己說</label><textarea id="signupIndustryOpen" placeholder="例如：我同時做美甲、教學，也會和其他老師合辦活動。"></textarea></div>
         </div>
 
         <div class="group">
@@ -271,6 +289,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
             <label class="choice"><input type="checkbox" value="multi_brand"><span><b>我同時經營不同品牌</b></span></label>
             <label class="choice"><input type="checkbox" value="one_brand_many_jobs"><span><b>同一品牌有多種工作內容</b></span></label>
           </div>
+          <div class="field" style="margin-top:12px"><label for="signupWorkOpen">還有不同的工作方式？可以直接告訴我</label><textarea id="signupWorkOpen" placeholder="例如：平日接預約，週末開課，偶爾也辦大型活動。"></textarea></div>
           <div class="field-grid" style="margin-top:8px">
             <div class="field"><label class="required" for="signupOperationStage">目前營運狀態</label><select id="signupOperationStage"><option value="">請選擇</option><option value="operating">已經開始營運</option><option value="preparing">正在籌備中</option></select></div>
             <div class="field"><label for="signupStartTime">預計開始正式使用時間</label><input id="signupStartTime" placeholder="例如：下個月、9 月開始、近期第一場活動前"></div>
@@ -299,7 +318,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
           </div>
           <div class="field-grid" style="margin-top:14px">
             <div class="field"><label class="required" for="signupPrimaryPainPoint">其中最想先解決的是</label><select id="signupPrimaryPainPoint"><option value="">請先勾選上方困擾</option></select></div>
-            <div class="field"><label for="signupOtherPainPoint">其他困擾</label><input id="signupOtherPainPoint" placeholder="若有其他情況，可在這裡補充"></div>
+            <div class="field"><label for="signupOtherPainPoint">想用自己的話補充，也可以直接說</label><input id="signupOtherPainPoint" placeholder="例如：同一位客人會同時預約服務又報名課程"></div>
           </div>
         </div>
 
@@ -370,7 +389,17 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
   const painLabelMap={scattered:'報名資料散落在表單和訊息裡',status:'不清楚誰已錄取、候補或取消',payment:'收款、對帳和退款容易漏掉',schedule:'日期、時段與剩餘名額不好整理',collision:'老師、空間或設備的時間容易排在一起',reschedule:'改期後又要重新整理名單',extras:'設備、材料或加購內容容易對錯',seating:'攤位或座位安排很花時間',notification:'活動前要逐一通知參加者',checkin:'現場報到和名單核對不方便',finance:'活動結束後，財務和紀錄不好整理',repeat_data:'每次都要請客人重新填寫資料',no_show:'沒有先收訂金，客人容易臨時不來',staff_mix:'人員權限和工作內容容易混在一起',other:'還有其他困擾'};
   let helperAnalysis=null;
   const selectedValues=id=>[...document.querySelectorAll('#'+id+' input:checked')].map(x=>x.value);
+  const helperOpenAnswers=()=>({industry:String(document.getElementById('signupIndustryOpen')?.value||'').trim(),work:String(document.getElementById('signupWorkOpen')?.value||'').trim(),pain:String(document.getElementById('signupOtherPainPoint')?.value||'').trim()});
   const helper=document.getElementById('doingSmartHelper'),helperMessage=document.getElementById('doingHelperMessage'),helperConfirm=document.getElementById('confirmHelperUnderstanding');
+  const welcome=document.getElementById('doingHelperWelcome'),form=document.getElementById('signupForm'),welcomeMessage=document.getElementById('doingWelcomeMessage'),supportChoices=document.getElementById('doingSupportChoices');
+  document.getElementById('startDoingApplication')?.addEventListener('click',()=>{if(welcome)welcome.hidden=true;if(form)form.hidden=false;form?.scrollIntoView({behavior:'smooth',block:'start'})});
+  document.getElementById('startDoingSupport')?.addEventListener('click',()=>{if(supportChoices)supportChoices.hidden=false;if(welcomeMessage)welcomeMessage.textContent='可以，先不用填申請。選一個你想了解的問題，我只會回答 DOING 相關內容。'});
+  async function askEntrySupport(topic){
+    if(welcomeMessage)welcomeMessage.textContent='我正在整理最清楚的回答…';
+    try{let memberToken='';try{memberToken=localStorage.getItem('doing_member_token')||''}catch(e){}const response=await fetch(API+'?action=analyzeDoingApplication',{method:'POST',headers:{'Content-Type':'application/json;charset=UTF-8'},body:JSON.stringify({action:'analyzeDoingApplication',topic,useCases:['general'],painPoints:['other'],workSituations:[],member_token:memberToken})});const result=await response.json();if(!response.ok||result.error)throw new Error(result.error||'客服暫時無法回覆');if(welcomeMessage)welcomeMessage.textContent=String(result.reply||'')}
+    catch(e){if(welcomeMessage)welcomeMessage.textContent='我現在暫時無法回覆，請稍後再試一次。'}
+  }
+  document.querySelectorAll('[data-entry-helper-topic]').forEach(btn=>btn.addEventListener('click',()=>askEntrySupport(btn.dataset.entryHelperTopic)));
   const invalidateHelper=()=>{helperAnalysis=null;if(helperConfirm)helperConfirm.checked=false;if(helperMessage)helperMessage.textContent='你的選擇有變動。按「幫我整理」，我會重新理解一次。'};
   async function askDoingHelper(topic='summary'){
     const useCases=selectedValues('signupUseCases'),painPoints=selectedValues('signupPainPoints'),workSituations=selectedValues('signupWorkSituations');
@@ -379,7 +408,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     clearErr();helper?.setAttribute('aria-busy','true');if(helperMessage)helperMessage.textContent='我正在整理你的工作方式…';
     try{
       let memberToken='';try{memberToken=localStorage.getItem('doing_member_token')||''}catch(e){}
-      const response=await fetch(API+'?action=analyzeDoingApplication',{method:'POST',headers:{'Content-Type':'application/json;charset=UTF-8'},body:JSON.stringify({action:'analyzeDoingApplication',topic,useCases,painPoints,workSituations,member_token:memberToken})});
+      const response=await fetch(API+'?action=analyzeDoingApplication',{method:'POST',headers:{'Content-Type':'application/json;charset=UTF-8'},body:JSON.stringify({action:'analyzeDoingApplication',topic,useCases,painPoints,workSituations,openAnswers:helperOpenAnswers(),member_token:memberToken})});
       const result=await response.json();if(!response.ok||result.error)throw new Error(result.error||'小幫手暫時無法回覆');
       helperAnalysis={reply:String(result.reply||''),summaryId:String(result.summaryId||''),topic:String(result.topic||topic),source:String(result.source||'rules'),scope:'doing_only',confirmed:false};
       if(helperMessage)helperMessage.textContent=helperAnalysis.reply;
@@ -398,10 +427,10 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
   function setupSmartApplicationFlow(){
     const form=document.getElementById('signupForm'),groups=[...form.querySelectorAll(':scope > .group')];if(!form||!groups.length)return;
     form.classList.add('is-smart-flow');
-    const guide=document.createElement('div');guide.className='smart-flow-guide';guide.innerHTML='<div class="doing-helper-mark">D</div><div><b id="smartFlowTitle">先認識你的品牌</b><p id="smartFlowMessage">不用一次看完整張表，我會陪你一步一步完成。</p></div><span class="smart-flow-progress" id="smartFlowProgress"></span>';
+    const guide=document.createElement('div');guide.className='smart-flow-guide';guide.innerHTML='<div class="doing-helper-mark">D</div><div><b id="smartFlowTitle">先聊聊你的品牌</b><p id="smartFlowMessage">這一段可以一起回答，不會一題一題打斷你。</p></div><span class="smart-flow-progress" id="smartFlowProgress"></span>';
     form.querySelector('.form-head')?.after(guide);
-    const titles=['先認識你的品牌','留下方便聯絡的方式','你目前在哪些領域工作？','你平常怎麼工作？','現在最想解決什麼？','讓我們確認這是你的品牌','送出前一起確認','我已經幫你整理好了'];
-    const messages=['品牌名稱與所在地就可以，其他內容可以之後補。','這些資料只用於 DOING 申請、審核與必要聯絡。','可以複選，不用把自己限制在單一產業。','斜槓工作可以同時選，不需要分開申請。','最多選五項，我會先抓出最需要處理的問題。','提供一個可辨識頁面；還在籌備也可以直接勾選。','確認資料與申請用途正確後，就到最後一步。','看看我理解得對不對，再用 LINE 驗證送出申請。'];
+    const titles=['先聊聊你的品牌','接著，怎麼稱呼你？','你的工作橫跨哪些領域？','平常是怎麼工作的？','最近最想先解決什麼？','讓我確認找到的是你的品牌','最後一起確認一下','整理好了，看看我有沒有懂你'];
+    const messages=['這一段填品牌名稱和所在地，其他想補充再填就好。','這一段留下聯絡方式，只用於 DOING 申請與必要通知。','可以一次選很多個，斜槓不用硬塞進單一分類。','把符合的工作模式一起勾起來，我會合併理解。','這一段最多選五項，再告訴我哪一項最急。','有公開頁面就貼一個；還在籌備也可以直接告訴我。','確認這三件事後，我們就到整理結果。','我會用你前面整段回答來整理，不會把功能清單攤給你看。'];
     const field=id=>document.getElementById(id),checked=id=>selectedValues(id);
     const validStep=index=>{
       if(index===0){if(!field('signupUnitName').value.trim()){showErr('請先填寫品牌或營運單位名稱',field('signupUnitName'));return false}if(!field('signupRegion').value){showErr('請選擇所在地區',field('signupRegion'));return false}}
@@ -414,8 +443,8 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
       clearErr();return true;
     };
     let current=0;
-    const showStep=index=>{current=Math.max(0,Math.min(groups.length-1,index));groups.forEach((g,i)=>g.classList.toggle('is-active',i===current));field('smartFlowTitle').textContent=titles[current]||'完成申請';field('smartFlowMessage').textContent=messages[current]||'';field('smartFlowProgress').textContent=(current+1)+'／'+groups.length;if(current>0&&!document.getElementById('applicationPanel')?.hidden)guide.scrollIntoView({behavior:'smooth',block:'start'});if(current===groups.length-1&&!helperAnalysis)askDoingHelper('summary')};
-    groups.forEach((group,index)=>{if(index===groups.length-1)return;const nav=document.createElement('div');nav.className='smart-flow-nav';if(index>0){const back=document.createElement('button');back.type='button';back.className='back';back.textContent='上一步';back.addEventListener('click',()=>showStep(index-1));nav.appendChild(back)}const next=document.createElement('button');next.type='button';next.className='next';next.textContent=index===groups.length-2?'交給小幫手整理':'繼續';next.addEventListener('click',()=>{if(validStep(index))showStep(index+1)});nav.appendChild(next);group.appendChild(nav)});
+    const showStep=index=>{current=Math.max(0,Math.min(groups.length-1,index));groups.forEach((g,i)=>g.classList.toggle('is-active',i===current));field('smartFlowTitle').textContent=titles[current]||'完成申請';field('smartFlowMessage').textContent=messages[current]||'';field('smartFlowProgress').textContent='主題 '+(current+1)+'／'+groups.length;if(current>0&&!document.getElementById('applicationPanel')?.hidden)guide.scrollIntoView({behavior:'smooth',block:'start'});if(current===groups.length-1&&!helperAnalysis)askDoingHelper('summary')};
+    groups.forEach((group,index)=>{group.classList.add('smart-answer-card');if(index===groups.length-1)return;const nav=document.createElement('div');nav.className='smart-flow-nav';if(index>0){const back=document.createElement('button');back.type='button';back.className='back';back.textContent='回上一段';back.addEventListener('click',()=>showStep(index-1));nav.appendChild(back)}const next=document.createElement('button');next.type='button';next.className='next';next.textContent=index===groups.length-2?'請小幫手幫我整理':'這一段回答好了';next.addEventListener('click',()=>{if(validStep(index))showStep(index+1)});nav.appendChild(next);group.appendChild(nav)});
     showStep(0);
   }
   setupSmartApplicationFlow();
@@ -467,7 +496,7 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
     const applicationPayload={
       unitName,companyName,taxId,region,businessIntro,ownerName,contactName,contactEmail,phone,lineId,billingName,operationStage,startTime,
       industryCategories,publicLinks,noPublicLink,
-      useCases,useCaseLabels:useCases.map(x=>useLabelMap[x]||x),workSituations,
+      useCases,useCaseLabels:useCases.map(x=>useLabelMap[x]||x),workSituations,openAnswers:helperOpenAnswers(),
       painPoints,painPointLabels:painPoints.map(x=>painLabelMap[x]||x),primaryPainPoint,primaryPainPointLabel:painLabelMap[primaryPainPoint]||primaryPainPoint,otherPainPoint,
       assistantAnalysis:{...helperAnalysis,confirmed:true},dataPolicy:'same_brand_customer_shared_work_records_separate',
       confirmations:{confirmReal,confirmUse,confirmReview}
