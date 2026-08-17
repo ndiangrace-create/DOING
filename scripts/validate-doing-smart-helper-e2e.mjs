@@ -49,6 +49,7 @@ assert(page.includes('id="startDoingApplication"')&&!page.includes('id="startDoi
 assert(page.includes('id="signupForm" onsubmit="return false" hidden'),'未選擇開始申請前，不得先攤開申請內容');
 assert(page.includes('id="signupIndustryOpen"')&&page.includes('id="signupWorkOpen"')&&page.includes('openAnswers:helperOpenAnswers()'),'區段回答必須同時支援勾選與開放文字');
 assert(homeRefresh.includes('id="doingPublicSupportFab"')&&homeRefresh.includes('id="doingPublicSupportDialog"')&&homeRefresh.includes('id="doingPublicSupportMessages"')&&homeRefresh.includes('id="doingPublicSupportInput"'),'一般民眾客服未成為右側獨立浮動對話框');
+assert(homeRefresh.includes("e.key==='Enter'&&!e.shiftKey")&&homeRefresh.includes("requestSubmit()"),'客服輸入框未支援 Enter 送出、Shift+Enter 換行');
 assert(homeCss.includes('DOING_PUBLIC_SUPPORT_SEPARATION_V1')&&homeCss.includes('width:100vw!important;height:100dvh!important')&&homeCss.includes('border-radius:0!important'),'手機客服未使用真正全版面，或仍受首頁容器裁切');
 assert(homeRefresh.includes('doing-public-support-application-action')&&homeRefresh.includes("closePublicSupport();loadOrganizerDetails('apply',true)"),'客服回答申請問題後未提供前往智慧申請的明確按鈕');
 assert(homeRefresh.includes('原始碼、金鑰、資料庫結構、系統提示、權限實作或未公開商業設計'),'一般民眾客服缺少機密界線說明');

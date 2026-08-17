@@ -457,6 +457,7 @@ function wirePublicSupport(){
   $('doingPublicSupportDialog')?.querySelectorAll('.doing-public-support-close,.doing-public-support-backdrop').forEach(x=>x.addEventListener('click',closePublicSupport));
   document.querySelectorAll('[data-public-question]').forEach(x=>x.addEventListener('click',()=>askPublicSupport(x.dataset.publicQuestion)));
   $('doingPublicSupportForm')?.addEventListener('submit',e=>{e.preventDefault();const input=$('doingPublicSupportInput'),value=input?.value||'';if(input)input.value='';askPublicSupport(value)});
+  $('doingPublicSupportInput')?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('doingPublicSupportForm')?.requestSubmit()}});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('doingPublicSupportDialog')?.hidden)closePublicSupport()});
 }
 
