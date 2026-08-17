@@ -13,6 +13,7 @@ assert(!homeScript.includes('doing-proof-section')&&!homeScript.includes('doingS
 assert(homeScript.includes("loadOrganizerDetails('support-helper')"),'首頁客服必須進入 DOING 智慧小幫手');
 assert.match(home,/首頁互動元件形狀契約[\s\S]*?\.doing-carousel-arrow[\s\S]*?border-radius:12px!important/);
 assert.match(home,/\.doing-member-close,[\s\S]*?border-radius:10px!important/);
+assert.match(home,/body\.doing-app \.doing-public-app button,[\s\S]*?border-radius:12px!important/);
 
 const palette={
   ink:'#363341',muted:'#756f7d',paper:'#fffdfd',pink:'#efa2c9',pinkStrong:'#d86eab',
