@@ -3660,7 +3660,7 @@ function doingHelperSafeReply(text,fallback){
   return value;
 }
 async function callDoingHelperAI(env,input,fallback){
-  if(!env.OPENAI_API_KEY)return {reply:fallback,source:'rules'};
+  if(!env.OPENAI_API_KEY)return {reply:fallback,source:'rules',engineStatus:'missing_api_key'};
   const response=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:'Bearer '+env.OPENAI_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({
     model:String(env.OPENAI_ONBOARDING_MODEL||'gpt-5-mini'),
     input:[
@@ -3670,9 +3670,9 @@ async function callDoingHelperAI(env,input,fallback){
     text:{format:{type:'json_schema',name:'doing_helper_reply',strict:true,schema:{type:'object',properties:{reply:{type:'string'}},required:['reply'],additionalProperties:false}}},max_output_tokens:350
   })});
   const json=await response.json().catch(()=>({}));
-  if(!response.ok)return {reply:fallback,source:'rules'};
+  if(!response.ok)return {reply:fallback,source:'rules',engineStatus:'api_error_'+response.status};
   let output=String(json.output_text||'');if(!output&&Array.isArray(json.output))for(const item of json.output)for(const content of item.content||[])if(content.type==='output_text')output+=content.text||'';
-  const parsed=safeJson(output,{});return {reply:doingHelperSafeReply(parsed.reply,fallback),source:'ai'};
+  const parsed=safeJson(output,{});return {reply:doingHelperSafeReply(parsed.reply,fallback),source:'ai',engineStatus:'ai'};
 }
 async function doingHelperResult(env,b,payload,selections={}){
   let saved=false;
@@ -3690,13 +3690,15 @@ async function hAnalyzeDoingApplication(env,b){
   const topic=String(b&&b.topic||'summary');
   if(!DOING_HELPER_ALLOWED.topics.has(topic))return jsonOk({reply:DOING_HELPER_SCOPE_REPLY,topic:'scope',scopeStatus:'out_of_scope',source:'rules'});
   const useCases=doingHelperSelections(b,'useCases'),painPoints=doingHelperSelections(b,'painPoints'),workSituations=doingHelperSelections(b,'workSituations');
+  const sourceOpen=b&&b.openAnswers&&typeof b.openAnswers==='object'?b.openAnswers:{};
+  const openAnswers={industry:String(sourceOpen.industry||'').trim().slice(0,500),work:String(sourceOpen.work||'').trim().slice(0,500),pain:String(sourceOpen.pain||'').trim().slice(0,500)};
   if(!useCases.length||!painPoints.length)return jsonErr('請先勾選工作方式與想解決的困擾');
   const selections={useCases,painPoints,workSituations};
   if(topic==='data')return doingHelperResult(env,b,{reply:workSituations.includes('multi_brand')?'不同品牌會分開保存營運、客戶與帳務資料；只有你本人的 DOING 登入身分共用。同一品牌內的不同工作，可共用客人基本資料，但預約、報名、帳務與人員權限會分開。':'同一品牌可以同時做多種工作，不用為美甲、課程或活動重複申請。客人基本資料可以共用，各工作的預約、報名、帳務與人員權限則分開。',topic,scopeStatus:'doing_only',source:'rules',summaryId:genId('HLP')},selections);
   if(topic==='billing'){const fees=await platformBillingPolicy(env);return doingHelperResult(env,b,{reply:`免費活動每場 NT$${fees.freeActivityFee}；收費活動按實收 ${fees.paidActivityRatePercent}% 計算；需要長期接預約的營運帳號為每月 NT$${fees.bookingMonthlyFee}。小幫手只做說明，不會自行替你收費或開通。`,topic,scopeStatus:'doing_only',source:'rules',summaryId:genId('HLP')},selections)}
   if(topic==='adjust')return doingHelperResult(env,b,{reply:'可以。這次先依你現在的工作方式整理；之後工作內容改變時，可以再提出調整。涉及金流、特殊權限或額外費用時，DOING 會先清楚告知，不會由小幫手自行決定。',topic,scopeStatus:'doing_only',source:'rules',summaryId:genId('HLP')},selections);
-  const fallback=doingHelperFallback(useCases,painPoints,workSituations),answer=await callDoingHelperAI(env,{useCases,painPoints,workSituations},fallback);
-  return doingHelperResult(env,b,{reply:answer.reply,topic,scopeStatus:'doing_only',source:answer.source,summaryId:genId('HLP')},selections);
+  const fallback=doingHelperFallback(useCases,painPoints,workSituations),answer=await callDoingHelperAI(env,{useCases,painPoints,workSituations,openAnswers},fallback);
+  return doingHelperResult(env,b,{reply:answer.reply,topic,scopeStatus:'doing_only',source:answer.source,engineStatus:answer.engineStatus,summaryId:genId('HLP')},selections);
 }
 
 // 營運帳號申請先完整寫入資料庫，再以申請編號進行 LINE 驗證；Google 流程保留但不從公開入口觸發。
