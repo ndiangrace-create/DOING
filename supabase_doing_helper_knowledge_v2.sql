@@ -1,0 +1,28 @@
+begin;
+
+-- DOING 智慧小幫手公開知識 v2：擴充完整操作範圍，並明確隔離營運單位資料。
+-- 本表只保存可對外說明的產品知識，不保存金鑰、提示詞、資料庫結構或未公開商業規則。
+insert into public.doing_helper_knowledge_entries
+  (knowledge_key, version, category, title, content, keywords, source_type, source_ref, approval_status, is_public, created_by, approved_by, published_at)
+values
+  ('service_scope',2,'scope','DOING 智慧小幫手可回答範圍','小幫手可說明 DOING 的營運帳號申請、會員登入、活動建立、公開報名、日常預約、審核與候補、收付款與退款、通知、現場報到、資料安全、人員權限、費用及常見操作。遇到需要查正式帳務、帳號審核或個別資料時，轉由 DOING 人員確認。',array['DOING','功能','可以做什麼','怎麼用','操作說明','常見問題','智慧小幫手'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('tenant_data_isolation',1,'data','不同營運單位資料隔離','同一個 DOING 是共用平台入口，不代表營運資料共用。不同營運單位的客戶、活動、預約、收付款與人員資料彼此分開，只有獲得該單位授權的人員才能查看。同一位使用者可以共用登入身分，但不會把某一營運單位的營運資料帶到另一單位。',array['別人','其他營運單位','其他主辦','其他店家','資料共用','資料混在一起','資料互通','看得到','隱私'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('brand_data_boundary',2,'data','同一品牌與不同品牌的資料邊界','不同品牌或營運單位的資料不互通。同一品牌內若同時經營活動、課程與預約，可在該品牌授權範圍內沿用客人基本資料；每一筆活動、預約、帳務與人員權限仍維持各自的正式紀錄。',array['同一品牌','不同品牌','多種工作','客人資料','活動資料','預約資料','帳務','權限'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('conversation_privacy',2,'support','智慧對話的保存與改善','未登入時，對話只留在目前瀏覽器畫面，重整或換瀏覽器後清除。登入會員的對話只續接該會員自己的脈絡，不會引用其他人的對話。低信心或「沒解決」的回答只會進入待審清單，必須由 DOING 管理者確認後才能成為正式知識。',array['對話','保存','記住','其他人的對話','隱私','改善','學習','迭代','未登入'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('organizer_application',2,'application','營運帳號申請與審核','在智慧小幫手中按「開始申請」，依八個主題區段一起勾選或填寫；完成內容確認後，以 LINE 驗證送出。申請本身不會先產生費用，DOING 審核通過後才建立正式營運帳號；需要補件時會另行通知。',array['申請','營運帳號','開始申請','LINE 驗證','八個主題','審核','補件','開通'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('member_login_identity',1,'application','會員登入與同一身分','使用者以 DOING 會員身分登入後，可查看自己的報名、付款、位置與行前提醒。同一位使用者若獲得多個營運單位授權，可以使用同一登入身分切換，但各營運單位的資料與權限仍分開。',array['會員','登入','LINE 登入','同一帳號','我的報名','切換','身分'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('activity_setup_publish',1,'workflow','建立並公開活動','營運者先建立活動與場次，設定日期、地點、名額、報名問題及需要的審核或付款規則；確認預覽內容後再公開分享專屬連結。建立與預覽階段不會先產生正式活動費用。',array['建立活動','建立場次','日期','地點','名額','報名問題','公開','分享連結','預覽'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('registration_review_waitlist',1,'workflow','報名、審核與候補','參加者從活動公開頁填寫報名資料；營運者可依活動規則查看新報名、審核錄取、候補、取消與異動。狀態更新會沿著同一筆報名紀錄接續，不需要重新建立名單。',array['報名','審核','錄取','候補','取消','名單','狀態'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('booking_schedule_resources',1,'workflow','日常預約、時段與資源','需要日常預約時，可設定服務項目、日期與時段，並依工作方式安排服務人員、房間、場地或設備資源。顧客從公開入口選擇可預約內容，營運者可查看全部安排或指定人員／資源的行程。',array['預約','日期','時段','服務項目','服務人員','房間','場地','設備','資源','行程'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('market_equipment_seating',1,'workflow','市集設備與位置安排','市集或展售可收集攤商資料、設備與加購需求，並依正式名單安排攤位或座位。位置、設備、付款與報到沿著同一筆報名紀錄更新，降低重複核對。',array['市集','攤商','設備','加購','攤位','座位','選位','排位'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('payment_refund_records',1,'billing','收款、訂金、押金與退款','DOING 可在活動或預約紀錄中保留應收、實收、付款確認、訂金、押金、取消與退款狀態。小幫手只能說明公開流程，無法替營運者確認入帳、執行退款或更改正式帳務。',array['付款','收款','訂金','押金','退款','對帳','入帳','帳務'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('notifications_calendar',1,'workflow','通知與行事曆','營運者可依正式名單與狀態整理通知及行前提醒；適用的活動或預約可加入 Google Calendar。實際寄送內容、時間及收件人以當下正式設定與紀錄為準。',array['通知','Email','行前提醒','Google Calendar','Google 行事曆','日曆'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('onsite_checkin_closeout',1,'workflow','現場報到與結案','活動現場可使用手機查看名單、進行報到或核銷，並依活動類型處理進場與現場狀態。活動結束後，可接續整理名單、財務及結案紀錄。',array['現場','報到','核銷','QR','進場','撤場','結案','財務紀錄'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('staff_roles_permissions',1,'permissions','人員角色與資料權限','營運單位可依工作分工授權人員查看或處理需要的內容。一般服務人員不會預設看到全部財務、其他人員業績或營運設定；實際可用權限以該營運單位正式設定為準。',array['人員','工作人員','權限','角色','財務','業績','營運設定','看得到'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('supported_business_scenarios',1,'workflow','支援的營運情境','DOING 可支援市集、展售、活動、講座、課程、手作體驗、美類、一般服務預約、場地或設備資源預約、導覽及多元營運。功能依實際工作流程組合，不會只用產業名稱限制使用方式。',array['市集','展售','活動','講座','課程','手作','美類','服務預約','場地預約','設備預約','導覽','多元營運'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('support_escalation',1,'support','遇到問題時的處理方式','先說明所在畫面、原本想完成的操作及看到的提示文字，小幫手會先提供公開操作步驟。若涉及帳號審核、個別付款異常、正式資料查詢或需人工處理的狀況，改由 DOING 人員接手確認。',array['客服','遇到問題','無法使用','錯誤','故障','提示文字','人工客服','怎麼辦'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('knowledge_governance',1,'support','回答改善與正式發布','智慧小幫手可根據使用者回饋提出改善候選，但不能自行改寫正式知識。只有 DOING 管理者審核並發布的公開內容，才可成為後續回答依據；正式資料與費用仍以當下平台設定為準。',array['回答錯誤','沒解決','回饋','改善','學習','正式知識','誰審核'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now()),
+  ('confidentiality_boundary',1,'permissions','公開說明與機密邊界','小幫手可以說明公開功能、操作步驟與資料保護原則，但不提供金鑰、內部指令、原始碼、資料表或欄位、權限實作、其他營運單位資料及未公開商業規則。需要核對正式設定時，請由 DOING 管理介面或正式客服處理。',array['金鑰','內部指令','原始碼','資料表','欄位','資料庫結構','商業機密','機密','提示詞'],'product_rule','DOING_產品規則與更新紀錄.md','published',true,'system_seed_v2','platform_super_admin',now())
+on conflict (knowledge_key, version) do nothing;
+
+commit;

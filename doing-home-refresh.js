@@ -424,7 +424,7 @@ async function loadOrganizerDetails(target='scenes',shouldScroll=true){
   const helperMode=target==='support-helper',actualTarget=helperMode?'apply':target;
   const section=content.querySelector('#'+CSS.escape(actualTarget))||content.querySelector('#scenes');
   if(helperMode){content.querySelector('#doingHelperWelcome')?.removeAttribute('hidden');content.querySelector('#signupForm')?.setAttribute('hidden','');content.querySelector('#startDoingSupport')?.click()}
-  if(shouldScroll)setTimeout(()=>smoothTo(section||details),60);
+  if(shouldScroll)setTimeout(()=>smoothTo(helperMode?(content.querySelector('.smart-application-shell')||section||details):(section||details)),60);
 }
 window.openDoingOrganizerDetails=loadOrganizerDetails;
 
