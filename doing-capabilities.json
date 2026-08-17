@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "updatedAt": "2026-08-17",
   "statusLabels": {
     "done": "已完成",
@@ -25,6 +25,11 @@
           "label": "首頁 DOING 智慧小幫手依工作方式整理申請",
           "status": "verify",
           "evidence": "about.html / analyzeDoingApplication / validate-doing-smart-helper-e2e"
+        },
+        {
+          "label": "DOING 範圍自由問答、AI 逾時不中斷與基本規則備援",
+          "status": "verify",
+          "evidence": "callDoingHelperAI / entryFallback / production question smoke test"
         },
         {
           "label": "未登入不留存；登入後才保存個人互動軌跡",
