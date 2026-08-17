@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "recordedAt": "2026-08-17T20:30:00+08:00",
-  "sourceFingerprint": "6312c88fb67cf59832ed4ea5f5643805b57a2fdb98e28c2aa36f5d6425cb2f9a",
+  "sourceFingerprint": "09df60c29fb71f9c05bfc33494ce856b47c41d6680e1b91ce91471c5a02eefd6",
   "environment": "LINE、Google、Resend 與業務流程使用本機 mock；Supabase 正式庫只套用唯一索引，並以交易 rollback 驗證，測試資料留存 0 筆",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
