@@ -178,6 +178,14 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
   overflow:visible!important;
 }
 .doing-smart-helper-section{overflow:visible!important;contain:none!important}
+#doingOrganizerDetails{overflow:visible!important}
+.doing-organizer-content .doing-smart-helper-section{
+  width:min(1440px,calc(100vw - 32px))!important;
+  max-width:none!important;
+  margin-left:50%!important;
+  margin-right:0!important;
+  transform:translateX(-50%);
+}
 .smart-application-shell{
   width:min(1240px,calc(100vw - 48px))!important;
   max-width:1240px!important;
@@ -280,6 +288,9 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
 .smart-application-shell .apply-form.is-smart-flow textarea{width:100%;min-width:0;box-sizing:border-box}
 
 @media(max-width:760px){
+  .doing-organizer-content .doing-smart-helper-section{
+    width:calc(100vw - 8px)!important;
+  }
   .doing-smart-helper-section{padding:28px 4px 36px!important}
   .smart-application-shell{
     width:calc(100vw - 12px)!important;
