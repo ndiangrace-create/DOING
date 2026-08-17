@@ -24,6 +24,8 @@ function fingerprint(){
 }
 
 const record=JSON.parse(fs.readFileSync(recordPath,'utf8'));
+const productRules=fs.readFileSync(path.join(root,'DOING_產品規則與更新紀錄.md'),'utf8');
+for(const required of ['需求累積與單次發布規則','這批一起發布','確認一次發布','禁止推送正式分支','取代先前「驗證成功即可直接部署」'])assert.ok(productRules.includes(required),'DOING 專案缺少整批單次發布固定規則：'+required);
 assert.equal(record.schemaVersion,1);
 assert.equal(record.deploymentTarget,'tobeloved-api');
 assert.equal(record.forbiddenTarget,'2bl-v7');

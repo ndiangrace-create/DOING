@@ -310,7 +310,9 @@ body.doing-app .doing-organizer-details>summary:after{border-radius:10px!importa
 .doing-public-support-bubble{display:block!important;width:fit-content!important;max-width:min(82%,760px)!important;margin:0 0 14px!important;padding:13px 16px!important;border-radius:12px!important;background:#fff!important;line-height:1.65!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;box-shadow:0 4px 16px rgba(32,76,72,.08)!important}
 .doing-public-support-bubble.user{margin-left:auto!important;color:#fff!important;background:#19766f!important}.doing-public-support-bubble.assistant{margin-right:auto!important}
 .doing-public-support-application-action{display:block!important;margin:12px 0 0!important;padding:10px 14px!important;border:0!important;border-radius:10px!important;color:#fff!important;background:#19766f!important;font-weight:900!important}
-.doing-public-support-faq{padding:14px 20px 8px!important;border-top:1px solid #cde3e0!important;background:#fff!important;overflow-x:hidden!important}.doing-public-support-faq>b{display:block;margin-bottom:8px}.doing-public-support-faq>div{display:flex!important;gap:8px!important;overflow-x:auto!important;padding:0 0 6px!important;scrollbar-width:thin!important}.doing-public-support-faq button{flex:0 0 auto!important;min-height:38px!important;padding:8px 11px!important;border:1px solid #add8d4!important;border-radius:10px!important;background:#f0f9f8!important;font-weight:800!important;white-space:nowrap!important}
+.doing-public-support-human-action{display:block!important;margin:12px 0 0!important;padding:10px 14px!important;border:1px solid #d2aa28!important;border-radius:10px!important;color:#4f4321!important;background:#ffe16a!important;font-weight:900!important}
+.doing-public-support-panel,.doing-public-support-panel *{box-sizing:border-box!important}
+.doing-public-support-faq{min-width:0!important;padding:14px 20px 10px!important;border-top:1px solid #cde3e0!important;background:#fff!important;overflow:hidden!important}.doing-public-support-faq>b{display:block;margin-bottom:8px}.doing-public-support-faq>div{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;min-width:0!important;overflow:visible!important;padding:0!important}.doing-public-support-faq button{width:100%!important;min-width:0!important;min-height:40px!important;padding:8px 10px!important;border:1px solid #add8d4!important;border-radius:10px!important;background:#f0f9f8!important;font-weight:800!important;white-space:normal!important;overflow-wrap:anywhere!important;line-height:1.35!important}
 .doing-public-support-input{display:grid!important;grid-template-columns:minmax(0,1fr) 74px!important;gap:10px!important;padding:10px 20px!important;background:#fff!important}.doing-public-support-input textarea{display:block!important;width:100%!important;min-width:0!important;min-height:58px!important;max-height:150px!important;resize:vertical!important;padding:13px!important;border:1px solid #b9d8d5!important;border-radius:10px!important;font:inherit!important;line-height:1.45!important}.doing-public-support-input button{min-width:0!important;border:1px solid #94c9c4!important;border-radius:10px!important;background:#dff3f1!important;font-weight:900!important}
 .doing-public-support-panel>small{display:block!important;padding:0 20px 14px!important;color:#6b7884!important;background:#fff!important;white-space:normal!important;overflow-wrap:anywhere!important}
 body.doing-support-open{overflow:hidden!important}
@@ -322,5 +324,77 @@ body.doing-support-open{overflow:hidden!important}
   .doing-public-support-panel{inset:0!important;width:100vw!important;height:100dvh!important;min-height:100dvh!important;max-width:100vw!important;max-height:100dvh!important;border:0!important;border-radius:0!important;grid-template-rows:auto minmax(0,1fr) auto auto auto!important}
   .doing-public-support-panel>header{padding:12px 14px!important}.doing-public-support-panel h2{font-size:18px!important}.doing-public-support-panel header p{font-size:13px!important}
   .doing-public-support-messages{padding:16px 12px!important;scrollbar-gutter:auto!important}.doing-public-support-bubble{max-width:90%!important;padding:11px 13px!important}
-  .doing-public-support-faq{padding:10px 12px 6px!important}.doing-public-support-input{grid-template-columns:minmax(0,1fr) 62px!important;padding:8px 12px!important}.doing-public-support-input textarea{min-height:52px!important;max-height:104px!important;resize:none!important}.doing-public-support-panel>small{padding:0 12px 9px!important;font-size:12px!important}
+  .doing-public-support-faq{padding:10px 12px 8px!important}.doing-public-support-faq>div{grid-template-columns:repeat(2,minmax(0,1fr))!important}.doing-public-support-input{grid-template-columns:minmax(0,1fr) 62px!important;padding:8px 12px!important}.doing-public-support-input textarea{min-height:52px!important;max-height:104px!important;resize:none!important}.doing-public-support-panel>small{padding:0 12px 9px!important;font-size:12px!important}
+}
+@media(max-width:380px){.doing-public-support-faq>div{grid-template-columns:1fr!important}}
+
+/* 首頁直接顯示多角色情境，不必先展開營運方案。 */
+.doing-slash-scenes{background:linear-gradient(145deg,#fff,#f5fbfc 56%,#f4faea)!important}.doing-slash-scenes>header{max-width:900px;margin-bottom:24px}.doing-slash-scenes>header h2{margin:10px 0!important;font-size:clamp(30px,4vw,48px)!important;line-height:1.18!important;color:#34313d!important}.doing-slash-scenes>header p{margin:0!important;color:#6e6975!important;font-size:17px!important;line-height:1.75!important}
+.doing-slash-scene-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.doing-slash-scene-grid article{display:flex;flex-direction:column;min-width:0;padding:24px;border:1px solid #d8e8e6;border-radius:18px;background:#fff;box-shadow:0 12px 32px rgba(46,86,82,.08)}.doing-slash-scene-grid article>span{font-weight:950;color:#19766f}.doing-slash-scene-grid h3{margin:12px 0 9px!important;font-size:22px!important;line-height:1.38!important;color:#34313d!important}.doing-slash-scene-grid article>p{margin:0 0 18px!important;color:#716b76!important;line-height:1.7!important}.doing-slash-scene-grid article>div{margin-top:auto;padding:13px 14px;border-radius:12px;background:#fff5e1}.doing-slash-scene-grid article>div+div{margin-top:9px}.doing-slash-scene-grid article>div b,.doing-slash-scene-grid article>div em{display:block}.doing-slash-scene-grid article>div b{margin-bottom:4px;color:#5f4e2c}.doing-slash-scene-grid article>div em{color:#625d68;font-style:normal;line-height:1.55}.doing-slash-scene-grid article>.doing-scene-answer{background:#eaf7ef}.doing-slash-scene-grid article>.doing-scene-answer b{color:#24664f}.doing-slash-positioning{margin:20px 0 0!important;padding:17px 19px;border-left:5px solid #78c4bd;border-radius:12px;background:#edf9f7;color:#53646a;line-height:1.7!important}.doing-slash-positioning b{color:#244d4a}
+@media(max-width:980px){.doing-slash-scene-grid{grid-template-columns:1fr}.doing-slash-scene-grid article{padding:20px}.doing-slash-scenes>header h2{font-size:clamp(28px,7vw,40px)!important}}
+
+/* DOING_HOME_FRAME_HIERARCHY_V1
+   首頁只保留三層形狀：大型區塊 28px、內容卡 16px、操作元件 10–12px。 */
+.doing-public-hero,
+.doing-public-section,
+.doing-public-native-panel,
+.doing-my-highlight,
+.doing-organizer-details{
+  border:1px solid rgba(83,134,139,.18)!important;
+  border-radius:28px!important;
+  overflow:visible!important;
+}
+.doing-hero-console,
+.doing-console-card,
+.doing-console-grid>div,
+.doing-carousel-frame,
+.doing-activity-card,
+.doing-list-card,
+.doing-my-highlight-points>span,
+.doing-slash-scene-grid article{
+  border-radius:16px!important;
+}
+.doing-public-hero{
+  grid-template-columns:minmax(0,1.18fr) minmax(380px,.82fr)!important;
+  gap:clamp(30px,4vw,58px)!important;
+}
+.doing-hero-copy{min-width:0!important}
+.doing-hero-copy h1{
+  max-width:none!important;
+  font-size:clamp(42px,3.7vw,58px)!important;
+  line-height:1.08!important;
+  letter-spacing:-.035em!important;
+  text-wrap:balance!important;
+}
+.doing-hero-copy h1 span{display:block!important;white-space:nowrap!important}
+.doing-public-support-fab{
+  border-color:#e2bb32!important;
+  color:#4f4321!important;
+  background:#ffe16a!important;
+  box-shadow:0 14px 34px rgba(122,94,17,.24)!important;
+}
+.doing-public-support-fab span{background:#fffaf0!important;color:#6c5716!important}
+
+@media(max-width:980px){
+  .doing-public-hero{grid-template-columns:1fr!important}
+  .doing-hero-copy h1{font-size:clamp(38px,7vw,54px)!important}
+}
+@media(max-width:760px){
+  .doing-public-hero,
+  .doing-public-section,
+  .doing-public-native-panel,
+  .doing-my-highlight,
+  .doing-organizer-details{border-radius:20px!important}
+  .doing-hero-console,
+  .doing-console-card,
+  .doing-console-grid>div,
+  .doing-carousel-frame,
+  .doing-activity-card,
+  .doing-list-card,
+  .doing-my-highlight-points>span,
+  .doing-slash-scene-grid article{border-radius:14px!important}
+  .doing-hero-copy h1{font-size:clamp(30px,8.5vw,40px)!important;letter-spacing:-.025em!important}
+}
+@media(max-width:390px){
+  .doing-hero-copy h1{font-size:clamp(28px,8vw,34px)!important}
 }

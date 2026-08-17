@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-17T23:42:00+08:00",
-  "sourceFingerprint": "eb412d1a8fcfccde5ba348eb642e35e9412ac022a23fde463dd869015316f7f6",
+  "recordedAt": "2026-08-17T23:56:00+08:00",
+  "sourceFingerprint": "b1e9b7ead3e8fdbbbbbf1a8a4958379f66a93325298ab27a559841aae84f6e8e",
   "environment": "LINE、Google、Resend 與業務流程使用本機 mock；Supabase 正式庫只套用唯一索引，並以交易 rollback 驗證，測試資料留存 0 筆",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
@@ -143,7 +143,7 @@
       "id": "doing-smart-helper-e2e",
       "command": "node scripts/validate-doing-smart-helper-e2e.mjs",
       "result": "PASS",
-      "scope": "首頁多選互動、第一次使用者常見問題、DOING 全面公開操作問答、不同營運單位資料隔離、機密問題攔截、申請與客服共用單一大型內容舞台、切換後完整露出框架頂端、外框自然高度且無表單內層捲軸、只讀已發布知識、即時正式費用、登入後只續接本人對話、低信心與沒解決進待審改善、未登入零留存、RLS 與最小權限"
+      "scope": "首頁智慧申請與獨立 DOING 使用客服、100 題受控快速問答、四個不橫滑引導按鈕、個別活動問題回到營運單位、DOING 無法回答時才顯示真人客服、總管分類收件與原對話回覆、資料隔離、機密攔截、知識審核與 RLS 最小權限"
     },
     {
       "id": "worker-sync",

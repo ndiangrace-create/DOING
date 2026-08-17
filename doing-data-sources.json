@@ -97,6 +97,8 @@
       "tables": [
         "support_threads",
         "support_messages",
+        "doing_public_support_threads",
+        "doing_public_support_messages",
         "notifications"
       ]
     },
@@ -2558,6 +2560,53 @@
         "platform-support"
       ],
       "state": "active"
+    },
+    {
+      "name": "doing_public_support_threads",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "member_id",
+        "category",
+        "subject",
+        "status",
+        "created_by_email",
+        "platform_unread_count",
+        "member_unread_count",
+        "last_message_at",
+        "created_at",
+        "updated_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert",
+        "update"
+      ],
+      "moduleKeys": [
+        "platform-support"
+      ],
+      "state": "migration_pending"
+    },
+    {
+      "name": "doing_public_support_messages",
+      "rlsEnabled": true,
+      "columns": [
+        "id",
+        "thread_id",
+        "member_id",
+        "sender_scope",
+        "sender_email",
+        "body",
+        "created_at"
+      ],
+      "workerAccess": [
+        "get",
+        "insert"
+      ],
+      "moduleKeys": [
+        "platform-support"
+      ],
+      "state": "migration_pending"
     },
     {
       "name": "booking_calendars",

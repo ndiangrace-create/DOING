@@ -1,5 +1,5 @@
 {
-  "version": 17,
+  "version": 19,
   "updatedAt": "2026-08-17",
   "statusLabels": {
     "done": "已完成",
@@ -32,9 +32,9 @@
           "evidence": "callDoingHelperAI / entryFallback / production question smoke test"
         },
         {
-          "label": "申請與客服共用單一大型 LINE 式智慧介面，互斥切換且不上下堆疊",
+          "label": "一般民眾客服使用右側獨立浮動對話框；營運申請只保留智慧申請，客服可導向申請位置",
           "status": "verify",
-          "evidence": "doing-helper-frame-head / doing-helper-stage / is-application-mode / validate-doing-smart-helper-e2e"
+          "evidence": "doingPublicSupportFab / doingPublicSupportDialog / openOrganizerApplicationFromSupport / validate-doing-smart-helper-e2e"
         },
         {
           "label": "申請內容依頁面自然延伸，不使用固定高度或表單內層捲軸",
@@ -500,7 +500,7 @@
       "id": "platform-support",
       "area": "平台總管",
       "title": "平台客服",
-      "summary": "集中處理租戶操作問題與新功能申請。",
+      "summary": "集中處理租戶的 DOING 操作問題、營運申請與 DOING 系統需求；個別活動客服由各營運單位自行處理。",
       "route": "platform.html#platform-support",
       "features": [
         {
@@ -529,6 +529,16 @@
           "evidence": "thread kind"
         },
         {
+          "label": "智慧小幫手無法回答時才顯示真人客服",
+          "status": "verify",
+          "evidence": "doing public support handoff"
+        },
+        {
+          "label": "DOING 總管分類接收並在原對話回覆",
+          "status": "verify",
+          "evidence": "public support threads and messages"
+        },
+        {
           "label": "手機正式收發驗收",
           "status": "verify"
         }
@@ -540,6 +550,8 @@
         "tables": [
           "support_threads",
           "support_messages",
+          "doing_public_support_threads",
+          "doing_public_support_messages",
           "notifications"
         ]
       }
@@ -1267,6 +1279,11 @@
           "label": "會員、報名、申請、主辦、平台、現場與拍照頁逐頁套用",
           "status": "done",
           "evidence": "doing-pastel-pages.css / member.html / register.html / about.html / admin.html / platform.html / onsite.html / photo.html"
+        },
+        {
+          "label": "首頁大型區塊、內容卡與操作元件建立一致圓角層級；客服改為 DOING 黃色，主標題固定完整語意換行",
+          "status": "verify",
+          "evidence": "DOING_HOME_FRAME_HIERARCHY_V1 / doing-home-refresh.css / validate-visual-standard"
         }
       ],
       "dataSource": {

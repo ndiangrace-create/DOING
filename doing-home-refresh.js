@@ -329,7 +329,7 @@ function publicAppHTML(){
       <span class="doing-hero-blob blob-a" aria-hidden="true"></span><span class="doing-hero-blob blob-b" aria-hidden="true"></span>
       <div class="doing-hero-copy" id="doingPublicSearch">
         <div class="doing-hero-logo" aria-label="DOING 活動預約營運管理系統"><img src="doing-logo.png?v=20260815k" alt="DOING 活動預約營運管理系統"></div>
-        <h1>找活動、報名、預約，<br>進度都在 DOING。</h1>
+        <h1><span>找活動、報名、預約，</span><span>進度都在 DOING。</span></h1>
         <p class="doing-hero-desc">從找活動、送出報名，到查看審核、付款、候補、位置與行前通知，都能從「我的報名」接著處理，不用到處找訊息。</p>
         <div class="doing-search-box">
           <span class="doing-search-icon" aria-hidden="true"></span>
@@ -383,6 +383,16 @@ function publicAppHTML(){
 
     <div id="doingMyMount"></div>
 
+    <section class="doing-public-section doing-slash-scenes" aria-labelledby="doingSlashScenesTitle">
+      <header><span class="doing-kicker">斜槓人生情境模擬</span><h2 id="doingSlashScenesTitle">你的工作不只一種，DOING 也不會只用一種產業理解你。</h2><p>不用先替自己選一個標籤。從「同一個人今天到底要做哪些事」開始，DOING 再把適合的報名、預約、審核、收款、通知與現場流程接起來。</p></header>
+      <div class="doing-slash-scene-grid">
+        <article><span>01｜平日 × 假日</span><h3>平常是設計師、跑現場監工，假日又是手作老師。</h3><p>平日工作留在原本的專業工具；假日開課時，DOING 接手梯次、名額、材料、報名、收款與行前通知。</p><div><b>原本會卡</b><em>客戶、工地、學生訊息全部混在聊天裡。</em></div><div class="doing-scene-answer"><b>DOING 接住</b><em>每份工作有自己的流程，同一個人不用建立好幾套身分。</em></div></article>
+        <article><span>02｜主辦 × 多種內容</span><h3>辦市集，也辦活動、手作與體驗，表單多到整理不完。</h3><p>攤商招募要審核設備，民眾活動要報名付款，體驗還有時段與材料；流程不同，但都能回到同一個營運帳號。</p><div><b>原本會卡</b><em>一種內容一張表，名單、款項與通知各有不同版本。</em></div><div class="doing-scene-answer"><b>DOING 接住</b><em>依每次工作套用適合流程，再集中查看進度與正式紀錄。</em></div></article>
+        <article><span>03｜服務 × 教學 × 活動</span><h3>美甲老師要服務客人，也會開課，偶爾還要合辦活動。</h3><p>日常預約需要老師與時段；課程需要名額、收款與提醒；活動需要報名、審核或現場報到，不必被迫拆成三個自己。</p><div><b>原本會卡</b><em>預約、學員與活動參加者散在不同工具，改期時特別容易漏。</em></div><div class="doing-scene-answer"><b>DOING 接住</b><em>基本資料能接續，各工作的預約、報名、帳務與人員權限仍分開。</em></div></article>
+      </div>
+      <p class="doing-slash-positioning"><b>DOING 是輔助系統，不是來取代其他工具。</b> 社群繼續曝光、金流繼續收款、專業軟體繼續工作；DOING 專心把斜槓人生最容易中斷的營運流程接起來。</p>
+    </section>
+
     <section class="doing-public-section doing-organizer-section">
       <div class="doing-organizer-icon">D</div>
       <div><span class="doing-kicker yellow">不限產業的斜槓人生小幫手</span><h2>一個人有很多種工作，也值得有一套接得住的營運方式。</h2><p>今天接預約、明天開課、週末辦活動或出攤，都不必把自己硬塞進單一產業。DOING 保留你熟悉的社群、金流與曝光工具，補上跨工作最容易中斷的報名、名單、收款、通知與現場紀錄。</p></div>
@@ -396,7 +406,7 @@ function publicAppHTML(){
 
     <footer class="doing-public-footer">
       <div><b>DOING</b><span>活動營運管理系統</span></div>
-      <nav><a href="#doingOrganizerDetails" data-organizer-target="scenes">關於 DOING</a><a href="#doingOrganizerDetails" data-organizer-target="pricing">營運方案</a><a href="#doingOrganizerDetails" data-organizer-target="apply">申請營運帳號</a><button type="button" data-public-support-open>報名／預約客服</button></nav>
+      <nav><a href="#doingOrganizerDetails" data-organizer-target="scenes">關於 DOING</a><a href="#doingOrganizerDetails" data-organizer-target="pricing">營運方案</a><a href="#doingOrganizerDetails" data-organizer-target="apply">申請營運帳號</a></nav>
       <small>兔彼樂共創活動有限公司</small>
     </footer>
     <div id="doingMyEntryModal" class="doing-my-entry-modal" hidden>
@@ -410,21 +420,16 @@ function publicAppHTML(){
     <section id="doingPublicSupportDialog" class="doing-public-support-dialog" hidden>
       <button type="button" class="doing-public-support-backdrop" aria-label="關閉客服"></button>
       <div class="doing-public-support-panel" role="dialog" aria-modal="true" aria-labelledby="doingPublicSupportTitle">
-        <header><div><span class="doing-public-support-mark">D</span><div><h2 id="doingPublicSupportTitle">DOING 報名／預約客服</h2><p>一般民眾的操作小幫手</p></div></div><button type="button" class="doing-public-support-close" aria-label="關閉客服">×</button></header>
-        <div id="doingPublicSupportMessages" class="doing-public-support-messages" aria-live="polite"><div class="doing-public-support-bubble assistant">你好！我可以協助找活動、報名／預約、審核候補、付款、通知、改期退款、現場報到，也能說明 DOING 的公開操作與營運帳號申請。系統建置、金鑰、資料庫與商業機密不會提供。</div></div>
+        <header><div><span class="doing-public-support-mark">D</span><div><h2 id="doingPublicSupportTitle">DOING 使用小幫手</h2><p>DOING 操作、申請與系統問題</p></div></div><button type="button" class="doing-public-support-close" aria-label="關閉客服">×</button></header>
+        <div id="doingPublicSupportMessages" class="doing-public-support-messages" aria-live="polite"><div class="doing-public-support-bubble assistant">你好！我可以協助你使用 DOING：找活動、完成報名／預約、查看進度，也能說明營運帳號申請。個別活動的名額、審核、收款、退款與現場安排由該營運單位客服處理；系統建置、金鑰、資料庫與商業機密不會提供。</div></div>
         <div class="doing-public-support-faq"><b>大家第一次最常問</b><div>
           <button type="button" data-public-question="第一次要怎麼報名或預約？">第一次怎麼報名？</button>
-          <button type="button" data-public-question="報名送出後，要怎麼確認有沒有成功？">怎麼確認成功？</button>
           <button type="button" data-public-question="報名後要去哪裡看進度與紀錄？">在哪看進度？</button>
-          <button type="button" data-public-question="為什麼顯示待審核？名額滿了可以候補嗎？">待審核／候補</button>
-          <button type="button" data-public-question="付款、取消、改期或退款要怎麼處理？">付款／取消／退款</button>
-          <button type="button" data-public-question="沒有收到通知或到現場要怎麼報到？">通知／現場報到</button>
-          <button type="button" data-public-question="DOING 有哪些公開功能，要怎麼使用？">DOING 怎麼使用？</button>
-          <button type="button" data-public-question="我要怎麼申請 DOING 營運帳號？">怎麼申請營運帳號？</button>
-          <button type="button" data-public-question="我的資料會被不同主辦看到嗎？">資料會共用嗎？</button>
+          <button type="button" data-public-question="付款、取消、改期或退款要怎麼處理？">付款與異動</button>
+          <button type="button" data-public-question="我卡住了，要怎麼描述問題才能得到協助？">我卡住了</button>
         </div></div>
         <form id="doingPublicSupportForm" class="doing-public-support-input"><textarea id="doingPublicSupportInput" rows="2" maxlength="500" placeholder="直接說你卡在哪個畫面或想完成什麼…" aria-label="輸入 DOING 客服問題"></textarea><button type="submit">送出</button></form>
-        <small>未登入時對話只留在目前畫面；涉及個別款項或審核狀態時，會請你聯絡該活動主辦查正式紀錄。</small>
+        <small>未登入時對話只留在目前畫面；個別活動問題會引導你聯絡該營運單位，不會交給 DOING 代答。</small>
       </div>
     </section>
   </div>`;
@@ -444,13 +449,24 @@ function addPublicSupportBubble(text,role='assistant'){
   const host=$('doingPublicSupportMessages');if(!host)return null;const bubble=document.createElement('div');bubble.className='doing-public-support-bubble '+role;bubble.textContent=String(text||'');host.appendChild(bubble);host.scrollTop=host.scrollHeight;return bubble;
 }
 function addPublicSupportApplicationAction(bubble){if(!bubble)return;const button=document.createElement('button');button.type='button';button.className='doing-public-support-application-action';button.textContent='前往智慧申請';button.addEventListener('click',()=>{closePublicSupport();loadOrganizerDetails('apply',true)});bubble.appendChild(button)}
-async function askPublicSupport(question){
-  const value=String(question||'').trim();if(!value)return;addPublicSupportBubble(value,'user');const quick=publicSupportFastAnswer(value);if(quick){const answer=addPublicSupportBubble(quick);if(/申請|開通|營運帳號/.test(value))addPublicSupportApplicationAction(answer);return}
-  const waiting=addPublicSupportBubble('正在確認 DOING 的公開操作說明…');const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
-  try{let memberToken='';try{memberToken=localStorage.getItem('doing_member_token')||''}catch(_){}const history=[...$('doingPublicSupportMessages').querySelectorAll('.doing-public-support-bubble')].slice(-8,-1).map(x=>({role:x.classList.contains('user')?'user':'assistant',content:x.textContent.slice(0,500)}));const response=await fetch(API+'?action=analyzeDoingApplication',{method:'POST',headers:{'Content-Type':'application/json;charset=UTF-8'},body:JSON.stringify({action:'analyzeDoingApplication',topic:'question',question:value,useCases:['general'],painPoints:['other'],workSituations:[],conversationHistory:history,member_token:memberToken}),signal:controller.signal});const result=await response.json();if(!response.ok||result.error)throw new Error(result.error||'客服暫時無法回覆');waiting.textContent=String(result.reply||'這題需要 DOING 人員確認，我先不猜答案。');if(/申請|開通|營運帳號/.test(value))addPublicSupportApplicationAction(waiting)}
-  catch(_){waiting.textContent='目前連線比較慢，但你的問題沒有消失。請再送一次；若涉及個別活動、付款或審核狀態，請直接聯絡該活動主辦。'}finally{clearTimeout(timer)}
+let publicHumanThreadId='',publicHumanMessageIds=new Set(),publicHumanPoller=null;
+function humanSupportCategory(question){return /申請|補件|開通|營運帳號/.test(question)?'applicant':/需求|希望|建議|新增功能|系統功能/.test(question)?'system_request':'platform_user'}
+async function loadPublicHumanConversation(){if(!memberAuth.token)return;const data=await apiGet('getDoingPublicSupportConversation',{member_token:memberAuth.token,threadId:publicHumanThreadId});if(!data.thread)return;publicHumanThreadId=data.thread.id;for(const message of data.messages||[]){if(publicHumanMessageIds.has(message.id))continue;publicHumanMessageIds.add(message.id);if(message.sender_scope==='platform')addPublicSupportBubble('真人客服：'+message.body,'assistant')}if(!publicHumanPoller)publicHumanPoller=setInterval(()=>loadPublicHumanConversation().catch(()=>{}),20000)}
+async function createPublicHumanSupport(question,bubble){
+  if(!memberAuth.token||!memberAuth.complete){addPublicSupportBubble('聯絡真人客服需要先使用本人的 LINE 登入。登入完成後會回到這裡送出剛才的問題。');openMemberGate(()=>createPublicHumanSupport(question,bubble));return}
+  const button=bubble?.querySelector('.doing-public-support-human-action');if(button)button.disabled=true;
+  try{const data=await apiPost('createDoingPublicSupportThread',{member_token:memberAuth.token,body:question,category:humanSupportCategory(question)});publicHumanThreadId=data.thread.id;publicHumanMessageIds.add(data.message.id);addPublicSupportBubble('已轉交 DOING 真人客服。你可以先離開此畫面；回來開啟客服時，真人回覆會接在同一段對話中。');await loadPublicHumanConversation()}
+  catch(error){addPublicSupportBubble(error.message||'真人客服案件暫時無法建立，請稍後再試。')}finally{if(button)button.disabled=false}
 }
-function openPublicSupport(){const dialog=$('doingPublicSupportDialog');if(!dialog)return;dialog.hidden=false;document.body.classList.add('doing-support-open');setTimeout(()=>$('doingPublicSupportInput')?.focus(),40)}
+function addPublicSupportHumanAction(bubble,question){if(!bubble||bubble.querySelector('.doing-public-support-human-action'))return;const button=document.createElement('button');button.type='button';button.className='doing-public-support-human-action';button.textContent='聯絡真人客服';button.addEventListener('click',()=>createPublicHumanSupport(question,bubble));bubble.appendChild(button)}
+function isTenantOwnedQuestion(question){return /(?:這個|該|某個|我的).{0,8}(?:活動|課程|預約).{0,16}(?:名額|錄取|審核|候補|付款|退款|取消|改期|位置|時間|設備|報到|通知)|(?:為什麼|何時|什麼時候).{0,12}(?:錄取|退款|入帳|審核)|(?:活動|主辦|店家).{0,10}(?:規定|客服|退款|收款)/.test(String(question||''))}
+async function askPublicSupport(question){
+  const value=String(question||'').trim();if(!value)return;addPublicSupportBubble(value,'user');if(isTenantOwnedQuestion(value)){addPublicSupportBubble('這是個別活動或營運單位的正式決定，DOING 不會代替對方回答。請從「我的報名」打開該筆紀錄查看主辦資訊，或回到活動頁聯絡該營運單位客服；若你是卡在 DOING 按鈕、登入或畫面錯誤，再告訴我畫面與提示文字。');return}const quick=publicSupportFastAnswer(value);if(quick){const answer=addPublicSupportBubble(quick);if(/申請|開通|營運帳號/.test(value))addPublicSupportApplicationAction(answer);return}
+  const waiting=addPublicSupportBubble('正在確認 DOING 的公開操作說明…');const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
+  try{let memberToken='';try{memberToken=localStorage.getItem('doing_member_token')||''}catch(_){}const history=[...$('doingPublicSupportMessages').querySelectorAll('.doing-public-support-bubble')].slice(-8,-1).map(x=>({role:x.classList.contains('user')?'user':'assistant',content:x.textContent.slice(0,500)}));const response=await fetch(API+'?action=analyzeDoingApplication',{method:'POST',headers:{'Content-Type':'application/json;charset=UTF-8'},body:JSON.stringify({action:'analyzeDoingApplication',topic:'question',question:value,useCases:['general'],painPoints:['other'],workSituations:[],conversationHistory:history,member_token:memberToken}),signal:controller.signal});const result=await response.json();if(!response.ok||result.error)throw new Error(result.error||'客服暫時無法回覆');waiting.textContent=String(result.reply||'這題需要 DOING 人員確認，我先不猜答案。');if(/申請|開通|營運帳號/.test(value))addPublicSupportApplicationAction(waiting);if(/需要 DOING 人員確認|我先不猜/.test(waiting.textContent)||/需求|希望|建議|新增功能/.test(value)||/api_timeout|api_unavailable|ai_invalid_output/.test(String(result.engineStatus||'')))addPublicSupportHumanAction(waiting,value)}
+  catch(_){waiting.textContent='目前連線比較慢，智慧小幫手無法完成這次回答。你可以再送一次，或轉由 DOING 真人客服接手。';if(!isTenantOwnedQuestion(value))addPublicSupportHumanAction(waiting,value)}finally{clearTimeout(timer)}
+}
+function openPublicSupport(){const dialog=$('doingPublicSupportDialog');if(!dialog)return;dialog.hidden=false;document.body.classList.add('doing-support-open');loadPublicHumanConversation().catch(()=>{});setTimeout(()=>$('doingPublicSupportInput')?.focus(),40)}
 function closePublicSupport(){const dialog=$('doingPublicSupportDialog');if(!dialog)return;dialog.hidden=true;document.body.classList.remove('doing-support-open');$('doingPublicSupportFab')?.focus()}
 function wirePublicSupport(){
   $('doingPublicSupportFab')?.addEventListener('click',openPublicSupport);document.querySelectorAll('[data-public-support-open]').forEach(x=>x.addEventListener('click',openPublicSupport));

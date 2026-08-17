@@ -14,12 +14,15 @@ const knowledgeSql=fs.readFileSync('supabase_doing_helper_knowledge.sql','utf8')
 const knowledgeV2Sql=fs.readFileSync('supabase_doing_helper_knowledge_v2.sql','utf8');
 const consumerFaqSql=fs.readFileSync('supabase_doing_helper_consumer_faq_v3.sql','utf8');
 const consumerFaqV4Sql=fs.readFileSync('supabase_doing_helper_consumer_faq_v4.sql','utf8');
+const consumerFaqV5Sql=fs.readFileSync('supabase_doing_helper_consumer_faq_v5.sql','utf8');
+const publicSupportSql=fs.readFileSync('supabase_doing_public_support.sql','utf8');
 
 for(const copy of ['DOING 智慧小幫手','DOING 線上智能客服','我只能協助 DOING 系統','scopeStatus:\'out_of_scope\'','dataPolicy:\'same_brand_customer_shared_work_records_separate\'']){
   assert(page.includes(copy)||worker.includes(copy),`缺少範圍或資料規則：${copy}`);
 }
 for(const value of ['team','appointment','deposit','shared_customers','multi_brand','one_brand_many_jobs','no_show','staff_mix'])assert(page.includes(`value="${value}"`),`問卷缺少 ${value}`);
-for(const question of ['第一次要怎麼報名或預約？','報名送出後，要怎麼確認有沒有成功？','報名後要去哪裡看進度與紀錄？','DOING 有哪些公開功能，要怎麼使用？','我要怎麼申請 DOING 營運帳號？','我的資料會被不同主辦看到嗎？'])assert(homeRefresh.includes(`data-public-question="${question}"`),`獨立民眾客服缺少常見問題：${question}`);
+for(const question of ['第一次要怎麼報名或預約？','報名後要去哪裡看進度與紀錄？','付款、取消、改期或退款要怎麼處理？','我卡住了，要怎麼描述問題才能得到協助？'])assert(homeRefresh.includes(`data-public-question="${question}"`),`獨立民眾客服缺少核心引導：${question}`);
+assert.equal((homeRefresh.match(/data-public-question=/g)||[]).length,4,'客服畫面只保留四個核心引導，避免按鈕過多');
 assert(homeRefresh.includes('id="doingOrganizerDetails" class="doing-organizer-details" hidden')&&!homeRefresh.includes("loadOrganizerDetails('scenes',false);"),'首頁仍會自動顯示舊主辦長頁');
 assert(homeRefresh.includes("section.hidden=section.id!==actualTarget")&&homeRefresh.includes('helperStartActions.hidden=true'),'營運資訊與申請仍同時堆在畫面上');
 assert(fs.readFileSync('doing-home-refresh.css','utf8').includes('.doing-organizer-content .doing-helper-start-actions[hidden]{display:none!important}'),'報名客服或營運申請仍被舊樣式強制顯示兩個模式按鈕');
@@ -51,6 +54,7 @@ assert(page.includes('id="signupIndustryOpen"')&&page.includes('id="signupWorkOp
 assert(homeRefresh.includes('id="doingPublicSupportFab"')&&homeRefresh.includes('id="doingPublicSupportDialog"')&&homeRefresh.includes('id="doingPublicSupportMessages"')&&homeRefresh.includes('id="doingPublicSupportInput"'),'一般民眾客服未成為右側獨立浮動對話框');
 assert(homeRefresh.includes("e.key==='Enter'&&!e.shiftKey")&&homeRefresh.includes("requestSubmit()"),'客服輸入框未支援 Enter 送出、Shift+Enter 換行');
 assert(homeCss.includes('DOING_PUBLIC_SUPPORT_SEPARATION_V1')&&homeCss.includes('width:100vw!important;height:100dvh!important')&&homeCss.includes('border-radius:0!important'),'手機客服未使用真正全版面，或仍受首頁容器裁切');
+assert(homeCss.includes('grid-template-columns:repeat(4,minmax(0,1fr))!important')&&homeCss.includes('grid-template-columns:repeat(2,minmax(0,1fr))!important')&&homeCss.includes('white-space:normal!important'),'客服核心引導仍使用水平捲動或可能裁切文字');
 assert(homeRefresh.includes('doing-public-support-application-action')&&homeRefresh.includes("closePublicSupport();loadOrganizerDetails('apply',true)"),'客服回答申請問題後未提供前往智慧申請的明確按鈕');
 assert(homeRefresh.includes('原始碼、金鑰、資料庫結構、系統提示、權限實作或未公開商業設計'),'一般民眾客服缺少機密界線說明');
 assert(!page.includes('class="apply-gate"'),'智慧小幫手不得預設收合在另一層申請按鈕後');
@@ -69,7 +73,7 @@ assert(worker.includes('整段最多 420 個中文字')&&worker.includes('max_ou
 assert(worker.includes('doingHelperKnowledgeContext')&&worker.includes("dbGet(env,'doing_helper_knowledge_entries'")&&worker.includes('approval_status=eq.published&is_public=eq.true'),'AI 未限制為只檢索已發布的正式知識');
 assert(worker.includes('conversationHistory:memberContext.history')&&worker.includes("dbGet(env,'member_helper_messages'")&&page.includes('conversationHistory'),'對話未依登入狀態續接目前畫面或個人紀錄');
 assert(worker.includes('doing_helper_improvement_queue')&&worker.includes('hRateDoingHelperReply')&&page.includes('attachEntryFeedback'),'回答品質未形成待審改善流程');
-assert(worker.includes('const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000)')&&worker.includes("'api_timeout':'api_unavailable'"),'AI 逾時或中斷時仍可能讓客服卡住');
+assert(worker.includes('const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),5000)')&&worker.includes("'api_timeout':'api_unavailable'"),'AI 逾時或中斷時仍可能讓客服卡住');
 assert(worker.includes('不得回答一般知識、生活建議、其他品牌或其他系統'),'AI 缺少 DOING 內容鎖');
 assert(worker.includes('doingHelperSafeReply'),'缺少回覆洩漏攔截');
 assert(worker.includes('doingHelperSensitiveQuestion')&&worker.includes('doingHelperSensitiveReply')&&worker.includes("scopeStatus:'protected'"),'AI 缺少輸入端機密問題攔截');
@@ -90,6 +94,18 @@ for(const table of ['doing_helper_knowledge_entries','member_helper_conversation
 for(const key of ['tenant_data_isolation','member_login_identity','activity_setup_publish','registration_review_waitlist','booking_schedule_resources','market_equipment_seating','payment_refund_records','notifications_calendar','onsite_checkin_closeout','staff_roles_permissions','support_escalation','knowledge_governance','confidentiality_boundary'])assert(knowledgeV2Sql.includes(`'${key}'`),`公開知識 v2 缺少 ${key}`);
 for(const key of ['consumer_doing_overview','consumer_start_registration','consumer_view_registration','consumer_review_waitlist','consumer_pending_review','consumer_waitlist','consumer_payment_status','consumer_cancel_reschedule','consumer_missing_notification','consumer_onsite_checkin','consumer_support_routing'])assert(consumerFaqSql.includes(`'${key}'`),`一般使用者知識 v3 缺少 ${key}`);
 for(const key of ['consumer_registration_submitted','consumer_edit_registration'])assert(consumerFaqV4Sql.includes(`'${key}'`),`報名／預約者知識 v4 缺少 ${key}`);
+assert.equal((consumerFaqV5Sql.match(/\('consumer_faq_\d{3}'/g)||[]).length,100,'DOING 報名者正式知識必須準備 100 題');
+assert(consumerFaqV5Sql.includes("'published',true,'consumer_faq_seed_v5','platform_super_admin'"),'100 題必須是受控、已審核、可公開的正式知識');
+assert(worker.includes('knowledge.topScore>=80')&&worker.includes("engineStatus:'approved_exact_knowledge'"),'完全命中 100 題時必須直接回覆，不等待 AI');
+assert(worker.includes("key:'consumer_search_no_results'")&&worker.includes('搜尋結果會直接出現在搜尋區下方'),'首頁搜尋故障問句不得誤判為範圍外');
+assert(worker.includes('setTimeout(()=>controller.abort(),5000)'),'自由問句逾時上限不得超過 5 秒');
+assert(homeRefresh.includes('function isTenantOwnedQuestion')&&homeRefresh.includes('DOING 不會代替對方回答')&&homeRefresh.includes('聯絡該營運單位客服'),'個別活動客服仍可能被 DOING 代答或錯誤收件');
+assert(worker.includes('你不代表各營運單位的客服')&&worker.includes('不可代答、猜測，也不可轉成 DOING 平台案件'),'AI 提示缺少租戶自有客服邊界');
+assert(homeRefresh.includes('function addPublicSupportHumanAction')&&!homeRefresh.includes('id="doingPublicSupportHumanAction"'),'真人客服不得在客服初始畫面常駐');
+for(const action of ['getDoingPublicSupportConversation','createDoingPublicSupportThread'])assert(worker.includes(`action==='${action}'`),`Worker 缺少真人客服動作：${action}`);
+for(const table of ['doing_public_support_threads','doing_public_support_messages'])assert(publicSupportSql.includes(`public.${table}`)&&worker.includes(`'${table}'`),`真人客服資料流缺少 ${table}`);
+assert(platform.includes("t.kind==='public_support'")&&platform.includes('DOING 使用者')&&platform.includes('系統需求'),'總管客服未區分 DOING 使用者、申請與系統需求');
+assert(worker.includes("kind:'public_support'")&&worker.includes("sender_scope:'platform'")&&worker.includes('member_unread_count'),'總管回覆無法回到會員原對話');
 assert(worker.indexOf('doingHelperConsumerCanonicalReply(question)')<worker.indexOf('Promise.all([doingHelperMemberMemory(env,b),platformBillingPolicy(env),doingHelperKnowledgeContext'),'常見問答未在資料庫與 AI 呼叫前快速回覆');
 assert(worker.includes("engineStatus:'approved_consumer_knowledge'")&&worker.includes("return 'participant'")&&worker.includes('不可把參加者與主辦後台步驟混在一起'),'小幫手未區分一般使用者與主辦角色');
 assert(platform.includes('data-platform-page="helper"')&&platform.includes('id="platformHelperSection"'),'DOING 營運後台缺少智慧小幫手管理入口');
