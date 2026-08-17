@@ -36,8 +36,9 @@ assert(!page.includes('id="signupModulePreview"'),'首頁不得顯示內部功�
 assert(!page.includes('function applicationModuleDefaults'),'內部功能判斷不得留在公開頁面');
 assert(!page.includes('const moduleLabels='),'公開頁面不得暴露功能名稱對照');
 assert(worker.includes("if(action==='analyzeDoingApplication')return hAnalyzeDoingApplication(env,b)"),'缺少公開申請分析路由');
-assert(worker.includes("type:'json_schema'")&&worker.includes("strict:true"),'AI 回覆未使用嚴格結構');
-assert(worker.includes('你可以理解使用者自由輸入的自然語句')&&worker.includes('publicFacts'),'AI 尚未具備 DOING 範圍內的自由問答依據');
+assert(worker.includes('只輸出要顯示給使用者的答案文字，不要 JSON')&&worker.includes("source:accepted?'ai':'rules'"),'AI 回覆未使用可直接顯示的純文字或無法辨識失效輸出');
+assert(worker.includes('你可以理解自由輸入的自然語句')&&worker.includes('publicFacts'),'AI 尚未具備 DOING 範圍內的自由問答依據');
+assert(worker.includes('禁止只重複「我只能協助 DOING」'),'AI 仍可能以服務範圍句取代實際回答');
 assert(worker.includes('const controller=new AbortController()')&&worker.includes("'api_timeout':'api_unavailable'"),'AI 逾時或中斷時仍可能讓客服卡住');
 assert(worker.includes('不得回答一般知識、生活建議、其他品牌或其他系統'),'AI 缺少 DOING 內容鎖');
 assert(worker.includes('doingHelperSafeReply'),'缺少回覆洩漏攔截');
