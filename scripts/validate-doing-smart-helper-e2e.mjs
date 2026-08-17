@@ -65,6 +65,8 @@ assert(worker.includes('doingHelperSensitiveQuestion')&&worker.includes('doingHe
 assert(worker.includes("engineStatus:'authoritative_privacy_rule'")&&worker.includes('不同營運單位的客戶、活動、預約、收付款與人員資料彼此分開'),'資料隔離問題未提供明確且不令人恐慌的正式回答');
 assert(!worker.includes('tenant_apply_logs|其他租戶|別的品牌資料'),'安全過濾器仍會誤擋正常的資料隔離回答');
 assert(page.includes('const entryFallback=question=>')&&page.includes('我先不猜答案'),'前端缺少客服失效時的安全備援');
+assert(page.includes('const entryQuickAnswer=question=>')&&page.includes('「待審核」表示資料已送出，正在等主辦確認'),'一般使用者常見問題缺少前端即時正式答案');
+assert(page.indexOf("const quick=topic==='question'?entryQuickAnswer(question):''")<page.indexOf('const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000)'),'常見問題仍會先等待網路或 AI，可能逾時');
 assert(worker.includes('doingApplicationPlan'),'正式功能判斷未保留在後端');
 assert(page.includes("localStorage.getItem('doing_member_token')")&&page.includes('member_token:memberToken'),'登入狀態未傳給小幫手');
 assert(worker.includes('verifiedPlatformMember(env,token)')&&worker.includes("dbInsert(env,'member_helper_traces'"),'登入會員軌跡未經身分驗證後寫入');
@@ -81,6 +83,8 @@ assert(worker.includes("engineStatus:'approved_consumer_knowledge'")&&worker.inc
 assert(platform.includes('data-platform-page="helper"')&&platform.includes('id="platformHelperSection"'),'DOING 營運後台缺少智慧小幫手管理入口');
 assert(platform.includes('id="helperKnowledgeList"')&&platform.includes('id="helperReviewList"')&&platform.includes("get('getDoingHelperKnowledgeAdmin')"),'DOING 營運後台缺少可見知識庫或回答審核區');
 assert(platform.includes("post('publishDoingHelperKnowledge'")&&platform.includes("post('reviewDoingHelperImprovement'"),'DOING 營運後台缺少知識發布或審核操作');
+assert(platform.includes('id="bulkPublishHelperBtn"')&&platform.includes("post('bulkPublishDoingHelperKnowledge'")&&platform.includes("post('publishDoingHelperImprovement'"),'DOING 營運後台缺少一鍵安全發布或單題核准並發布');
+assert(worker.includes('hBulkPublishDoingHelperKnowledge')&&worker.includes('doingHelperPublishableAnswer')&&worker.includes("if(action==='bulkPublishDoingHelperKnowledge')"),'Worker 缺少受控批次發布與敏感內容攔截');
 assert(knowledgeV2Sql.includes("('service_scope',2")&&knowledgeV2Sql.includes("('brand_data_boundary',2")&&knowledgeV2Sql.includes("('conversation_privacy',2"),'公開知識 v2 未修正既有模糊回答');
 assert(knowledgeSql.includes("approval_status in ('draft','published','rejected')")&&knowledgeSql.includes("approval_status=eq.published")===false,'正式知識缺少受控發布狀態');
 assert(knowledgeSql.includes("low_confidence")&&knowledgeSql.includes("review_status in ('pending','approved','rejected','applied')"),'改善候選缺少人工審核狀態');

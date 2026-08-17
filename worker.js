@@ -3781,13 +3781,61 @@ async function hGetDoingHelperKnowledgeAdmin(env,p){
   const knowledge=await dbGet(env,'doing_helper_knowledge_entries','select=id,knowledge_key,version,category,title,content,keywords,source_type,source_ref,approval_status,is_public,supersedes_id,created_by,approved_by,created_at,published_at&order=knowledge_key.asc,version.desc&limit=500').catch(()=>[]),improvements=await dbGet(env,'doing_helper_improvement_queue','select=id,question,answer,rating,reason,knowledge_keys,review_status,review_note,reviewed_by,reviewed_at,created_at&order=created_at.desc&limit=200').catch(()=>[]);
   return jsonOk({knowledge,improvements});
 }
+const DOING_HELPER_KNOWLEDGE_CATEGORIES=new Set(['scope','application','data','billing','workflow','permissions','support']);
+function doingHelperKnowledgeCategory(question){
+  const text=String(question||'');
+  if(/費用|付款|收費|退款|入帳/.test(text))return 'billing';
+  if(/資料|隱私|共用|混在一起/.test(text))return 'data';
+  if(/申請|開通|帳號/.test(text))return 'application';
+  if(/報名|預約|候補|審核|通知|報到|改期/.test(text))return 'workflow';
+  if(/權限|人員|管理者/.test(text))return 'permissions';
+  return 'support';
+}
+function doingHelperPublishableAnswer(question,answer){
+  const content=String(answer||'').trim().slice(0,3000);
+  if(!String(question||'').trim()||!content||doingHelperSensitiveQuestion(`${question} ${content}`))return '';
+  if(/需要多一點時間|我先不猜答案|暫時無法|沒有連上|請稍後再試|無法回覆/.test(content))return '';
+  return doingHelperSafeReply(content,'')===content?content:'';
+}
+function doingHelperImprovementKey(row){
+  const supplied=(Array.isArray(row&&row.knowledge_keys)?row.knowledge_keys:[]).map(x=>String(x||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,'')).find(Boolean);
+  return (supplied||`approved_faq_${String(row&&row.id||crypto.randomUUID()).replace(/-/g,'').slice(0,20)}`).slice(0,80);
+}
+async function publishDoingHelperKnowledgeVersion(env,jwt,input){
+  const key=String(input&&input.knowledgeKey||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,80),category=String(input&&input.category||''),title=String(input&&input.title||'').trim().slice(0,160),content=String(input&&input.content||'').trim().slice(0,3000);
+  if(!key||!DOING_HELPER_KNOWLEDGE_CATEGORIES.has(category)||!title||!content)throw new Error('知識內容不完整');
+  const previous=(await dbGet(env,'doing_helper_knowledge_entries',`knowledge_key=eq.${encodeURIComponent(key)}&select=id,version,content,approval_status,is_public&order=version.desc&limit=1`).catch(()=>[]))[0];
+  if(previous&&previous.approval_status==='published'&&previous.is_public!==false&&String(previous.content||'').trim()===content)return {knowledge:previous,unchanged:true};
+  const version=Math.max(1,safeNum(previous&&previous.version)+1),keywords=[...new Set((Array.isArray(input&&input.keywords)?input.keywords:[]).map(x=>String(x||'').trim().slice(0,50)).filter(Boolean))].slice(0,30);
+  const row=await dbInsert(env,'doing_helper_knowledge_entries',{knowledge_key:key,version,category,title,content,keywords,source_type:'approved_answer',source_ref:String(input&&input.sourceRef||'platform_admin').slice(0,300),approval_status:'published',is_public:true,supersedes_id:previous&&previous.id||null,created_by:String(jwt.email||''),approved_by:String(jwt.email||''),created_at:nowIso(),published_at:nowIso()});
+  return {knowledge:row,unchanged:false};
+}
 async function hPublishDoingHelperKnowledge(env,b){
   const jwt=await platformSupportAuth(env,b);if(!jwt)return jsonErr('無權限');
-  const key=String(b&&b.knowledgeKey||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,80),category=String(b&&b.category||''),title=String(b&&b.title||'').trim().slice(0,160),content=String(b&&b.content||'').trim().slice(0,3000),allowedCategories=new Set(['scope','application','data','billing','workflow','permissions','support']);
-  if(!key||!allowedCategories.has(category)||!title||!content)return jsonErr('知識內容不完整');
-  const previous=(await dbGet(env,'doing_helper_knowledge_entries',`knowledge_key=eq.${encodeURIComponent(key)}&select=id,version&order=version.desc&limit=1`).catch(()=>[]))[0],version=Math.max(1,safeNum(previous&&previous.version)+1),keywords=[...new Set((Array.isArray(b&&b.keywords)?b.keywords:[]).map(x=>String(x||'').trim().slice(0,50)).filter(Boolean))].slice(0,30);
-  const row=await dbInsert(env,'doing_helper_knowledge_entries',{knowledge_key:key,version,category,title,content,keywords,source_type:'approved_answer',source_ref:String(b&&b.sourceRef||'platform_admin').slice(0,300),approval_status:'published',is_public:true,supersedes_id:previous&&previous.id||null,created_by:String(jwt.email||''),approved_by:String(jwt.email||''),created_at:nowIso(),published_at:nowIso()});
-  return jsonOk({ok:true,knowledge:row});
+  try{const result=await publishDoingHelperKnowledgeVersion(env,jwt,b);return jsonOk({ok:true,...result})}catch(error){return jsonErr(error&&error.message||'知識發布失敗')}
+}
+async function publishDoingHelperImprovementRow(env,jwt,row,answer,reviewNote){
+  const content=doingHelperPublishableAnswer(row&&row.question,answer);if(!content)throw new Error('這份回答仍含不確定、失效或敏感內容，請先編輯後再發布');
+  const result=await publishDoingHelperKnowledgeVersion(env,jwt,{knowledgeKey:doingHelperImprovementKey(row),category:doingHelperKnowledgeCategory(row.question),title:String(row.question||'').trim(),content,keywords:Array.isArray(row.knowledge_keys)?row.knowledge_keys:[],sourceRef:'DOING 智慧回答審核'});
+  await dbUpdate(env,'doing_helper_improvement_queue',`id=eq.${encodeURIComponent(row.id)}`,{review_status:'applied',review_note:String(reviewNote||'已核准並發布為 DOING 正式知識。').trim().slice(0,1000),reviewed_by:String(jwt.email||''),reviewed_at:nowIso()});
+  return result;
+}
+async function hPublishDoingHelperImprovement(env,b){
+  const jwt=await platformSupportAuth(env,b);if(!jwt)return jsonErr('無權限');
+  const id=String(b&&b.id||'').trim();if(!id)return jsonErr('審核資料不完整');
+  const row=(await dbGet(env,'doing_helper_improvement_queue',`id=eq.${encodeURIComponent(id)}&review_status=in.(pending,approved)&select=id,question,answer,knowledge_keys,review_status&limit=1`).catch(()=>[]))[0];if(!row)return jsonErr('找不到可發布的待審回答');
+  try{const result=await publishDoingHelperImprovementRow(env,jwt,row,row.answer,b&&b.reviewNote);return jsonOk({ok:true,...result})}catch(error){return jsonErr(error&&error.message||'回答發布失敗')}
+}
+async function hBulkPublishDoingHelperKnowledge(env,b){
+  const jwt=await platformSupportAuth(env,b);if(!jwt)return jsonErr('無權限');
+  const rows=await dbGet(env,'doing_helper_improvement_queue','review_status=in.(pending,approved)&select=id,question,answer,knowledge_keys,review_status&order=created_at.asc&limit=200').catch(()=>[]);
+  let published=0,skipped=0,blocked=0;
+  for(const row of rows){
+    const canonical=doingHelperConsumerCanonicalReply(row.question),answer=row.review_status==='approved'?row.answer:(canonical&&canonical.reply||'');
+    if(!answer){blocked++;continue}
+    try{const result=await publishDoingHelperImprovementRow(env,jwt,row,answer,'一鍵發布：已核對為 DOING 官方安全答案。');if(result.unchanged)skipped++;else published++}catch(_){blocked++}
+  }
+  return jsonOk({ok:true,total:rows.length,published,skipped,blocked});
 }
 async function hReviewDoingHelperImprovement(env,b){
   const jwt=await platformSupportAuth(env,b);if(!jwt)return jsonErr('無權限');
@@ -11507,6 +11555,8 @@ async function routePost(env, action, b, ctx, req) {
   if(action==='analyzeDoingApplication')return hAnalyzeDoingApplication(env,b);
   if(action==='rateDoingHelperReply')return hRateDoingHelperReply(env,b);
   if(action==='publishDoingHelperKnowledge')return hPublishDoingHelperKnowledge(env,b);
+  if(action==='publishDoingHelperImprovement')return hPublishDoingHelperImprovement(env,b);
+  if(action==='bulkPublishDoingHelperKnowledge')return hBulkPublishDoingHelperKnowledge(env,b);
   if(action==='reviewDoingHelperImprovement')return hReviewDoingHelperImprovement(env,b);
   if(action==='createOrganizerApplicationDraft')return hCreateOrganizerApplicationDraft(env,b);
   if(action==='approveApply')return hApproveApply(env,b);
