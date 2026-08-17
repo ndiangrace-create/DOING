@@ -40,3 +40,35 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
 .apply-form.is-smart-flow>.smart-answer-card{width:min(92%,790px);margin-left:auto;background:#fff!important;border:1px solid #d8e7e4!important;border-radius:18px 18px 6px 18px!important;box-shadow:0 8px 22px rgba(36,111,105,.08)!important}.smart-answer-card>h3{margin-top:0}
 .smart-flow-nav{display:flex;justify-content:space-between;gap:10px;margin-top:18px}.smart-flow-nav button{min-width:120px}.smart-flow-nav .next{margin-left:auto;background:#246f69;color:#fff}.smart-flow-nav .back{background:#fff;border:1px solid #c6d8d5;color:#3d625f}
 @media(max-width:620px){.doing-helper-start-actions,.doing-chat-input-row{grid-template-columns:1fr}.doing-chat-input-row button{min-height:48px}.smart-flow-guide{align-items:flex-start}.smart-flow-progress{font-size:14px}.smart-flow-nav button{min-width:0;flex:1}}
+
+/* 申請內容維持一個主題一區塊；只修正固定導覽與容器裁切文字。 */
+.apply-form.is-smart-flow,
+.apply-form.is-smart-flow>.group.is-active,
+.apply-form.is-smart-flow .form-head,
+.smart-flow-guide{
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+.apply-form.is-smart-flow,
+.smart-flow-guide{scroll-margin-top:120px!important}
+.apply-form.is-smart-flow .form-head h2,
+.apply-form.is-smart-flow .form-head p,
+.smart-flow-guide b,
+.smart-flow-guide p,
+.apply-form.is-smart-flow h3,
+.apply-form.is-smart-flow label,
+.apply-form.is-smart-flow .desc{
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+  line-height:1.5!important;
+}
+@media(max-width:820px){
+  .apply-form.is-smart-flow,.smart-flow-guide{scroll-margin-top:138px!important}
+  .apply-form.is-smart-flow{padding-top:28px!important}
+  .apply-form.is-smart-flow .form-head{padding-top:4px!important}
+}
