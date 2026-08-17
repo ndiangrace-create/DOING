@@ -559,18 +559,25 @@ function sessionStartTs(s){
   const vals=rows.map(d=>new Date((d&&d.date)||d).getTime()).filter(Number.isFinite);
   return vals.length?Math.min(...vals):Number.MAX_SAFE_INTEGER;
 }
+function fallbackPublicImages(root=document){
+  root.querySelectorAll('.cover img,.event-cover img').forEach(img=>{
+    const fallback=()=>{const box=img.parentElement;if(!box)return;img.remove();box.textContent='DOING'};
+    img.addEventListener('error',fallback,{once:true});
+    if(img.complete&&!img.naturalWidth)fallback();
+  });
+}
 function renderEvents(){
   const list=state.events||[];
   $('eventSection').classList.toggle('hidden',!list.length);
   if(!list.length)return;
-  $('eventStrip').innerHTML=list.map(e=>'<button type="button" class="event-card" onclick="setEventFilter(\''+esc(e.id)+'\')" style="text-align:left;padding:0"><div class="event-cover">'+(e.cover?'<img src="'+esc(e.cover)+'" alt="">':'')+'</div><div class="event-copy"><h3>'+esc(e.title||'主題活動')+'</h3><p>'+esc(e.desc||e.location||'查看開放場次')+'</p><span class="pill '+(state.eventId===String(e.id)?'green':'')+'" style="margin-top:9px">'+(state.eventId===String(e.id)?'目前篩選':'查看場次')+'</span></div></button>').join('');
+  $('eventStrip').innerHTML=list.map(e=>'<button type="button" class="event-card" onclick="setEventFilter(\''+esc(e.id)+'\')" style="text-align:left;padding:0"><div class="event-cover">'+(e.cover?'<img src="'+esc(e.cover)+'" alt="">':'')+'</div><div class="event-copy"><h3>'+esc(e.title||'主題活動')+'</h3><p>'+esc(e.desc||e.location||'查看開放場次')+'</p><span class="pill '+(state.eventId===String(e.id)?'green':'')+'" style="margin-top:9px">'+(state.eventId===String(e.id)?'目前篩選':'查看場次')+'</span></div></button>').join('');fallbackPublicImages($('eventStrip'));
 }
 function setEventFilter(id){state.eventId=state.eventId===String(id)?'':String(id);renderEvents();renderSessions()}
 function renderSessions(){
   let arr=(state.sessions||[]).slice();
   if(state.eventId)arr=arr.filter(s=>String(s.eventId||'')===state.eventId);
   arr.sort((a,b)=>sessionStartTs(a)-sessionStartTs(b));
-  $('sessionGrid').innerHTML=arr.length?arr.map(raw=>{const s=sessionDisplay(raw),m=moduleCfg(raw);return `<article class="card"><div class="cover">${s.cover?`<img src="${esc(s.cover)}" alt="${esc(s.name)}">`:'DOING'}</div><div class="card-body"><h3>${esc(s.name)}</h3><div class="meta"><span class="pill">${esc(s.status||'')}</span>${m.workshopSlots?'<span class="pill blue">TIME SLOT</span>':''}</div><div class="desc">${esc(s.desc||'')}</div><div><b>${tr('date')}：</b>${esc(dateText(s.dates))}</div><div><b>${tr('venue')}：</b>${esc(s.venue||'—')}</div><div class="money">${Number(s.fee||0)>0?money(s.fee)+' 起':tr('free')}${Number(s.deposit||0)>0?'＋ '+money(s.deposit):''}</div><div class="actions"><button class="btn" onclick="openRegistration('${esc(s.id)}')">${tr('view')}</button></div></div></article>`}).join(''):'<div class="empty">目前沒有符合條件的開放項目。</div>';
+  $('sessionGrid').innerHTML=arr.length?arr.map(raw=>{const s=sessionDisplay(raw),m=moduleCfg(raw);return `<article class="card"><div class="cover">${s.cover?`<img src="${esc(s.cover)}" alt="${esc(s.name)}">`:'DOING'}</div><div class="card-body"><h3>${esc(s.name)}</h3><div class="meta"><span class="pill">${esc(s.status||'')}</span>${m.workshopSlots?'<span class="pill blue">TIME SLOT</span>':''}</div><div class="desc">${esc(s.desc||'')}</div><div><b>${tr('date')}：</b>${esc(dateText(s.dates))}</div><div><b>${tr('venue')}：</b>${esc(s.venue||'—')}</div><div class="money">${Number(s.fee||0)>0?money(s.fee)+' 起':tr('free')}${Number(s.deposit||0)>0?'＋ '+money(s.deposit):''}</div><div class="actions"><button class="btn" onclick="openRegistration('${esc(s.id)}')">${tr('view')}</button></div></div></article>`}).join(''):'<div class="empty">目前沒有符合條件的開放項目。</div>';fallbackPublicImages($('sessionGrid'));
 }
 
 async function ensurePublicBundles(){
@@ -647,7 +654,7 @@ function renderExposureCarousel(){
   stage.onmouseenter=()=>exposurePaused=true;stage.onmouseleave=()=>exposurePaused=false;stage.ontouchstart=e=>{exposurePaused=true;exposureTouchY=e.touches[0]?.clientY??null};stage.ontouchend=e=>{const y=e.changedTouches[0]?.clientY??null;if(exposureTouchY!=null&&y!=null&&Math.abs(y-exposureTouchY)>28){exposureCarouselIndex=(exposureCarouselIndex+(y<exposureTouchY?1:-1)+items.length)%items.length;positionExposureCards()}exposureTouchY=null;setTimeout(()=>exposurePaused=false,1200)};stage.onwheel=e=>{e.preventDefault();exposureCarouselIndex=(exposureCarouselIndex+(e.deltaY>0?1:-1)+items.length)%items.length;positionExposureCards()};
 }
 function positionExposureCards(){const stage=$('doingExposureStage'),base=state.exposureItems||[],items=exposureSequence(base);if(!stage||!items.length)return;stage.querySelectorAll('.exposure-3d-card').forEach((el,i)=>{let d=i-exposureCarouselIndex;const n=items.length;if(d>n/2)d-=n;if(d<-n/2)d+=n;let c='off';if(d===0)c='pos0';else if(d===-1)c='posm1';else if(d===1)c='pos1';else if(d===-2)c='posm2';else if(d===2)c='pos2';el.className='exposure-3d-card '+c});window.DoingAttribution?.track('impression',items[exposureCarouselIndex],'paid_exposure')}
-function doGlobalSearch(){const q=String($('doingGlobalSearchInput')?.value||'').trim().toLowerCase(),rows=state.discoveryItems||[];const hit=!q?rows:rows.filter(x=>[x.sessionName,x.eventTitle,x.tenantName,x.venue,x.description].join(' ').toLowerCase().includes(q));$('globalSearchSummary').textContent=q?'找到 '+hit.length+' 筆與「'+q+'」相關的活動':'近期公開活動';$('globalSearchResults').innerHTML=hit.length?hit.slice(0,80).map(x=>`<article class="card"><div class="cover">${x.cover?`<img src="${esc(x.cover)}" alt="">`:'DOING'}</div><div class="card-body"><div class="meta"><span class="pill">by ${esc(x.tenantName||'')}</span></div><h3>${esc(x.sessionName||'活動')}</h3><div class="desc">${esc(x.eventTitle||'')} ${esc(x.venue||'')}</div><div class="actions"><a class="btn" href="?tenant=${encodeURIComponent(x.tenantId)}&session=${encodeURIComponent(x.sessionId)}">查看活動</a></div></div></article>`).join(''):'<div class="empty">目前沒有符合的活動。</div>';$('globalSearchModal').classList.add('show')}
+function doGlobalSearch(){const q=String($('doingGlobalSearchInput')?.value||'').trim().toLowerCase(),rows=state.discoveryItems||[];const hit=!q?rows:rows.filter(x=>[x.sessionName,x.eventTitle,x.tenantName,x.venue,x.description].join(' ').toLowerCase().includes(q));$('globalSearchSummary').textContent=q?'找到 '+hit.length+' 筆與「'+q+'」相關的活動':'近期公開活動';$('globalSearchResults').innerHTML=hit.length?hit.slice(0,80).map(x=>`<article class="card"><div class="cover">${x.cover?`<img src="${esc(x.cover)}" alt="">`:'DOING'}</div><div class="card-body"><div class="meta"><span class="pill">by ${esc(x.tenantName||'')}</span></div><h3>${esc(x.sessionName||'活動')}</h3><div class="desc">${esc(x.eventTitle||'')} ${esc(x.venue||'')}</div><div class="actions"><a class="btn" href="?tenant=${encodeURIComponent(x.tenantId)}&session=${encodeURIComponent(x.sessionId)}">查看活動</a></div></div></article>`).join(''):'<div class="empty">目前沒有符合的活動。</div>';fallbackPublicImages($('globalSearchResults'));$('globalSearchModal').classList.add('show')}
 function closeGlobalSearch(){$('globalSearchModal').classList.remove('show')}
 
 function setPage(p){

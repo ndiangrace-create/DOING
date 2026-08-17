@@ -2,7 +2,7 @@ import fs from 'node:fs';
 
 const read=file=>fs.readFileSync(file,'utf8');
 const assert=(value,message)=>{if(!value)throw new Error(message)};
-const platform=read('platform.html'),worker=read('worker.js'),admin=read('admin.html');
+const platform=read('platform.html'),worker=read('worker.js'),admin=read('admin.html'),home=read('doing-home-refresh.js'),member=read('member.html');
 
 for(const target of ['billing','issues','tenants','applications'])assert(platform.includes(`'${target}'`),`營運 KPI 缺少明確對應：${target}`);
 assert(platform.includes('id="platformOperationsDashboard"'),'平台缺少營運總覽');
@@ -44,5 +44,10 @@ for(const file of ['platform.html','admin.html','about.html','onsite.html','phot
 assert(read('index.html').includes("hiddenAdminSelector='#brandHoldTarget,.doing-nav-brand'"),'首頁總管入口條件遺失');
 assert(read('register.html').includes('setTimeout(()=>{cancelAdminHold();'),'活動頁總管入口條件遺失');
 assert(read('doing-global-entry.js').includes('setTimeout(enter,3000)'),'共同入口不是 3 秒長按');
+assert(home.includes("spaces.length===1?`admin.html?tenant=${encodeURIComponent(spaces[0].id)}&from=tenant#calendar`:'member.html#operations'"),'租戶會員入口未依單一／多營運空間正確分流');
+assert(home.includes("tenantTop.textContent=memberAuth.complete?(memberAuth.workspaces.length===1?'營運管理':'我的 DOING'):'LINE 登入'"),'租戶登入按鈕未清楚顯示營運入口');
+assert(member.includes('安排預約日曆')&&member.includes('&from=member#calendar'),'會員中心缺少預約日曆直達入口');
+assert(admin.includes("if(from==='tenant'&&tenant)return {href:'index.html?tenant='+encodeURIComponent(tenant)"),'租戶後台缺少回到原營運首頁的路徑');
+assert(admin.includes("const ADMIN_HASH_PAGES=new Set(['sessions','calendar'")&&admin.includes("if(page==='calendar')loadUnifiedCalendar()"),'主辦後台的日曆深連結未接到正式日曆');
 
 console.log('navigation actions: OK');

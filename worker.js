@@ -2501,6 +2501,11 @@ async function hCancelExposurePlatform(env,b){const pay=await verifyAdminJwt(b.t
 
 // DOING 公開平台首頁：跨主辦只讀取「正式公開」資料。
 // 不回傳 staff、會員、付款、財務或任何主辦私有設定。
+function publicCatalogRow(row){
+  const values=[row&&row.id,row&&row.event_id,row&&row.session_id,row&&row.name,row&&row.title].map(x=>String(x||'').trim());
+  const modules=safeJson(row&&row.modules_json,{});
+  return modules.isTest!==true&&String(modules.publicVisibility||modules.visibility||'').toLowerCase()!=='test'&&!values.some(x=>/^TEST(?:_|-)/i.test(x)||/[【[]\s*測試\s*[\]】]/.test(x));
+}
 async function hPublicDiscovery(env,p){
   const [tenants,events,sessions,units,logs]=await Promise.all([
     dbGet(env,'tenants','status=eq.active&is_locked=eq.false&select=id,name,slug,config_json,created_at').catch(()=>[]),
@@ -2527,16 +2532,17 @@ async function hPublicDiscovery(env,p){
   const bookingActive=T=>(billingByTenant.get(String(T))||[]).some(x=>String(x.billing_type)==='booking_monthly'&&x.period_end&&new Date(x.period_end).getTime()>now);
   const activityEntitled=(T,sid)=>(billingByTenant.get(String(T))||[]).some(x=>String(x.billing_type)===billingTypeForActivity(sid));
   const unitEntitled=(T,uid)=>(billingByTenant.get(String(T))||[]).some(x=>String(x.billing_type)===billingTypeForOperationUnit(uid));
-  const eventMap=new Map(events.map(e=>[String(e.id),e]));
+  const eventMap=new Map(events.filter(publicCatalogRow).map(e=>[String(e.id),e]));
   const result=[];
   for(const s of sessions){
+    if(!publicCatalogRow(s))continue;
     const T=String(s.tenant_id||''),tenant=tenantMap.get(T);if(!tenant)continue;
     const mods=normalizeSessionModules(safeJson(s.modules_json,{}));
-    const unitRows=units.filter(u=>String(u.tenant_id)===T&&String(u.session_id)===String(s.id));
-    const sessionPaid=String(mods.operatingMode||'activity')==='booking'?bookingActive(T):activityEntitled(T,s.id);
+    const unitRows=units.filter(u=>publicCatalogRow(u)&&String(u.tenant_id)===T&&String(u.session_id)===String(s.id));
+    const sessionPaid=String(mods.operatingMode||'activity')==='booking'?bookingActive(T):(isPaidOperatingSession(s)||activityEntitled(T,s.id));
     const publicUnits=unitRows.filter(u=>{
       const um=normalizeSessionModules(safeJson(u.modules_json,{}));
-      return String(um.operatingMode||'activity')==='booking'?bookingActive(T):unitEntitled(T,u.id);
+      return String(um.operatingMode||'activity')==='booking'?bookingActive(T):(isPaidOperatingUnit(u)||unitEntitled(T,u.id));
     });
     if(!sessionPaid&&!publicUnits.length)continue;
     const ev=eventMap.get(String(s.event_id||''))||{};
@@ -2722,6 +2728,7 @@ async function getOperationUnitRow(env,T,id,sessionId=''){
 async function operationUnitEntitlementActive(env,T,u){
   if(!u)return false;const m=normalizeSessionModules(safeJson(u.modules_json,{}));
   if(String(m.operatingMode||'activity')==='booking')return !!(await activeBookingEntitlement(env,T));
+  if(isPaidOperatingUnit(u))return true;
   return await hasOperationUnitEntitlement(env,T,u.id);
 }
 async function ensureOperationUnitEntitlement(env,T,u){
@@ -2965,11 +2972,12 @@ async function hFrontBootstrap(env, p) {
   const [tc, eventRows, sessionRows, annRows, unitRows] = await Promise.all([
     getTenantCtx(env, TENANT),
     dbGet(env, 'events', `tenant_id=eq.${TENANT}&status=neq.%E5%81%9C%E7%94%A8&select=*`),
-    dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&status=in.(%E5%A0%B1%E5%90%8D%E4%B8%AD,%E9%96%8B%E6%94%BE%E4%B8%AD)&select=*`),
+    dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&status=in.(%E5%A0%B1%E5%90%8D%E4%B8%AD,%E9%96%8B%E6%94%BE%E4%B8%AD,%E9%96%8B%E6%94%BE)&select=*`),
     dbGet(env, 'announcements', `tenant_id=eq.${TENANT}&select=*&order=created_at.desc`),
     dbGet(env, 'operation_units', `tenant_id=eq.${TENANT}&status=in.(open,active,published)&select=*&order=sort_order.asc,created_at.asc`).catch(()=>[]),
   ]);
-  const publicUnits=[];for(const u of unitRows)if(await operationUnitEntitlementActive(env,TENANT,u)){const f=formatOperationUnit(u),ts=await dbGet(env,'timeslots',`tenant_id=eq.${encodeURIComponent(TENANT)}&operation_unit_id=eq.${encodeURIComponent(u.id)}&status=eq.open&select=*&order=date_key.asc,start_text.asc`).catch(()=>[]);f.timeslots=ts.map(x=>({id:x.id,date:x.date_key,label:x.label||x.date_key,start:x.start_text||'',end:x.end_text||'',capacity:safeNum(x.capacity),remaining:safeNum(x.capacity)>0?Math.max(0,safeNum(x.capacity)-safeNum(x.reserved_count)-safeNum(x.confirmed_count)):0}));publicUnits.push(f)}
+  const visibleEventRows=eventRows.filter(publicCatalogRow),visibleSessionRows=sessionRows.filter(publicCatalogRow),visibleUnitRows=unitRows.filter(publicCatalogRow);
+  const publicUnits=[];for(const u of visibleUnitRows)if(await operationUnitEntitlementActive(env,TENANT,u)){const f=formatOperationUnit(u),ts=await dbGet(env,'timeslots',`tenant_id=eq.${encodeURIComponent(TENANT)}&operation_unit_id=eq.${encodeURIComponent(u.id)}&status=eq.open&select=*&order=date_key.asc,start_text.asc`).catch(()=>[]);f.timeslots=ts.map(x=>({id:x.id,date:x.date_key,label:x.label||x.date_key,start:x.start_text||'',end:x.end_text||'',capacity:safeNum(x.capacity),remaining:safeNum(x.capacity)>0?Math.max(0,safeNum(x.capacity)-safeNum(x.reserved_count)-safeNum(x.confirmed_count)):0}));publicUnits.push(f)}
   const unitSessionIds=new Set(publicUnits.map(x=>String(x.sessionId)));
   return jsonOk({
     tenant: {
@@ -2987,8 +2995,8 @@ async function hFrontBootstrap(env, p) {
       businessType: tc.businessType,
       i18n:tc.i18n,
     },
-    events:        eventRows.map(r=>({id:r.id,title:r.title,desc:r.description,location:r.location,cover:r.cover_url,status:r.status})),
-    sessions:      (await (async()=>{const checks=await Promise.all(sessionRows.map(async s=>({s,ok:(await operatingEntitlementActive(env,TENANT,s))||unitSessionIds.has(String(s.id))})));return checks.filter(x=>x.ok).map(x=>formatSession(x.s))})()),
+    events:        visibleEventRows.map(r=>({id:r.id,title:r.title,desc:r.description,location:r.location,cover:r.cover_url,status:r.status})),
+    sessions:      (await (async()=>{const checks=await Promise.all(visibleSessionRows.map(async s=>({s,ok:(await operatingEntitlementActive(env,TENANT,s))||unitSessionIds.has(String(s.id))})));return checks.filter(x=>x.ok).map(x=>formatSession(x.s))})()),
     operationUnits: publicUnits,
     announcements: annRows.map(r=>({id:r.id,title:r.title,content:r.content,url:r.url,urlText:r.url_text,createdAt:r.created_at})),
   });
@@ -2998,15 +3006,15 @@ async function hFrontBootstrap(env, p) {
 async function hGetEvents(env, p) {
   const TENANT = (p && p._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
   const rows = await dbGet(env, 'events', `tenant_id=eq.${TENANT}&status=neq.%E5%81%9C%E7%94%A8&select=*`);
-  return jsonOk(rows.map(r=>({id:r.id,title:r.title,desc:r.description,location:r.location,cover:r.cover_url,status:r.status})));
+  return jsonOk(rows.filter(publicCatalogRow).map(r=>({id:r.id,title:r.title,desc:r.description,location:r.location,cover:r.cover_url,status:r.status})));
 }
 
 // getSessions
 async function hGetSessions(env, p) {
   const TENANT = (p && p._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
-  let qs = `tenant_id=eq.${TENANT}&status=in.(報名中,開放中)&select=*`;
+  let qs = `tenant_id=eq.${TENANT}&status=in.(報名中,開放中,開放)&select=*`;
   if (p.eventId) qs += `&event_id=eq.${encodeURIComponent(p.eventId)}`;
-  let rows = await dbGet(env, 'sessions', qs);
+  let rows = (await dbGet(env, 'sessions', qs)).filter(publicCatalogRow);
   const checks=await Promise.all(rows.map(async s=>({s,ok:(await operatingEntitlementActive(env,TENANT,s))||(await anyOpenUnitEntitled(env,TENANT,s.id))})));
   return jsonOk(checks.filter(x=>x.ok).map(x=>formatSession(x.s)));
 }
@@ -3018,6 +3026,10 @@ async function hGetSession(env, p) {
   if (!id) return jsonErr('請提供 id');
   const rows = await dbGet(env, 'sessions', `tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(id)}&select=*`);
   if (!rows.length) return jsonErr('找不到場次');
+  if(!publicCatalogRow(rows[0])){
+    const staffOk=!!(p&&p.email&&p.token&&await verifyStaff(env,p.email,p.token,TENANT));
+    if(!staffOk)return jsonErr('找不到場次');
+  }
   if(['報名中','開放中','開放'].includes(String(rows[0].status||'')) && !(await operatingEntitlementActive(env,TENANT,rows[0])) && !(await anyOpenUnitEntitled(env,TENANT,rows[0].id))){
     const staffOk=!!(p&&p.email&&p.token&&await verifyStaff(env,p.email,p.token,TENANT));
     if(!staffOk)return jsonErr('此場次尚未正式開放');
@@ -3797,12 +3809,12 @@ async function doingHelperResult(env,b,payload,selections={},options={}){
   if(token){
     const verified=memberContext.verified;
     if(verified&&verified.row&&verified.row.id){
-      await dbInsert(env,'member_helper_traces',{id:genId('HLP'),member_id:String(verified.row.id),topic:String(payload.topic||'summary'),use_cases_json:selections.useCases||[],pain_points_json:selections.painPoints||[],work_situations_json:selections.workSituations||[],reply:String(payload.reply||'').slice(0,500),reply_source:String(payload.source||'rules'),created_at:nowIso()});
-      saved=true;
+      const requestedTopic=String(payload.topic||'summary'),traceTopic=['summary','data','billing','adjust'].includes(requestedTopic)?requestedTopic:'summary';
+      saved=!!await dbInsert(env,'member_helper_traces',{id:genId('HLP'),member_id:String(verified.row.id),topic:traceTopic,use_cases_json:selections.useCases||[],pain_points_json:selections.painPoints||[],work_situations_json:selections.workSituations||[],reply:String(payload.reply||'').slice(0,500),reply_source:String(payload.source||'rules'),created_at:nowIso()}).catch(()=>null);
     }
   }
   const exchangeId=options.question?await doingHelperSaveExchange(env,memberContext,options.question,payload,options.knowledge).catch(()=>null):null;
-  return jsonOk({...payload,saved,conversationSaved:!!exchangeId,exchangeId});
+  return jsonOk({...payload,saved:saved||!!exchangeId,conversationSaved:!!exchangeId,exchangeId});
 }
 async function hRateDoingHelperReply(env,b){
   const verified=await verifiedPlatformMember(env,b&&(b.member_token||b.memberToken));if(!verified||!verified.row||!verified.row.id)return jsonErr('請先登入 DOING 會員後再留下回答回饋',401);
@@ -4887,6 +4899,18 @@ async function upsertPlatformIdentity(env,{provider,subject,email='',displayName
     await bindLegacyAdminAccessByVerifiedEmails(env,member.id);
     return {...member,...update};
   }
+  // 使用者已從登入中的會員中心發起連結，且完成另一個 OAuth 本人驗證時，
+  // link token 已證明目前會員身分；不可再用「聯絡 Email 尚未驗證」阻擋本人同步。
+  if(preferredMemberId){
+    const target=await getPlatformMemberById(env,preferredMemberId);if(!target)throw new Error('identity_link_target_not_found');
+    const identity={id:genId('MID'),member_id:target.id,provider,provider_subject:subject,provider_email:normalizedEmail||null,created_at:now,last_login_at:now};
+    await dbInsert(env,'platform_member_identities',identity);
+    const update={display_name:displayName||target.display_name||'',avatar_url:avatarUrl||target.avatar_url||'',updated_at:now};
+    if(normalizedEmail&&(!normEmail(target.email)||normEmail(target.email)===normalizedEmail)){update.email=normalizedEmail;update.email_verified_at=now}
+    await dbUpdate(env,'platform_members',`id=eq.${encodeURIComponent(target.id)}`,update);
+    await bindLegacyAdminAccessByVerifiedEmails(env,target.id);
+    return {...target,...update,_identity:identity};
+  }
   if(normalizedEmail){
     const [byEmail,byContactEmail]=await Promise.all([
       dbGet(env,'platform_members',`email=eq.${encodeURIComponent(normalizedEmail)}&select=*`).catch(()=>[]),
@@ -5072,9 +5096,9 @@ async function hGoogleCallback(env, url) {
   const state = url.searchParams.get('state');
   const errorParam = url.searchParams.get('error');
 
-  const failRedirect = (reason, target = loginUrl) => {
+  const failRedirect = (reason, target = loginUrl, errorKey = 'login_error') => {
     const u = new URL(target);
-    u.searchParams.set('login_error', reason);
+    u.searchParams.set(errorKey, reason);
     return Response.redirect(u.toString(), 302);
   };
 
@@ -5129,7 +5153,7 @@ async function hGoogleCallback(env, url) {
   const googleSubject=String(userInfo.sub||googleEmail);
   let member;
   try{member=await upsertPlatformIdentity(env,{provider:'google',subject:googleSubject,email:googleEmail,displayName:googleName,avatarUrl:String(userInfo.picture||''),preferredMemberId:statePayload.mode==='link'?statePayload.link_member_id:''})}
-  catch(e){return failRedirect(e&&e.message==='email_link_requires_existing_login'?'email_link_requires_existing_login':'google_member_login_failed',['member','link'].includes(statePayload.mode)?safeDoingReturnUrl(env,statePayload.return_url||doingSiteUrl(env)):tenant==='platform'?platformUrl:loginUrl)}
+  catch(e){const memberMode=['member','link'].includes(statePayload.mode);return failRedirect(e&&e.message==='email_link_requires_existing_login'?'email_link_requires_existing_login':'google_member_login_failed',memberMode?safeDoingReturnUrl(env,statePayload.return_url||doingSiteUrl(env)):tenant==='platform'?platformUrl:loginUrl,memberMode?'member_login_error':'login_error')}
 
   if(statePayload.mode==='link'){
     const target=safeDoingReturnUrl(env,statePayload.return_url||doingPageUrl(env,'member.html'));
@@ -9223,6 +9247,7 @@ async function rollbackPlatformCreditUse(env,T,amount,ledgerId,note){
 async function operatingEntitlementActive(env,T,s){
   const mods=normalizeSessionModules(safeJson(s&&s.modules_json,{}));
   if(String(mods.operatingMode||'activity')==='booking')return !!(await activeBookingEntitlement(env,T));
+  if(isPaidOperatingSession(s))return true;
   return await hasActivityEntitlement(env,T,s&&s.id);
 }
 async function ensureOperatingEntitlement(env,T,s){

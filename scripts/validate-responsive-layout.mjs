@@ -20,6 +20,8 @@ for(const token of ['body.doing-app.doing-platform .metrics','grid-template-colu
 const member=fs.readFileSync(root+'/member.html','utf8');
 if(!member.includes('overview-secondary')||!member.includes('最近進度｜'))fail('會員總覽尚未改為手機摘要模式');
 const homeCss=fs.readFileSync(root+'/doing-home-refresh.css','utf8');
+if(/@media[^{}]*\{[^{}]*#doingGlobalFixedNav(?:,|\{|\.hidden)/s.test(homeCss.replaceAll('html.doing-public-refactor #doingGlobalFixedNav','SCOPED_GLOBAL_NAV')))fail('手機樣式仍可能把租戶頁的全平台導覽強制顯示');
+if(!homeCss.includes('#doingGlobalFixedNav.hidden{display:none!important}'))fail('租戶頁缺少全平台導覽的預設隱藏規則');
 for(const token of ['body.doing-app #doingGlobalFixedNav .doing-nav-brand{border:0!important','body.doing-app #doingGlobalFixedNav .doing-nav-member','width:auto!important','min-width:148px!important','white-space:nowrap!important','overflow-wrap:normal!important','word-break:keep-all!important','@media(min-width:821px) and (max-width:980px)']){
   if(!homeCss.includes(token))fail('首頁會員按鈕響應式契約缺少：'+token);
 }

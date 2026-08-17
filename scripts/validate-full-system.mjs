@@ -32,6 +32,15 @@ for(const fn of ['sessionDates','sessionDate','sessionAddons','sessionEquip','se
 for(const id of ['set_name','set_region','set_venue','set_eventId','set_organizer','set_coorg','set_status','set_desc','set_cover','set_paymentProfileId','set_agreementContent'])requireText(admin,`id="${id}"`,`場次設定欄位 ${id}`);
 requireText(worker,'equip: safeJson(s.equip_json, {})','場次設備由資料庫讀回後台');
 requireText(admin,"agreementContent:$('set_agreementContent')?.value||''",'所選合約正文寫回場次');
+requireText(worker,"status=in.(%E5%A0%B1%E5%90%8D%E4%B8%AD,%E9%96%8B%E6%94%BE%E4%B8%AD,%E9%96%8B%E6%94%BE)&select=*",'租戶首頁接受報名中、開放中與開放三種正式公開狀態');
+requireText(worker,'status=in.(報名中,開放中,開放)&select=*','場次清單接受報名中、開放中與開放三種正式公開狀態');
+requireText(worker,"isPaidOperatingSession(s)||activityEntitled(T,s.id)",'公開探索接受事後按實收計費的收費活動');
+requireText(worker,'if(isPaidOperatingSession(s))return true','租戶前台接受事後按實收計費的收費活動');
+requireText(worker,"isPaidOperatingUnit(u)||unitEntitled(T,u.id)",'公開探索接受事後按實收計費的收費營運項目');
+requireText(worker,'if(isPaidOperatingUnit(u))return true','租戶前台接受事後按實收計費的收費營運項目');
+requireText(worker,'function publicCatalogRow(row)','公開首頁必須統一辨識並排除測試資料');
+requireText(worker,'if(!publicCatalogRow(s))continue','跨租戶公開搜尋不得顯示測試場次');
+requireText(worker,'visibleEventRows=eventRows.filter(publicCatalogRow),visibleSessionRows=sessionRows.filter(publicCatalogRow),visibleUnitRows=unitRows.filter(publicCatalogRow)','租戶公開頁不得顯示測試活動、場次或營運項目');
 
 const routeActions=new Set([...worker.matchAll(/case\s+['"]([^'"]+)['"]\s*:/g)].map(x=>x[1]));
 for(const m of worker.matchAll(/\b(?:action|act)\s*={2,3}\s*['"]([^'"]+)['"]/g))routeActions.add(m[1]);
@@ -47,7 +56,13 @@ const missingRoutes=[...frontendActions].filter(x=>!routeActions.has(x)&&!nonRou
 if(missingRoutes.length)fail(`前台呼叫但 Worker 沒有路由：${missingRoutes.join('、')}`);
 
 if(read('worker.txt')!==worker)fail('worker.js 與正式部署副本 worker.txt 不一致');
-const platformPage=read('platform.html'),memberPage=read('member.html'),adminPage=read('admin.html');
+const platformPage=read('platform.html'),memberPage=read('member.html'),adminPage=read('admin.html'),indexPage=read('index.html');
+requireText(indexPage,'function fallbackPublicImages(root=document)','公開活動圖片失效時必須顯示安全替代內容');
+const homeRefresh=read('doing-home-refresh.js'),homeRefreshCss=read('doing-home-refresh.css');
+requireText(homeRefresh,"spaces.length===1?`admin.html?tenant=${encodeURIComponent(spaces[0].id)}&from=tenant#calendar`:'member.html#operations'",'單一營運空間直接進入預約日曆，多空間先選擇');
+requireText(memberPage,'安排預約日曆','會員中心可直接進入預約日曆');
+requireText(adminPage,"if(from==='tenant'&&tenant)return {href:'index.html?tenant='+encodeURIComponent(tenant)",'租戶後台可回到原營運首頁');
+if(homeRefreshCss.includes('@media(max-width:820px){#doingGlobalFixedNav'))fail('手機樣式會把隱藏的全平台導覽錯誤顯示在租戶頁');
 for(const page of ['world','access','applications','tenants','billing','exposure','support','members']){
   if(!platformPage.includes(`data-platform-page="${page}"`))fail(`平台切頁缺少入口：${page}`);
   if(!platformPage.includes(`data-platform-panel="${page}"`))fail(`平台切頁缺少內容：${page}`);

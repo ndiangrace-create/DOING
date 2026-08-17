@@ -2380,6 +2380,7 @@ function adminReturnRoute(){
   const tenant=currentTenantFromUrl();
   if(from==='platform')return {href:'platform.html#platform-tenants',label:'← 回平台總管',aria:'回到平台總管'};
   if(from==='register'&&tenant)return {href:'register.html?tenant='+encodeURIComponent(tenant),label:'← 回活動頁',aria:'回到活動頁'};
+  if(from==='tenant'&&tenant)return {href:'index.html?tenant='+encodeURIComponent(tenant),label:'← 回營運首頁',aria:'回到目前營運空間首頁'};
   return {href:'member.html#operations',label:'← 回到我的 DOING',aria:'回到我的 DOING 會員中心'};
 }
 function configureAdminReturnLink(){const route=adminReturnRoute(),link=$('adminReturnLink'),label=$('adminReturnLabel');if(!link||!label)return;link.href=route.href;link.title=route.aria;link.setAttribute('aria-label',route.aria);label.textContent=route.label;}

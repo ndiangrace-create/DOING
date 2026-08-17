@@ -133,6 +133,10 @@ try{
   const memberNow=Date.now(),applicationMemberToken=await signToken({iss:'DOING',type:'member',email:'formal-flow-test@doing.invalid',provider:'line',provider_subject:lineMockSubject,issued_at:memberNow,expires_at:memberNow+3600000});
   const savedHelper=await jsonAction('analyzeDoingApplication',{member_token:applicationMemberToken,topic:'data',useCases:['beauty','event'],painPoints:['repeat_data'],workSituations:['shared_customers','one_brand_many_jobs']});
   assert.equal(savedHelper.saved,true);assert.equal(tables.member_helper_traces.length,1);assert.equal(tables.member_helper_traces[0].member_id,row.application_json.memberId);
+  const savedQuestion=await jsonAction('analyzeDoingApplication',{member_token:applicationMemberToken,topic:'question',question:'我想查看我的營運申請進度',useCases:['general'],painPoints:['other'],workSituations:[]});
+  assert.equal(savedQuestion.saved,true);assert.equal(savedQuestion.conversationSaved,true);assert.ok(savedQuestion.exchangeId);
+  assert.equal(tables.member_helper_traces.at(-1).topic,'summary','一般提問的會員軌跡必須使用資料庫允許的分類');
+  assert.equal(tables.member_helper_conversations.length,1);assert.equal(tables.member_helper_messages.length,2);assert.equal(tables.member_helper_messages[0].member_id,row.application_json.memberId);
 
   const now=Date.now(),platformToken=await signToken({iss:'DOING',email:'platform-test@doing.invalid',tenant_id:'platform',role:'platform_super_admin',normalized_role:'platform_super_admin',issued_at:now,expires_at:now+3600000});
   const approvedFlags={registration:true,review:true,payment:true,equipment:true,seatSelection:true,checkin:true,invoice:false,workshopSlots:true,service:true,resource:false,participants:true,customFields:true,addons:true,agreement:true,i18n:false,googleCalendar:true};
@@ -218,6 +222,22 @@ try{
   assert.equal(tables.staff.find(x=>x.id==='STF_LEGACY_GOOGLE').platform_member_id,canonicalMemberId,'雙 OAuth 同步後舊主辦權限必須移到共用會員');
   const linkedProfile=await (await request('/?action=getPlatformMemberProfile&member_token='+encodeURIComponent(linkReturn.searchParams.get('member_token')))).json();
   assert.deepEqual(linkedProfile.linkedProviders.sort(),['google','line']);
+
+  // LINE 會員的聯絡 Email 尚未驗證時，完成 Google OAuth 本人驗證仍必須能安全同步，
+  // 並接回同一個已驗證 Google Email 的舊主辦管理權。
+  tables.platform_member_identities=tables.platform_member_identities.filter(x=>x.provider!=='google');
+  const unverifiedLinkEmail='unverified-link@doing.invalid',canonicalMember=tables.platform_members.find(x=>x.id===canonicalMemberId);
+  canonicalMember.email=unverifiedLinkEmail;canonicalMember.email_verified_at=null;
+  tables.tenants.push({id:'legacy-unverified-link',name:'未驗證聯絡信箱舊主辦'});
+  tables.staff.push({id:'STF_UNVERIFIED_LINK',tenant_id:'legacy-unverified-link',email:unverifiedLinkEmail,name:'舊主辦',role:'organizer_owner',normalized_role:'organizer_owner',is_active:true,active:true,platform_member_id:null});
+  googleMockEmail=unverifiedLinkEmail;googleMockSubject='google-unverified-link-subject';
+  const unverifiedLinkRequest=await jsonAction('createIdentityLink',{member_token:canonicalToken,provider:'google',return_url:'https://site.test/member.html#account'});
+  const unverifiedStartUrl=new URL(unverifiedLinkRequest.url),unverifiedStart=await request(unverifiedStartUrl.pathname+unverifiedStartUrl.search),unverifiedState=new URL(unverifiedStart.headers.get('location')).searchParams.get('state');
+  const unverifiedCallback=await request('/auth/google/callback?code=mock-code&state='+encodeURIComponent(unverifiedState)),unverifiedReturn=new URL(unverifiedCallback.headers.get('location'));
+  assert.equal(unverifiedReturn.searchParams.get('member_linked'),'google','已登入會員完成 Google 本人驗證後必須顯示同步成功');
+  assert.equal(tables.platform_member_identities.find(x=>x.provider==='google')?.member_id,canonicalMemberId,'Google 身分必須寫回目前 LINE 會員');
+  assert.equal(canonicalMember.email_verified_at!==null,true,'相同 Google Email 驗證成功後必須升級為已驗證');
+  assert.equal(tables.staff.find(x=>x.id==='STF_UNVERIFIED_LINK').platform_member_id,canonicalMemberId,'舊核准主辦管理權必須接回目前會員');
 
   // 真實 LINE Channel 尚未核准 Email 權限時，仍要用 provider subject 完成申請、核准與主辦登入。
   env.LINE_LOGIN_EMAIL_ENABLED='false';lineMockEmail='';lineMockSubject='line-no-email-subject';lineMockName='無 Email LINE 測試人員';

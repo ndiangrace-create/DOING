@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-17T23:56:00+08:00",
-  "sourceFingerprint": "b1e9b7ead3e8fdbbbbbf1a8a4958379f66a93325298ab27a559841aae84f6e8e",
+  "recordedAt": "2026-08-18T07:14:35+08:00",
+  "sourceFingerprint": "9298d8dfd62faa9c566522dbbb0d4a166bc8862d94f8a3d79f8c6c21e38323b6",
   "environment": "LINE、Google、Resend 與業務流程使用本機 mock；Supabase 正式庫只套用唯一索引，並以交易 rollback 驗證，測試資料留存 0 筆",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
@@ -65,7 +65,7 @@
       "id": "responsive-layout",
       "command": "node scripts/validate-responsive-layout.mjs",
       "result": "PASS",
-      "scope": "手機／桌面響應式框架、活動文字與內頁文字不裁切"
+      "scope": "手機／桌面響應式框架、活動文字與內頁文字不裁切、租戶頁不顯示全平台導覽"
     },
     {
       "id": "frontstage-copy",
@@ -101,7 +101,7 @@
       "id": "full-system",
       "command": "node scripts/validate-full-system.mjs",
       "result": "PASS",
-      "scope": "全頁面、API、按鈕與設定"
+      "scope": "全頁面、API、按鈕與設定；三種正式公開狀態與收費活動／營運項目的公開探索、租戶前台權益一致性"
     },
     {
       "id": "admin-consistency",
@@ -125,7 +125,7 @@
       "id": "navigation-actions",
       "command": "node scripts/validate-navigation-actions.mjs",
       "result": "PASS",
-      "scope": "平台營運 KPI、問題中心、租戶健康狀態、問題直達指定租戶／場次／訂單、新分頁保留總管登入；租戶後台 KPI、總帳轉帳設定、租戶自由選擇五套模板、平台控制進階功能、全站共同入口"
+      "scope": "平台營運 KPI、問題中心、租戶健康狀態、問題直達指定租戶／場次／訂單、新分頁保留總管登入；租戶後台 KPI、預約日曆深連結與返回原租戶首頁、單一／多營運空間分流、總帳轉帳設定、租戶自由選擇五套模板、平台控制進階功能、全站共同入口"
     },
     {
       "id": "platform-operations-e2e",
