@@ -14,7 +14,7 @@ const data=JSON.parse(fs.readFileSync(root+'/doing-data-sources.json','utf8'));
 for(const token of ['hTrackPlatformAttribution','recordRegistrationAttribution','buildAttributionReport','hGetPlatformAttributionReport',"case 'register'",'platform_attribution_events'])if(!worker.includes(token))fail('Worker 歸因鏈缺少：'+token);
 for(const token of ['keepalive:true','IntersectionObserver','doing_attribution_id','doing_exposure_order_id'])if(!browser.includes(token))fail('瀏覽器歸因鏈缺少：'+token);
 for(const token of ['randomPaidRows','renderActivities(randomPaidRows())','付費曝光中的活動會在這裡隨機輪播','>廣告</span>'])if(!homeRefresh.includes(token))fail('首頁付費廣告板缺少：'+token);
-if(homeRefresh.indexOf('doing-activities-section')>homeRefresh.indexOf('doing-list-section'))fail('近期開放活動付費廣告板必須顯示在所有開放活動之前');
+if(homeRefresh.indexOf('doing-activities-section')>homeRefresh.indexOf('aria-label="所有開放活動"'))fail('近期開放活動付費廣告板必須顯示在所有開放活動之前');
 for(const source of [index,register])if(!source.includes('doing-attribution.js')||!source.includes('payloadFields'))fail('報名頁未帶入歸因資訊');
 for(const token of ['platformAttributionMetrics','platformAttributionCampaigns','getPlatformAttributionReport'])if(!platform.includes(token))fail('平台歸因報表缺少：'+token);
 for(const token of ['getExposureCatalog','attributionReport','我的曝光成效（近 30 日）','點擊→報名'])if(!admin.includes(token))fail('主辦曝光推廣報表缺少：'+token);

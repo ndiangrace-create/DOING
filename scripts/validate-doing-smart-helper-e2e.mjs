@@ -22,7 +22,7 @@ for(const question of ['第一次要怎麼報名或預約？','報名送出後�
 assert(homeRefresh.includes('id="doingOrganizerDetails" class="doing-organizer-details" hidden')&&!homeRefresh.includes("loadOrganizerDetails('scenes',false);"),'首頁仍會自動顯示舊主辦長頁');
 assert(homeRefresh.includes("section.hidden=section.id!==actualTarget")&&homeRefresh.includes('helperStartActions.hidden=true'),'報名客服、主辦資訊與申請仍同時堆在畫面上');
 assert(homeRefresh.includes("applicationMode=target==='apply'")&&homeRefresh.includes("content.querySelector('#startDoingApplication')?.click()")&&homeRefresh.includes("content.querySelector('#startDoingSupport')?.click()"),'報名客服與營運申請未依入口直接進入各自模式');
-assert(homeRefresh.indexOf('id="doingPublicActivityList"')<homeRefresh.indexOf('id="doingPublicActivities"'),'搜尋結果仍隔著近期開放活動，搜尋後會造成跨區跳動');
+assert(homeRefresh.indexOf('id="doingPublicSearchResultsSection"')<homeRefresh.indexOf('id="doingPublicActivities"')&&homeRefresh.includes("renderActivityList(results,raw,'doingPublicSearchResults')"),'搜尋結果仍隔著近期開放活動，搜尋後會造成跨區跳動');
 assert(homeRefresh.includes("details.hidden=true")&&homeRefresh.includes('id="closeDoingOrganizerDetails"'),'首頁按需內容缺少關閉功能');
 assert(page.includes('setupSmartApplicationFlow')&&page.includes("form.classList.add('is-smart-flow')"),'申請仍是舊式長問卷，未改成智慧引導頁');
 assert(home.includes('doing-about-refresh.css?v=20260817k'),'首頁未載入最新智慧申請樣式');

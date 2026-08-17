@@ -258,8 +258,8 @@ function renderActivities(items,query=''){
   restartCarousel(stage,rows);
 }
 
-function renderActivityList(items,query=''){
-  const host=$('doingPublicActivityList');
+function renderActivityList(items,query='',hostId='doingPublicActivityList'){
+  const host=$(hostId);
   if(!host)return;
   const rows=Array.isArray(items)?items:[];
   if(!rows.length){host.innerHTML=`<div class="doing-list-empty"><b>${query?'找不到符合的活動':'目前沒有開放中的活動'}</b><span>${query?'換個活動名稱、類型或地點試試看。':'有新活動時會顯示在這裡。'}</span></div>`;return}
@@ -298,8 +298,9 @@ function searchActivities(){
   const query=raw.toLowerCase();
   const rows=displayRows();
   const results=!query?rows:rows.filter(x=>[x.sessionName,x.eventTitle,x.tenantName,x.venue,x.description,itemType(x)].join(' ').toLowerCase().includes(query));
-  renderActivityList(results,raw);
-  smoothTo($('doingPublicActivityList'));
+  renderActivityList(results,raw,'doingPublicSearchResults');
+  const section=$('doingPublicSearchResultsSection');if(section)section.hidden=false;
+  smoothTo(section||$('doingPublicSearchResults'));
 }
 
 function watchActivities(){
@@ -352,9 +353,9 @@ function publicAppHTML(){
       </div>
     </section>
 
-    <section class="doing-public-section doing-list-section" aria-label="所有開放活動">
-      <div class="doing-list-head"><div><span class="doing-kicker">找活動</span><h2>搜尋結果與所有開放活動</h2></div><span>左右滑動查看更多活動</span></div>
-      <div id="doingPublicActivityList" class="doing-public-activity-list" aria-live="polite"></div>
+    <section id="doingPublicSearchResultsSection" class="doing-public-section doing-list-section doing-search-results-section" aria-label="搜尋結果" hidden>
+      <div class="doing-list-head"><div><span class="doing-kicker">搜尋結果</span><h2>符合條件的活動</h2></div><span>直接從這裡選擇，不必跨過其他區塊</span></div>
+      <div id="doingPublicSearchResults" class="doing-public-activity-list" aria-live="polite"></div>
     </section>
 
     <section class="doing-public-section doing-activities-section" id="doingPublicActivities" aria-label="近期開放活動廣告輪播">
@@ -369,6 +370,11 @@ function publicAppHTML(){
         <button id="doingActivityNext" class="doing-carousel-arrow next" type="button" aria-label="下一個活動">›</button>
         <div class="doing-carousel-footer"><div id="doingActivityDots" class="doing-activity-dots" aria-label="活動頁數"></div><span id="doingActivityCount">1 / 5</span></div>
       </div>
+    </section>
+
+    <section class="doing-public-section doing-list-section" aria-label="所有開放活動">
+      <div class="doing-list-head"><div><span class="doing-kicker">找活動</span><h2>所有開放活動</h2></div><span>左右滑動查看更多活動</span></div>
+      <div id="doingPublicActivityList" class="doing-public-activity-list" aria-live="polite"></div>
     </section>
 
     <section class="doing-my-highlight" aria-label="快速報名功能亮點">
