@@ -165,3 +165,157 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
   .smart-application-shell .apply-form.is-smart-flow{padding:18px 14px 30px!important}
   .smart-application-shell .apply-form.is-smart-flow>.smart-answer-card,.smart-application-shell .smart-flow-guide{width:100%}
 }
+
+/* DOING 單一大型智慧介面：客服與申請共用同一個內容舞台，不上下堆疊。 */
+.doing-smart-helper-section,
+.doing-smart-helper-section #applicationPanel,
+.doing-smart-helper-section .smart-application-shell,
+.doing-smart-helper-section .doing-helper-stage,
+.doing-smart-helper-section .doing-helper-welcome,
+.doing-smart-helper-section .apply-form.is-smart-flow{
+  box-sizing:border-box!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+.doing-smart-helper-section{overflow:visible!important;contain:none!important}
+.smart-application-shell{
+  width:min(1240px,calc(100vw - 48px))!important;
+  max-width:1240px!important;
+  height:auto!important;
+  min-height:clamp(720px,78vh,920px)!important;
+  margin:0 auto!important;
+  display:flex!important;
+  flex-direction:column!important;
+  border-radius:26px!important;
+}
+.doing-helper-frame-head{
+  position:relative;
+  z-index:2;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(360px,520px);
+  align-items:center;
+  gap:22px;
+  width:100%;
+  padding:22px 26px;
+  border-bottom:1px solid #c8dfdb;
+  background:#f5faf9;
+  border-radius:24px 24px 0 0;
+}
+.doing-helper-frame-head .doing-helper-head{min-width:0;margin:0}
+.doing-helper-frame-head .doing-helper-start-actions{
+  width:100%;
+  margin:0;
+  grid-template-columns:1fr 1fr;
+}
+.doing-helper-stage{
+  width:100%;
+  min-width:0;
+  min-height:590px;
+  flex:1 0 auto;
+  padding:28px 30px 34px;
+  background:#f5faf9;
+  border-radius:0 0 24px 24px;
+}
+.doing-helper-stage>[hidden]{display:none!important}
+.smart-application-shell .doing-helper-welcome{
+  width:100%!important;
+  max-width:none!important;
+  min-height:530px!important;
+  margin:0!important;
+  padding:0!important;
+  display:flex;
+  flex-direction:column;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.smart-application-shell .doing-conversation-output{
+  width:100%;
+  min-height:clamp(340px,42vh,520px)!important;
+  max-height:58vh!important;
+  flex:1 1 auto;
+  padding:22px!important;
+}
+.smart-application-shell .doing-chat-input-row{margin-top:18px}
+.smart-application-shell .doing-helper-note{margin-top:12px}
+.smart-application-shell .apply-form.is-smart-flow{
+  width:100%!important;
+  min-width:0!important;
+  min-height:530px!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.smart-application-shell .apply-form.is-smart-flow .form-head{margin:0 0 20px;padding:0}
+.smart-application-shell .apply-form.is-smart-flow .form-head h2{margin:0 0 6px;font-size:clamp(27px,3vw,38px)}
+.smart-application-shell .smart-flow-guide{
+  width:100%!important;
+  max-width:none!important;
+  margin:0 0 20px!important;
+  padding:18px 20px!important;
+}
+.smart-application-shell .apply-form.is-smart-flow>.smart-answer-card{
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:10px 0 6px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.smart-application-shell .apply-form.is-smart-flow .doing-helper{
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.smart-application-shell .apply-form.is-smart-flow input,
+.smart-application-shell .apply-form.is-smart-flow select,
+.smart-application-shell .apply-form.is-smart-flow textarea{width:100%;min-width:0;box-sizing:border-box}
+
+@media(max-width:760px){
+  .doing-smart-helper-section{padding:28px 4px 36px!important}
+  .smart-application-shell{
+    width:calc(100vw - 12px)!important;
+    max-width:none!important;
+    min-height:calc(100svh - 112px)!important;
+    border-radius:18px!important;
+  }
+  .doing-helper-frame-head{
+    grid-template-columns:minmax(0,1fr);
+    gap:14px;
+    padding:16px 14px;
+    border-radius:16px 16px 0 0;
+  }
+  .doing-helper-frame-head .doing-helper-start-actions{grid-template-columns:1fr 1fr;gap:8px}
+  .doing-helper-frame-head .doing-helper-start-actions button{min-height:48px;padding:9px 8px}
+  .doing-helper-stage{
+    min-height:calc(100svh - 250px);
+    padding:16px 12px 24px;
+    border-radius:0 0 16px 16px;
+  }
+  .smart-application-shell .doing-helper-welcome,
+  .smart-application-shell .apply-form.is-smart-flow{min-height:calc(100svh - 286px)!important}
+  .smart-application-shell .doing-conversation-output{
+    min-height:clamp(300px,48svh,520px)!important;
+    max-height:62svh!important;
+    padding:14px!important;
+  }
+  .smart-application-shell .doing-chat-input-row{grid-template-columns:minmax(0,1fr) 64px!important}
+  .smart-application-shell .apply-form.is-smart-flow .field-grid,
+  .smart-application-shell .apply-form.is-smart-flow .choice-grid{grid-template-columns:minmax(0,1fr)!important}
+  .smart-application-shell .smart-flow-guide{
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    gap:10px 12px;
+    padding:14px!important;
+  }
+  .smart-application-shell .smart-flow-progress{grid-column:1/-1;margin:0;white-space:normal}
+  .smart-application-shell .apply-form.is-smart-flow>.smart-answer-card{padding-top:4px!important}
+}

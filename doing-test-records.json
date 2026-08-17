@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-17T20:29:00+08:00",
-  "sourceFingerprint": "bb503331e4f73ce64f6dc91195eb82602870373435d2f0fbce932da23b4fa24c",
+  "recordedAt": "2026-08-17T20:44:22+08:00",
+  "sourceFingerprint": "9de66137b5fb19299fb40e95b775c1d20986d3ee197d09b627df9fd50da86ed4",
   "environment": "LINE、Google、Resend 與業務流程使用本機 mock；Supabase 正式庫只套用唯一索引，並以交易 rollback 驗證，測試資料留存 0 筆",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
@@ -143,7 +143,7 @@
       "id": "doing-smart-helper-e2e",
       "command": "node scripts/validate-doing-smart-helper-e2e.mjs",
       "result": "PASS",
-      "scope": "首頁多選互動、簡潔五步驟時間軸、DOING 自由問答、申請自然高度且無表單內層捲軸、只讀已發布知識、即時正式費用、登入後續接本人對話、低信心與沒解決進待審改善、未登入零留存、RLS 與最小權限"
+      "scope": "首頁多選互動、簡潔五步驟時間軸、DOING 自由問答、申請與客服共用單一大型內容舞台、外框自然高度且無表單內層捲軸、只讀已發布知識、即時正式費用、登入後續接本人對話、低信心與沒解決進待審改善、未登入零留存、RLS 與最小權限"
     },
     {
       "id": "worker-sync",
