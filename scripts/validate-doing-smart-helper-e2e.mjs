@@ -7,6 +7,7 @@ const css=fs.readFileSync('doing-about-refresh.css','utf8');
 const worker=fs.readFileSync('worker.js','utf8');
 const mirror=fs.readFileSync('worker.txt','utf8');
 const sql=fs.readFileSync('supabase_doing_helper_traces.sql','utf8');
+const knowledgeSql=fs.readFileSync('supabase_doing_helper_knowledge.sql','utf8');
 
 for(const copy of ['DOING 智慧小幫手','DOING 線上智能客服','我只能協助 DOING 系統','scopeStatus:\'out_of_scope\'','dataPolicy:\'same_brand_customer_shared_work_records_separate\'']){
   assert(page.includes(copy)||worker.includes(copy),`缺少範圍或資料規則：${copy}`);
@@ -14,7 +15,7 @@ for(const copy of ['DOING 智慧小幫手','DOING 線上智能客服','我只能
 for(const value of ['team','appointment','deposit','shared_customers','multi_brand','one_brand_many_jobs','no_show','staff_mix'])assert(page.includes(`value="${value}"`),`問卷缺少 ${value}`);
 assert(page.includes('data-helper-topic="data"')&&page.includes('data-helper-topic="billing"')&&page.includes('data-helper-topic="adjust"'),'缺少 DOING 範圍內的客服快問');
 assert(page.includes('setupSmartApplicationFlow')&&page.includes("form.classList.add('is-smart-flow')"),'申請仍是舊式長問卷，未改成智慧引導頁');
-assert(home.includes('doing-about-refresh.css?v=20260817e'),'首頁未載入最新智慧申請樣式');
+assert(home.includes('doing-about-refresh.css?v=20260817f'),'首頁未載入最新智慧申請樣式');
 assert(css.includes('.apply-form.is-smart-flow>.group{display:none!important}')&&css.includes('.apply-form.is-smart-flow>.group.is-active{display:block!important}'),'首頁未限制為一次只顯示一個主題區段');
 assert(page.includes("chatShell?.classList.toggle('is-application-mode'")&&page.includes("form?.scrollTo({top:0,behavior:'smooth'})"),'開始申請後未留在同一個對話框');
 assert(css.includes('只修正固定導覽與容器裁切文字')&&css.includes('overflow:visible!important')&&css.includes('scroll-margin-top:138px!important'),'申請框架仍可能裁切標題或欄位文字');
@@ -39,7 +40,11 @@ assert(worker.includes("if(action==='analyzeDoingApplication')return hAnalyzeDoi
 assert(worker.includes('只輸出要顯示給使用者的答案文字，不要 JSON')&&worker.includes("source:accepted?'ai':'rules'"),'AI 回覆未使用可直接顯示的純文字或無法辨識失效輸出');
 assert(worker.includes('你可以理解自由輸入的自然語句')&&worker.includes('publicFacts'),'AI 尚未具備 DOING 範圍內的自由問答依據');
 assert(worker.includes('禁止只重複「我只能協助 DOING」'),'AI 仍可能以服務範圍句取代實際回答');
-assert(worker.includes("reasoning:{effort:'low'}")&&worker.includes('max_output_tokens:900'),'AI 回答額度不足，可能只完成思考卻沒有輸出文字');
+assert(worker.includes("reasoning:{effort:'low'}"),'AI 回答未使用低推理延遲設定');
+assert(worker.includes('整段最多 240 個中文字')&&worker.includes('max_output_tokens:600'),'AI 回答未限制為對話框適合的精簡長度');
+assert(worker.includes('doingHelperKnowledgeContext')&&worker.includes("dbGet(env,'doing_helper_knowledge_entries'")&&worker.includes('approval_status=eq.published&is_public=eq.true'),'AI 未限制為只檢索已發布的正式知識');
+assert(worker.includes('conversationHistory:memberContext.history')&&worker.includes("dbGet(env,'member_helper_messages'")&&page.includes('conversationHistory'),'對話未依登入狀態續接目前畫面或個人紀錄');
+assert(worker.includes('doing_helper_improvement_queue')&&worker.includes('hRateDoingHelperReply')&&page.includes('attachEntryFeedback'),'回答品質未形成待審改善流程');
 assert(worker.includes('const controller=new AbortController()')&&worker.includes("'api_timeout':'api_unavailable'"),'AI 逾時或中斷時仍可能讓客服卡住');
 assert(worker.includes('不得回答一般知識、生活建議、其他品牌或其他系統'),'AI 缺少 DOING 內容鎖');
 assert(worker.includes('doingHelperSafeReply'),'缺少回覆洩漏攔截');
@@ -53,6 +58,11 @@ assert(sql.includes('alter table public.member_helper_traces enable row level se
 assert(sql.includes('revoke all on table public.member_helper_traces from public, anon, authenticated, service_role'),'個人軌跡未撤銷預設權限');
 assert(sql.includes('grant select, insert on table public.member_helper_traces to service_role'),'個人軌跡未限制為後端最小權限');
 assert(!/grant[^;]*(update|delete|truncate)/i.test(sql),'個人軌跡不得允許覆寫或刪除');
+for(const table of ['doing_helper_knowledge_entries','member_helper_conversations','member_helper_messages','doing_helper_improvement_queue'])assert(knowledgeSql.includes(`alter table public.${table} enable row level security`),`${table} 未啟用 RLS`);
+assert(knowledgeSql.includes("approval_status in ('draft','published','rejected')")&&knowledgeSql.includes("approval_status=eq.published")===false,'正式知識缺少受控發布狀態');
+assert(knowledgeSql.includes("low_confidence")&&knowledgeSql.includes("review_status in ('pending','approved','rejected','applied')"),'改善候選缺少人工審核狀態');
+assert(!/grant[^;]*doing_helper_knowledge_entries[^;]*(update|delete|truncate)/i.test(knowledgeSql),'正式知識版本不得被覆寫或刪除');
+assert(page.includes('.flow:before')&&page.includes('.step:before')&&page.includes('@media(max-width:900px)'),'五步驟未改成桌機水平、窄版垂直的簡潔時間軸');
 assert.equal(worker,mirror,'worker.js 與 worker.txt 必須一致');
 
 console.log(JSON.stringify({result:'PASS',questionnaire:'multi-select',assistantScope:'DOING only',publicModuleExposure:false,dataBoundary:'same brand shared identity; work records separated'},null,2));
