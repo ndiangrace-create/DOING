@@ -39,6 +39,7 @@ assert(worker.includes("if(action==='analyzeDoingApplication')return hAnalyzeDoi
 assert(worker.includes('只輸出要顯示給使用者的答案文字，不要 JSON')&&worker.includes("source:accepted?'ai':'rules'"),'AI 回覆未使用可直接顯示的純文字或無法辨識失效輸出');
 assert(worker.includes('你可以理解自由輸入的自然語句')&&worker.includes('publicFacts'),'AI 尚未具備 DOING 範圍內的自由問答依據');
 assert(worker.includes('禁止只重複「我只能協助 DOING」'),'AI 仍可能以服務範圍句取代實際回答');
+assert(worker.includes("reasoning:{effort:'low'}")&&worker.includes('max_output_tokens:900'),'AI 回答額度不足，可能只完成思考卻沒有輸出文字');
 assert(worker.includes('const controller=new AbortController()')&&worker.includes("'api_timeout':'api_unavailable'"),'AI 逾時或中斷時仍可能讓客服卡住');
 assert(worker.includes('不得回答一般知識、生活建議、其他品牌或其他系統'),'AI 缺少 DOING 內容鎖');
 assert(worker.includes('doingHelperSafeReply'),'缺少回覆洩漏攔截');
