@@ -136,19 +136,19 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
   </nav>
 
   <section id="scenes">
-    <div class="section-head"><span class="section-kicker">多情境模擬</span><h2>先選一個最像你的工作，看看 DOING 怎麼接手。</h2><p>不用先研究功能名稱。從你每天真的會遇到的狀況開始，會比較快知道這套系統能不能幫上忙。</p></div>
+    <div class="section-head"><span class="section-kicker">斜槓人生模擬</span><h2>不是先選產業，而是從你今天怎麼工作開始。</h2><p>同一個人可能同時接預約、教課、辦活動、出攤、出租空間或與夥伴協作。DOING 不取代你熟悉的工具，而是把這些不同工作的正式紀錄接起來。</p></div>
     <div class="scenario-shell">
       <div class="scenario-tabs" role="tablist" aria-label="選擇營運情境">
-        <button type="button" role="tab" data-scene="market" aria-selected="true"><span>🧺</span>市集招募</button>
-        <button type="button" role="tab" data-scene="event" aria-selected="false"><span>🎤</span>講座課程</button>
-        <button type="button" role="tab" data-scene="workshop" aria-selected="false"><span>🎨</span>手作體驗</button>
-        <button type="button" role="tab" data-scene="beauty" aria-selected="false"><span>✨</span>工作室預約</button>
-        <button type="button" role="tab" data-scene="resource_booking" aria-selected="false"><span>🏡</span>場地資源</button>
-        <button type="button" role="tab" data-scene="guide" aria-selected="false"><span>🌿</span>導覽戶外</button>
-        <button type="button" role="tab" data-scene="hybrid" aria-selected="false"><span>🎪</span>複合型活動</button>
+        <button type="button" role="tab" data-scene="market" aria-selected="true"><span>✦</span>一人多工</button>
+        <button type="button" role="tab" data-scene="event" aria-selected="false"><span>◷</span>場次活動</button>
+        <button type="button" role="tab" data-scene="workshop" aria-selected="false"><span>▦</span>固定預約</button>
+        <button type="button" role="tab" data-scene="beauty" aria-selected="false"><span>✓</span>招募審核</button>
+        <button type="button" role="tab" data-scene="resource_booking" aria-selected="false"><span>◇</span>空間設備</button>
+        <button type="button" role="tab" data-scene="guide" aria-selected="false"><span>＋</span>團隊協作</button>
+        <button type="button" role="tab" data-scene="hybrid" aria-selected="false"><span>∞</span>複合經營</button>
       </div>
       <article class="scenario-stage" id="scenarioStage" aria-live="polite">
-        <div class="scenario-heading"><span id="scenarioBadge">市集主辦｜終於不用被表單追著跑</span><h3 id="scenarioTitle">不同場一張表、設備又一張表……辦活動已經夠忙了，真的不要再整理到半夜。</h3><p id="scenarioStory">舉辦市集本來應該是一件開心的事，卻常常卡在攤商報名、日期、設備、審核、付款與排位。來 DOING 輕鬆做、開心做，把時間留給好好辦活動。</p></div>
+        <div class="scenario-heading"><span id="scenarioBadge">一人多工｜不必把自己選成單一產業</span><h3 id="scenarioTitle">今天接預約、明天開課、週末辦活動，你仍只需要整理一套正式紀錄。</h3><p id="scenarioStory">斜槓工作的內容會變，基本身份、聯絡資料與營運節奏不必每次重來。DOING 依每次工作套用適合的報名、預約、審核、收款與通知流程。</p></div>
         <div class="scenario-compare">
           <div class="scenario-before"><b>原本最容易卡住</b><ul id="scenarioBefore"></ul></div>
           <div class="scenario-doing"><b>交給 DOING 之後</b><ol id="scenarioFlow"></ol></div>
@@ -199,45 +199,20 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
 
   <section id="apply" class="doing-smart-helper-section" aria-labelledby="doingSmartHelperSectionTitle">
     <div class="section-head doing-helper-section-head">
-      <span class="section-kicker blue">DOING 智慧服務</span>
-      <h2 id="doingSmartHelperSectionTitle">DOING 智慧小幫手</h2>
-      <p>報名／預約問題與營運帳號申請，都能在這個獨立對話區完成。</p>
+      <span class="section-kicker blue">DOING 智慧申請</span>
+      <h2 id="doingSmartHelperSectionTitle">DOING 營運申請小幫手</h2>
+      <p>這裡只處理營運帳號申請；一般民眾客服已移到首頁右側獨立按鈕。</p>
     </div>
     <div id="applicationPanel">
     <div id="applicationPendingBanner" class="banner"><b>申請已送出，等待 DOING 審核。</b><br>審核通過後才會建立正式營運帳號；需要補件時會另外通知。</div>
     <div class="apply-wrap smart-application-shell">
       <div class="doing-helper-frame-head">
-        <div class="doing-helper-head"><div class="doing-helper-mark">D</div><div><b>嗨，我是 DOING 智慧小幫手</b><span>想申請使用，還是先問問我？</span></div></div>
+        <div class="doing-helper-head"><div class="doing-helper-mark">D</div><div><b>嗨，我是 DOING 營運申請小幫手</b><span>我會依主題陪你完成營運帳號申請。</span></div></div>
         <div class="doing-helper-start-actions" role="group" aria-label="選擇智慧小幫手模式">
-          <button class="primary" type="button" id="startDoingApplication">開始申請</button>
-          <button type="button" id="startDoingSupport">詢問客服</button>
+          <button class="primary" type="button" id="startDoingApplication">開始智慧申請</button>
         </div>
       </div>
       <div class="doing-helper-stage">
-      <div id="doingHelperWelcome" class="doing-helper-welcome" aria-live="polite">
-        <div id="doingConversationOutput" class="doing-conversation-output"><div id="doingWelcomeMessage" class="doing-chat-bubble assistant">你好！第一次使用 DOING 嗎？我可以陪你找活動、完成報名／預約、查看進度、付款與處理現場問題；想經營活動或服務，也可以問我營運帳號怎麼申請。</div></div>
-        <div id="doingSupportChoices" class="doing-support-choices" hidden>
-          <p>大家第一次最常問</p>
-          <div class="doing-helper-actions">
-            <button type="button" data-entry-helper-question="第一次要怎麼報名或預約？">第一次怎麼報名？</button>
-            <button type="button" data-entry-helper-question="報名送出後，要怎麼確認有沒有成功？">怎麼確認報名成功？</button>
-            <button type="button" data-entry-helper-question="報名後要去哪裡看進度與紀錄？">報名後在哪看進度？</button>
-            <button type="button" data-entry-helper-question="為什麼我的報名顯示待審核？名額滿了可以候補嗎？">待審核／候補是什麼？</button>
-            <button type="button" data-entry-helper-question="付款後要怎麼確認有沒有成功？">付款後怎麼確認？</button>
-            <button type="button" data-entry-helper-question="報名資料填錯了，送出後還可以修改嗎？">報名資料填錯怎麼辦？</button>
-            <button type="button" data-entry-helper-question="我想取消報名、改時間或申請退款，該怎麼辦？">取消／改期／退款</button>
-            <button type="button" data-entry-helper-question="我沒有收到錄取、付款或行前通知，該怎麼辦？">收不到通知怎麼辦？</button>
-            <button type="button" data-entry-helper-question="到活動現場要怎麼報到？">現場怎麼報到？</button>
-            <button type="button" data-entry-helper-question="我要怎麼聯絡活動主辦？">怎麼聯絡活動主辦？</button>
-            <button type="button" data-entry-helper-question="我的資料會被不同主辦看到嗎？">不同主辦會看到資料嗎？</button>
-          </div>
-        </div>
-        <div class="doing-chat-input-row">
-          <textarea id="doingConversationInput" rows="2" placeholder="直接說你現在想完成什麼，或描述卡住的畫面…"></textarea>
-          <button type="button" id="sendDoingQuestion">送出</button>
-        </div>
-        <p class="doing-helper-note">未登入時不保存對話；重整或換瀏覽器後就會清除。</p>
-      </div>
       <form class="apply-form" id="signupForm" onsubmit="return false" hidden>
         <div class="form-head">
           <div>
@@ -607,6 +582,6 @@ section{padding:30px 0;scroll-margin-top:140px}.section-head{max-width:1040px;ma
 })();
 </script>
 <script src="doing-global-entry.js?v=20260817a"></script>
-<script src="doing-about-refresh.js?v=20260815b"></script>
+<script src="doing-about-refresh.js?v=20260817c"></script>
 </body>
 </html>

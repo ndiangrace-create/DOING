@@ -22,7 +22,7 @@ requireText(admin,'<option value="beauty">美類服務</option>','營運項目�
 requireText(worker,"'booking','beauty','workshop'",'Worker 接受美類營運項目');
 requireText(member,'<option>美類</option>','會員品牌問卷統稱美類');
 requireText(homeRefresh,"'手作體驗','美類','場地／攝影棚'",'首頁營運問卷統稱美類');
-requireText(aboutRefresh,"beauty:{badge:'美類｜",'情境介紹統稱美類');
+requireText(aboutRefresh,"beauty:{badge:'招募審核｜",'首頁改以跨產業工作方式呈現，且保留美類申請能力');
 for(const text of ['服務人員','顧客到店','開始服務','完成服務','指定服務券','次數券／套票','儲值金','不得以猜測方式寫死資料規則'])requireText(flow,text,text);
 
 if(/固定稱為美甲師|只支援美甲師/.test(flow))throw new Error('美類流程不得把服務人員寫死為美甲師');

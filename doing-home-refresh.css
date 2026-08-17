@@ -26,6 +26,7 @@
 .doing-organizer-heading{min-height:112px;padding:28px clamp(24px,5vw,62px);display:flex;align-items:flex-end;justify-content:space-between;gap:24px;background:linear-gradient(110deg,#fff1b8,#ffe3ef 56%,#dff5fb)}.doing-organizer-heading h2{margin:0;color:var(--doing-ink);font-size:clamp(24px,3vw,38px);letter-spacing:-.02em}.doing-organizer-heading p{max-width:440px;margin:0;color:var(--doing-muted);font-size:16px;line-height:1.6}
 .doing-organizer-details[hidden],.doing-organizer-content>section[hidden]{display:none!important}.doing-organizer-heading>div{min-width:0}.doing-organizer-heading #closeDoingOrganizerDetails{flex:0 0 auto;min-width:84px;min-height:46px;padding:10px 16px;border:1px solid #aacdc8;border-radius:10px;background:#fff;color:var(--doing-ink);font-weight:900;cursor:pointer}.doing-organizer-heading #closeDoingOrganizerDetails:hover{background:#eef9f7}
 .doing-search-results-section[hidden]{display:none!important}
+.doing-organizer-content .doing-helper-start-actions[hidden]{display:none!important}
 .doing-organizer-content{padding:0 clamp(22px,6vw,78px) 58px}.doing-organizer-content>section{position:relative;padding:clamp(58px,8vw,104px) 0;border:0}.doing-organizer-content>section+section:before{content:'';position:absolute;top:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,var(--doing-line),transparent)}
 .doing-organizer-content .section-head{max-width:780px;margin-bottom:34px}.doing-organizer-content .section-head h2{font-size:clamp(34px,5vw,58px);letter-spacing:-.04em}.doing-organizer-content .section-head p{font-size:18px;line-height:1.8}
 .doing-organizer-content .scenario-shell{display:block}.doing-organizer-content .scenario-tabs{display:flex;gap:10px;overflow:auto;padding:4px 2px 18px;scrollbar-width:none}.doing-organizer-content .scenario-tabs::-webkit-scrollbar{display:none}.doing-organizer-content .scenario-tabs button{width:auto;min-width:max-content;border:0;border-radius:999px;background:#f4f0f7;padding:12px 18px}.doing-organizer-content .scenario-tabs button[aria-selected=true]{background:#32273b;color:#fff;box-shadow:0 10px 24px rgba(50,39,59,.18)}
@@ -282,3 +283,44 @@ body.doing-app .modal .close{
   border-radius:10px!important;
 }
 body.doing-app .doing-organizer-details>summary:after{border-radius:10px!important}
+
+/* DOING_PUBLIC_SUPPORT_SEPARATION_V1
+   一般民眾客服是獨立浮動對話層；不嵌在營運申請內容，也不受首頁容器寬高裁切。 */
+.doing-public-support-fab{
+  position:fixed!important;right:22px!important;bottom:24px!important;z-index:1200!important;
+  display:flex!important;align-items:center!important;gap:8px!important;width:auto!important;min-width:88px!important;
+  min-height:52px!important;padding:8px 14px!important;border:1px solid #9dd7d2!important;border-radius:12px!important;
+  color:#fff!important;background:#19766f!important;box-shadow:0 14px 34px rgba(20,72,68,.28)!important;font-weight:900!important;
+}
+.doing-public-support-fab span{display:grid;place-items:center;width:32px;height:32px;border-radius:9px;background:#fff;color:#19766f}
+.doing-public-support-dialog[hidden]{display:none!important}
+.doing-public-support-dialog{position:fixed!important;inset:0!important;z-index:1300!important;display:grid!important;place-items:center!important;padding:24px!important}
+.doing-public-support-backdrop{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;border:0!important;border-radius:0!important;background:rgba(19,34,43,.44)!important}
+.doing-public-support-panel{
+  position:relative!important;display:grid!important;grid-template-rows:auto minmax(240px,1fr) auto auto auto!important;
+  width:min(980px,calc(100vw - 48px))!important;height:min(820px,calc(100dvh - 48px))!important;min-height:620px!important;
+  max-width:none!important;max-height:none!important;overflow:hidden!important;border:1px solid #a9d6d2!important;border-radius:18px!important;
+  background:#f7fcfb!important;box-shadow:0 28px 90px rgba(18,52,49,.28)!important;color:#17323a!important;
+}
+.doing-public-support-panel>header{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:14px!important;padding:18px 20px!important;border-bottom:1px solid #cde3e0!important;background:#fff!important}
+.doing-public-support-panel>header>div{display:flex;align-items:center;gap:12px;min-width:0}.doing-public-support-panel h2{margin:0!important;font-size:22px!important;line-height:1.25!important}.doing-public-support-panel header p{margin:3px 0 0!important;color:#6a7883!important}
+.doing-public-support-mark{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border-radius:10px;background:#19766f;color:#fff;font-weight:1000}
+.doing-public-support-close{flex:0 0 42px!important;width:42px!important;height:42px!important;padding:0!important;border:1px solid #badbd8!important;border-radius:10px!important;background:#fff!important;font-size:25px!important;line-height:1!important}
+.doing-public-support-messages{min-width:0!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;padding:24px!important;background:#eaf5f3!important;scrollbar-gutter:stable!important}
+.doing-public-support-bubble{display:block!important;width:fit-content!important;max-width:min(82%,760px)!important;margin:0 0 14px!important;padding:13px 16px!important;border-radius:12px!important;background:#fff!important;line-height:1.65!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;box-shadow:0 4px 16px rgba(32,76,72,.08)!important}
+.doing-public-support-bubble.user{margin-left:auto!important;color:#fff!important;background:#19766f!important}.doing-public-support-bubble.assistant{margin-right:auto!important}
+.doing-public-support-application-action{display:block!important;margin:12px 0 0!important;padding:10px 14px!important;border:0!important;border-radius:10px!important;color:#fff!important;background:#19766f!important;font-weight:900!important}
+.doing-public-support-faq{padding:14px 20px 8px!important;border-top:1px solid #cde3e0!important;background:#fff!important;overflow-x:hidden!important}.doing-public-support-faq>b{display:block;margin-bottom:8px}.doing-public-support-faq>div{display:flex!important;gap:8px!important;overflow-x:auto!important;padding:0 0 6px!important;scrollbar-width:thin!important}.doing-public-support-faq button{flex:0 0 auto!important;min-height:38px!important;padding:8px 11px!important;border:1px solid #add8d4!important;border-radius:10px!important;background:#f0f9f8!important;font-weight:800!important;white-space:nowrap!important}
+.doing-public-support-input{display:grid!important;grid-template-columns:minmax(0,1fr) 74px!important;gap:10px!important;padding:10px 20px!important;background:#fff!important}.doing-public-support-input textarea{display:block!important;width:100%!important;min-width:0!important;min-height:58px!important;max-height:150px!important;resize:vertical!important;padding:13px!important;border:1px solid #b9d8d5!important;border-radius:10px!important;font:inherit!important;line-height:1.45!important}.doing-public-support-input button{min-width:0!important;border:1px solid #94c9c4!important;border-radius:10px!important;background:#dff3f1!important;font-weight:900!important}
+.doing-public-support-panel>small{display:block!important;padding:0 20px 14px!important;color:#6b7884!important;background:#fff!important;white-space:normal!important;overflow-wrap:anywhere!important}
+body.doing-support-open{overflow:hidden!important}
+.doing-public-footer nav button{appearance:none;border:0;background:none;color:inherit;font:inherit;text-decoration:underline;cursor:pointer;padding:0}
+
+@media(max-width:760px){
+  .doing-public-support-fab{right:12px!important;bottom:14px!important;min-width:78px!important;min-height:48px!important;padding:7px 11px!important}
+  .doing-public-support-dialog{padding:0!important;place-items:stretch!important}
+  .doing-public-support-panel{inset:0!important;width:100vw!important;height:100dvh!important;min-height:100dvh!important;max-width:100vw!important;max-height:100dvh!important;border:0!important;border-radius:0!important;grid-template-rows:auto minmax(0,1fr) auto auto auto!important}
+  .doing-public-support-panel>header{padding:12px 14px!important}.doing-public-support-panel h2{font-size:18px!important}.doing-public-support-panel header p{font-size:13px!important}
+  .doing-public-support-messages{padding:16px 12px!important;scrollbar-gutter:auto!important}.doing-public-support-bubble{max-width:90%!important;padding:11px 13px!important}
+  .doing-public-support-faq{padding:10px 12px 6px!important}.doing-public-support-input{grid-template-columns:minmax(0,1fr) 62px!important;padding:8px 12px!important}.doing-public-support-input textarea{min-height:52px!important;max-height:104px!important;resize:none!important}.doing-public-support-panel>small{padding:0 12px 9px!important;font-size:12px!important}
+}

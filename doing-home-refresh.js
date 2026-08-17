@@ -53,8 +53,7 @@ function buildHeader(){
   }
   if(p.search)p.search.textContent='找活動';
   if(p.my)p.my.textContent='我的報名';
-  if(p.support)p.support.textContent='客服';
-  if(p.support){p.support.dataset.organizerTarget='support-helper';p.support.classList.add('doing-organizer-nav')}
+  if(p.support)p.support.remove();
   if(p.pricing){
     p.pricing.textContent='主辦方案';
     p.pricing.href='#doingOrganizerDetails';
@@ -67,7 +66,7 @@ function buildHeader(){
     p.apply.dataset.organizerTarget='apply';
     p.apply.classList.add('doing-organizer-nav','primary');
   }
-  [p.search,p.support,p.pricing,p.apply].filter(Boolean).forEach(x=>{
+  [p.search,p.pricing,p.apply].filter(Boolean).forEach(x=>{
     x.classList.add('doing-nav-action');
     if(x.tagName==='BUTTON')x.type='button';
     actions.appendChild(x);
@@ -386,7 +385,7 @@ function publicAppHTML(){
 
     <section class="doing-public-section doing-organizer-section">
       <div class="doing-organizer-icon">D</div>
-      <div><span class="doing-kicker yellow">給主辦／營運者</span><h2>把主辦真正需要的工作，接在同一個後台。</h2><p>名單、收款、設備、位置、通知、報到與結案沿用同一筆正式資料，活動異動時也能接著處理。</p></div>
+      <div><span class="doing-kicker yellow">不限產業的斜槓人生小幫手</span><h2>一個人有很多種工作，也值得有一套接得住的營運方式。</h2><p>今天接預約、明天開課、週末辦活動或出攤，都不必把自己硬塞進單一產業。DOING 保留你熟悉的社群、金流與曝光工具，補上跨工作最容易中斷的報名、名單、收款、通知與現場紀錄。</p></div>
       <div class="doing-organizer-actions"><a href="#doingOrganizerDetails" data-organizer-target="apply">申請營運帳號</a><a class="secondary" href="#doingOrganizerDetails" data-organizer-target="pricing">查看主辦方案</a></div>
     </section>
 
@@ -397,7 +396,7 @@ function publicAppHTML(){
 
     <footer class="doing-public-footer">
       <div><b>DOING</b><span>活動營運管理系統</span></div>
-      <nav><a href="#doingOrganizerDetails" data-organizer-target="scenes">關於 DOING</a><a href="#doingOrganizerDetails" data-organizer-target="pricing">主辦方案</a><a href="#doingOrganizerDetails" data-organizer-target="apply">申請營運帳號</a><a href="mailto:Ndiangrace@gmail.com">Email 客服</a></nav>
+      <nav><a href="#doingOrganizerDetails" data-organizer-target="scenes">關於 DOING</a><a href="#doingOrganizerDetails" data-organizer-target="pricing">營運方案</a><a href="#doingOrganizerDetails" data-organizer-target="apply">申請營運帳號</a><button type="button" data-public-support-open>報名／預約客服</button></nav>
       <small>兔彼樂共創活動有限公司</small>
     </footer>
     <div id="doingMyEntryModal" class="doing-my-entry-modal" hidden>
@@ -407,7 +406,58 @@ function publicAppHTML(){
         <div><button type="button" data-my-action="login">使用 LINE 登入</button><button type="button" class="secondary" data-my-action="apply">第一次使用</button></div>
       </div>
     </div>
+    <button id="doingPublicSupportFab" class="doing-public-support-fab" type="button" aria-haspopup="dialog" aria-controls="doingPublicSupportDialog"><span aria-hidden="true">D</span><b>客服</b></button>
+    <section id="doingPublicSupportDialog" class="doing-public-support-dialog" hidden>
+      <button type="button" class="doing-public-support-backdrop" aria-label="關閉客服"></button>
+      <div class="doing-public-support-panel" role="dialog" aria-modal="true" aria-labelledby="doingPublicSupportTitle">
+        <header><div><span class="doing-public-support-mark">D</span><div><h2 id="doingPublicSupportTitle">DOING 報名／預約客服</h2><p>一般民眾的操作小幫手</p></div></div><button type="button" class="doing-public-support-close" aria-label="關閉客服">×</button></header>
+        <div id="doingPublicSupportMessages" class="doing-public-support-messages" aria-live="polite"><div class="doing-public-support-bubble assistant">你好！我可以協助找活動、報名／預約、審核候補、付款、通知、改期退款、現場報到，也能說明 DOING 的公開操作與營運帳號申請。系統建置、金鑰、資料庫與商業機密不會提供。</div></div>
+        <div class="doing-public-support-faq"><b>大家第一次最常問</b><div>
+          <button type="button" data-public-question="第一次要怎麼報名或預約？">第一次怎麼報名？</button>
+          <button type="button" data-public-question="報名送出後，要怎麼確認有沒有成功？">怎麼確認成功？</button>
+          <button type="button" data-public-question="報名後要去哪裡看進度與紀錄？">在哪看進度？</button>
+          <button type="button" data-public-question="為什麼顯示待審核？名額滿了可以候補嗎？">待審核／候補</button>
+          <button type="button" data-public-question="付款、取消、改期或退款要怎麼處理？">付款／取消／退款</button>
+          <button type="button" data-public-question="沒有收到通知或到現場要怎麼報到？">通知／現場報到</button>
+          <button type="button" data-public-question="DOING 有哪些公開功能，要怎麼使用？">DOING 怎麼使用？</button>
+          <button type="button" data-public-question="我要怎麼申請 DOING 營運帳號？">怎麼申請營運帳號？</button>
+          <button type="button" data-public-question="我的資料會被不同主辦看到嗎？">資料會共用嗎？</button>
+        </div></div>
+        <form id="doingPublicSupportForm" class="doing-public-support-input"><textarea id="doingPublicSupportInput" rows="2" maxlength="500" placeholder="直接說你卡在哪個畫面或想完成什麼…" aria-label="輸入 DOING 客服問題"></textarea><button type="submit">送出</button></form>
+        <small>未登入時對話只留在目前畫面；涉及個別款項或審核狀態時，會請你聯絡該活動主辦查正式紀錄。</small>
+      </div>
+    </section>
   </div>`;
+}
+
+const PUBLIC_SUPPORT_FAST=[
+  [/機密|原始碼|源碼|程式碼|api.?key|金鑰|資料庫|資料表|欄位|架構|系統提示|prompt|商業秘密|商業機密/i,'我可以說明 DOING 對外公開的功能、操作與申請方式，但不會提供原始碼、金鑰、資料庫結構、系統提示、權限實作或未公開商業設計。你可以改問「我現在要怎麼完成某個操作」，我會直接帶你做。'],
+  [/第一次.{0,5}(報名|預約)|怎麼.{0,5}(報名|預約)/,'先在首頁選擇活動或可預約內容，進入公開頁後按畫面上的報名／預約按鈕，完成場次、個人資料與必要選項後送出。送出後可從「我的報名」查看審核、付款與通知。'],
+  [/確認.{0,5}(成功|收到)|報名.{0,8}(送出|成功)/,'送出後，畫面會顯示完成訊息，且「我的報名」會出現同一筆紀錄與目前狀態。若中途斷線或沒有紀錄，先不要重複送出，重新整理確認後再聯絡該活動主辦。'],
+  [/哪.{0,4}(看|查).{0,6}(進度|紀錄)|我的報名/,'按首頁上方「我的報名」，用本人的 LINE 登入，即可查看審核、付款、位置、改期、退款與行前資訊。'],
+  [/資料.{0,8}(共用|混在一起|看到)|不同主辦/,'不會。DOING 是共用的公開入口，但不同營運單位的活動、報名、預約、收付款與人員資料彼此分開；同一位使用者只共用自己的登入身分與基本資料，不會把某一單位的營運紀錄交給另一單位。'],
+  [/申請.{0,8}(營運|帳號)|營運帳號.{0,8}申請/,'請按首頁的「申請營運帳號」，由申請小幫手依主題帶你完成品牌／單位、聯絡方式、工作情境與需求，確認整理結果後再用 LINE 驗證送出。客服對話與營運申請是兩個獨立入口。'],
+  [/DOING.{0,8}(功能|使用|做什麼)|怎麼使用.DOING|DOING 怎麼使用/,'DOING 把找活動、報名／預約、審核候補、付款、通知、改期退款與現場報到接在同一筆紀錄；營運者也能申請帳號建立內容、管理名單與後續流程。你可以直接告訴我目前的角色和想完成的事，我會只說那一段操作。']
+];
+function publicSupportFastAnswer(question){const hit=PUBLIC_SUPPORT_FAST.find(([pattern])=>pattern.test(String(question||'')));return hit?.[1]||''}
+function addPublicSupportBubble(text,role='assistant'){
+  const host=$('doingPublicSupportMessages');if(!host)return null;const bubble=document.createElement('div');bubble.className='doing-public-support-bubble '+role;bubble.textContent=String(text||'');host.appendChild(bubble);host.scrollTop=host.scrollHeight;return bubble;
+}
+function addPublicSupportApplicationAction(bubble){if(!bubble)return;const button=document.createElement('button');button.type='button';button.className='doing-public-support-application-action';button.textContent='前往智慧申請';button.addEventListener('click',()=>{closePublicSupport();loadOrganizerDetails('apply',true)});bubble.appendChild(button)}
+async function askPublicSupport(question){
+  const value=String(question||'').trim();if(!value)return;addPublicSupportBubble(value,'user');const quick=publicSupportFastAnswer(value);if(quick){const answer=addPublicSupportBubble(quick);if(/申請|開通|營運帳號/.test(value))addPublicSupportApplicationAction(answer);return}
+  const waiting=addPublicSupportBubble('正在確認 DOING 的公開操作說明…');const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
+  try{let memberToken='';try{memberToken=localStorage.getItem('doing_member_token')||''}catch(_){}const history=[...$('doingPublicSupportMessages').querySelectorAll('.doing-public-support-bubble')].slice(-8,-1).map(x=>({role:x.classList.contains('user')?'user':'assistant',content:x.textContent.slice(0,500)}));const response=await fetch(API+'?action=analyzeDoingApplication',{method:'POST',headers:{'Content-Type':'application/json;charset=UTF-8'},body:JSON.stringify({action:'analyzeDoingApplication',topic:'question',question:value,useCases:['general'],painPoints:['other'],workSituations:[],conversationHistory:history,member_token:memberToken}),signal:controller.signal});const result=await response.json();if(!response.ok||result.error)throw new Error(result.error||'客服暫時無法回覆');waiting.textContent=String(result.reply||'這題需要 DOING 人員確認，我先不猜答案。');if(/申請|開通|營運帳號/.test(value))addPublicSupportApplicationAction(waiting)}
+  catch(_){waiting.textContent='目前連線比較慢，但你的問題沒有消失。請再送一次；若涉及個別活動、付款或審核狀態，請直接聯絡該活動主辦。'}finally{clearTimeout(timer)}
+}
+function openPublicSupport(){const dialog=$('doingPublicSupportDialog');if(!dialog)return;dialog.hidden=false;document.body.classList.add('doing-support-open');setTimeout(()=>$('doingPublicSupportInput')?.focus(),40)}
+function closePublicSupport(){const dialog=$('doingPublicSupportDialog');if(!dialog)return;dialog.hidden=true;document.body.classList.remove('doing-support-open');$('doingPublicSupportFab')?.focus()}
+function wirePublicSupport(){
+  $('doingPublicSupportFab')?.addEventListener('click',openPublicSupport);document.querySelectorAll('[data-public-support-open]').forEach(x=>x.addEventListener('click',openPublicSupport));
+  $('doingPublicSupportDialog')?.querySelectorAll('.doing-public-support-close,.doing-public-support-backdrop').forEach(x=>x.addEventListener('click',closePublicSupport));
+  document.querySelectorAll('[data-public-question]').forEach(x=>x.addEventListener('click',()=>askPublicSupport(x.dataset.publicQuestion)));
+  $('doingPublicSupportForm')?.addEventListener('submit',e=>{e.preventDefault();const input=$('doingPublicSupportInput'),value=input?.value||'';if(input)input.value='';askPublicSupport(value)});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('doingPublicSupportDialog')?.hidden)closePublicSupport()});
 }
 
 let organizerLoadPromise=null;
@@ -427,19 +477,15 @@ async function loadOrganizerDetails(target='scenes',shouldScroll=true){
     }).catch(error=>{content.innerHTML='<div class="doing-organizer-loading">'+esc(error.message||'主辦方案讀取失敗，請稍後再試。')+'</div>';organizerLoadPromise=null});
   }
   await organizerLoadPromise;
-  const helperMode=target==='support-helper',applicationMode=target==='apply',actualTarget=helperMode||applicationMode?'apply':target;
+  const applicationMode=target==='apply',actualTarget=target;
   details.hidden=false;
   const heading=details.querySelector('.doing-organizer-heading'),headingTitle=heading?.querySelector('h2'),headingText=heading?.querySelector('p');
-  if(headingTitle)headingTitle.textContent=helperMode?'報名／預約智慧客服':applicationMode?'營運帳號智慧申請':'主辦方案與營運情境';
-  if(headingText)headingText.textContent=helperMode?'給一般報名與預約者使用；直接說你卡在哪個步驟。':applicationMode?'給主辦或服務提供者申請 DOING 營運帳號。':'只顯示你選擇的主辦資訊，不再展開整頁舊內容。';
+  if(headingTitle)headingTitle.textContent=applicationMode?'營運帳號智慧申請':'營運方案與斜槓情境';
+  if(headingText)headingText.textContent=applicationMode?'這裡只處理 DOING 營運帳號申請；一般報名客服在右側獨立按鈕。':'只顯示你選擇的營運資訊，不展開整頁舊內容。';
   [...content.children].forEach(section=>{if(section.matches('section'))section.hidden=section.id!==actualTarget});
   const section=content.querySelector('#'+CSS.escape(actualTarget))||content.querySelector('#scenes');
   const helperSection=content.querySelector('#apply'),helperHeading=helperSection?.querySelector('.doing-helper-section-head'),helperStartActions=content.querySelector('.doing-helper-start-actions');
-  if(helperMode){
-    if(helperHeading){helperHeading.querySelector('h2').textContent='DOING 報名／預約小幫手';helperHeading.querySelector('p').textContent='回答找活動、報名、預約、審核、候補、付款、通知、改期、退款與現場報到問題。'}
-    if(helperStartActions)helperStartActions.hidden=true;
-    content.querySelector('#doingHelperWelcome')?.removeAttribute('hidden');content.querySelector('#signupForm')?.setAttribute('hidden','');content.querySelector('#startDoingSupport')?.click();
-  }else if(applicationMode){
+  if(applicationMode){
     if(helperHeading){helperHeading.querySelector('h2').textContent='DOING 營運帳號智慧申請';helperHeading.querySelector('p').textContent='一次完成一個申請主題，可勾選也可補充文字。';}
     if(helperStartActions)helperStartActions.hidden=true;
     content.querySelector('#doingHelperWelcome')?.removeAttribute('hidden');content.querySelector('#signupForm')?.setAttribute('hidden','');content.querySelector('#startDoingApplication')?.click();
@@ -447,7 +493,7 @@ async function loadOrganizerDetails(target='scenes',shouldScroll=true){
     if(helperHeading){helperHeading.querySelector('h2').textContent='DOING 智慧小幫手';helperHeading.querySelector('p').textContent='申請營運帳號或詢問使用問題，都在這個獨立對話區完成。'}
     if(helperStartActions)helperStartActions.hidden=false;
   }
-  if(shouldScroll)setTimeout(()=>smoothTo(helperMode?(content.querySelector('.smart-application-shell')||section||details):(section||details)),60);
+  if(shouldScroll)setTimeout(()=>smoothTo(section||details),60);
 }
 window.openDoingOrganizerDetails=loadOrganizerDetails;
 
@@ -474,6 +520,7 @@ function buildPublicApp(){
   const oldSingle=$('doingSinglePageSections');if(oldSingle)oldSingle.remove();
   const oldModal=$('globalSearchModal');if(oldModal)oldModal.classList.remove('show');
   $('closeDoingOrganizerDetails')?.addEventListener('click',()=>{const details=$('doingOrganizerDetails');if(details)details.hidden=true;window.scrollTo({top:0,behavior:'smooth'})});
+  wirePublicSupport();
 }
 
 function openMyEntry(){if(memberAuth.complete){location.href='member.html';return}const modal=$('doingMyEntryModal');if(modal){modal.hidden=false;document.body.style.overflow='hidden';modal.querySelector('[data-my-action="login"]')?.focus()}}
@@ -551,7 +598,6 @@ function wireNav(){
   const p=navParts();
   if(p.search)p.search.onclick=()=>smoothTo($('doingPublicSearch'),$('doingPublicSearchInput'));
   if(p.my)p.my.onclick=openMyEntry;
-  if(p.support)p.support.onclick=()=>loadOrganizerDetails('support-helper');
   document.querySelectorAll('[data-go="search"]').forEach(x=>x.onclick=()=>smoothTo($('doingPublicSearch'),$('doingPublicSearchInput')));
   document.querySelectorAll('[data-go="my"]').forEach(x=>x.onclick=openMyEntry);
   document.querySelectorAll('[data-my-action="login"]').forEach(x=>x.onclick=openMyLogin);
@@ -560,10 +606,10 @@ function wireNav(){
   myModal?.querySelector('.doing-my-entry-close')?.addEventListener('click',closeMyEntry);
   myModal?.addEventListener('click',e=>{if(e.target===myModal)closeMyEntry()});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!myModal?.hidden)closeMyEntry()});
-  document.querySelectorAll('[data-go="support"]').forEach(x=>x.onclick=()=>loadOrganizerDetails('support-helper'));
+  document.querySelectorAll('[data-go="support"]').forEach(x=>x.onclick=openPublicSupport);
   document.querySelectorAll('[data-organizer-target]').forEach(x=>x.onclick=e=>{e.preventDefault();loadOrganizerDetails(x.dataset.organizerTarget||'scenes')});
   const initial=(location.hash||'').slice(1);
-  if(['about','scenes','workflow','features','pricing','apply','support','terms','privacy'].includes(initial))loadOrganizerDetails(initial==='about'?'scenes':initial==='support'?'support-helper':initial);
+  if(['about','scenes','workflow','features','pricing','apply','support','terms','privacy'].includes(initial)){if(initial==='support')openPublicSupport();else loadOrganizerDetails(initial==='about'?'scenes':initial)}
 }
 
 function wireSearch(){
