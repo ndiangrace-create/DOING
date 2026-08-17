@@ -94,6 +94,7 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
   display:flex!important;
   flex-direction:column;
   overflow:hidden;
+  overflow-anchor:none;
   border:2px solid #b9d7d2;
   border-radius:28px;
   background:#f5faf9;
