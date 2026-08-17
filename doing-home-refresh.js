@@ -349,7 +349,6 @@ function publicAppHTML(){
           <div><i>✦</i><b>行前提醒</b><span>資訊不漏接</span></div>
           <div><i>→</i><b>直接出發</b><span>時間地點一次看</span></div>
         </div>
-        <button type="button" data-go="my">查看我的報名</button>
       </div>
     </section>
 
@@ -381,25 +380,14 @@ function publicAppHTML(){
 
     <section class="doing-public-section doing-organizer-section">
       <div class="doing-organizer-icon">D</div>
-      <div><span class="doing-kicker yellow">給主辦／營運者</span><h2>不只收到報名，還要把整場活動做完。</h2><p>DOING 把名單、審核、收款、設備、位置、通知、現場報到和結案放在同一個後台。不用再從表單搬到 Excel，也不用每次異動就重做名單。</p></div>
+      <div><span class="doing-kicker yellow">給主辦／營運者</span><h2>把主辦真正需要的工作，接在同一個後台。</h2><p>名單、收款、設備、位置、通知、報到與結案沿用同一筆正式資料，活動異動時也能接著處理。</p></div>
       <div class="doing-organizer-actions"><a href="#doingOrganizerDetails" data-organizer-target="apply">申請營運帳號</a><a class="secondary" href="#doingOrganizerDetails" data-organizer-target="pricing">查看主辦方案</a></div>
-    </section>
-
-    <section class="doing-proof-section" aria-label="DOING 系統亮點">
-      <header><span class="doing-kicker">為什麼主辦需要 DOING</span><h2>真正麻煩的，從來不是做一張報名表。</h2><p>而是報名送出以後，名單、款項、異動與現場資訊開始出現不同版本。DOING 把這些工作接成一條完整流程。</p></header>
-      <div class="doing-proof-story">
-        <article><span>01</span><div><small>一筆資料，跑完整場</small><h3>不再從表單搬到 Excel、付款表、位置表與簽到表。</h3><p>報名、審核、付款、設備、選位、通知、報到與結案都沿用同一筆正式資料；打開系統看到的，就是現在正確的版本。</p></div><b>少整理<br>多完成</b></article>
-        <article><span>02</span><div><small>活動有變，也不用全部重來</small><h3>延期、取消、改期與退款，都接著原本紀錄處理。</h3><p>名單、付款、設備和位置不必重新複製，主辦可以沿著原資料完成通知與後續安排。</p></div><b>不怕異動<br>不漏處理</b></article>
-        <article><span>03</span><div><small>不同工作方式，一個營運後台</small><h3>市集、課程、體驗、導覽與工作室預約，不必各養一套工具。</h3><p>流程可以不同，會員、日曆、通知、付款與財務仍集中管理；下一場也不用重新開始。</p></div><b>活動多元<br>營運不亂</b></article>
-      </div>
     </section>
 
     <section id="doingOrganizerDetails" class="doing-organizer-details">
       <header class="doing-organizer-heading"><h2>主辦方案與營運情境</h2><p>情境、功能、費用與申請都直接顯示在這一頁。</p></header>
       <div id="doingOrganizerContent" class="doing-organizer-content"><div class="doing-organizer-loading">準備主辦方案…</div></div>
     </section>
-
-    <div id="doingSupportMount"></div>
 
     <footer class="doing-public-footer">
       <div><b>DOING</b><span>活動營運管理系統</span></div>
@@ -459,11 +447,7 @@ function buildPublicApp(){
     my.classList.remove('page');my.classList.add('doing-public-native-panel','doing-my-panel');my.classList.remove('active');my.id='doingHomeMy';my.hidden=true;
     $('doingMyMount')?.replaceWith(my);
   }
-  const support=$('pageSupport');
-  if(support){
-    support.classList.remove('page');support.classList.add('doing-public-native-panel','doing-support-panel');support.id='doingHomeSupport';
-    $('doingSupportMount')?.replaceWith(support);
-  }
+  const support=$('pageSupport');if(support)support.remove();
   const oldSingle=$('doingSinglePageSections');if(oldSingle)oldSingle.remove();
   const oldModal=$('globalSearchModal');if(oldModal)oldModal.classList.remove('show');
   loadOrganizerDetails('scenes',false);
@@ -544,7 +528,7 @@ function wireNav(){
   const p=navParts();
   if(p.search)p.search.onclick=()=>smoothTo($('doingPublicSearch'),$('doingPublicSearchInput'));
   if(p.my)p.my.onclick=openMyEntry;
-  if(p.support)p.support.onclick=()=>smoothTo($('doingHomeSupport'));
+  if(p.support)p.support.onclick=()=>loadOrganizerDetails('support-helper');
   document.querySelectorAll('[data-go="search"]').forEach(x=>x.onclick=()=>smoothTo($('doingPublicSearch'),$('doingPublicSearchInput')));
   document.querySelectorAll('[data-go="my"]').forEach(x=>x.onclick=openMyEntry);
   document.querySelectorAll('[data-my-action="login"]').forEach(x=>x.onclick=openMyLogin);
@@ -553,10 +537,10 @@ function wireNav(){
   myModal?.querySelector('.doing-my-entry-close')?.addEventListener('click',closeMyEntry);
   myModal?.addEventListener('click',e=>{if(e.target===myModal)closeMyEntry()});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!myModal?.hidden)closeMyEntry()});
-  document.querySelectorAll('[data-go="support"]').forEach(x=>x.onclick=()=>smoothTo($('doingHomeSupport')));
+  document.querySelectorAll('[data-go="support"]').forEach(x=>x.onclick=()=>loadOrganizerDetails('support-helper'));
   document.querySelectorAll('[data-organizer-target]').forEach(x=>x.onclick=e=>{e.preventDefault();loadOrganizerDetails(x.dataset.organizerTarget||'scenes')});
   const initial=(location.hash||'').slice(1);
-  if(['about','scenes','workflow','features','pricing','apply','support','terms','privacy'].includes(initial))loadOrganizerDetails(initial==='about'?'scenes':initial);
+  if(['about','scenes','workflow','features','pricing','apply','support','terms','privacy'].includes(initial))loadOrganizerDetails(initial==='about'?'scenes':initial==='support'?'support-helper':initial);
 }
 
 function wireSearch(){
