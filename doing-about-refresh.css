@@ -187,7 +187,8 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
   transform:translateX(-50%);
 }
 .smart-application-shell{
-  width:min(1500px,calc(100vw - 36px))!important;
+  /* 寬度以實際父層內容區為上限，避免舊版容器較窄時把右側推出視窗。 */
+  width:min(100%,1500px)!important;
   max-width:1500px!important;
   height:auto!important;
   min-height:clamp(780px,84vh,1040px)!important;
@@ -293,7 +294,7 @@ body.doing-about-refresh #pricing{padding:38px 26px;margin:18px 0;border-radius:
   }
   .doing-smart-helper-section{padding:28px 4px 36px!important}
   .smart-application-shell{
-    width:calc(100vw - 12px)!important;
+    width:100%!important;
     max-width:none!important;
     min-height:calc(100svh - 112px)!important;
     border-radius:18px!important;
