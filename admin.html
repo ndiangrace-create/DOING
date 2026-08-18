@@ -2088,7 +2088,7 @@ html[data-doing-theme="warm_handmade"] body.doing-admin{--main:#9a5e43;--main2:#
 html[data-doing-theme="vivid_pop"] body.doing-admin{--main:#ef5b2a;--main2:#c73912;background:#4ed7e8!important;color:#111!important}html[data-doing-theme="vivid_pop"] body.doing-admin .topbar{background:#fff!important;border-bottom:4px solid #111!important}html[data-doing-theme="vivid_pop"] body.doing-admin .tabs{background:#d9ff45!important;border:3px solid #111!important}html[data-doing-theme="vivid_pop"] body.doing-admin .card,html[data-doing-theme="vivid_pop"] body.doing-admin .report-card,html[data-doing-theme="vivid_pop"] body.doing-admin .settings-tile,html[data-doing-theme="vivid_pop"] body.doing-admin .session-card{background:#fff!important;border:3px solid #111!important;border-radius:10px!important;box-shadow:7px 7px 0 #111!important}html[data-doing-theme="vivid_pop"] body.doing-admin .btn{border:3px solid #111!important;border-radius:8px!important;box-shadow:3px 3px 0 #111!important}
 html[data-doing-theme] body.doing-admin .card,html[data-doing-theme] body.doing-admin .report-card,html[data-doing-theme] body.doing-admin .settings-tile,html[data-doing-theme] body.doing-admin .session-card{min-width:0!important;overflow-wrap:anywhere!important}html[data-doing-theme] body.doing-admin button,html[data-doing-theme] body.doing-admin a{white-space:normal!important;line-height:1.35!important}
 </style>
-<style id="doing-admin-responsive-frame-v2">
+<style id="doing-admin-responsive-frame-v2" media="not all">
 /* DOING_ADMIN_RESPONSIVE_FRAME_V2
    主導覽永遠維持單排；桌機八等分，窄螢幕以橫向捲動完整保留每個入口。 */
 body.doing-admin{
@@ -2173,6 +2173,16 @@ body.doing-admin .settings-tile{min-height:92px!important;padding:12px!important
   body.doing-admin .doing-command-copy h3{font-size:19px!important}
   body.doing-admin .doing-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   body.doing-admin .doing-kpi{min-width:0!important;padding:9px!important}
+}
+</style>
+<style id="doing-admin-single-row-hotfix-v3">
+/* DOING_ADMIN_SINGLE_ROW_HOTFIX_V3
+   保留既有可用框架，只修正桌機第八個入口掉到第二排。 */
+@media(min-width:901px){
+  body.doing-admin .tabs{
+    display:grid!important;
+    grid-template-columns:repeat(8,minmax(0,1fr))!important;
+  }
 }
 </style>
 </head>

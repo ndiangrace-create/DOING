@@ -20,7 +20,7 @@ for(const token of ['body.doing-app.doing-platform .metrics','grid-template-colu
 const member=fs.readFileSync(root+'/member.html','utf8');
 if(!member.includes('overview-secondary')||!member.includes('最近進度｜'))fail('會員總覽尚未改為手機摘要模式');
 const admin=fs.readFileSync(root+'/admin.html','utf8');
-for(const token of ['DOING_ADMIN_RESPONSIVE_FRAME_V2','grid-template-columns:repeat(8,minmax(0,1fr))!important','flex-wrap:nowrap!important;right:10px!important;left:10px!important','overflow-x:auto!important;overflow-y:hidden!important','--admin-topbar-height:62px;--admin-tabs-height:48px']){
+for(const token of ['id="doing-admin-responsive-frame-v2" media="not all"','DOING_ADMIN_SINGLE_ROW_HOTFIX_V3','@media(min-width:901px)','grid-template-columns:repeat(8,minmax(0,1fr))!important','body.doing-admin .tabs{right:12px!important;left:12px!important;display:flex!important;overflow-x:auto!important']){
   if(!admin.includes(token))fail('管理後台單排防破框契約缺少：'+token);
 }
 if(!admin.includes('>營運項目</button>')||!admin.includes('<h2>營運項目</h2>'))fail('管理端尚未使用活動／預約通用名稱「營運項目」');
