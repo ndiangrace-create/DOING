@@ -2202,7 +2202,7 @@ body.doing-admin .settings-tile{min-height:92px!important;padding:12px!important
 
 <section id="adminPage" class="hidden">
   <header class="topbar"><div class="topbar-in">
-    <div class="brand"><a class="admin-member-home" href="index.html" data-doing-admin-entry aria-label="回到 DOING 首頁；長按進入總管平台" title="回到首頁"><img src="doing-logo.png" alt="DOING" style="width:46px;height:46px;object-fit:contain"><div><div class="brand-title">DOING 活動營運管理系統</div><div class="brand-sub"><span class="admin-member-back">← 回到首頁｜長按 LOGO 進入總管</span><span id="whoText" class="admin-member-context">尚未登入</span></div></div></a></div>
+    <div class="brand"><a class="admin-member-home" href="index.html" data-doing-admin-entry aria-label="回到 DOING 首頁" title="回到首頁"><img src="doing-logo.png" alt="DOING" style="width:46px;height:46px;object-fit:contain"><div><div class="brand-title">DOING 活動營運管理系統</div><div class="brand-sub"><span class="admin-member-back">← 回到首頁</span><span id="whoText" class="admin-member-context">尚未登入</span></div></div></a></div>
     <div class="actions"><a id="adminReturnLink" class="btn secondary small" href="member.html#operations" onclick="returnFromAdmin(event)"><span id="adminReturnLabel">我的 DOING</span></a><button class="btn secondary small" onclick="openSupportCenter()">系統客服 <span id="supportUnreadBadge" class="doing-unread">0</span></button><button class="btn secondary small hide-sm" onclick="refreshCurrentPage()">重新整理</button><button class="btn secondary small" onclick="openOnsiteWorkerPage()">現場入口</button><button class="btn gray small" onclick="logout()">登出</button></div>
   </div></header>
   <nav class="tabs" aria-label="DOING 後台主選單">
@@ -2386,12 +2386,12 @@ function currentTenantFromUrl(){
 function requestedTenantFromUrl(){return String(new URL(location.href).searchParams.get('tenant')||'').trim().toLowerCase()}
 function startGoogleLogin(){
   const tenant=currentTenantFromUrl();
-  if(!tenant){ toast('找不到主辦帳號，請回到公開首頁後長按左上品牌圖示 3 秒進入主辦工作台',6000); return; }
+  if(!tenant){ toast('找不到主辦帳號，請從「我的 DOING」進入已授權的主辦工作台',6000); return; }
   const u=new URL(endpoint()+'/auth/google/start');u.searchParams.set('mode','admin');u.searchParams.set('tenant',tenant);location.href=u.toString();
 }
 function startLineLogin(){
   const tenant=currentTenantFromUrl();
-  if(!tenant){ toast('找不到主辦帳號，請回到公開首頁後長按左上品牌圖示 3 秒進入主辦工作台',6000); return; }
+  if(!tenant){ toast('找不到主辦帳號，請從「我的 DOING」進入已授權的主辦工作台',6000); return; }
   const u=new URL(endpoint()+'/auth/line/start');u.searchParams.set('mode','admin');u.searchParams.set('tenant',tenant);location.href=u.toString();
 }
 async function handleOAuthCallback(){
@@ -3042,7 +3042,6 @@ function renderSessionCard(s){
         +'</div>'
       +'</div>'
     +'</div>'
-    +'<div class="report-card" style="margin-top:12px"><b style="font-size:16px">儲值與次數券</b><div class="sub">每筆加值、使用與退款都有正式明細；只屬於目前營運空間。</div><div id="customerWalletList" class="loading" style="margin-top:10px">載入帳戶中…</div><div class="card-actions"><button class="btn" onclick="createCustomerWallet(\''+attr(m.email||'')+'\',\'money\')">新增儲值帳戶</button><button class="btn secondary" onclick="createCustomerWallet(\''+attr(m.email||'')+'\',\'pass\')">新增次數券</button></div></div>'
   +'</article>';
 }
 
@@ -4891,6 +4890,7 @@ function openMemberDetail(email){
       +'<div class="form-field full"><label>顧客偏好與注意事項</label><textarea id="customerProfileNotes" placeholder="只有本店工作人員可見">'+safe(cp.notes||'')+'</textarea></div></div>'
       +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" onclick="saveTenantCustomerProfile(\''+attr(m.email||'')+'\')">儲存顧客資料</button><button class="btn secondary" onclick="submitCustomerRiskCase(\''+attr(m.email||'')+'\')">送平台總部複核</button></div>'
     +'</div>'
+    +'<div class="report-card" style="margin-top:12px"><b style="font-size:16px">儲值與次數券</b><div class="sub">每筆加值、使用與退款都有正式明細；只屬於目前營運空間。</div><div id="customerWalletList" class="loading" style="margin-top:10px">載入帳戶中…</div><div class="card-actions"><button class="btn" onclick="createCustomerWallet(\''+attr(m.email||'')+'\',\'money\')">新增儲值帳戶</button><button class="btn secondary" onclick="createCustomerWallet(\''+attr(m.email||'')+'\',\'pass\')">新增次數券</button></div></div>'
     +'<div class="report-card" style="margin-top:12px;background:#FAEEC7">'
       +'<b style="font-size:16px">管理者備註</b>'
       +'<div class="sub" style="margin:4px 0 8px">只有主辦與工作人員看得到，攤商在前台<b>完全看不到</b>。</div>'
