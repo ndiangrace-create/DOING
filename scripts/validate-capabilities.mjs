@@ -26,3 +26,4 @@ if (errors.length) {
 const features = data.modules.flatMap(module => module.features);
 const counts = Object.fromEntries([...allowed].map(status => [status, features.filter(feature => feature.status === status).length]));
 console.log('DOING 功能地圖驗證通過：', data.modules.length, '個模組／', features.length, '項功能', counts);
+await import('./validate-world-tree-v20.mjs');
