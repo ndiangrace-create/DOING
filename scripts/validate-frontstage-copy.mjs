@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const pages=['index.html','register.html','member.html','about.html','onsite.html','photo.html'];
+const pages=['index.html','register.html','member-panel.html','about.html','onsite.html','photo.html'];
 const forbidden=[
   '系統會在背景比對',
   'Worker 依',
@@ -21,7 +21,12 @@ for(const page of pages){
   for(const phrase of forbidden)assert.equal(source.includes(phrase),false,`${page} 不得出現前台內部說明：${phrase}`);
 }
 
-const member=fs.readFileSync(new URL('../member.html',import.meta.url),'utf8');
+const compat=fs.readFileSync(new URL('../member.html',import.meta.url),'utf8');
+assert.match(compat,/member-panel\.html/);
+assert.match(compat,/index\.html/);
+assert.doesNotMatch(compat,/我的報名/,'member.html 不得再承載舊會員中心 UI');
+
+const member=fs.readFileSync(new URL('../member-panel.html',import.meta.url),'utf8');
 assert.match(member,/我的報名/);
 assert.match(member,/function goPage\(page\)/);
 assert.match(member,/if\(rows\.length===1\)openBrandForm\(rows\[0\]\)/);
@@ -36,4 +41,4 @@ assert.match(worker,/function isQaApplication\(row\)/);
 assert.match(worker,/applicationRows\.filter\(x=>!isQaApplication\(x\)/);
 assert.match(worker,/jsonOk\(rows\.filter\(row=>!isQaApplication\(row\)\)\)/);
 
-console.log(JSON.stringify({result:'PASS',pages:pages.length,rules:forbidden.length,directBrandEdit:true,myRegistrationsLabel:true,qaApplicationsHiddenFromFormalLists:true},null,2));
+console.log(JSON.stringify({result:'PASS',pages:pages.length,memberCompat:true,rules:forbidden.length,directBrandEdit:true,myRegistrationsLabel:true,qaApplicationsHiddenFromFormalLists:true},null,2));
