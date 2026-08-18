@@ -10,11 +10,15 @@ need(tree.workspaceRule?.ownedWorkspacePerMember===1,'一會員只能擁有一�
 need(tree.workspaceRule?.collaborationAcrossOtherWorkspaces===true,'不得誤傷受邀協作空間');
 for(const text of ['預約','課程','活動','市集','專案'])need(ws.includes(text),'工作空間缺少工作模組：'+text);
 for(const text of ['商品／票券','QR 報到／核銷','收款／訂金','優惠券／回訪','通知提醒','團隊／排班','進階財務','照片／檔案','電子簽名','Google／Apple 日曆'])need(ws.includes(text),'工作空間缺少共用模組：'+text);
+for(const text of ['我的報名','我的品牌','帳號設定','切換工作空間'])need(ws.includes(text),'我的 DOING 抽屜缺少入口：'+text);
+need(ws.includes('id="drawer"')&&ws.includes('id="memberFrame"'),'會員功能尚未收進工作空間抽屜');
+need(!ws.includes('會員中心'),'工作空間仍露出舊會員中心名稱');
 need(ws.includes('data-view="month"')&&ws.includes('data-view="week"')&&ws.includes('data-view="list"'),'手機/桌機日曆視圖不完整');
 need(ws.includes('getSessionsAdmin')&&ws.includes('getOperationUnitsAdmin')&&ws.includes('getBookingCalendarAdmin'),'日曆未使用既有正式 API');
 need(!/localStorage|sessionStorage/.test(ws),'工作空間不可把營運資料寫入瀏覽器儲存');
 need(ws.includes('bookingCalendarIcs')&&ws.includes('calendar.google.com/calendar/render'),'Google／Apple 日曆第一階段入口不完整');
 need(ge.includes('workspace.html'),'會員入口尚未切到 v20 工作空間');
+need(ge.includes('startMemberLineLogin')&&ge.includes('location.replace'),'首頁登入仍可能停在第二層登入頁');
 need(ge.includes('newOperationBtn'),'會員中心尚未移除第二工作空間入口');
 need(sql.includes('doing_single_owned_workspace_guard')&&sql.includes('doing_single_workspace_application_guard'),'一個工作空間後端防線不完整');
 need(!sql.includes('create table'),'v20 guard 不得建立同功能異名資料表');
@@ -22,4 +26,4 @@ need(tree.billing?.status==='not_decided_for_v20','v20 不得自行定案計費'
 need(tree.forbiddenTarget==='2bl-v7'&&tree.deploymentTarget==='tobeloved-api','部署安全邊界錯誤');
 need(/name=["']viewport["']/.test(ws)&&ws.includes('doing-system.css?v=20260817-system5'),'工作空間未套用正式響應式框架');
 let scripts=0;for(const m of ws.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){if(!m[1].trim())continue;new vm.Script(m[1],{filename:'workspace.html#script'+(++scripts)});}need(scripts>0,'工作空間缺少可執行腳本');
-console.log('DOING World Tree v20 結構驗證通過：1 工作空間、格狀日曆、5 工作模組、10 共用模組。');
+console.log('DOING World Tree v20 路徑驗證通過：首頁 → LINE → 我的 DOING；會員功能同頁抽屜；1 工作空間、5 工作模組、10 共用模組。');

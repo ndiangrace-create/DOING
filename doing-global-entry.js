@@ -17,16 +17,24 @@ if(targets.length){
  document.addEventListener('contextmenu',e=>{if(e.target.closest?.('[data-doing-admin-entry]'))e.preventDefault()},true);
 }
 
-// World Tree v20: one owned workspace + calendar-first workspace shell.
-// The existing admin remains the mature engine; this layer only changes the member-facing entry.
+// V20.1: 首頁 -> LINE -> 工作空間。會員中心保留為工作空間內的帳號/品牌/報名設定入口，
+// 但不再成為登入後必經頁，也不顯示第二個內部登入畫面。
 if(/(?:^|\/)member\.html$/i.test(location.pathname)){
- const memberToken=()=>sessionStorage.getItem('doing_member_token')||localStorage.getItem('doing_member_token')||'';
+ const TOKEN_KEY='doing_member_token';
+ const memberToken=()=>sessionStorage.getItem(TOKEN_KEY)||localStorage.getItem(TOKEN_KEY)||'';
+ const explicitMemberSection=()=>/^#(?:activities|brands|account)$/i.test(location.hash||'');
+ const inviteMode=()=>new URL(location.href).searchParams.has('staff_invite')||new URL(location.href).searchParams.has('registration_invite');
+ let autoOpening=false;
+ function startMemberLineLogin(){
+   const u=new URL(API+'/auth/line/start');u.searchParams.set('mode','member');u.searchParams.set('return_url',new URL('member.html',location.href).toString());location.replace(u.toString());
+ }
  async function openV20Workspace(id){
+   if(autoOpening)return;autoOpening=true;
    const token=memberToken(),tenantId=String(id||'').trim().toLowerCase();
-   if(!token||!tenantId)return;
+   if(!token||!tenantId){autoOpening=false;return;}
    const r=await fetch(API+'?action=createMemberWorkspaceAdminSession',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_token:token,tenantId})});
-   const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.error||'無法進入工作空間');
-   const data=d.data??d.result??d,u=new URL('workspace.html',location.href);u.searchParams.set('tenant',data.tenantId||tenantId);u.searchParams.set('admin_token',data.adminToken||'');u.searchParams.set('from','member');location.href=u.toString();
+   const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false){autoOpening=false;throw new Error(d.error||'無法進入工作空間')}
+   const data=d.data??d.result??d,u=new URL('workspace.html',location.href);u.searchParams.set('tenant',data.tenantId||tenantId);u.searchParams.set('admin_token',data.adminToken||'');u.searchParams.set('from','member');location.replace(u.toString());
  }
  function applyMemberV20(){
    const newBtn=document.getElementById('newOperationBtn');if(newBtn)newBtn.classList.add('hidden');
@@ -35,8 +43,17 @@ if(/(?:^|\/)member\.html$/i.test(location.pathname)){
    document.querySelectorAll('[data-workspace-admin]').forEach(x=>x.textContent='進入工作空間');
    document.querySelectorAll('[data-workspace-calendar]').forEach(x=>{x.textContent='開啟工作日曆';x.dataset.v20Calendar='1'});
    document.querySelectorAll('[data-workspace-admin],[data-workspace-calendar]').forEach(x=>x.setAttribute('data-v20-workspace',x.dataset.workspaceAdmin||x.dataset.workspaceCalendar||''));
+   if(memberToken()&&!explicitMemberSection()&&!inviteMode()&&!autoOpening){
+     const ids=[...new Set([...document.querySelectorAll('[data-v20-workspace]')].map(x=>x.getAttribute('data-v20-workspace')).filter(Boolean))];
+     if(ids.length===1)openV20Workspace(ids[0]).catch(()=>{autoOpening=false});
+   }
+ }
+ // 沒有 token 的一般進入，直接啟動 LINE，不再顯示 member.html 的第二層登入頁。
+ // 邀請流程例外，仍留在會員中心以顯示邀請語意與錯誤。
+ if(!memberToken()&&!inviteMode()&&!new URL(location.href).searchParams.get('member_token')&&!new URL(location.href).searchParams.get('member_login_error')){
+   startMemberLineLogin();return;
  }
  const mo=new MutationObserver(applyMemberV20);mo.observe(document.documentElement,{childList:true,subtree:true});applyMemberV20();
- document.addEventListener('click',e=>{const el=e.target.closest?.('[data-v20-workspace]');if(!el)return;const id=el.getAttribute('data-v20-workspace');if(!id)return;e.preventDefault();e.stopImmediatePropagation();el.disabled=true;openV20Workspace(id).catch(err=>{alert(err.message||'無法進入工作空間');el.disabled=false})},true);
+ document.addEventListener('click',e=>{const el=e.target.closest?.('[data-v20-workspace]');if(!el)return;const id=el.getAttribute('data-v20-workspace');if(!id)return;e.preventDefault();e.stopImmediatePropagation();el.disabled=true;openV20Workspace(id).catch(err=>{alert(err.message||'無法進入工作空間');el.disabled=false;autoOpening=false})},true);
 }
 })();
