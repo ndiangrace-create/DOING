@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-18T20:17:00+08:00",
-  "sourceFingerprint": "02c4ebc119f1b24c5d5812f06417aabfe589c0995c31a8d266050172f0cebd4a",
+  "recordedAt": "2026-08-18T20:07:00+08:00",
+  "sourceFingerprint": "1183022a8778457dc0ed1ab7cbf6c66f54c6024774a61042008e407470488bf7",
   "environment": "LINE、Google、Resend 與一般業務流程使用本機 mock；DOING_SaaS 正式庫已依授權套用通用預約結構，夜貓美甲僅建立一筆標記為 trial 的草稿空檔規則；未部署網站，未觸及 2bl-v7。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
