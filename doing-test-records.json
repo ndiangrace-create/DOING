@@ -1,11 +1,12 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-18T10:31:00+08:00",
-  "sourceFingerprint": "160d7b149dc2d3b6937f315085d6ac73d73831212ee7cd95072e70821cf729a9",
-  "environment": "LINE、Google、Resend 與業務流程使用本機 mock；Supabase 正式庫只套用唯一索引，並以交易 rollback 驗證，測試資料留存 0 筆",
+  "recordedAt": "2026-08-18T15:05:00+08:00",
+  "sourceFingerprint": "4b406f87e67c79ff3b9aee76dd65d68503a1a64dc255fa2300567fe34b823b5c",
+  "environment": "LINE、Google、Resend 與一般業務流程使用本機 mock；DOING_SaaS 正式庫已依授權套用通用預約結構，夜貓美甲僅建立一筆標記為 trial 的草稿空檔規則；未部署網站，未觸及 2bl-v7。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
+  "authorizedSetupWrites": 1,
   "tests": [
     {
       "id": "syntax",
@@ -144,6 +145,12 @@
       "command": "node scripts/validate-doing-smart-helper-e2e.mjs",
       "result": "PASS",
       "scope": "首頁智慧申請與獨立 DOING 使用客服、100 題受控快速問答、四個不橫滑引導按鈕、個別活動問題回到營運單位、DOING 無法回答時才顯示真人客服、總管分類收件與原對話回覆、資料隔離、機密攔截、知識審核與 RLS 最小權限"
+    },
+    {
+      "id": "universal-booking",
+      "command": "node scripts/validate-universal-booking.mjs",
+      "result": "PASS",
+      "scope": "總管全權限、租戶隔離、週期空檔、臨時加開／休息、服務分鐘與前後緩衝、超過下班自動擋單、較短服務仍可預約、顧客動態空檔寫回既有 timeslots、市集固定場次流程維持不變、租戶私有顧客標籤與黑名單、平台風險案件需總管複核"
     },
     {
       "id": "worker-sync",

@@ -2093,7 +2093,7 @@ const TENANT_ROLE_ACTIONS = {
   settingsRead: new Set(['getTenantModuleProfile','getTenantTheme','getStaff','getCompanySettings','getSiteConfig','getEmailTemplates','getPaymentSettings','getPaymentProfiles','getAgreementTemplate','getAgreementTemplates','listVenueMaps','listPhotoActivities']),
   settings: new Set(['saveCompanySettings','saveSiteConfig','saveEmailTemplate','testEmail','savePaymentSettings','savePaymentProfile','disablePaymentProfile','saveAgreementTemplate','saveAgreementTemplates','saveVenueMap','applyVenueMap','deleteVenueMap','savePhotoActivity','deletePhotoActivity','savePhotoActivityFrame','deletePhotoActivityFrame','savePromotionRule','deletePromotionRule']),
   finance: new Set(['financeOverview','financeReport','adminFinanceAnomalies','getFinance','getPayments','getFinancePaymentGroups','getSessionCashbook','saveFinanceItem','deleteFinanceItem','saveSessionCashItem','deleteSessionCashItem','confirmPayment','confirmRefund','confirmForceRefund','refundDeposit','applyForceRefund','applyForceRefundFM','markPaymentScreenshot','sendPaymentReminder','getInvoiceList','updateInvoiceStatus','downloadSession']),
-  sessions: new Set(['getDashboard','adminBusinessOverview','getSessionDashboard','getAdminSessionsDashboard','getAdminSessionDashboard','getEventsAdmin','getSessionsAdmin','getOperationUnitsAdmin','getBookingCalendarAdmin','getPromotionRulesAdmin','createEvent','updateEvent','deleteEvent','createSession','updateSession','copySession','deleteSession','toggleSession','toggleSessionStatus','saveOperationUnit','deleteOperationUnit','saveAnnouncement','deleteAnnouncement','sendNotify','resendInvite','resendRegConfirm']),
+  sessions: new Set(['getDashboard','adminBusinessOverview','getSessionDashboard','getAdminSessionsDashboard','getAdminSessionDashboard','getEventsAdmin','getSessionsAdmin','getOperationUnitsAdmin','getBookingCalendarAdmin','getAvailabilityAdmin','getPromotionRulesAdmin','createEvent','updateEvent','deleteEvent','createSession','updateSession','copySession','deleteSession','toggleSession','toggleSessionStatus','saveOperationUnit','deleteOperationUnit','saveAvailabilityRule','saveAvailabilityException','saveAnnouncement','deleteAnnouncement','sendNotify','resendInvite','resendRegConfirm']),
   review: new Set(['getSessionRegistrations','getRegs','getRegsBySession','approveReg','updateRegStatus','batchUpdateStatus','adminCancelReg','saveRegNote','saveMemberNote','updateRegistrationAction','setFastPass','previewForceCancelSession','forceCancelSession','runForceChoiceDeadline']),
   members: new Set(['getMembers','getMemberHistory','saveMember','listContactLeads','listPhotoLeads']),
   onsite: new Set(['onsiteSessions','onsiteRegs','onsitePasscodeList','onsitePasscodeGenerate','onsitePasscodeToggle','onsiteShiftList','onsiteShiftStart','onsiteShiftEnd','onsiteMark','checkin','markClear']),
@@ -2782,6 +2782,83 @@ async function hSaveBookingCalendar(env,b){
   const fresh=(await dbGet(env,'booking_calendars',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=*`))[0];await writeAuditLog(env,T,b.email||'','admin',old.length?'update_booking_calendar':'create_booking_calendar','booking_calendars',id,old[0]||null,fresh,{}).catch(()=>{});return jsonOk(formatBookingCalendar(fresh));
 }
 
+function validDateKey(v){return /^\d{4}-\d{2}-\d{2}$/.test(String(v||''))?String(v):''}
+function validTimeText(v){return /^([01]\d|2[0-3]):[0-5]\d$/.test(String(v||''))?String(v):''}
+function minuteOfDay(v){const [h,m]=String(v||'').split(':').map(Number);return h*60+m}
+function timeFromMinute(v){const n=Math.max(0,Math.min(1439,Math.floor(v)));return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}
+function cleanWeekdays(v){return [...new Set((Array.isArray(v)?v:[]).map(Number).filter(x=>Number.isInteger(x)&&x>=0&&x<=6))].sort((a,b)=>a-b)}
+function formatAvailabilityRule(x){return {id:String(x.id||''),calendarId:String(x.booking_calendar_id||''),operationUnitId:String(x.operation_unit_id||''),staffId:String(x.staff_id||''),resourceId:String(x.resource_id||''),weekdays:Array.isArray(x.weekdays)?x.weekdays:[],start:String(x.start_text||''),end:String(x.end_text||''),effectiveFrom:String(x.effective_from||''),effectiveUntil:String(x.effective_until||''),status:String(x.status||'active'),config:safeJson(x.config_json,{})}}
+function formatAvailabilityException(x){return {id:String(x.id||''),calendarId:String(x.booking_calendar_id||''),operationUnitId:String(x.operation_unit_id||''),staffId:String(x.staff_id||''),resourceId:String(x.resource_id||''),date:String(x.date_key||''),start:String(x.start_text||''),end:String(x.end_text||''),mode:String(x.mode||'closed'),reason:String(x.reason||''),config:safeJson(x.config_json,{})}}
+async function assertTenantScheduleRefs(env,T,b){
+  const calendarId=String(b.calendarId||'').trim();if(!calendarId)return {error:'請先選擇預約日曆'};
+  const c=await dbGet(env,'booking_calendars',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(calendarId)}&select=id`).catch(()=>[]);if(!c.length)return {error:'預約日曆不屬於目前營運空間'};
+  for(const [key,table] of [['operationUnitId','operation_units'],['staffId','staff'],['resourceId','resources']]){const id=String(b[key]||'').trim();if(!id)continue;const rows=await dbGet(env,table,`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=id`).catch(()=>[]);if(!rows.length)return {error:'指定的人員、資源或營運項目不屬於目前營運空間'}}
+  return {calendarId};
+}
+async function hGetAvailabilityAdmin(env,p){
+  const T=p._tenantId;if(!await verifyStaff(env,p.email,p.token,T,'sessions'))return jsonErr('無權限');
+  const calendarId=String(p.calendarId||'').trim(),filter=calendarId?`&booking_calendar_id=eq.${encodeURIComponent(calendarId)}`:'';
+  const [rules,exceptions,services,staff,resources]=await Promise.all([
+    dbGet(env,'availability_rules',`tenant_id=eq.${encodeURIComponent(T)}${filter}&select=*&order=effective_from.asc,start_text.asc`).catch(()=>[]),
+    dbGet(env,'availability_exceptions',`tenant_id=eq.${encodeURIComponent(T)}${filter}&select=*&order=date_key.asc,start_text.asc`).catch(()=>[]),
+    dbGet(env,'service_items',`tenant_id=eq.${encodeURIComponent(T)}&active=eq.true&select=*&order=sort_order.asc`).catch(()=>[]),
+    dbGet(env,'staff',`tenant_id=eq.${encodeURIComponent(T)}&select=id,name,display_name,role,normalized_role,is_active,active&order=name.asc`).catch(()=>[]),
+    dbGet(env,'resources',`tenant_id=eq.${encodeURIComponent(T)}&select=*&order=sort_order.asc`).catch(()=>[])
+  ]);
+  return jsonOk({
+    rules:rules.map(formatAvailabilityRule),
+    exceptions:exceptions.map(formatAvailabilityException),
+    services:services.map(s=>({id:s.id,operationUnitId:s.operation_unit_id||'',name:s.name||'',description:s.description||'',price:safeNum(s.price),deposit:safeNum(s.deposit),durationMinutes:safeNum(s.duration_minutes),bufferBeforeMinutes:safeNum(s.buffer_before_minutes),bufferAfterMinutes:safeNum(s.buffer_after_minutes),startIntervalMinutes:safeNum(s.start_interval_minutes)||30,minBookingGapMinutes:safeNum(s.min_booking_gap_minutes),capacity:Math.max(1,safeNum(s.capacity)),config:safeJson(s.config_json,{})})),
+    staff:staff.filter(s=>(s.is_active!==undefined?s.is_active:s.active)!==false).map(s=>({id:s.id,name:s.display_name||s.name||'工作人員',role:s.normalized_role||s.role||''})),
+    resources:resources.filter(r=>(r.active!==undefined?r.active:true)!==false).map(r=>({id:r.id,name:r.name||'資源',type:r.resource_type||r.type||'',capacity:safeNum(r.capacity)||1,config:safeJson(r.config_json,{})}))
+  });
+}
+async function hSaveAvailabilityRule(env,b){
+  const T=b._tenantId,refs=await assertTenantScheduleRefs(env,T,b);if(refs.error)return jsonErr(refs.error);const weekdays=cleanWeekdays(b.weekdays),start=validTimeText(b.start),end=validTimeText(b.end),from=validDateKey(b.effectiveFrom),until=b.effectiveUntil?validDateKey(b.effectiveUntil):'';
+  if(!weekdays.length)return jsonErr('至少選擇一個星期');if(!start||!end||end<=start)return jsonErr('開放時間不正確');if(!from||b.effectiveUntil&&!until||until&&until<from)return jsonErr('套用日期範圍不正確');
+  const id=String(b.id||genId('AVR')),old=await dbGet(env,'availability_rules',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=*`).catch(()=>[]),now=nowIso(),row={booking_calendar_id:refs.calendarId,operation_unit_id:String(b.operationUnitId||'').trim()||null,staff_id:String(b.staffId||'').trim()||null,resource_id:String(b.resourceId||'').trim()||null,weekdays,start_text:start,end_text:end,effective_from:from,effective_until:until||null,timezone:'Asia/Taipei',status:['active','inactive','archived'].includes(String(b.status))?String(b.status):'active',config_json:b.config&&typeof b.config==='object'?b.config:{},created_by:b.email||'',updated_at:now};
+  if(old.length)await dbUpdate(env,'availability_rules',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}`,row);else await dbInsert(env,'availability_rules',{id,tenant_id:T,created_at:now,...row});return jsonOk(formatAvailabilityRule((await dbGet(env,'availability_rules',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=*`))[0]));
+}
+async function hSaveAvailabilityException(env,b){
+  const T=b._tenantId,refs=await assertTenantScheduleRefs(env,T,b);if(refs.error)return jsonErr(refs.error);const date=validDateKey(b.date),start=validTimeText(b.start),end=validTimeText(b.end),mode=['open','closed'].includes(String(b.mode))?String(b.mode):'';if(!date||!start||!end||end<=start||!mode)return jsonErr('臨時開放／關閉的日期或時間不正確');
+  const id=String(b.id||genId('AVX')),old=await dbGet(env,'availability_exceptions',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=*`).catch(()=>[]),now=nowIso(),row={booking_calendar_id:refs.calendarId,operation_unit_id:String(b.operationUnitId||'').trim()||null,staff_id:String(b.staffId||'').trim()||null,resource_id:String(b.resourceId||'').trim()||null,date_key:date,start_text:start,end_text:end,mode,reason:String(b.reason||'').trim().slice(0,200)||null,config_json:b.config&&typeof b.config==='object'?b.config:{},created_by:b.email||'',updated_at:now};
+  if(old.length)await dbUpdate(env,'availability_exceptions',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}`,row);else await dbInsert(env,'availability_exceptions',{id,tenant_id:T,created_at:now,...row});return jsonOk(formatAvailabilityException((await dbGet(env,'availability_exceptions',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=*`))[0]));
+}
+async function hSaveResourceSplitRule(env,b){const T=b._tenantId;if(!await verifyStaff(env,b.email,b.token,T,'finance'))return jsonErr('無權限');const id=String(b.resourceId||''),kind=['none','percent','fixed'].includes(String(b.splitType))?String(b.splitType):'',value=Math.max(0,safeNum(b.splitValue));if(!id||!kind||kind==='percent'&&value>100)return jsonErr('拆帳設定不正確');const rows=await dbGet(env,'resources',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=*`).catch(()=>[]);if(!rows.length)return jsonErr('找不到目前營運空間的技師／資源');const cfg={...safeJson(rows[0].config_json,{}),splitType:kind,splitValue:value};await dbUpdate(env,'resources',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}`,{config_json:cfg,updated_at:nowIso()});return jsonOk({id,splitType:kind,splitValue:value})}
+async function computeAvailableStarts(env,p){
+  const T=p._tenantId,date=validDateKey(p.date),serviceId=String(p.serviceId||'').trim(),calendarId=String(p.calendarId||'').trim();if(!date||!serviceId||!calendarId)return jsonErr('缺少日期、服務或日曆');
+  const operationUnitId=String(p.operationUnitId||'').trim(),resourceId=String(p.resourceId||'').trim(),staffId=String(p.staffId||'').trim(),unitFilter=operationUnitId?`&operation_unit_id=eq.${encodeURIComponent(operationUnitId)}`:'';
+  const services=await dbGet(env,'service_items',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(serviceId)}${unitFilter}&active=eq.true&select=*`).catch(()=>[]),service=services[0];if(!service)return jsonErr('找不到可預約服務');
+  const calendars=await dbGet(env,'booking_calendars',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(calendarId)}${unitFilter}&status=eq.active&select=id,operation_unit_id`).catch(()=>[]);if(!calendars.length)return jsonErr('找不到可用預約日曆');
+  const [rules,exceptions,slots]=await Promise.all([dbGet(env,'availability_rules',`tenant_id=eq.${encodeURIComponent(T)}&booking_calendar_id=eq.${encodeURIComponent(calendarId)}&status=eq.active&effective_from=lte.${date}&or=(effective_until.is.null,effective_until.gte.${date})&select=*`).catch(()=>[]),dbGet(env,'availability_exceptions',`tenant_id=eq.${encodeURIComponent(T)}&booking_calendar_id=eq.${encodeURIComponent(calendarId)}&date_key=eq.${date}&select=*`).catch(()=>[]),dbGet(env,'timeslots',`tenant_id=eq.${encodeURIComponent(T)}&booking_calendar_id=eq.${encodeURIComponent(calendarId)}&date_key=eq.${date}&status=eq.open&select=*`).catch(()=>[])]);
+  const applies=x=>(!x.resource_id||String(x.resource_id)===resourceId)&&(!x.staff_id||String(x.staff_id)===staffId);
+  const weekday=new Date(date+'T00:00:00Z').getUTCDay(),interval=Math.max(5,safeNum(service.start_interval_minutes)||30),before=Math.max(0,safeNum(service.buffer_before_minutes)),after=Math.max(0,safeNum(service.buffer_after_minutes)),duration=Math.max(5,safeNum(service.duration_minutes)),openIntervals=rules.filter(r=>applies(r)&&(r.weekdays||[]).map(Number).includes(weekday)).map(r=>[minuteOfDay(r.start_text),minuteOfDay(r.end_text)]);for(const x of exceptions)if(applies(x)&&x.mode==='open')openIntervals.push([minuteOfDay(x.start_text),minuteOfDay(x.end_text)]);const closed=exceptions.filter(x=>applies(x)&&x.mode==='closed').map(x=>[minuteOfDay(x.start_text),minuteOfDay(x.end_text)]),starts=[];
+  for(const [openStart,openEnd] of openIntervals){for(let start=openStart+before;start+duration+after<=openEnd;start+=interval){const occupiedStart=start-before,occupiedEnd=start+duration+after,end=start+duration,blockedByClosure=closed.some(([a,z])=>occupiedStart<z&&occupiedEnd>a),blockedByBooking=slots.some(s=>{const used=safeNum(s.reserved_count)+safeNum(s.confirmed_count);if(used<=0)return false;const same=String(s.service_item_id||'')===String(service.id)&&minuteOfDay(s.start_text)===start&&minuteOfDay(s.end_text)===end;return same?used>=Math.max(1,safeNum(s.capacity)):occupiedStart<minuteOfDay(s.end_text)&&occupiedEnd>minuteOfDay(s.start_text)});if(!blockedByClosure&&!blockedByBooking)starts.push({start:timeFromMinute(start),end:timeFromMinute(end),occupiedUntil:timeFromMinute(occupiedEnd)})}}
+  const unique=[...new Map(starts.map(x=>[x.start,x])).values()].sort((a,b)=>a.start.localeCompare(b.start));return {date,service:{id:service.id,name:service.name||'',durationMinutes:duration,bufferBeforeMinutes:before,bufferAfterMinutes:after,minBookingGapMinutes:Math.max(0,safeNum(service.min_booking_gap_minutes)),price:safeNum(service.price),deposit:safeNum(service.deposit),capacity:Math.max(1,safeNum(service.capacity))},starts:unique,calendarId,operationUnitId:String(service.operation_unit_id||calendars[0].operation_unit_id||operationUnitId)};
+}
+async function hGetAvailableStartsPublic(env,p){const result=await computeAvailableStarts(env,p);return result instanceof Response?result:jsonOk(result)}
+
+async function ensureDynamicBookingTimeslot(env,b){
+  if(Array.isArray(b.timeslotIds)&&b.timeslotIds.filter(Boolean).length)return {ok:true};
+  const date=validDateKey(b.bookingDate),start=validTimeText(b.bookingStart),serviceId=String(b.serviceItemId||b.moduleSelections?.serviceId||''),calendarId=String(b.bookingCalendarId||'');
+  if(!date&&!start&&!calendarId)return {ok:true};
+  if(!date||!start||!serviceId||!calendarId)return {error:'預約日期或時間資料不完整，請重新選擇'};
+  const resourceId=String(b.resourceId||b.moduleSelections?.resourceId||''),staffId=String(b.staffId||b.moduleSelections?.staffId||'');
+  const result=await computeAvailableStarts(env,{_tenantId:b._tenantId,date,serviceId,calendarId,operationUnitId:b.operationUnitId,resourceId,staffId});
+  if(result instanceof Response)return {error:'預約資料已更新，請重新選擇'};
+  const chosen=(result.starts||[]).find(x=>x.start===start);if(!chosen)return {error:'此時段已無法預約，請重新選擇'};
+  const gap=Math.max(0,safeNum(result.service.minBookingGapMinutes));
+  if(gap>0&&normEmail(b.email)){const regs=await dbGet(env,'registrations',`tenant_id=eq.${encodeURIComponent(b._tenantId)}&email=ilike.${encodeURIComponent(normEmail(b.email))}&review_status=not.in.(%E5%B7%B2%E5%8F%96%E6%B6%88,%E4%B8%8D%E9%8C%84%E5%8F%96)&select=id,custom_fields_json,selected_dates_json`).catch(()=>[]),ids=[...new Set(regs.flatMap(registrationTimeslotIds))];if(ids.length){const oldSlots=await dbGet(env,'timeslots',`tenant_id=eq.${encodeURIComponent(b._tenantId)}&id=in.(${ids.map(x=>encodeURIComponent(x)).join(',')})&date_key=eq.${date}&select=start_text,end_text`).catch(()=>[]),ns=minuteOfDay(start),ne=minuteOfDay(chosen.end);if(oldSlots.some(x=>ns<minuteOfDay(x.end_text)+gap&&ne+gap>minuteOfDay(x.start_text)))return {error:`同一顧客的預約需間隔 ${gap} 分鐘，請選擇其他時間`}}}
+  const unit=await getOperationUnitRow(env,b._tenantId,String(b.operationUnitId||''),String(b.sessionId||''));if(!unit)return {error:'找不到這個營運項目'};
+  const clean=x=>String(x||'').replace(/[^A-Za-z0-9]/g,'').slice(-18),id=`TSB_${clean(calendarId)}_${date.replace(/-/g,'')}_${start.replace(':','')}_${clean(serviceId)}`.slice(0,120),now=nowIso();
+  const found=await dbGet(env,'timeslots',`tenant_id=eq.${encodeURIComponent(b._tenantId)}&id=eq.${encodeURIComponent(id)}&select=id`).catch(()=>[]);
+  if(!found.length){
+    try{await dbInsert(env,'timeslots',{id,tenant_id:b._tenantId,session_id:b.sessionId,operation_unit_id:unit.id,booking_calendar_id:calendarId,service_item_id:serviceId,resource_id:resourceId||null,date_key:date,label:date,start_text:start,end_text:chosen.end,capacity:Math.max(1,safeNum(result.service.capacity)),reserved_count:0,confirmed_count:0,status:'open',config_json:{source:'availability_rules',occupied_until:chosen.occupiedUntil,staff_id:staffId||null},created_at:now,updated_at:now})}
+    catch(e){const retry=await dbGet(env,'timeslots',`tenant_id=eq.${encodeURIComponent(b._tenantId)}&id=eq.${encodeURIComponent(id)}&select=id`).catch(()=>[]);if(!retry.length)return {error:'建立預約時段失敗，請重新選擇'}}
+  }
+  b.timeslotIds=[id];b.selectedDates=[date];b.moduleSelections={...(b.moduleSelections||{}),serviceId};return {ok:true,id};
+}
+
 async function syncOperationUnitCatalogs(env,T,u){
   const uid=String(u.id),sid=String(u.session_id),mods=normalizeSessionModules(safeJson(u.modules_json,{})),pub=safeJson(u.public_config_json,{}),now=nowIso();
   const sync=async(table,prefix,items,mapper)=>{
@@ -2793,7 +2870,7 @@ async function syncOperationUnitCatalogs(env,T,u){
     }
     for(const x of old)if(!keep.has(String(x.id)))await dbDelete(env,table,`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(x.id)}`).catch(()=>{});
   };
-  await sync('service_items','USVC',mods.services,(x,i)=>({name:String(x.label||x.name||''),description:String(x.description||''),price:safeNum(x.price),duration_minutes:Math.max(0,parseInt(x.durationMinutes||0,10)||0),capacity:Math.max(0,parseInt(x.capacity||0,10)||0),active:x.active!==false,sort_order:i,config_json:x.config||{}}));
+  await sync('service_items','USVC',mods.services,(x,i)=>({name:String(x.label||x.name||''),description:String(x.description||''),price:safeNum(x.price),deposit:Math.max(0,safeNum(x.deposit)),duration_minutes:Math.max(5,parseInt(x.durationMinutes||90,10)||90),buffer_before_minutes:Math.max(0,parseInt(x.bufferBeforeMinutes||0,10)||0),buffer_after_minutes:Math.max(0,parseInt(x.bufferAfterMinutes||0,10)||0),start_interval_minutes:Math.max(5,parseInt(x.startIntervalMinutes||30,10)||30),min_booking_gap_minutes:Math.max(0,parseInt(x.minBookingGapMinutes||0,10)||0),capacity:Math.max(1,parseInt(x.capacity||1,10)||1),active:x.active!==false,sort_order:i,config_json:x.config||{}}));
   await sync('resources','URES',mods.resources,(x,i)=>({name:String(x.label||x.name||''),resource_type:String(x.resourceType||'staff'),staff_id:x.staffId||null,capacity:Math.max(1,parseInt(x.capacity||1,10)||1),active:x.active!==false,sort_order:i,config_json:{price:safeNum(x.price),...(x.config||{})}}));
   const slots=Array.isArray(pub.timeslots)?pub.timeslots:[],bookingMode=String(mods.operatingMode||'activity')==='booking';
   const oldSlots=await dbGet(env,'timeslots',`tenant_id=eq.${encodeURIComponent(T)}&operation_unit_id=eq.${encodeURIComponent(uid)}&select=*`).catch(()=>[]),keep=new Set();
@@ -2811,7 +2888,18 @@ async function syncOperationUnitCatalogs(env,T,u){
 async function hGetOperationUnitsPublic(env,p){
   const T=p._tenantId,sid=String(p.sessionId||'');if(!sid)return jsonErr('請提供場次');
   const rows=await dbGet(env,'operation_units',`tenant_id=eq.${encodeURIComponent(T)}&session_id=eq.${encodeURIComponent(sid)}&status=in.(open,active,published)&select=*&order=sort_order.asc,created_at.asc`).catch(()=>[]),out=[];
-  for(const u of rows)if(await operationUnitEntitlementActive(env,T,u)){const f=formatOperationUnit(u);const ts=await dbGet(env,'timeslots',`tenant_id=eq.${encodeURIComponent(T)}&operation_unit_id=eq.${encodeURIComponent(u.id)}&status=eq.open&select=*&order=date_key.asc,start_text.asc`).catch(()=>[]);f.timeslots=ts.map(x=>({id:x.id,date:x.date_key,label:x.label||x.date_key,start:x.start_text||'',end:x.end_text||'',capacity:safeNum(x.capacity),remaining:safeNum(x.capacity)>0?Math.max(0,safeNum(x.capacity)-safeNum(x.reserved_count)-safeNum(x.confirmed_count)):0}));out.push(f)}
+  for(const u of rows)if(await operationUnitEntitlementActive(env,T,u)){
+    const f=formatOperationUnit(u),uid=String(u.id);
+    const [ts,services,calendars]=await Promise.all([
+      dbGet(env,'timeslots',`tenant_id=eq.${encodeURIComponent(T)}&operation_unit_id=eq.${encodeURIComponent(uid)}&status=eq.open&select=*&order=date_key.asc,start_text.asc`).catch(()=>[]),
+      dbGet(env,'service_items',`tenant_id=eq.${encodeURIComponent(T)}&operation_unit_id=eq.${encodeURIComponent(uid)}&active=eq.true&select=*&order=sort_order.asc`).catch(()=>[]),
+      dbGet(env,'booking_calendars',`tenant_id=eq.${encodeURIComponent(T)}&operation_unit_id=eq.${encodeURIComponent(uid)}&status=eq.active&select=*&order=sort_order.asc`).catch(()=>[])
+    ]);
+    f.timeslots=ts.map(x=>({id:x.id,date:x.date_key,label:x.label||x.date_key,start:x.start_text||'',end:x.end_text||'',capacity:safeNum(x.capacity),remaining:safeNum(x.capacity)>0?Math.max(0,safeNum(x.capacity)-safeNum(x.reserved_count)-safeNum(x.confirmed_count)):0}));
+    f.serviceItems=services.map(s=>({id:s.id,name:s.name||'',description:s.description||'',price:safeNum(s.price),deposit:safeNum(s.deposit),durationMinutes:safeNum(s.duration_minutes),bufferBeforeMinutes:safeNum(s.buffer_before_minutes),bufferAfterMinutes:safeNum(s.buffer_after_minutes),startIntervalMinutes:safeNum(s.start_interval_minutes)||30,capacity:Math.max(1,safeNum(s.capacity))}));
+    f.bookingCalendars=calendars.map(formatBookingCalendar);
+    out.push(f)
+  }
   return jsonOk(out);
 }
 async function hGetOperationUnitsAdmin(env,p){
@@ -2827,7 +2915,7 @@ async function hSaveOperationUnit(env,b){
   if(wantsOpen&&mods.operatingMode==='booking'&&!mods.workshopSlots)return jsonErr('預約型營運項目必須設定日期／時段');
   if(wantsOpen&&mods.service&&!mods.services.length)return jsonErr('已啟用服務方案，請至少建立一個服務項目');
   if(wantsOpen&&mods.resource&&!mods.resources.length)return jsonErr('已啟用人員／資源，請至少建立一個可選資源');
-  if(wantsOpen&&mods.workshopSlots&&!slots.length)return jsonErr('已啟用日期／時段，請至少建立一個可預約時段');
+  if(wantsOpen&&mods.workshopSlots&&!slots.length&&mods.operatingMode!=='booking')return jsonErr('已啟用日期／時段，請至少建立一個可預約時段');
   if(wantsOpen&&mods.operatingMode==='booking'&&!mods.payment)return jsonErr('預約型營運項目必須啟用付款功能');
   let code=unitCode(b.code)||unitCode(name)||('unit-'+id.slice(-6).toLowerCase());const same=await dbGet(env,'operation_units',`tenant_id=eq.${encodeURIComponent(T)}&session_id=eq.${encodeURIComponent(sid)}&code=eq.${encodeURIComponent(code)}&select=id`).catch(()=>[]);if(same.some(x=>String(x.id)!==id))code=code+'-'+id.slice(-4).toLowerCase();
   const data={event_id:String(sr[0].event_id||''),session_id:sid,code,name,unit_type:unitTypeAllowed(b.unitType),status:requestedStatus,description:String(b.description||''),capacity:Math.max(0,parseInt(b.capacity||0,10)||0),fee:Math.max(0,safeNum(b.fee)),modules_json:JSON.stringify(mods),pricing_json:JSON.stringify(pricing),policy_json:JSON.stringify(policy),public_config_json:JSON.stringify({...pub,timeslots:slots}),sort_order:Math.max(0,parseInt(b.sortOrder||0,10)||0),updated_at:now};
@@ -2878,6 +2966,11 @@ async function hSavePromotionRule(env,b){
 }
 async function hDeletePromotionRule(env,b){const T=b._tenantId,id=String(b.id||'');const rows=await dbGet(env,'promotion_rules',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=session_id`).catch(()=>[]);if(!rows.length)return jsonErr('找不到優惠');if(!await verifyStaff(env,b.email,b.token,T,'sessions',String(rows[0].session_id||'')))return jsonErr('無權限');await dbDelete(env,'promotion_rules',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}`);return jsonOk({ok:true})}
 async function hGetMyRewards(env,p){const T=p._tenantId,verified=await verifiedPlatformMember(env,p&&(p.member_token||p.memberToken||p.token));if(!verified||!platformMemberComplete(verified.row))return jsonErr('會員登入已失效，請重新使用 LINE 登入');const email=platformContactEmail(verified.row);const rows=await dbGet(env,'reward_ledger',`tenant_id=eq.${encodeURIComponent(T)}&member_email=ilike.${encodeURIComponent(email)}&select=*&order=created_at.desc&limit=100`).catch(()=>[]);return jsonOk({balance:await rewardBalance(env,T,email),rows})}
+function formatCustomerWallet(x){return {id:x.id||'',tenantId:x.tenant_id||'',platformMemberId:x.platform_member_id||'',ownerEmail:x.owner_email||'',sharedGroupKey:x.shared_group_key||'',accountType:x.account_type||'money',name:x.name||'',unit:x.unit||'twd',balance:safeNum(x.balance),operationUnitId:x.operation_unit_id||'',serviceItemId:x.service_item_id||'',status:x.status||'active',expiresAt:x.expires_at||'',config:safeJson(x.config_json,{})}}
+async function hGetMyCustomerWallets(env,p){const T=p._tenantId,verified=await verifiedPlatformMember(env,p&&(p.member_token||p.memberToken||p.token));if(!verified)return jsonErr('會員登入已失效，請重新登入');const mid=String(verified.row.id||''),email=platformContactEmail(verified.row);const rows=await dbGet(env,'customer_wallets',`tenant_id=eq.${encodeURIComponent(T)}&or=(platform_member_id.eq.${encodeURIComponent(mid)},owner_email.ilike.${encodeURIComponent(email)})&status=eq.active&select=*&order=created_at.desc`).catch(()=>[]);return jsonOk(rows.map(formatCustomerWallet))}
+async function hGetCustomerWalletsAdmin(env,p){const T=p._tenantId;if(!await verifyStaff(env,p.email,p.token,T,'finance'))return jsonErr('無權限');const email=normEmail(p.customerEmail||''),mid=String(p.platformMemberId||'').trim(),filter=mid?`&platform_member_id=eq.${encodeURIComponent(mid)}`:email?`&owner_email=ilike.${encodeURIComponent(email)}`:'';const rows=await dbGet(env,'customer_wallets',`tenant_id=eq.${encodeURIComponent(T)}${filter}&select=*&order=created_at.desc`).catch(()=>[]);return jsonOk(rows.map(formatCustomerWallet))}
+async function hSaveCustomerWallet(env,b){const T=b._tenantId;if(!await verifyStaff(env,b.email,b.token,T,'finance'))return jsonErr('無權限');const accountType=['money','pass'].includes(String(b.accountType))?String(b.accountType):'',unit=accountType==='pass'?'times':'twd',ownerEmail=normEmail(b.ownerEmail||b.customerEmail||'');if(!accountType||(!ownerEmail&&!b.platformMemberId)||!String(b.name||'').trim())return jsonErr('帳戶資料不完整');const id=String(b.id||genId('WAL')),old=await dbGet(env,'customer_wallets',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=*`).catch(()=>[]),row={platform_member_id:String(b.platformMemberId||'').trim()||null,owner_email:ownerEmail,shared_group_key:String(b.sharedGroupKey||'').trim()||null,account_type:accountType,name:String(b.name).trim().slice(0,100),unit,operation_unit_id:String(b.operationUnitId||'').trim()||null,service_item_id:String(b.serviceItemId||'').trim()||null,status:['active','suspended','expired'].includes(String(b.status))?String(b.status):'active',expires_at:b.expiresAt||null,config_json:b.config&&typeof b.config==='object'?b.config:{},created_by:b.email||'',updated_at:nowIso()};if(old.length)await dbUpdate(env,'customer_wallets',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}`,row);else await dbInsert(env,'customer_wallets',{id,tenant_id:T,balance:0,created_at:nowIso(),...row});return jsonOk(formatCustomerWallet((await dbGet(env,'customer_wallets',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(id)}&select=*`))[0]))}
+async function hPostCustomerWalletEntry(env,b){const T=b._tenantId;if(!await verifyStaff(env,b.email,b.token,T,'finance'))return jsonErr('無權限');const walletId=String(b.walletId||''),amount=safeNum(b.amount),type=['topup','purchase','redeem','refund','adjustment','share'].includes(String(b.entryType))?String(b.entryType):'';if(!walletId||!amount||!type)return jsonErr('帳務異動資料不完整');try{await dbInsert(env,'customer_wallet_ledger',{id:genId('WLE'),tenant_id:T,wallet_id:walletId,registration_id:b.registrationId||null,entry_type:type,amount,note:String(b.note||'').slice(0,300),idempotency_key:String(b.idempotencyKey||'').trim()||null,meta_json:b.meta&&typeof b.meta==='object'?b.meta:{},created_by:b.email||'',created_at:nowIso()})}catch(e){return jsonErr(String(e&&e.message||'帳務異動失敗'))}const fresh=(await dbGet(env,'customer_wallets',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(walletId)}&select=*`))[0];return jsonOk(formatCustomerWallet(fresh))}
 async function hGetMyNotifications(env,p){const T=p._tenantId,verified=await verifiedPlatformMember(env,p&&(p.member_token||p.memberToken||p.token));if(!verified||!platformMemberComplete(verified.row))return jsonErr('會員登入已失效，請重新使用 LINE 登入');const email=platformContactEmail(verified.row);return jsonOk(await dbGet(env,'notifications',`tenant_id=eq.${encodeURIComponent(T)}&member_email=ilike.${encodeURIComponent(email)}&select=*&order=created_at.desc&limit=100`).catch(()=>[]))}
 async function hGetNotificationsAdmin(env,p){const T=p._tenantId,sid=String(p.sessionId||'');if(!await verifyStaff(env,p.email,p.token,T,'announce',sid||undefined)&&!await verifyStaff(env,p.email,p.token,T,'sessions',sid||undefined))return jsonErr('無權限');let q=`tenant_id=eq.${encodeURIComponent(T)}&select=*&order=created_at.desc&limit=200`;if(sid)q=`tenant_id=eq.${encodeURIComponent(T)}&session_id=eq.${encodeURIComponent(sid)}&select=*&order=created_at.desc&limit=200`;return jsonOk(await dbGet(env,'notifications',q).catch(()=>[]))}
 
@@ -2982,7 +3075,16 @@ async function hFrontBootstrap(env, p) {
     dbGet(env, 'operation_units', `tenant_id=eq.${TENANT}&status=in.(open,active,published)&select=*&order=sort_order.asc,created_at.asc`).catch(()=>[]),
   ]);
   const visibleEventRows=eventRows.filter(publicCatalogRow),visibleSessionRows=sessionRows.filter(publicCatalogRow),visibleUnitRows=unitRows.filter(publicCatalogRow);
-  const publicUnits=[];for(const u of visibleUnitRows)if(await operationUnitEntitlementActive(env,TENANT,u)){const f=formatOperationUnit(u),ts=await dbGet(env,'timeslots',`tenant_id=eq.${encodeURIComponent(TENANT)}&operation_unit_id=eq.${encodeURIComponent(u.id)}&status=eq.open&select=*&order=date_key.asc,start_text.asc`).catch(()=>[]);f.timeslots=ts.map(x=>({id:x.id,date:x.date_key,label:x.label||x.date_key,start:x.start_text||'',end:x.end_text||'',capacity:safeNum(x.capacity),remaining:safeNum(x.capacity)>0?Math.max(0,safeNum(x.capacity)-safeNum(x.reserved_count)-safeNum(x.confirmed_count)):0}));publicUnits.push(f)}
+  const publicUnits=[];for(const u of visibleUnitRows)if(await operationUnitEntitlementActive(env,TENANT,u)){
+    const f=formatOperationUnit(u),uid=String(u.id),[ts,services,calendars]=await Promise.all([
+      dbGet(env,'timeslots',`tenant_id=eq.${encodeURIComponent(TENANT)}&operation_unit_id=eq.${encodeURIComponent(uid)}&status=eq.open&select=*&order=date_key.asc,start_text.asc`).catch(()=>[]),
+      dbGet(env,'service_items',`tenant_id=eq.${encodeURIComponent(TENANT)}&operation_unit_id=eq.${encodeURIComponent(uid)}&active=eq.true&select=*&order=sort_order.asc`).catch(()=>[]),
+      dbGet(env,'booking_calendars',`tenant_id=eq.${encodeURIComponent(TENANT)}&operation_unit_id=eq.${encodeURIComponent(uid)}&status=eq.active&select=*&order=sort_order.asc`).catch(()=>[])
+    ]);
+    f.timeslots=ts.map(x=>({id:x.id,date:x.date_key,label:x.label||x.date_key,start:x.start_text||'',end:x.end_text||'',capacity:safeNum(x.capacity),remaining:safeNum(x.capacity)>0?Math.max(0,safeNum(x.capacity)-safeNum(x.reserved_count)-safeNum(x.confirmed_count)):0}));
+    f.serviceItems=services.map(s=>({id:s.id,name:s.name||'',description:s.description||'',price:safeNum(s.price),deposit:safeNum(s.deposit),durationMinutes:safeNum(s.duration_minutes),bufferBeforeMinutes:safeNum(s.buffer_before_minutes),bufferAfterMinutes:safeNum(s.buffer_after_minutes),startIntervalMinutes:safeNum(s.start_interval_minutes)||30,capacity:Math.max(1,safeNum(s.capacity))}));
+    f.bookingCalendars=calendars.map(formatBookingCalendar);publicUnits.push(f)
+  }
   const unitSessionIds=new Set(publicUnits.map(x=>String(x.sessionId)));
   return jsonOk({
     tenant: {
@@ -7383,6 +7485,9 @@ async function prepareRegistration(env, b) {
   if(operationUnit&&!operationUnitIsOpen(operationUnit))return {error:'此營運項目目前未開放'};
   if(operationUnit){if(!await operationUnitEntitlementActive(env,TENANT,operationUnit))return {error:'此營運項目尚未取得正式營運權，暫不接受報名／預約'}}
   else if (!await operatingEntitlementActive(env, TENANT, ses)) return {error:'此場次尚未取得正式營運權，暫不接受報名／預約'};
+  const customerFilters=[];if(b.platformMemberId)customerFilters.push(`platform_member_id.eq.${encodeURIComponent(b.platformMemberId)}`);if(b.email)customerFilters.push(`email.ilike.${encodeURIComponent(normEmail(b.email))}`);if(b.phone)customerFilters.push(`phone.eq.${encodeURIComponent(normPhone(b.phone))}`);
+  if(customerFilters.length){const blocked=await dbGet(env,'tenant_customer_profiles',`tenant_id=eq.${encodeURIComponent(TENANT)}&or=(${customerFilters.join(',')})&status=eq.restricted&select=id&limit=1`).catch(()=>[]);if(blocked.length)return {error:'目前無法線上建立預約／報名，請直接聯絡此營運單位'}}
+  if(b.platformMemberId){const cases=await dbGet(env,'platform_risk_cases',`platform_member_id=eq.${encodeURIComponent(b.platformMemberId)}&status=eq.confirmed&select=platform_restriction_json`).catch(()=>[]);if(cases.some(x=>safeJson(x.platform_restriction_json,{}).online_booking_blocked===true))return {error:'此帳號目前無法使用平台線上預約／報名，請聯絡 DOING 客服'}}
 
   // ── DOING 通用模組引擎：新資料以 Operation Unit 為正式來源；舊場次無 Unit 時沿用 sessions.modules_json。
   const modules=normalizeSessionModules(operationUnit?safeJson(operationUnit.modules_json,{}):safeJson(ses.modules_json,{}));
@@ -7405,9 +7510,13 @@ async function prepareRegistration(env, b) {
     moduleSnapshot.bookingCalendarId=String(slots[0].booking_calendar_id||'');
   }
   if(modules.service){
-    const svc=moduleItemById(modules.services,moduleSelections.serviceId);
+    let svc=moduleItemById(modules.services,moduleSelections.serviceId);
+    if(operationUnit&&moduleSelections.serviceId){
+      const rows=await dbGet(env,'service_items',`tenant_id=eq.${encodeURIComponent(TENANT)}&operation_unit_id=eq.${encodeURIComponent(operationUnit.id)}&id=eq.${encodeURIComponent(moduleSelections.serviceId)}&active=eq.true&select=*`).catch(()=>[]),x=rows[0];
+      if(x)svc={id:x.id,label:x.name||'',price:safeNum(x.price),deposit:safeNum(x.deposit),durationMinutes:safeNum(x.duration_minutes),bufferBeforeMinutes:safeNum(x.buffer_before_minutes),bufferAfterMinutes:safeNum(x.buffer_after_minutes),startIntervalMinutes:safeNum(x.start_interval_minutes)||30};
+    }
     if(!svc)return {error:'請選擇服務項目'};
-    moduleSnapshot.service={id:String(svc.id),label:String(svc.label||svc.name||''),price:safeNum(svc.price)};
+    moduleSnapshot.service={id:String(svc.id),label:String(svc.label||svc.name||''),price:safeNum(svc.price),deposit:Math.max(0,safeNum(svc.deposit)),durationMinutes:Math.max(0,safeNum(svc.durationMinutes)),bufferBeforeMinutes:Math.max(0,safeNum(svc.bufferBeforeMinutes)),bufferAfterMinutes:Math.max(0,safeNum(svc.bufferAfterMinutes)),startIntervalMinutes:Math.max(5,safeNum(svc.startIntervalMinutes)||30)};
     moduleExtraTotal+=safeNum(svc.price);
   }
   if(modules.resource){
@@ -7516,7 +7625,8 @@ async function prepareRegistration(env, b) {
     addonDefs.forEach((a,i)=>{ if(a&&a.open===true) addonTotal+=(Number(a.price)||0)*(Number(addonQty[i])||0); });
   } catch {}
   const chargeBeforeBookingDeposit = fee + equipTotal + addonTotal;
-  const bookingDeposit = effectiveDepositKind==='booking' ? calcBookingDeposit({...modules,depositKind:effectiveDepositKind},chargeBeforeBookingDeposit) : 0;
+  const serviceBookingDeposit=Math.max(0,safeNum(moduleSnapshot.service?.deposit));
+  const bookingDeposit = effectiveDepositKind==='booking' ? (serviceBookingDeposit>0?Math.min(chargeBeforeBookingDeposit,serviceBookingDeposit):calcBookingDeposit({...modules,depositKind:effectiveDepositKind},chargeBeforeBookingDeposit)) : 0;
   moduleSnapshot.bookingDeposit=bookingDeposit;
   const total = fee+deposit+equipTotal+addonTotal;
   moduleSnapshot.amountDueNow = effectiveDepositKind==='booking' ? bookingDeposit : total;
@@ -7597,6 +7707,7 @@ async function finalizeRegistration(env, TENANT, b, ses, id, meta, ctx, opts={})
     const existingMember=await dbGet(env,'members',`tenant_id=eq.${TENANT}&email=ilike.${encodeURIComponent(normEmail(b.email))}&select=email`);
     if(!existingMember.length || b.syncMemberProfile===true || b.syncMemberProfile==='true') await upsertMember(env,b);
   }catch(e){ logError(env,{source:'finalizeRegistration',tenantId:TENANT,regId:id,message:'member sync skipped',error:e&&e.message?e.message:e}); }
+  try{await ensureTenantCustomerProfile(env,TENANT,{platformMemberId:b.platformMemberId,email:b.email,phone:b.phone,displayName:b.name,createdBy:'registration'})}catch(e){logError(env,{source:'finalizeRegistration',tenantId:TENANT,regId:id,message:'tenant customer profile sync skipped',error:e&&e.message?e.message:e})}
 
   if (b.stallNumber) {
     try { await holdStall(env, b.sessionId, b.stallNumber, id, b.email||'', TENANT); } catch {}
@@ -7735,6 +7846,7 @@ async function hRegister(env, b, ctx) {
   if(platformContactEmail(memberVerified.row)!==normEmail(b.email)||!phoneMatches(memberVerified.row.phone,b.phone))return jsonErr('報名聯絡資料必須與登入中的會員資料一致');
   b.platformMemberId=String(memberVerified.row.id||'');
   const brandResolution=await ensureRegistrationBrand(env,b.platformMemberId,b);if(brandResolution.error)return jsonErr(brandResolution.error);b.brandId=brandResolution.brandId||'';
+  const dynamicSlot=await ensureDynamicBookingTimeslot(env,b);if(dynamicSlot.error)return jsonErr(dynamicSlot.error);
   const prep = await prepareRegistration(env, b);
   if (prep.error) return jsonErr(prep.error);
   const { ses, id, row, meta } = prep;
@@ -9592,6 +9704,10 @@ async function runPaymentConfirmSideEffects(env,TENANT,regId,amount){
   const rr=await dbGet(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(regId)}&select=*`);
   if(!rr.length)return;
   const reg=rr[0],now=reg.paid_at||nowIso();
+  try{
+    const snap=selectedModuleSnapshot(reg),resourceId=String(snap.resource?.id||snap.resourceId||'').trim();
+    if(resourceId){const rows=await dbGet(env,'resources',`tenant_id=eq.${encodeURIComponent(TENANT)}&id=eq.${encodeURIComponent(resourceId)}&select=*`).catch(()=>[]),resource=rows[0],cfg=safeJson(resource?.config_json,{}),kind=String(cfg.splitType||'none'),value=Math.max(0,safeNum(cfg.splitValue));if(resource&&kind!=='none'&&value>0){const split=kind==='percent'?Math.round(safeNum(amount)*value)/100:Math.min(safeNum(amount),value),ledgerId=('LEDSPLIT_'+regId+'_'+String(reg.paid_amount||amount)).replace(/[^A-Za-z0-9_]/g,'').slice(0,120);if(split>0)await writeFinanceLedger(env,TENANT,{id:ledgerId,registrationId:reg.id,sessionId:reg.session_id,operationUnitId:reg.operation_unit_id,entryType:'staff_split',amount:split,direction:'debit',memo:'技師／工作人員拆帳',meta:{resourceId,staffId:resource.staff_id||null,splitType:kind,splitValue:value},strict:true})}}
+  }catch(e){logError(env,{source:'runPaymentConfirmSideEffects',message:'staff split failed',error:e&&e.message?e.message:e});}
   const paySesRows=await dbGet(env,'sessions',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(reg.session_id)}&select=*`).catch(()=>[]);
   try{
     await dbUpdate(env,'stalls',`tenant_id=eq.${TENANT}&registration_id=eq.${encodeURIComponent(regId)}&status=eq.預留`,{status:'鎖定',seat_hold_expires_at:null});
@@ -10476,6 +10592,31 @@ async function hSaveEmailTemplate(env, b) {
   return jsonOk({success:true, template:saved});
 }
 function formatMemberRow(r){ const fastPass=r.fast_pass===true||r.fast_pass==='true'; return {id:r.id||'', email:r.email||'', name:r.name||r.display_name||'', phone:r.phone||'', brand:r.brand_name||'', brandName:r.brand_name||'', fb:r.fb_url||r.facebook||r.fb||'', ig:r.ig_url||r.instagram||r.ig||'', category:r.category||r.sale_category||'', intro:r.intro||r.brand_intro||r.description||'', fastPass, fast_pass:fastPass, adminNote:r.admin_note||'', admin_note:r.admin_note||'', adminNoteAt:r.admin_note_updated_at||'', createdAt:r.created_at||'', updatedAt:r.updated_at||''}; }
+function formatTenantCustomerProfile(r){return {id:r.id||'',platformMemberId:r.platform_member_id||'',email:r.email||'',phone:r.phone||'',displayName:r.display_name||'',birthday:r.birthday||'',status:r.status||'general',tags:Array.isArray(r.tags_json)?r.tags_json:[],notes:r.notes||'',preferences:safeJson(r.preferences_json,{}),restrictions:safeJson(r.restrictions_json,{}),updatedAt:r.updated_at||''}}
+async function ensureTenantCustomerProfile(env,T,data={}){
+  const memberId=String(data.platformMemberId||data.platform_member_id||'').trim(),email=normEmail(data.email),phone=normPhone(data.phone);let q='';
+  if(memberId)q=`tenant_id=eq.${encodeURIComponent(T)}&platform_member_id=eq.${encodeURIComponent(memberId)}&select=*`;
+  else if(email)q=`tenant_id=eq.${encodeURIComponent(T)}&email=ilike.${encodeURIComponent(email)}&select=*`;
+  else if(phone)q=`tenant_id=eq.${encodeURIComponent(T)}&phone=eq.${encodeURIComponent(phone)}&select=*`;
+  else return null;
+  const rows=await dbGet(env,'tenant_customer_profiles',q).catch(()=>[]);if(rows[0])return rows[0];
+  const now=nowIso(),row={id:genId('TCP'),tenant_id:T,platform_member_id:memberId||null,email:email||null,phone:phone||null,display_name:String(data.displayName||data.name||'').trim()||null,status:'general',tags_json:[],notes:null,preferences_json:{},restrictions_json:{},created_by:String(data.createdBy||'system'),created_at:now,updated_at:now};
+  try{return await dbInsert(env,'tenant_customer_profiles',row)}catch(e){return (await dbGet(env,'tenant_customer_profiles',q).catch(()=>[]))[0]||null}
+}
+async function hSaveTenantCustomerProfile(env,b){
+  const T=b._tenantId;if(!await verifyStaff(env,b.email,b.token,T,'review'))return jsonErr('無權限');const targetEmail=normEmail(b.customerEmail||b.targetEmail||''),targetPhone=normPhone(b.customerPhone||'');
+  const existing=await ensureTenantCustomerProfile(env,T,{platformMemberId:b.platformMemberId,email:targetEmail,phone:targetPhone,displayName:b.displayName,createdBy:b.email});if(!existing)return jsonErr('找不到這位顧客');
+  const status=['general','vip','watch','restricted'].includes(String(b.status))?String(b.status):'general',birthday=b.birthday?validDateKey(b.birthday):'',tags=[...new Set((Array.isArray(b.tags)?b.tags:String(b.tags||'').split(/[、,]/)).map(x=>String(x).trim()).filter(Boolean))].slice(0,30),now=nowIso();
+  const data={display_name:String(b.displayName||existing.display_name||'').trim()||null,birthday:birthday||null,status,tags_json:tags,notes:String(b.notes||'').trim()||null,preferences_json:b.preferences&&typeof b.preferences==='object'?b.preferences:safeJson(existing.preferences_json,{}),restrictions_json:b.restrictions&&typeof b.restrictions==='object'?b.restrictions:safeJson(existing.restrictions_json,{}),updated_at:now};
+  await dbUpdate(env,'tenant_customer_profiles',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(existing.id)}`,data);const fresh=(await dbGet(env,'tenant_customer_profiles',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(existing.id)}&select=*`))[0];await writeAuditLog(env,T,b.email||'','review','customer_profile_saved','tenant_customer_profiles',existing.id,existing,fresh,{privateToTenant:true}).catch(()=>{});return jsonOk(formatTenantCustomerProfile(fresh));
+}
+async function hSubmitPlatformRiskCase(env,b){
+  const T=b._tenantId;if(!await verifyStaff(env,b.email,b.token,T,'review'))return jsonErr('無權限');const reason=String(b.reason||'').trim();if(!reason)return jsonErr('請填寫送交平台複核的原因');
+  const memberId=String(b.platformMemberId||'').trim()||null,now=nowIso(),row={id:genId('RISK'),source_tenant_id:T,platform_member_id:memberId,severity:['review','high','critical'].includes(String(b.severity))?String(b.severity):'review',status:'pending',reason,evidence_json:Array.isArray(b.evidence)?b.evidence:[],platform_restriction_json:{},reviewed_by:null,reviewed_at:null,expires_at:null,created_at:now,updated_at:now};
+  await dbInsert(env,'platform_risk_cases',row);return jsonOk({success:true,id:row.id,status:'pending'});
+}
+async function hGetPlatformRiskCases(env,p){const pay=await verifyAdminJwt(p.token,env);if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限');const status=String(p.status||'').trim(),filter=status?`&status=eq.${encodeURIComponent(status)}`:'';const rows=await dbGet(env,'platform_risk_cases',`select=*${filter}&order=created_at.desc&limit=500`).catch(()=>[]);return jsonOk(rows.map(r=>({id:r.id,sourceTenantId:r.source_tenant_id||'',platformMemberId:r.platform_member_id||'',severity:r.severity,status:r.status,reason:r.reason,evidence:Array.isArray(r.evidence_json)?r.evidence_json:[],platformRestriction:safeJson(r.platform_restriction_json,{}),reviewedBy:r.reviewed_by||'',reviewedAt:r.reviewed_at||'',expiresAt:r.expires_at||'',createdAt:r.created_at||''})))}
+async function hReviewPlatformRiskCase(env,b){const pay=await verifyAdminJwt(b.token,env);if(!pay||pay.normalized_role!=='platform_super_admin')return jsonErr('無權限');const id=String(b.id||b.caseId||''),status=['confirmed','rejected','expired','appealed'].includes(String(b.status))?String(b.status):'';if(!id||!status)return jsonErr('案件或審核結果不正確');const rows=await dbGet(env,'platform_risk_cases',`id=eq.${encodeURIComponent(id)}&select=*`).catch(()=>[]);if(!rows.length)return jsonErr('找不到風險案件');const now=nowIso(),restriction=status==='confirmed'&&b.platformRestriction&&typeof b.platformRestriction==='object'?b.platformRestriction:{};await dbUpdate(env,'platform_risk_cases',`id=eq.${encodeURIComponent(id)}`,{status,platform_restriction_json:restriction,reviewed_by:pay.email||'',reviewed_at:now,updated_at:now});return jsonOk({success:true,id,status})}
 async function hSaveMemberNote(env,b){
   const TENANT=b._tenantId;if(!await verifyStaff(env,b.email,b.token,TENANT,'review'))return jsonErr('無權限');
   const target=normEmail(b.memberEmail||b.targetEmail||'');if(!target)return jsonErr('缺少會員 Email');const note=String(b.note||'').trim();if(!note)return jsonErr('請輸入備註');
@@ -10487,8 +10628,9 @@ async function hSaveMemberNote(env,b){
 async function hGetMembers(env, p) {
   const TENANT = (p && p._tenantId);
   if (!await verifyStaff(env,p.email,p.token,TENANT,'review')) return jsonErr('無權限');
-  const members=await dbGet(env,'members',`tenant_id=eq.${TENANT}&select=*`).catch(()=>[]);
-  return jsonOk(members.map(formatMemberRow));
+  const [members,profiles]=await Promise.all([dbGet(env,'members',`tenant_id=eq.${TENANT}&select=*`).catch(()=>[]),dbGet(env,'tenant_customer_profiles',`tenant_id=eq.${encodeURIComponent(TENANT)}&select=*`).catch(()=>[])]),byMember=new Map(),byEmail=new Map(),byPhone=new Map();
+  for(const p of profiles){if(p.platform_member_id)byMember.set(String(p.platform_member_id),p);if(p.email)byEmail.set(normEmail(p.email),p);if(p.phone)byPhone.set(normPhone(p.phone),p)}
+  return jsonOk(members.map(r=>{const m=formatMemberRow(r),p=byMember.get(String(r.platform_member_id||''))||byEmail.get(normEmail(r.email))||byPhone.get(normPhone(r.phone));return {...m,customerProfile:p?formatTenantCustomerProfile(p):null}}));
 }
 async function hGetMemberHistory(env, p) {
   const TENANT = (p && p._tenantId);
@@ -11405,6 +11547,11 @@ async function cronPreEventReminders(env) {
     }
   }
 }
+async function notificationExists(env,T,eventKey,registrationId,email){const regFilter=registrationId?`&registration_id=eq.${encodeURIComponent(registrationId)}`:`&member_email=ilike.${encodeURIComponent(normEmail(email))}`;const rows=await dbGet(env,'notifications',`tenant_id=eq.${encodeURIComponent(T)}&event_key=eq.${encodeURIComponent(eventKey)}${regFilter}&select=id&limit=1`).catch(()=>[]);return !!rows.length}
+async function cronCustomerLifecycle(env){const now=new Date(),today=now.toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'}),tomorrow=new Date(now.getTime()+86400000).toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'}),yesterday=new Date(now.getTime()-86400000).toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'}),year=today.slice(0,4),mmdd=today.slice(5);
+  const slots=await dbGet(env,'timeslots',`date_key=in.(${tomorrow},${yesterday})&select=id,tenant_id,date_key,start_text,end_text`).catch(()=>[]),slotMap=Object.fromEntries(slots.map(x=>[String(x.id),x]));if(slots.length){const regs=await dbGet(env,'registrations',`review_status=not.in.(%E5%B7%B2%E5%8F%96%E6%B6%88,%E4%B8%8D%E9%8C%84%E5%8F%96)&select=id,tenant_id,session_id,operation_unit_id,email,custom_fields_json,selected_dates_json`).catch(()=>[]);for(const r of regs){for(const id of registrationTimeslotIds(r)){const x=slotMap[id];if(!x||String(x.tenant_id)!==String(r.tenant_id))continue;const key=x.date_key===tomorrow?'booking_reminder_24h':'service_followup';if(await notificationExists(env,r.tenant_id,key,r.id,r.email))continue;await recordNotification(env,{tenantId:r.tenant_id,unitId:r.operation_unit_id||null,sessionId:r.session_id,registrationId:r.id,email:r.email,eventKey:key,title:key==='booking_reminder_24h'?'明日預約提醒':'服務完成關懷',body:key==='booking_reminder_24h'?`提醒您明日 ${x.start_text||''} 有預約。`:'謝謝您的到訪，歡迎查看店家提供的回訪優惠與票券。',meta:{timeslotId:id,date:x.date_key}})}}}
+  const profiles=await dbGet(env,'tenant_customer_profiles','birthday=not.is.null&select=tenant_id,email,birthday,display_name').catch(()=>[]);for(const p of profiles){if(String(p.birthday||'').slice(5)!==mmdd)continue;const key='birthday_greeting_'+year;if(await notificationExists(env,p.tenant_id,key,null,p.email))continue;await recordNotification(env,{tenantId:p.tenant_id,email:p.email,eventKey:key,title:'生日快樂',body:`${p.display_name||'親愛的會員'}，祝您生日快樂，願今天有一份剛剛好的溫暖。`,meta:{birthday:p.birthday}})}
+}
 
 // 不可抗力逾期自動退費（02:00 UTC）
 async function cronForceCancelExpiry(env) {
@@ -11480,6 +11627,7 @@ async function routeGet(env, action, p, req) {
   if (action==='getDoingPublicSupportConversation') return await hGetDoingPublicSupportConversation(env,p);
   if (action==='getPlatformSupportThreads') return await hGetPlatformSupportThreads(env,p);
   if (action==='getPlatformSupportMessages') return await hGetPlatformSupportMessages(env,p);
+  if (action==='getPlatformRiskCases') return await hGetPlatformRiskCases(env,p);
   if (action==='getDoingHelperKnowledgeAdmin') return await hGetDoingHelperKnowledgeAdmin(env,p);
   if (action==='getPlatformTenantModules') return await hGetPlatformTenantModules(env,p);
   if (action==='getPlatformTenantTheme') return await hGetPlatformTenantTheme(env,p);
@@ -11534,9 +11682,13 @@ async function routeGet(env, action, p, req) {
     case 'getOperationUnitsPublic': return hGetOperationUnitsPublic(env,p);
     case 'getOperationUnitsAdmin': return hGetOperationUnitsAdmin(env,p);
     case 'getBookingCalendarAdmin': return hGetBookingCalendarAdmin(env,p);
+    case 'getAvailabilityAdmin': return hGetAvailabilityAdmin(env,p);
+    case 'getAvailableStartsPublic': return hGetAvailableStartsPublic(env,p);
     case 'getPromotionRulesAdmin': return hGetPromotionRulesAdmin(env,p);
     case 'getExposureCatalog': return hGetExposureCatalog(env,p);
     case 'getMyRewards': return hGetMyRewards(env,p);
+    case 'getMyCustomerWallets': return hGetMyCustomerWallets(env,p);
+    case 'getCustomerWalletsAdmin': return hGetCustomerWalletsAdmin(env,p);
     case 'getMyNotifications': return hGetMyNotifications(env,p);
     case 'getNotificationsAdmin': return hGetNotificationsAdmin(env,p);
     case 'bookingCalendarIcs': return hBookingCalendarIcs(env,p);
@@ -11653,6 +11805,7 @@ async function routePost(env, action, b, ctx, req) {
   if(action==='createDoingPublicSupportThread')return hCreateDoingPublicSupportThread(env,b);
   if(action==='sendPlatformSupportMessage')return hSendPlatformSupportMessage(env,b);
   if(action==='markPlatformSupportRead')return hMarkPlatformSupportRead(env,b);
+  if(action==='reviewPlatformRiskCase')return hReviewPlatformRiskCase(env,b);
   if(action==='savePlatformTenantModules')return hSavePlatformTenantModules(env,b);
   if(action==='savePlatformTenantTheme')return hSavePlatformTenantTheme(env,b);
   if(action==='updatePlatformIssueStatus')return hUpdatePlatformIssueStatus(env,b);
@@ -11753,6 +11906,10 @@ async function routePost(env, action, b, ctx, req) {
     case 'markPaymentScreenshot': return hMarkPaymentScreenshot(env,b);
     case 'saveRegNote': return hSaveRegNote(env,b);
     case 'saveMemberNote': return hSaveMemberNote(env,b);
+    case 'saveTenantCustomerProfile': return hSaveTenantCustomerProfile(env,b);
+    case 'saveCustomerWallet': return hSaveCustomerWallet(env,b);
+    case 'postCustomerWalletEntry': return hPostCustomerWalletEntry(env,b);
+    case 'submitPlatformRiskCase': return hSubmitPlatformRiskCase(env,b);
     case 'sendPaymentReminder': return hSendPaymentReminder(env,b);
     case 'adminCancelReg':      return hAdminCancelReg(env,b);
     case 'refundDeposit':       return hRefundDeposit(env,b);
@@ -11802,6 +11959,9 @@ async function routePost(env, action, b, ctx, req) {
     case 'markSupportRead': return hMarkSupportRead(env,b);
     case 'saveOperationUnit': return hSaveOperationUnit(env,b);
     case 'saveBookingCalendar': return hSaveBookingCalendar(env,b);
+    case 'saveAvailabilityRule': return hSaveAvailabilityRule(env,b);
+    case 'saveAvailabilityException': return hSaveAvailabilityException(env,b);
+    case 'saveResourceSplitRule': return hSaveResourceSplitRule(env,b);
     case 'deleteOperationUnit': return hDeleteOperationUnit(env,b);
     case 'savePromotionRule': return hSavePromotionRule(env,b);
     case 'deletePromotionRule': return hDeletePromotionRule(env,b);
@@ -11975,6 +12135,7 @@ export default {
     const utcHour = new Date(event.scheduledTime).getUTCHours();
     if (utcHour===1) {
       await cronPreEventReminders(env);
+      await cronCustomerLifecycle(env);
       await cronGrantCompletedRewards(env);
       await cronTrialExpireReminders(env); // 試用到期提醒
     } else {

@@ -283,7 +283,8 @@
           "staff_session_permissions",
           "platform_staff",
           "audit_logs",
-          "platform_issue_records"
+          "platform_issue_records",
+          "platform_risk_cases"
         ]
       }
     },
@@ -765,6 +766,8 @@
           "resources",
           "timeslots",
           "booking_calendars",
+          "availability_rules",
+          "availability_exceptions",
           "session_bundles"
         ]
       }
@@ -978,7 +981,8 @@
           "permissions",
           "role_permissions",
           "staff_session_permissions",
-          "staff_action_logs"
+          "staff_action_logs",
+          "tenant_customer_profiles"
         ]
       }
     },

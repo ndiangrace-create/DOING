@@ -1,6 +1,6 @@
 {
-  "version": 4,
-  "auditedAt": "2026-08-17",
+  "version": 5,
+  "auditedAt": "2026-08-18",
   "authority": {
     "projectName": "DOING_SaaS",
     "projectRef": "nayonqbzejoojexxxkyg",
@@ -57,7 +57,8 @@
         "staff_session_permissions",
         "platform_staff",
         "audit_logs",
-        "platform_issue_records"
+        "platform_issue_records",
+        "platform_risk_cases"
       ]
     },
     {
@@ -128,6 +129,8 @@
         "resources",
         "timeslots",
         "booking_calendars",
+        "availability_rules",
+        "availability_exceptions",
         "session_bundles"
       ]
     },
@@ -170,7 +173,8 @@
         "permissions",
         "role_permissions",
         "staff_session_permissions",
-        "staff_action_logs"
+        "staff_action_logs",
+        "tenant_customer_profiles"
       ]
     },
     {
@@ -248,6 +252,38 @@
     }
   ],
   "tables": [
+    {
+      "name": "availability_rules",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","booking_calendar_id","operation_unit_id","staff_id","resource_id","weekdays","start_text","end_text","effective_from","effective_until","timezone","status","config_json","created_by","created_at","updated_at"],
+      "workerAccess": ["get","insert","update"],
+      "moduleKeys": ["tenant-operations"],
+      "state": "active"
+    },
+    {
+      "name": "availability_exceptions",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","booking_calendar_id","operation_unit_id","staff_id","resource_id","date_key","start_text","end_text","mode","reason","config_json","created_by","created_at","updated_at"],
+      "workerAccess": ["get","insert","update"],
+      "moduleKeys": ["tenant-operations"],
+      "state": "active"
+    },
+    {
+      "name": "tenant_customer_profiles",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","platform_member_id","email","phone","display_name","birthday","status","tags_json","notes","preferences_json","restrictions_json","created_by","created_at","updated_at"],
+      "workerAccess": [],
+      "moduleKeys": ["tenant-people"],
+      "state": "active"
+    },
+    {
+      "name": "platform_risk_cases",
+      "rlsEnabled": true,
+      "columns": ["id","source_tenant_id","platform_member_id","severity","status","reason","evidence_json","platform_restriction_json","reviewed_by","reviewed_at","expires_at","created_at","updated_at"],
+      "workerAccess": [],
+      "moduleKeys": ["platform-tenant"],
+      "state": "active"
+    },
     {
       "name": "member_helper_traces",
       "rlsEnabled": true,
@@ -2332,6 +2368,22 @@
       "moduleKeys": [
         "platform-billing"
       ],
+      "state": "active"
+    },
+    {
+      "name": "customer_wallets",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","platform_member_id","owner_email","shared_group_key","account_type","name","unit","balance","operation_unit_id","service_item_id","status","expires_at","config_json","created_by","created_at","updated_at"],
+      "workerAccess": ["get","insert","update"],
+      "moduleKeys": ["tenant-registration"],
+      "state": "active"
+    },
+    {
+      "name": "customer_wallet_ledger",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","wallet_id","registration_id","entry_type","amount","balance_after","note","idempotency_key","meta_json","created_by","created_at"],
+      "workerAccess": ["insert"],
+      "moduleKeys": ["tenant-registration"],
       "state": "active"
     },
     {
