@@ -1,0 +1,49 @@
+{
+  "version": 20,
+  "updatedAt": "2026-08-18",
+  "status": "release_candidate",
+  "authority": "Supabase",
+  "workspaceRule": {
+    "ownedWorkspacePerMember": 1,
+    "collaborationAcrossOtherWorkspaces": true,
+    "browserBusinessDataAllowed": false
+  },
+  "calendar": {
+    "role": "unified_work_entry",
+    "desktop": "month_grid",
+    "mobile": ["month", "week", "list"],
+    "sources": ["sessions", "operation_units", "booking_calendars", "registrations"],
+    "externalCalendarRule": "DOING remains SSOT; external deletion never deletes DOING data"
+  },
+  "workModules": [
+    {"key":"booking","name":"預約","reuse":"booking calendars, availability, operation units"},
+    {"key":"course","name":"課程","reuse":"sessions, operation units, timeslots, registrations"},
+    {"key":"event","name":"活動","reuse":"events, sessions, registrations"},
+    {"key":"market","name":"市集","reuse":"events, sessions, registrations, onsite, seats"},
+    {"key":"project","name":"專案","reuse":"sessions and operation units as generic project work containers"}
+  ],
+  "sharedModules": [
+    {"key":"products_tickets","name":"商品／票券","reuse":"customer wallets, registration items"},
+    {"key":"qr_checkin","name":"QR 報到／核銷","reuse":"onsite and checkin"},
+    {"key":"payments_deposits","name":"收款／訂金","reuse":"payments, refunds, finance ledger"},
+    {"key":"coupon_followup","name":"優惠券／回訪","reuse":"promotion rules and notifications"},
+    {"key":"notifications","name":"通知提醒","reuse":"notifications and email templates"},
+    {"key":"team_schedule","name":"團隊／排班","reuse":"staff, permissions, availability"},
+    {"key":"advanced_finance","name":"進階財務","reuse":"finance items and finance ledger"},
+    {"key":"photos_files","name":"照片／檔案","reuse":"photo activities and existing attachments"},
+    {"key":"esign","name":"電子簽名","reuse":"agreement templates and existing agreement records"},
+    {"key":"calendar_sync","name":"Google／Apple 日曆同步","reuse":"bookingCalendarIcs plus single-event Google/ICS add"}
+  ],
+  "billing": {
+    "status": "not_decided_for_v20",
+    "rule": "Do not invent or modify pricing while completing v20 architecture"
+  },
+  "forbiddenTarget": "2bl-v7",
+  "deploymentTarget": "tobeloved-api",
+  "implementation": {
+    "workspacePage": "workspace.html",
+    "memberEntry": "doing-global-entry.js",
+    "databaseGuardMigration": "supabase_workspace_v20_guard.sql",
+    "regression": "scripts/validate-world-tree-v20.mjs"
+  }
+}
