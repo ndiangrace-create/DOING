@@ -251,14 +251,20 @@ function dateText(rows=[]){return rows.map(d=>[d.label||d.date,d.start&&d.end?d.
 async function bootstrap(){
   try{
     const sessionId=entrySessionId();
+    const urlTenant=String(new URL(location.href).searchParams.get('tenant')||'').trim().toLowerCase();
+    if(!urlTenant)throw new Error('無法辨識主辦空間，請從主辦提供的活動連結進入');
     const u=new URL(API);
     u.searchParams.set('action','frontBootstrap');
+    u.searchParams.set('tenant',urlTenant);
     if(sessionId) u.searchParams.set('sessionId',sessionId);
     const r=await fetch(u,{cache:'no-store'});
     const d=await r.json().catch(()=>({error:'伺服器回應格式錯誤'}));
     if(!r.ok||d.error) throw new Error(d.error||'讀取失敗');
     state.tenantData=d.tenant||{};
     state.tenant=String(state.tenantData.id||'').trim();
+    document.querySelectorAll('a[href="index.html"],a[href="member.html"]').forEach(a=>{
+      const target=new URL(a.getAttribute('href'),location.href);target.searchParams.set('tenant',state.tenant);a.href=target.pathname.split('/').pop()+target.search;
+    });
     state.events=Array.isArray(d.events)?d.events:[];
     state.sessions=Array.isArray(d.sessions)?d.sessions:[];state.operationUnits=Array.isArray(d.operationUnits)?d.operationUnits:[];
     setupLanguages();
@@ -549,7 +555,7 @@ async function refundReg(r){if(!confirm(r.bundleGroupId?'此為兩場組合，�
 $('myEmail').value=localStorage.getItem('doing_my_email')||'';
 let holdTimer=null,holdStart=0;
 function cancelAdminHold(){if(holdTimer){clearTimeout(holdTimer);holdTimer=null}holdStart=0;$('brandHoldTarget')?.classList.remove('holding')}
-function startAdminHold(e){if(e&&e.type==='mousedown'&&e.button!==0)return;holdStart=Date.now();$('brandHoldTarget')?.classList.add('holding');holdTimer=setTimeout(()=>{cancelAdminHold();const tenant=String(S.tenant||new URL(location.href).searchParams.get('tenant')||'').trim();if(!tenant){alert('目前無法辨識主辦空間');return;}location.href='admin.html?tenant='+encodeURIComponent(tenant)+'&from=register'},3000)}
+function startAdminHold(e){if(e&&e.type==='mousedown'&&e.button!==0)return;holdStart=Date.now();$('brandHoldTarget')?.classList.add('holding');holdTimer=setTimeout(()=>{cancelAdminHold();const tenant=String(state.tenant||new URL(location.href).searchParams.get('tenant')||'').trim();if(!tenant){alert('目前無法辨識主辦空間');return;}location.href='admin.html?tenant='+encodeURIComponent(tenant)+'&from=register'},3000)}
 ['mousedown','touchstart'].forEach(ev=>$('brandHoldTarget')?.addEventListener(ev,startAdminHold,{passive:true}));
 ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=>$('brandHoldTarget')?.addEventListener(ev,cancelAdminHold,{passive:true}));
 $('adminGoogleBtn').onclick=()=>{const u=new URL(API+'/auth/google/start');u.searchParams.set('mode','admin');location.href=u.toString()};
