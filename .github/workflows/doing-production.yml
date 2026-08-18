@@ -37,6 +37,7 @@ jobs:
           node --check worker.js
           node --check doing-attribution.js
           node --check doing-home-refresh.js
+          test ! -f doing-home-refresh-core.js || node --check doing-home-refresh-core.js
           node --check doing-about-refresh.js
           node --check doing-global-entry.js
           node - <<'NODE'
@@ -90,8 +91,15 @@ jobs:
           grep -q "e.target.closest?.(hiddenAdminSelector)" index.html
           grep -q "setTimeout(openHiddenAdminEntry,3000)" index.html
           grep -q "Math.hypot" index.html
-          grep -q "brand.dataset.hiddenAdminTarget='true'" doing-home-refresh.js
-          grep -q "setAttribute('draggable','false')" doing-home-refresh.js
+          HOME_UI=doing-home-refresh.js
+          test ! -f doing-home-refresh-core.js || HOME_UI=doing-home-refresh-core.js
+          grep -q "brand.dataset.hiddenAdminTarget='true'" "$HOME_UI"
+          grep -q "setAttribute('draggable','false')" "$HOME_UI"
+          if [ -f doing-home-refresh-core.js ]; then
+            grep -q "doing-home-refresh-core.js" doing-home-refresh.js
+            grep -q "handoffToWorkspace" doing-home-refresh.js
+            grep -q "createMemberWorkspaceAdminSession" doing-home-refresh.js
+          fi
           grep -q -- '-webkit-touch-callout:none' doing-home-refresh.css
           grep -q "u.searchParams.set('tenant','platform')" index.html
           ! grep -q 'navigator.vibrate' index.html
