@@ -4,7 +4,8 @@ const root=process.cwd(),fail=m=>{throw new Error(m)};
 const worker=fs.readFileSync(root+'/worker.js','utf8');
 const browser=fs.readFileSync(root+'/doing-attribution.js','utf8');
 const index=fs.readFileSync(root+'/index.html','utf8');
-const homeRefresh=fs.readFileSync(root+'/doing-home-refresh.js','utf8');
+const homeRouter=fs.readFileSync(root+'/doing-home-refresh.js','utf8');
+const homeRefresh=fs.existsSync(root+'/doing-home-refresh-core.js')?fs.readFileSync(root+'/doing-home-refresh-core.js','utf8'):homeRouter;
 const register=fs.readFileSync(root+'/register.html','utf8');
 const admin=fs.readFileSync(root+'/admin.html','utf8');
 const platform=fs.readFileSync(root+'/platform.html','utf8');
@@ -15,6 +16,7 @@ for(const token of ['hTrackPlatformAttribution','recordRegistrationAttribution',
 for(const token of ['keepalive:true','IntersectionObserver','doing_attribution_id','doing_exposure_order_id'])if(!browser.includes(token))fail('瀏覽器歸因鏈缺少：'+token);
 for(const token of ['randomPaidRows','renderActivities(randomPaidRows())','付費曝光中的活動會在這裡隨機輪播','>廣告</span>'])if(!homeRefresh.includes(token))fail('首頁付費廣告板缺少：'+token);
 if(homeRefresh.indexOf('doing-activities-section')>homeRefresh.indexOf('aria-label="所有開放活動"'))fail('近期開放活動付費廣告板必須顯示在所有開放活動之前');
+if(fs.existsSync(root+'/doing-home-refresh-core.js')&&!homeRouter.includes('doing-home-refresh-core.js'))fail('登入路由層未載入首頁完整功能核心');
 for(const source of [index,register])if(!source.includes('doing-attribution.js')||!source.includes('payloadFields'))fail('報名頁未帶入歸因資訊');
 for(const token of ['platformAttributionMetrics','platformAttributionCampaigns','getPlatformAttributionReport'])if(!platform.includes(token))fail('平台歸因報表缺少：'+token);
 for(const token of ['getExposureCatalog','attributionReport','我的曝光成效（近 30 日）','點擊→報名'])if(!admin.includes(token))fail('主辦曝光推廣報表缺少：'+token);

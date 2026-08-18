@@ -2,9 +2,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const read=file=>fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
+const homeRouter=read('doing-home-refresh.js');
+const homeCore=fs.existsSync(new URL('../doing-home-refresh-core.js',import.meta.url))?read('doing-home-refresh-core.js'):homeRouter;
 const files={
   index:read('index.html'),register:read('register.html'),member:read('member.html'),admin:read('admin.html'),
-  platform:read('platform.html'),about:read('about.html'),home:read('doing-home-refresh.js'),worker:read('worker.js'),
+  platform:read('platform.html'),about:read('about.html'),home:homeCore,homeRouter,worker:read('worker.js'),
   schema:read('supabase_login_identity_link.sql'),sources:read('doing-data-sources.json')
 };
 
@@ -19,6 +21,14 @@ for(const [name,source] of Object.entries({home:files.home})){
   const googleButtons=[...source.matchAll(/<button[^>]*(?:Google|google)[^>]*>/gi)].map(x=>x[0]);
   assert.ok(googleButtons.length,`${name} 應保留 Google 按鈕程式`);
   for(const button of googleButtons)assert.match(button,/hidden/,`${name} 的一般會員／申請 Google 按鈕目前必須隱藏`);
+}
+if(files.homeRouter!==files.home){
+  assert.match(files.homeRouter,/\/auth\/line\/start/,'首頁登入路由缺少 LINE OAuth 起點');
+  assert.match(files.homeRouter,/u\.searchParams\.set\('mode','member'\)/,'首頁 LINE OAuth 必須固定使用 member mode');
+  assert.match(files.homeRouter,/doing_login_flow/,'首頁 LINE callback 缺少單一路由識別');
+  assert.match(files.homeRouter,/handoffToWorkspace/,'首頁 LINE callback 未直接交棒我的 DOING');
+  assert.match(files.homeRouter,/createMemberWorkspaceAdminSession/,'首頁登入後未建立正式工作空間 session');
+  assert.match(files.homeRouter,/doing-home-refresh-core\.js/,'首頁登入路由未載入完整首頁核心');
 }
 assert.match(files.worker,/pathname\.endsWith\('\/auth\/line\/start'\)/);
 assert.match(files.worker,/pathname\.endsWith\('\/auth\/google\/start'\)/,'Google OAuth 路由不可刪除');
@@ -60,4 +70,4 @@ for(const tableName of ['staff','platform_staff']){
 }
 const platformMembers=catalog.tables.find(x=>x.name==='platform_members');assert.ok(platformMembers);for(const column of ['contact_email','phone_normalized'])assert.ok(platformMembers.columns.includes(column),`platform_members 未登記 ${column}`);
 
-console.log(JSON.stringify({result:'PASS',publicLogin:'line',managementBackupLogin:'google_visible_after_account_sync',lineEmail:'optional_until_provider_permission_is_enabled',identityAuthority:'provider_subject',accountMerge:'same_verified_provider_email_or_explicit_dual_login',emailPolicy:'unique_member_contact',phonePolicy:'unique_member_contact_without_identity_impersonation',loginPolicy:'oauth_login_allowed_duplicate_formal_write_blocked',adminBinding:'signed_email_invite_then_authenticated_line_accept',legacyAdminBinding:'verified_provider_email_only'},null,2));
+console.log(JSON.stringify({result:'PASS',publicLogin:'line',publicLoginRouting:files.homeRouter!==files.home?'single_router_to_workspace':'legacy_inline',managementBackupLogin:'google_visible_after_account_sync',lineEmail:'optional_until_provider_permission_is_enabled',identityAuthority:'provider_subject',accountMerge:'same_verified_provider_email_or_explicit_dual_login',emailPolicy:'unique_member_contact',phonePolicy:'unique_member_contact_without_identity_impersonation',loginPolicy:'oauth_login_allowed_duplicate_formal_write_blocked',adminBinding:'signed_email_invite_then_authenticated_line_accept',legacyAdminBinding:'verified_provider_email_only'},null,2));

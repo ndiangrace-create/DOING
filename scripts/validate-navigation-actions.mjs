@@ -2,7 +2,8 @@ import fs from 'node:fs';
 
 const read=file=>fs.readFileSync(file,'utf8');
 const assert=(value,message)=>{if(!value)throw new Error(message)};
-const platform=read('platform.html'),worker=read('worker.js'),admin=read('admin.html'),home=read('doing-home-refresh.js'),member=read('member.html'),register=read('register.html');
+const homeRouter=read('doing-home-refresh.js'),home=fs.existsSync('doing-home-refresh-core.js')?read('doing-home-refresh-core.js'):homeRouter;
+const platform=read('platform.html'),worker=read('worker.js'),admin=read('admin.html'),member=read('member.html'),register=read('register.html');
 
 for(const target of ['billing','issues','tenants','applications'])assert(platform.includes(`'${target}'`),`營運 KPI 缺少明確對應：${target}`);
 assert(platform.includes('id="platformOperationsDashboard"'),'平台缺少營運總覽');
@@ -47,8 +48,13 @@ assert(register.includes("u.searchParams.set('tenant',urlTenant)"),'活動頁沒
 assert(register.includes("String(state.tenant||new URL(location.href).searchParams.get('tenant')"),'活動頁總管入口沒有使用目前租戶');
 assert(!register.includes('String(S.tenant||'),'活動頁仍引用不存在的租戶狀態變數');
 assert(read('doing-global-entry.js').includes('setTimeout(enter,3000)'),'共同入口不是 3 秒長按');
-assert(home.includes('openMemberWorkspaceAdmin(spaces[0],true)'),'租戶會員入口未換發指定租戶的後台憑證');
+assert(home.includes('openMemberWorkspaceAdmin(spaces[0],true)')||homeRouter.includes('openMemberWorkspaceAdmin(spaces[0],true)'),'租戶會員入口未換發指定租戶的後台憑證');
 assert(home.includes("tenantTop.textContent=memberAuth.complete?(memberAuth.workspaces.length===1?'營運管理':'我的 DOING'):'LINE 登入'"),'租戶登入按鈕未清楚顯示營運入口');
+if(homeRouter!==home){
+  assert(homeRouter.includes('createMemberWorkspaceAdminSession'),'首頁單一路由未換發工作空間憑證');
+  assert(homeRouter.includes('handoffToWorkspace'),'首頁單一路由未直接交棒我的 DOING');
+  assert(homeRouter.includes('doing-home-refresh-core.js'),'首頁登入路由未載入完整首頁核心');
+}
 assert(member.includes('安排預約日曆')&&member.includes('data-workspace-calendar'),'會員中心缺少安全的預約日曆直達入口');
 assert(member.includes('createMemberWorkspaceAdminSession')&&member.includes('data-workspace-admin'),'會員中心仍可能沿用其他租戶的後台登入');
 assert(worker.includes("if(action==='createMemberWorkspaceAdminSession')"),'Worker 缺少會員指定租戶後台憑證交換');

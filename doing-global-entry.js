@@ -17,29 +17,31 @@ if(targets.length){
  document.addEventListener('contextmenu',e=>{if(e.target.closest?.('[data-doing-admin-entry]'))e.preventDefault()},true);
 }
 
-// V20.1 hotfix: 首頁 -> LINE -> 工作空間。
-// 自動進工作空間只允許嘗試一次；若失敗就停在會員頁，避免 MutationObserver 重複觸發造成登入轉圈。
+// V20.2: member.html is a callback/compatibility layer, not an OAuth loop.
+// LINE may only be auto-started by an explicit ?login=1 request. A callback,
+// error, direct URL, or workspace fallback never re-launches OAuth by itself.
 if(/(?:^|\/)member\.html$/i.test(location.pathname)){
  const TOKEN_KEY='doing_member_token';
+ const params=()=>new URL(location.href).searchParams;
  const memberToken=()=>sessionStorage.getItem(TOKEN_KEY)||localStorage.getItem(TOKEN_KEY)||'';
- const explicitMemberSection=()=>/^#(?:activities|brands|account)$/i.test(location.hash||'');
- const inviteMode=()=>new URL(location.href).searchParams.has('staff_invite')||new URL(location.href).searchParams.has('registration_invite');
- let autoOpening=false,autoOpenAttempted=false;
+ const explicitMemberSection=()=>/^#(?:activities|brands|account|operations)$/i.test(location.hash||'');
+ const inviteMode=()=>params().has('staff_invite')||params().has('registration_invite');
+ const loginRequested=()=>params().get('login')==='1';
+ let autoOpening=false,autoOpenAttempted=false,lineStartAttempted=false;
  function startMemberLineLogin(){
-   const u=new URL(API+'/auth/line/start');u.searchParams.set('mode','member');u.searchParams.set('return_url',new URL('member.html',location.href).toString());location.replace(u.toString());
+   if(lineStartAttempted)return;lineStartAttempted=true;
+   const returnUrl=new URL('member.html',location.href);returnUrl.searchParams.delete('login');
+   const u=new URL(API+'/auth/line/start');u.searchParams.set('mode','member');u.searchParams.set('return_url',returnUrl.toString());location.replace(u.toString());
  }
  async function openV20Workspace(id,{automatic=false}={}){
-   if(autoOpening)return;autoOpening=true;
-   if(automatic)autoOpenAttempted=true;
+   if(autoOpening)return;autoOpening=true;if(automatic)autoOpenAttempted=true;
    const token=memberToken(),tenantId=String(id||'').trim().toLowerCase();
    if(!token||!tenantId){autoOpening=false;return;}
    try{
      const r=await fetch(API+'?action=createMemberWorkspaceAdminSession',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_token:token,tenantId})});
      const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.error||'無法進入工作空間');
      const data=d.data??d.result??d,u=new URL('workspace.html',location.href);u.searchParams.set('tenant',data.tenantId||tenantId);u.searchParams.set('admin_token',data.adminToken||'');u.searchParams.set('from','member');location.replace(u.toString());
-   } finally {
-     autoOpening=false;
-   }
+   } finally {autoOpening=false;}
  }
  function applyMemberV20(){
    const newBtn=document.getElementById('newOperationBtn');if(newBtn)newBtn.classList.add('hidden');
@@ -53,9 +55,8 @@ if(/(?:^|\/)member\.html$/i.test(location.pathname)){
      if(ids.length===1)openV20Workspace(ids[0],{automatic:true}).catch(()=>{});
    }
  }
- if(!memberToken()&&!inviteMode()&&!new URL(location.href).searchParams.get('member_token')&&!new URL(location.href).searchParams.get('member_login_error')){
-   startMemberLineLogin();return;
- }
+ const incoming=params().get('member_token'),loginError=params().get('member_login_error')||params().get('login_error');
+ if(loginRequested()&&!memberToken()&&!inviteMode()&&!incoming&&!loginError){startMemberLineLogin();return;}
  const mo=new MutationObserver(applyMemberV20);mo.observe(document.documentElement,{childList:true,subtree:true});applyMemberV20();
  document.addEventListener('click',e=>{const el=e.target.closest?.('[data-v20-workspace]');if(!el)return;const id=el.getAttribute('data-v20-workspace');if(!id)return;e.preventDefault();e.stopImmediatePropagation();el.disabled=true;openV20Workspace(id).catch(err=>{alert(err.message||'無法進入工作空間');el.disabled=false})},true);
 }
