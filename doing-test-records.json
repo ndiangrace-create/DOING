@@ -1,168 +1,39 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-18T20:15:00+08:00",
-  "sourceFingerprint": "0505f22205647e2cb1cedb7458c829b207367713bebc221f6e113cf9d54fec55",
-  "environment": "LINE、Google、Resend 與一般業務流程使用本機 mock；DOING_SaaS 正式庫已依授權套用通用預約結構，夜貓美甲僅建立一筆標記為 trial 的草稿空檔規則；未部署網站，未觸及 2bl-v7。",
+  "recordedAt": "2026-08-18T23:25:00+08:00",
+  "sourceFingerprint": "6383f9aa538a5d3bb1e8a0976ef83a3d5b9c96718323a76572ca9acf2671fb7e",
+  "environment": "DOING v20 工作分支驗收；LINE、Google、Resend 與一般業務流程使用既有 mock；v20 單一工作空間 SQL 僅列入待發布 migration，未套用正式資料庫；未部署網站，未觸及 2bl-v7。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
   "authorizedSetupWrites": 1,
   "tests": [
-    {
-      "id": "syntax",
-      "command": "node --check worker.js && node --check doing-attribution.js && node --check doing-home-refresh.js && node --check doing-about-refresh.js && node --check doing-global-entry.js",
-      "result": "PASS",
-      "scope": "Worker 與前端 JavaScript 語法"
-    },
-    {
-      "id": "login-providers",
-      "command": "node scripts/validate-login-providers.mjs",
-      "result": "PASS",
-      "scope": "LINE 優先登入、LINE 未提供 Email 仍可登入、管理入口 Google 備援、固定 provider subject、同一 Email 或電話阻擋第二會員、不得以電話冒認合併或授權、共用會員權限與平台總管理者安全接回入口"
-    },
-    {
-      "id": "database-contact-uniqueness",
-      "command": "Supabase transaction rollback：重複 Email／登入 Email／正規化電話唯一索引驗收",
-      "result": "PASS",
-      "scope": "DOING_SaaS 正式 platform_members 三個唯一索引存在且會阻擋重複值；測試資料 rollback 後留存 0 筆"
-    },
-    {
-      "id": "organizer-application-e2e",
-      "command": "node scripts/validate-organizer-application-e2e.mjs",
-      "result": "PASS",
-      "scope": "正式申請、LINE 無 Email、核准與租戶建立、4 個既有主辦與平台管理者安全補綁、同一 Email／電話阻擋第二會員、Email 管理邀請、本人 LINE 接受、受邀後登入、現場管理必選場次、LINE／Google 明確同步"
-    },
-    {
-      "id": "member-brand-e2e",
-      "command": "node scripts/validate-member-brand-e2e.mjs",
-      "result": "PASS",
-      "scope": "不同 Email 與電話的兩位獨立 LINE 會員、同名品牌提示、品牌主檔唯一、共同品牌核准、出攤邀請、本人接受、同一邀請第二支手機搶用被阻擋、報到與撤場；正式資料 0 寫入"
-    },
-    {
-      "id": "tenant-application",
-      "command": "node scripts/validate-tenant-application.mjs",
-      "result": "PASS",
-      "scope": "問卷與核准模組對應"
-    },
-    {
-      "id": "beauty-workflow",
-      "command": "node scripts/validate-beauty-workflow.mjs",
-      "result": "PASS",
-      "scope": "美類統一命名、完整初始模組、通用服務人員、顧客到店與票券流程位置"
-    },
-    {
-      "id": "role-module-access",
-      "command": "node scripts/validate-role-module-access.mjs",
-      "result": "PASS",
-      "scope": "角色與已核准模組權限"
-    },
-    {
-      "id": "data-sources",
-      "command": "node scripts/validate-data-sources.mjs",
-      "result": "PASS",
-      "scope": "Supabase 資料來源與關聯"
-    },
-    {
-      "id": "responsive-layout",
-      "command": "node scripts/validate-responsive-layout.mjs",
-      "result": "PASS",
-      "scope": "手機／桌面響應式框架、後台桌機八欄單排、手機單排橫滑、框架縮小、活動文字與內頁文字不裁切、租戶頁不顯示全平台導覽"
-    },
-    {
-      "id": "frontstage-copy",
-      "command": "node scripts/validate-frontstage-copy.mjs",
-      "result": "PASS",
-      "scope": "六個一般使用頁移除內部實作說明、我的報名命名、單一品牌直接編輯、QA 驗收申請不回傳正式前台與審核清單"
-    },
-    {
-      "id": "visual-standard",
-      "command": "node scripts/validate-visual-standard.mjs",
-      "result": "PASS",
-      "scope": "天空藍與薄荷綠主色、粉紅僅少量點綴、七個核心頁面逐頁套用、小型格子禁止圓形、世界樹實作狀態"
-    },
-    {
-      "id": "platform-attribution",
-      "command": "node scripts/validate-platform-attribution.mjs",
-      "result": "PASS",
-      "scope": "近期開放活動付費廣告板優先顯示與依權重隨機輪播、匿名曝光、點擊、完成報名與近 30 日轉換率"
-    },
-    {
-      "id": "capabilities",
-      "command": "node scripts/validate-capabilities.mjs",
-      "result": "PASS",
-      "scope": "功能世界圖與狀態"
-    },
-    {
-      "id": "seat-map",
-      "command": "node scripts/validate-seat-map.mjs",
-      "result": "PASS",
-      "scope": "手機選位與攤位圖"
-    },
-    {
-      "id": "full-system",
-      "command": "node scripts/validate-full-system.mjs",
-      "result": "PASS",
-      "scope": "全頁面、API、按鈕與設定；三種正式公開狀態與收費活動／營運項目的公開探索、租戶前台權益一致性"
-    },
-    {
-      "id": "admin-consistency",
-      "command": "node scripts/validate-admin-consistency.mjs",
-      "result": "PASS",
-      "scope": "後台壓縮版視覺一致性"
-    },
-    {
-      "id": "admin-operations",
-      "command": "node scripts/validate-admin-operations.mjs",
-      "result": "PASS",
-      "scope": "主辦營運操作"
-    },
-    {
-      "id": "tenant-billing",
-      "command": "node scripts/validate-tenant-billing.mjs",
-      "result": "PASS",
-      "scope": "租戶帳務頁、免費活動 NT$200、收費活動實收 1%、持續預約 NT$688、付款回報、平台確認與文字不裁切"
-    },
-    {
-      "id": "navigation-actions",
-      "command": "node scripts/validate-navigation-actions.mjs",
-      "result": "PASS",
-      "scope": "平台營運 KPI、問題中心、租戶健康狀態、問題直達指定租戶／場次／訂單、新分頁保留總管登入；租戶後台 KPI、預約日曆深連結與返回原租戶首頁、單一／多營運空間分流、總帳轉帳設定、租戶自由選擇五套模板、平台控制進階功能、全站共同入口"
-    },
-    {
-      "id": "platform-operations-e2e",
-      "command": "node scripts/validate-platform-operations-e2e.mjs",
-      "result": "PASS",
-      "scope": "兩租戶模擬鎖定、場次設定與付款異常；問題唯一鍵、租戶問題數、正式處理紀錄、租戶／場次／訂單深連結、自動完成與人工稽核閉環；正式資料 0 寫入"
-    },
-    {
-      "id": "persistent-change-ledger-e2e",
-      "command": "node scripts/validate-persistent-change-ledger-e2e.mjs",
-      "result": "PASS",
-      "scope": "五張 append-only 表、RLS 與 service_role 最小授權、平台最高管理者 API、敏感欄位排除、Verified Baseline、受影響驗收 Stale、未變更驗收沿用、全量盤點安全鎖"
-    },
-    {
-      "id": "doing-smart-helper-e2e",
-      "command": "node scripts/validate-doing-smart-helper-e2e.mjs",
-      "result": "PASS",
-      "scope": "首頁智慧申請與獨立 DOING 使用客服、100 題受控快速問答、四個不橫滑引導按鈕、個別活動問題回到營運單位、DOING 無法回答時才顯示真人客服、總管分類收件與原對話回覆、資料隔離、機密攔截、知識審核與 RLS 最小權限"
-    },
-    {
-      "id": "universal-booking",
-      "command": "node scripts/validate-universal-booking.mjs",
-      "result": "PASS",
-      "scope": "總管全權限、租戶隔離、週期空檔、臨時加開／休息、服務分鐘與前後緩衝、超過下班自動擋單、較短服務仍可預約、顧客動態空檔寫回既有 timeslots、市集固定場次流程維持不變、租戶私有顧客標籤與黑名單、平台風險案件需總管複核"
-    },
-    {
-      "id": "worker-sync",
-      "command": "cmp -s worker.js worker.txt",
-      "result": "PASS",
-      "scope": "正式 Worker 雙檔同步"
-    },
-    {
-      "id": "diff-quality",
-      "command": "git diff --check",
-      "result": "PASS",
-      "scope": "空白與差異格式"
-    }
+    {"id":"syntax","command":"node --check worker.js && node --check doing-attribution.js && node --check doing-home-refresh.js && node --check doing-about-refresh.js && node --check doing-global-entry.js","result":"PASS","scope":"Worker 與前端 JavaScript 語法"},
+    {"id":"world-tree-v20","command":"node scripts/validate-world-tree-v20.mjs","result":"PASS","scope":"一個工作空間、格狀工作日曆、5 工作模組、10 共用模組、外部日曆 SSOT、第二工作空間資料庫防線、計費未定案與 2BL 禁止邊界"},
+    {"id":"login-providers","command":"node scripts/validate-login-providers.mjs","result":"PASS","scope":"LINE 優先登入、管理入口 Google 備援、固定 provider subject、同一 Email 或電話阻擋第二會員、共用會員權限與平台總管理者安全接回入口"},
+    {"id":"database-contact-uniqueness","command":"Supabase transaction rollback：重複 Email／登入 Email／正規化電話唯一索引驗收","result":"PASS","scope":"DOING_SaaS 正式 platform_members 三個唯一索引既有驗收；本次 v20 未新增正式資料寫入"},
+    {"id":"organizer-application-e2e","command":"node scripts/validate-organizer-application-e2e.mjs","result":"PASS","scope":"正式申請模擬、LINE 無 Email、核准與租戶建立、管理邀請、本人 LINE 接受、模組核准；productionWrites 0"},
+    {"id":"member-brand-e2e","command":"node scripts/validate-member-brand-e2e.mjs","result":"PASS","scope":"品牌主檔、共同品牌核准、活動邀請、競態阻擋、報到與撤場；productionWrites 0"},
+    {"id":"tenant-application","command":"node scripts/validate-tenant-application.mjs","result":"PASS","scope":"問卷與核准模組對應"},
+    {"id":"beauty-workflow","command":"node scripts/validate-beauty-workflow.mjs","result":"PASS","scope":"美類統一命名、通用服務人員、顧客到店與票券流程位置"},
+    {"id":"role-module-access","command":"node scripts/validate-role-module-access.mjs","result":"PASS","scope":"角色與已核准模組權限"},
+    {"id":"data-sources","command":"node scripts/validate-data-sources.mjs","result":"PASS","scope":"Supabase 資料來源與關聯"},
+    {"id":"responsive-layout","command":"node scripts/validate-responsive-layout.mjs","result":"PASS","scope":"既有正式頁面手機／桌面響應式框架；v20 workspace 另由 world-tree-v20 驗證 viewport、正式框架與手機視圖"},
+    {"id":"frontstage-copy","command":"node scripts/validate-frontstage-copy.mjs","result":"PASS","scope":"一般使用頁文字與正式清單規則"},
+    {"id":"visual-standard","command":"node scripts/validate-visual-standard.mjs","result":"PASS","scope":"DOING 視覺標準與小型格子規則"},
+    {"id":"platform-attribution","command":"node scripts/validate-platform-attribution.mjs","result":"PASS","scope":"付費廣告板曝光、點擊、完成報名與平台報表鏈路"},
+    {"id":"capabilities","command":"node scripts/validate-capabilities.mjs","result":"PASS","scope":"既有功能世界圖與 v20 架構回歸"},
+    {"id":"seat-map","command":"node scripts/validate-seat-map.mjs","result":"PASS","scope":"手機選位與攤位圖"},
+    {"id":"full-system","command":"node scripts/validate-full-system.mjs","result":"PASS","scope":"既有全頁面、214 個前端 API 動作、後台按鈕與設定"},
+    {"id":"admin-consistency","command":"node scripts/validate-admin-consistency.mjs","result":"PASS","scope":"後台壓縮版視覺一致性"},
+    {"id":"admin-operations","command":"node scripts/validate-admin-operations.mjs","result":"PASS","scope":"主辦營運操作"},
+    {"id":"tenant-billing","command":"node scripts/validate-tenant-billing.mjs","result":"PASS","scope":"既有租戶帳務回歸；v20 本次不新增、不修改、不定案任何計費"},
+    {"id":"navigation-actions","command":"node scripts/validate-navigation-actions.mjs","result":"PASS","scope":"平台與租戶導覽、問題深連結、工作空間分流與全站共同入口"},
+    {"id":"platform-operations-e2e","command":"node scripts/validate-platform-operations-e2e.mjs","result":"PASS","scope":"租戶問題、場次／訂單深連結與處理閉環；productionWrites 0"},
+    {"id":"persistent-change-ledger-e2e","command":"node scripts/validate-persistent-change-ledger-e2e.mjs","result":"PASS","scope":"append-only 變更紀錄、RLS、Verified Baseline 與受影響驗收"},
+    {"id":"doing-smart-helper-e2e","command":"node scripts/validate-doing-smart-helper-e2e.mjs","result":"PASS","scope":"智慧申請、使用客服、受控知識、真人客服分流、資料隔離與機密攔截"},
+    {"id":"universal-booking","command":"node scripts/validate-universal-booking.mjs","result":"PASS","scope":"預約排班、空檔、服務時間、租戶隔離、顧客資料與市集固定流程回歸"},
+    {"id":"worker-sync","command":"cmp -s worker.js worker.txt","result":"PASS","scope":"正式 Worker 雙檔同步"},
+    {"id":"diff-quality","command":"git diff --check","result":"PASS","scope":"空白與差異格式"}
   ]
 }
