@@ -10,11 +10,14 @@ function requireText(source,text,label){if(!source.includes(text))fail(`缺少�
 
 for(const file of pages){
   const source=read(file);let count=0;
+  if(/長按.{0,20}(LOGO|logo|圖示)|進入總管|總管入口|隱藏入口/.test(source))fail(`${file} 暴露隱藏總管入口操作提示`);
   for(const match of source.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){
     if(match[1].trim())new vm.Script(match[1],{filename:`${file}#script${++count}`});
   }
 }
 const admin=read('admin.html');
+const sessionCardSource=admin.match(/function renderSessionCard\(s\)\{([\s\S]*?)\n\}\n\nasync function copySessionAction/)?.[1]||'';
+if(!sessionCardSource||/\bm\s*\./.test(sessionCardSource))fail('營運項目卡片仍引用未定義的會員變數 m');
 const definitions=new Set([...admin.matchAll(/\bfunction\s+([A-Za-z_$][\w$]*)\s*\(/g)].map(x=>x[1]));
 for(const match of admin.matchAll(/\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>/g))definitions.add(match[1]);
 const ignoredHandlers=new Set(['add','open','stopPropagation','getElementById','confirm','prompt','alert','setTimeout','clearTimeout']);
