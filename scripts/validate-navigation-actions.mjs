@@ -3,7 +3,7 @@ import fs from 'node:fs';
 const read=file=>fs.readFileSync(file,'utf8');
 const assert=(value,message)=>{if(!value)throw new Error(message)};
 const homeRouter=read('doing-home-refresh.js'),home=fs.existsSync('doing-home-refresh-core.js')?read('doing-home-refresh-core.js'):homeRouter;
-const platform=read('platform.html'),worker=read('worker.js'),admin=read('admin.html'),member=read('member.html'),register=read('register.html');
+const platform=read('platform.html'),worker=read('worker.js'),admin=read('admin.html'),member=read('member-panel.html'),memberCompat=read('member.html'),register=read('register.html');
 
 for(const target of ['billing','issues','tenants','applications'])assert(platform.includes(`'${target}'`),`營運 KPI 缺少明確對應：${target}`);
 assert(platform.includes('id="platformOperationsDashboard"'),'平台缺少營運總覽');
@@ -31,7 +31,7 @@ for(const [label,target] of [['進行中場次',"switchPage(\\'sessions\\')"],['
   assert(admin.includes(label)&&admin.includes(target),`租戶後台 KPI 對應遺失：${label}`);
 }
 
-const sharedPages=['platform.html','admin.html','member.html','about.html','onsite.html','photo.html'];
+const sharedPages=['platform.html','admin.html','member-panel.html','about.html','onsite.html','photo.html'];
 for(const file of sharedPages){
   const html=read(file);
   assert(html.includes('doing-logo.png'),`${file} 左上角未使用首頁 DOING LOGO`);
@@ -39,6 +39,8 @@ for(const file of sharedPages){
   assert(html.includes('doing-global-entry.js'),`${file} 未載入共同總管入口邏輯`);
   assert(html.includes('index.html'),`${file} 缺少回到首頁`);
 }
+assert(memberCompat.includes('member-panel.html')&&memberCompat.includes('index.html'),'member.html 相容轉址路徑不完整');
+assert(!memberCompat.includes('doing-logo.png'),'member.html 相容轉址不得再承載舊完整頁面框架');
 for(const file of ['platform.html','admin.html','about.html','onsite.html','photo.html','register.html']){
   assert(read(file).includes('我的 DOING'),`${file} 缺少回到我的 DOING`);
 }
@@ -55,8 +57,8 @@ if(homeRouter!==home){
   assert(homeRouter.includes('handoffToWorkspace'),'首頁單一路由未直接交棒我的 DOING');
   assert(homeRouter.includes('doing-home-refresh-core.js'),'首頁登入路由未載入完整首頁核心');
 }
-assert(member.includes('安排預約日曆')&&member.includes('data-workspace-calendar'),'會員中心缺少安全的預約日曆直達入口');
-assert(member.includes('createMemberWorkspaceAdminSession')&&member.includes('data-workspace-admin'),'會員中心仍可能沿用其他租戶的後台登入');
+assert(member.includes('安排預約日曆')&&member.includes('data-workspace-calendar'),'會員功能面板缺少安全的預約日曆直達入口');
+assert(member.includes('createMemberWorkspaceAdminSession')&&member.includes('data-workspace-admin'),'會員功能面板仍可能沿用其他租戶的後台登入');
 assert(worker.includes("if(action==='createMemberWorkspaceAdminSession')"),'Worker 缺少會員指定租戶後台憑證交換');
 assert(worker.includes("crossTenantTokenDenied(p,TENANT)")&&worker.includes("crossTenantTokenDenied(b,TENANT)"),'GET／POST 缺少後台憑證與指定租戶不一致的共同阻擋');
 assert(admin.includes('營運空間不一致，已阻擋載入其他租戶資料'),'後台未阻擋網址租戶與登入租戶不一致');
