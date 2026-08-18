@@ -48,8 +48,8 @@
         },
         {
           "label": "未登入不留存；登入後才保存個人互動軌跡",
-          "status": "issue",
-          "evidence": "正式 LINE 會員提問觸發 member_helper_traces_topic_check；工作分支已將一般提問正規化為 summary，並確保軌跡失敗不阻斷對話保存；尚未部署"
+          "status": "verify",
+          "evidence": "一般提問已正規化為 summary，軌跡失敗不阻斷對話保存；正式程式與資料回歸通過，待 LINE 會員實際提問、重新整理後續接確認"
         },
         {
           "label": "只檢索已發布的 DOING 正式知識，費用即時讀取平台設定",
@@ -480,8 +480,9 @@
         },
         {
           "label": "正式購買到首頁顯示E2E",
-          "status": "issue",
-          "note": "首頁已顯示，但收費活動點入租戶頁後被判定未正式開放；qa/v19-formal-scenarios-20260818 已修正，尚未部署。"
+          "status": "done",
+          "note": "夜貓美甲正式收費已啟用，首頁與活動頁均可讀到 7 個可預約日期；正式 Pages E2E 與 Worker 讀回通過。",
+          "evidence": "register.html tenant-aware frontBootstrap / production workflow 32089690977 / pages workflow 32089690306"
         }
       ],
       "dataSource": {
@@ -631,8 +632,8 @@
         },
         {
           "label": "夜貓美甲核准後轉為可管理",
-          "status": "issue",
-          "note": "LINE 會員完成 Google 同步後，正式庫未寫入 Google 身分，舊核准管理權未接回；qa/v19-formal-scenarios-20260818 已修正，尚未部署。"
+          "status": "verify",
+          "note": "營運入口、指定租戶憑證交換與跨租戶阻擋已部署並通過自動 E2E；待夜貓美甲本人以正式 LINE 帳號重新進入營運管理確認。"
         },
         {
           "label": "視覺與DOING首頁完整一致",
@@ -1271,12 +1272,12 @@
         },
         {
           "label": "前台、會員頁與租戶後台完整套用",
-          "status": "issue",
-          "evidence": "正式手機租戶頁錯誤疊出全平台導覽、舊租戶內容、測試活動與破圖；工作分支已隔離導覽並修正營運／日曆路徑，尚未部署。",
+          "status": "verify",
+          "evidence": "全平台導覽與租戶導覽已隔離，營運／日曆／活動返回路徑已部署；8 個正式頁面 E2E 無租戶錯置，待 Android 與 LINE 內建瀏覽器實機確認。",
           "formalVerification": {
             "number": 35,
             "priority": "P1",
-            "outcome": "failed",
+            "outcome": "unable",
             "environment": "production",
             "roles": "訪客／會員／租戶管理者",
             "tenant": "夜貓美甲／多租戶",
@@ -1284,10 +1285,10 @@
             "dataScope": "公開頁／本人頁／租戶後台",
             "operationPermission": "依角色",
             "fieldVisibility": "依頁面權限",
-            "note": "正式 Android 手機確認租戶頁同時疊出全平台導覽、租戶導覽與底部導覽，內容又顯示其他租戶及測試活動；工作分支已修正，尚未部署。",
+            "note": "先前 Android 手機曾顯示導覽疊加與其他租戶內容；修正已部署，桌機正式 E2E 與跨租戶矩陣通過，仍缺 Android／LINE 內建瀏覽器本人重驗。",
             "cause": "手機 CSS 未限定全平台模式，強制顯示原本 hidden 的全平台導覽；租戶會員按鈕又錯接到我的報名，沒有依工作空間進入營運後台。",
             "fixBranch": "qa/v19-formal-scenarios-20260818",
-            "fixStatus": "fixed_on_branch_unreleased",
+            "fixStatus": "deployed_pending_owner_mobile_recheck",
             "fixEvidence": [
               "doing-home-refresh.css",
               "doing-home-refresh.js",
@@ -1296,7 +1297,9 @@
               "scripts/validate-navigation-actions.mjs",
               "scripts/validate-responsive-layout.mjs",
               "25 類完整回歸 PASS",
-              "production deployment=0"
+              "production workflow 32089690977",
+              "pages workflow 32089690306",
+              "跨租戶正式矩陣 14/14 PASS"
             ]
           }
         }
