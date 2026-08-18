@@ -22,6 +22,7 @@ need(ws.includes('getSessionsAdmin')&&ws.includes('getOperationUnitsAdmin')&&ws.
 need(!/localStorage|sessionStorage/.test(ws),'工作空間不可把營運資料寫入瀏覽器儲存');
 need(ws.includes('bookingCalendarIcs')&&ws.includes('calendar.google.com/calendar/render'),'Google／Apple 日曆第一階段入口不完整');
 need(memberCompat.includes("new URL('member-panel.html'")&&memberCompat.includes("new URL('index.html'"),'舊 member.html 尚未降級為相容轉址檔');
+need(memberCompat.includes("home|activities|brands|account|operations"),'member.html #home 未納入內部面板路由，可能形成首頁往返循環');
 need(memberCompat.length<5000,'舊 member.html 仍殘留完整會員中心畫面');
 need(member.includes('createMemberWorkspaceAdminSession')&&member.includes('我的品牌')&&member.includes('帳號與聯絡資料'),'既有會員功能未完整保留在 member-panel.html');
 need(home.includes("FLOW_VALUE='workspace'")&&home.includes('handoffToWorkspace')&&home.includes('createMemberWorkspaceAdminSession'),'首頁 LINE callback 尚未統一直接交棒工作空間');
@@ -35,4 +36,4 @@ need(/name=["']viewport["']/.test(ws)&&ws.includes('doing-system.css?v=20260817-
 new vm.Script(ge,{filename:'doing-global-entry.js'});
 for(const [name,src] of [['workspace',ws],['member-panel',member]]){let scripts=0;for(const m of src.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){if(!m[1].trim())continue;new vm.Script(m[1],{filename:name+'#script'+(++scripts)});}need(scripts>0,name+' 缺少可執行腳本');}
 new vm.Script(home,{filename:'doing-home-refresh.js'});
-console.log('DOING World Tree v20 路徑驗證通過：舊 member.html 已移除完整 UI，只保留相容轉址；既有會員功能完整保留於 member-panel；首頁 → LINE → 我的 DOING；1 工作空間、5 工作模組、10 共用模組。');
+console.log('DOING World Tree v20 路徑驗證通過：舊 member.html 已移除完整 UI，只保留相容轉址；#home 與會員功能分頁不再回彈首頁；既有會員功能完整保留於 member-panel；首頁 → LINE → 我的 DOING；1 工作空間、5 工作模組、10 共用模組。');

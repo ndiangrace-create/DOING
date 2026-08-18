@@ -14,7 +14,9 @@
   const here=new URL(location.href);
   const params=here.searchParams;
   const hash=here.hash||'';
-  const special=params.get('embed')==='1'||params.has('staff_invite')||params.has('registration_invite')||/^#(?:activities|brands|account|operations)$/i.test(hash);
+  // member.html is redirect-only. All explicit member sections, including #home,
+  // must stay inside the internal member panel instead of bouncing back to index.
+  const special=params.get('embed')==='1'||params.has('staff_invite')||params.has('registration_invite')||/^#(?:home|activities|brands|account|operations)$/i.test(hash);
   if(special){
     const target=new URL('member-panel.html',here);
     target.search=here.search;
