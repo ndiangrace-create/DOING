@@ -2088,6 +2088,93 @@ html[data-doing-theme="warm_handmade"] body.doing-admin{--main:#9a5e43;--main2:#
 html[data-doing-theme="vivid_pop"] body.doing-admin{--main:#ef5b2a;--main2:#c73912;background:#4ed7e8!important;color:#111!important}html[data-doing-theme="vivid_pop"] body.doing-admin .topbar{background:#fff!important;border-bottom:4px solid #111!important}html[data-doing-theme="vivid_pop"] body.doing-admin .tabs{background:#d9ff45!important;border:3px solid #111!important}html[data-doing-theme="vivid_pop"] body.doing-admin .card,html[data-doing-theme="vivid_pop"] body.doing-admin .report-card,html[data-doing-theme="vivid_pop"] body.doing-admin .settings-tile,html[data-doing-theme="vivid_pop"] body.doing-admin .session-card{background:#fff!important;border:3px solid #111!important;border-radius:10px!important;box-shadow:7px 7px 0 #111!important}html[data-doing-theme="vivid_pop"] body.doing-admin .btn{border:3px solid #111!important;border-radius:8px!important;box-shadow:3px 3px 0 #111!important}
 html[data-doing-theme] body.doing-admin .card,html[data-doing-theme] body.doing-admin .report-card,html[data-doing-theme] body.doing-admin .settings-tile,html[data-doing-theme] body.doing-admin .session-card{min-width:0!important;overflow-wrap:anywhere!important}html[data-doing-theme] body.doing-admin button,html[data-doing-theme] body.doing-admin a{white-space:normal!important;line-height:1.35!important}
 </style>
+<style id="doing-admin-responsive-frame-v2">
+/* DOING_ADMIN_RESPONSIVE_FRAME_V2
+   主導覽永遠維持單排；桌機八等分，窄螢幕以橫向捲動完整保留每個入口。 */
+body.doing-admin{
+  --admin-topbar-height:72px;
+  --admin-tabs-height:52px;
+}
+body.doing-admin .topbar-in{
+  min-height:var(--admin-topbar-height)!important;
+  padding:8px 18px!important;
+  gap:14px!important;
+}
+body.doing-admin .brand{min-width:0!important}
+body.doing-admin .brand-title{font-size:20px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+body.doing-admin .brand-sub{font-size:14px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+body.doing-admin .topbar .actions{
+  min-width:0!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;
+  scrollbar-width:thin!important;overscroll-behavior-inline:contain!important
+}
+body.doing-admin .topbar .actions .btn{
+  width:auto!important;min-width:112px!important;min-height:42px!important;padding:8px 12px!important;
+  font-size:15px!important;white-space:nowrap!important;overflow-wrap:normal!important
+}
+body.doing-admin .tabs{
+  display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr))!important;
+  height:var(--admin-tabs-height)!important;min-height:var(--admin-tabs-height)!important;max-height:var(--admin-tabs-height)!important;
+  overflow:hidden!important
+}
+body.doing-admin .tabs .tab{
+  width:100%!important;min-width:0!important;min-height:var(--admin-tabs-height)!important;height:var(--admin-tabs-height)!important;
+  padding:8px 6px!important;font-size:16px!important;line-height:1.2!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important
+}
+body.doing-admin .app{
+  margin:0 auto!important;
+  padding:calc(var(--admin-topbar-height) + var(--admin-tabs-height) + 12px) 18px 40px!important
+}
+body.doing-admin section[id^="page-"]{margin:0!important;padding-top:0!important}
+body.doing-admin .page-title{margin:8px 0 12px!important;gap:10px!important}
+body.doing-admin .page-title h2,body.doing-admin .finance-center-head h2{font-size:clamp(24px,2vw,32px)!important}
+body.doing-admin button,body.doing-admin .btn{
+  min-height:42px!important;padding:8px 12px!important;font-size:15px!important;
+  overflow-wrap:normal!important
+}
+body.doing-admin .page-actions .btn{min-width:108px!important}
+body.doing-admin .doing-command{margin:0 0 12px!important;border-radius:16px!important}
+body.doing-admin .doing-command-top{padding:14px 16px 11px!important;gap:12px!important}
+body.doing-admin .doing-command-copy h3{font-size:21px!important}
+body.doing-admin .doing-kpi{padding:10px 12px!important}
+body.doing-admin .doing-kpi b{font-size:19px!important}
+body.doing-admin .settings-tile{min-height:92px!important;padding:12px!important}
+
+@media(max-width:900px){
+  body.doing-admin .tabs{
+    display:flex!important;flex-wrap:nowrap!important;right:10px!important;left:10px!important;
+    overflow-x:auto!important;overflow-y:hidden!important;scroll-snap-type:x proximity!important
+  }
+  body.doing-admin .tabs .tab{
+    flex:0 0 92px!important;width:92px!important;min-width:92px!important;
+    font-size:15px!important;scroll-snap-align:start!important
+  }
+  body.doing-admin .app{padding:calc(var(--admin-topbar-height) + var(--admin-tabs-height) + 8px) 10px 30px!important}
+  body.doing-admin .page-title{margin-top:6px!important}
+}
+@media(max-width:620px){
+  body.doing-admin{--admin-topbar-height:62px;--admin-tabs-height:48px}
+  body.doing-admin .topbar-in{min-height:62px!important;padding:6px 8px!important;gap:8px!important}
+  body.doing-admin .brand{flex:0 1 132px!important}
+  body.doing-admin .brand-title{font-size:16px!important}
+  body.doing-admin .brand-sub{display:none!important}
+  body.doing-admin .doing-logo{width:38px!important;height:38px!important;flex:0 0 38px!important}
+  body.doing-admin .topbar .actions{flex:1 1 auto!important;gap:5px!important}
+  body.doing-admin .topbar .actions .btn{min-width:max-content!important;min-height:38px!important;padding:7px 9px!important;font-size:14px!important}
+  body.doing-admin .tabs{right:6px!important;left:6px!important}
+  body.doing-admin .tabs .tab{flex-basis:82px!important;width:82px!important;min-width:82px!important;min-height:48px!important;height:48px!important;font-size:14px!important;padding:6px 5px!important}
+  body.doing-admin .app{padding:calc(var(--admin-topbar-height) + var(--admin-tabs-height) + 6px) 8px 26px!important}
+  body.doing-admin .page-title{gap:8px!important;margin:4px 0 10px!important}
+  body.doing-admin .page-title h2,body.doing-admin .finance-center-head h2{font-size:23px!important}
+  body.doing-admin .page-title .sub,body.doing-admin .finance-center-head p,body.doing-admin .sub{font-size:14px!important}
+  body.doing-admin .page-actions{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;justify-content:flex-start!important}
+  body.doing-admin .page-actions .btn{flex:0 0 auto!important;width:auto!important;min-width:max-content!important}
+  body.doing-admin .doing-command-top{padding:12px!important}
+  body.doing-admin .doing-command-copy h3{font-size:19px!important}
+  body.doing-admin .doing-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.doing-admin .doing-kpi{min-width:0!important;padding:9px!important}
+}
+</style>
 </head>
 <!-- doing-app compatibility marker: the admin deliberately isolates the legacy visual shell. -->
 <body class="doing-app doing-admin">
@@ -2110,7 +2197,7 @@ html[data-doing-theme] body.doing-admin .card,html[data-doing-theme] body.doing-
   </div></header>
   <nav class="tabs" aria-label="DOING 後台主選單">
       <button id="tab-todos" class="tab" onclick="switchPage('todos')">待辦</button>
-      <button id="tab-sessions" class="tab active" onclick="switchPage('sessions')">場次</button>
+      <button id="tab-sessions" class="tab active" onclick="switchPage('sessions')">營運項目</button>
       <button id="tab-calendar" class="tab" onclick="switchPage('calendar')">日曆</button>
       <button id="tab-finance" class="tab" onclick="switchPage('finance')">財務</button>
       <button id="tab-billing" class="tab" onclick="switchPage('billing')">系統帳務</button>
@@ -2119,7 +2206,7 @@ html[data-doing-theme] body.doing-admin .card,html[data-doing-theme] body.doing-
       <button id="tab-settings" class="tab" onclick="switchPage('settings')">設定</button>
   </nav>
   <main class="app">
-    <section id="page-sessions"><div class="page-title"><div><h2>我的場次</h2><div class="sub">點進場次後，直接處理報名、付款、設備、選位、報到與本場金流。</div></div><div class="page-actions"><button class="btn secondary" onclick="refreshSessionsOverview()">重新整理</button><button class="btn" onclick="newSessionFull()">＋ 新增場次</button></div></div><div class="filter-row"><input id="sessionSearch" placeholder="搜尋場次、系列、合作單位、地點" oninput="renderSessions()"><select id="sessionStatusFilter" onchange="renderSessions()"><option value="current">進行中</option><option value="all">全部</option><option value="archived">封存</option></select></div><div id="themeFilterRow" class="filter-row" style="margin-top:0"></div><div id="sessionList" class="session-list"><div class="loading">載入場次中…</div></div></section>
+    <section id="page-sessions"><div class="page-title"><div><h2>營運項目</h2><div class="sub">活動場次、課程與預約服務都集中在這裡管理。</div></div><div class="page-actions"><button class="btn secondary" onclick="refreshSessionsOverview()">重新整理</button><button class="btn" onclick="newSessionFull()">＋ 新增項目</button></div></div><div class="filter-row"><input id="sessionSearch" placeholder="搜尋項目、系列、合作單位、地點" oninput="renderSessions()"><select id="sessionStatusFilter" onchange="renderSessions()"><option value="current">進行中</option><option value="all">全部</option><option value="archived">封存</option></select></div><div id="themeFilterRow" class="filter-row" style="margin-top:0"></div><div id="sessionList" class="session-list"><div class="loading">載入營運項目中…</div></div></section>
     <section id="page-calendar" class="hidden"><div class="page-title"><div><h2>營運總日曆</h2><div class="sub">同一頁完成週期開放、臨時休息與臨時加開；顧客只會看到仍可容納所選服務的空檔。</div></div><div class="page-actions"><button class="btn secondary" onclick="calendarShift(-1)">← 上個月</button><button class="btn secondary" onclick="calendarToday()">今天</button><button class="btn secondary" onclick="calendarShift(1)">下個月 →</button><button class="btn" onclick="loadUnifiedCalendar()">重新整理</button></div></div><div class="report-card"><div class="report-title" id="calendarMonthTitle">營運總日曆</div><div id="calendarFilters" class="calendar-filters" aria-label="切換預約日曆"><button class="calendar-filter active">全部</button></div><div class="calendar-manager"><button class="btn secondary small" onclick="addBookingCalendar()">＋ 新增預約日曆</button><button class="btn secondary small" onclick="editCurrentBookingCalendar()">設定目前日曆</button></div><div id="calendarGrid" class="calendar-grid"><div class="loading">載入日曆中…</div></div></div><div id="calendarQuickSchedule" class="report-card"><div class="report-title">快速安排可預約時間</div><div class="sub">先點上方一個人員／空間日曆，再直接設定。週期規則與單日微調會一起計算，不會覆蓋已成立預約。</div><div class="schedule-mode-row"><button class="btn small" data-schedule-mode="repeat" onclick="setScheduleMode('repeat',this)">每週開放</button><button class="btn secondary small" data-schedule-mode="open" onclick="setScheduleMode('open',this)">臨時加開</button><button class="btn secondary small" data-schedule-mode="closed" onclick="setScheduleMode('closed',this)">臨時休息</button></div><div class="form-grid" style="margin-top:12px"><div class="form-field full" id="scheduleWeekdays"><label>套用星期（可複選）</label><div class="calendar-filters"><button type="button" class="calendar-filter" data-weekday="1" onclick="this.classList.toggle('active')">一</button><button type="button" class="calendar-filter" data-weekday="2" onclick="this.classList.toggle('active')">二</button><button type="button" class="calendar-filter" data-weekday="3" onclick="this.classList.toggle('active')">三</button><button type="button" class="calendar-filter" data-weekday="4" onclick="this.classList.toggle('active')">四</button><button type="button" class="calendar-filter" data-weekday="5" onclick="this.classList.toggle('active')">五</button><button type="button" class="calendar-filter" data-weekday="6" onclick="this.classList.toggle('active')">六</button><button type="button" class="calendar-filter" data-weekday="0" onclick="this.classList.toggle('active')">日</button></div></div><div class="form-field" id="scheduleDateField"><label id="scheduleDateLabel">開始日期</label><input id="scheduleDate" type="date"></div><div class="form-field" id="scheduleUntilField"><label>套用到（留白代表持續）</label><input id="scheduleUntil" type="date"></div><div class="form-field"><label>開始</label><input id="scheduleStart" type="time" value="10:00"></div><div class="form-field"><label>結束</label><input id="scheduleEnd" type="time" value="20:00"></div><div class="form-field"><label>指定工作人員（選填）</label><select id="scheduleStaff"><option value="">整個日曆</option></select></div><div class="form-field"><label>指定空間／設備（選填）</label><select id="scheduleResource"><option value="">整個日曆</option></select></div><div class="form-field full"><label>原因／備註（選填）</label><input id="scheduleReason" maxlength="200" placeholder="例如：技師臨時休假、晚上加開"></div></div><div class="card-actions"><button class="btn" onclick="saveQuickSchedule(this)">儲存這個安排</button></div><div id="scheduleRuleSummary" class="empty" style="margin-top:12px">請先選一個預約日曆。</div></div><div id="calendarDayDetail" class="report-card"><div class="empty">點選日期查看活動、營運項目、預約時段與名單。</div></div></section>
     <section id="page-finance" class="hidden">
       <div class="finance-center-head">

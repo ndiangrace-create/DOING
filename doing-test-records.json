@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-18T15:05:00+08:00",
-  "sourceFingerprint": "4b406f87e67c79ff3b9aee76dd65d68503a1a64dc255fa2300567fe34b823b5c",
+  "recordedAt": "2026-08-18T20:17:00+08:00",
+  "sourceFingerprint": "02c4ebc119f1b24c5d5812f06417aabfe589c0995c31a8d266050172f0cebd4a",
   "environment": "LINE、Google、Resend 與一般業務流程使用本機 mock；DOING_SaaS 正式庫已依授權套用通用預約結構，夜貓美甲僅建立一筆標記為 trial 的草稿空檔規則；未部署網站，未觸及 2bl-v7。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
@@ -66,7 +66,7 @@
       "id": "responsive-layout",
       "command": "node scripts/validate-responsive-layout.mjs",
       "result": "PASS",
-      "scope": "手機／桌面響應式框架、活動文字與內頁文字不裁切、租戶頁不顯示全平台導覽"
+      "scope": "手機／桌面響應式框架、後台桌機八欄單排、手機單排橫滑、框架縮小、活動文字與內頁文字不裁切、租戶頁不顯示全平台導覽"
     },
     {
       "id": "frontstage-copy",
