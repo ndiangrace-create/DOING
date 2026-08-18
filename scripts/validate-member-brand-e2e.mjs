@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import worker from '../worker.js';
 
 const sql=fs.readFileSync(new URL('../supabase_member_brand_model.sql',import.meta.url),'utf8');
-const memberPage=fs.readFileSync(new URL('../member.html',import.meta.url),'utf8');
+const memberPage=fs.readFileSync(new URL('../member-panel.html',import.meta.url),'utf8');
 const registerPage=fs.readFileSync(new URL('../register.html',import.meta.url),'utf8');
 for(const table of ['brands','brand_members','brand_access_requests','registration_members','registration_member_invites']){
   assert.match(sql,new RegExp(`create table if not exists public\\.${table}`));

@@ -42,7 +42,7 @@ jobs:
           node --check doing-global-entry.js
           node - <<'NODE'
           const fs=require('fs'),vm=require('vm');
-          for(const f of ['index.html','register.html','member.html','admin.html','onsite.html','platform.html','about.html','photo.html']){
+          for(const f of ['index.html','register.html','member.html','member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html']){
             const source=fs.readFileSync(f,'utf8');let count=0;
             for(const match of source.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){
               if(!match[1].trim())continue;
@@ -82,10 +82,14 @@ jobs:
         run: node scripts/validate-test-records.mjs
       - name: Verify unified visual shell and private long press
         run: |
-          for page in member.html admin.html onsite.html platform.html photo.html; do
+          for page in member-panel.html admin.html onsite.html platform.html photo.html; do
             grep -q 'doing-system.css?v=20260817-system5' "$page"
             grep -q 'doing-app' "$page"
           done
+          grep -q 'member-panel.html' member.html
+          grep -q 'index.html' member.html
+          ! grep -q 'doing-app' member.html
+          ! grep -q 'doing-logo.png' member.html
           grep -q "hiddenAdminSelector='#brandHoldTarget,.doing-nav-brand'" index.html
           grep -q "document.addEventListener('pointerdown'" index.html
           grep -q "e.target.closest?.(hiddenAdminSelector)" index.html

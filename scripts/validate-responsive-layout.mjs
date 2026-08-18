@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 
 const root=process.cwd();
-const pages=['index.html','register.html','member.html','admin.html','onsite.html','platform.html','about.html','photo.html'];
+const pages=['index.html','register.html','member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html'];
 const fail=(message)=>{throw new Error(message)};
 for(const page of pages){
   const source=fs.readFileSync(root+'/'+page,'utf8');
@@ -10,6 +10,8 @@ for(const page of pages){
   if(!source.includes('doing-system.css?v=20260817-system5'))fail(page+' 未載入最新防裁切框架');
   if(!/class=["'][^"']*\bdoing-app\b/.test(source))fail(page+' 缺少 doing-app');
 }
+const compat=fs.readFileSync(root+'/member.html','utf8');
+if(!/<meta[^>]+name=["']viewport["']/i.test(compat)||!compat.includes("member-panel.html")||!compat.includes("index.html"))fail('member.html 相容轉址契約不完整');
 const css=fs.readFileSync(root+'/doing-system.css','utf8');
 for(const token of ['DOING_RESPONSIVE_CONTRACT_V2','DOING_RESPONSIVE_DENSITY_CONTRACT_V3','background-image:none!important','position:sticky!important','min-height:46px!important','@media (max-width:760px)','@media (min-width:761px)','overflow-x:auto!important']){
   if(!css.includes(token))fail('共用響應式框架缺少：'+token);
@@ -17,7 +19,7 @@ for(const token of ['DOING_RESPONSIVE_CONTRACT_V2','DOING_RESPONSIVE_DENSITY_CON
 for(const token of ['body.doing-app.doing-platform .metrics','grid-template-columns:repeat(2,minmax(0,1fr))!important','body.doing-app.doing-platform .metric small{display:none!important}','body.doing-app.doing-member .hero{min-height:0!important','body.doing-app.doing-member .record-timeline{display:none!important']){
   if(!css.includes(token))fail('手機密度契約缺少：'+token);
 }
-const member=fs.readFileSync(root+'/member.html','utf8');
+const member=fs.readFileSync(root+'/member-panel.html','utf8');
 if(!member.includes('overview-secondary')||!member.includes('最近進度｜'))fail('會員總覽尚未改為手機摘要模式');
 const admin=fs.readFileSync(root+'/admin.html','utf8');
 for(const token of ['id="doing-admin-responsive-frame-v2" media="not all"','DOING_ADMIN_SINGLE_ROW_HOTFIX_V3','@media(min-width:901px)','grid-template-columns:repeat(8,minmax(0,1fr))!important','body.doing-admin .tabs{right:12px!important;left:12px!important;display:flex!important;overflow-x:auto!important']){
@@ -43,4 +45,4 @@ for(const token of ['body.doing-app.doing-admin :where(.tabs .tab,.etc-sub,.equi
 for(const token of ['DOING_NO_BROKEN_VIEWPORT_CONTRACT_V1','html,body{max-width:100%!important;overflow-x:auto!important}','flex-wrap:wrap!important;overflow:visible!important','flex-wrap:nowrap!important;overflow-x:auto!important','body.doing-app table:not(.seat-map){display:block!important']){
   if(!css.includes(token))fail('全站防橫向裁切契約缺少：'+token);
 }
-console.log('響應式框架驗證完成：'+pages.length+' 個正式頁面，手機／電腦共用契約、登入後會員按鈕與文字不裁切規則有效。');
+console.log('響應式框架驗證完成：'+pages.length+' 個正式功能頁＋1 個 member 相容轉址，手機／電腦共用契約、登入後會員按鈕與文字不裁切規則有效。');

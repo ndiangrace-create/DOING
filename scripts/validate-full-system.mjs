@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 
-const pages=['index.html','register.html','member.html','admin.html','onsite.html','platform.html','about.html','photo.html'];
+const pages=['index.html','register.html','member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html'];
 const read=file=>fs.readFileSync(file,'utf8');
 const worker=read('worker.js');
 
@@ -15,6 +15,10 @@ for(const file of pages){
     if(match[1].trim())new vm.Script(match[1],{filename:`${file}#script${++count}`});
   }
 }
+const memberCompat=read('member.html');
+requireText(memberCompat,'member-panel.html','舊 member 相容入口必須導向內部會員面板');
+requireText(memberCompat,'index.html','舊 member 相容入口必須回到新版首頁流程');
+if(/<section[^>]+id=["']loginView["']/.test(memberCompat))fail('舊 member.html 仍殘留完整登入 UI');
 const admin=read('admin.html');
 const sessionCardSource=admin.match(/function renderSessionCard\(s\)\{([\s\S]*?)\n\}\n\nasync function copySessionAction/)?.[1]||'';
 if(!sessionCardSource||/\bm\s*\./.test(sessionCardSource))fail('營運項目卡片仍引用未定義的會員變數 m');
@@ -59,12 +63,12 @@ const missingRoutes=[...frontendActions].filter(x=>!routeActions.has(x)&&!nonRou
 if(missingRoutes.length)fail(`前台呼叫但 Worker 沒有路由：${missingRoutes.join('、')}`);
 
 if(read('worker.txt')!==worker)fail('worker.js 與正式部署副本 worker.txt 不一致');
-const platformPage=read('platform.html'),memberPage=read('member.html'),adminPage=read('admin.html'),indexPage=read('index.html');
+const platformPage=read('platform.html'),memberPage=read('member-panel.html'),adminPage=read('admin.html'),indexPage=read('index.html');
 requireText(indexPage,'function fallbackPublicImages(root=document)','公開活動圖片失效時必須顯示安全替代內容');
 const homeRefresh=read('doing-home-refresh.js'),homeRefreshCss=read('doing-home-refresh.css');
 requireText(homeRefresh,'openMemberWorkspaceAdmin(spaces[0],true)','單一營運空間必須先換發指定租戶憑證再進入預約日曆');
-requireText(memberPage,'createMemberWorkspaceAdminSession','會員中心必須先換發指定租戶憑證再進入後台');
-requireText(memberPage,'安排預約日曆','會員中心可直接進入預約日曆');
+requireText(memberPage,'createMemberWorkspaceAdminSession','會員功能面板必須先換發指定租戶憑證再進入後台');
+requireText(memberPage,'安排預約日曆','會員功能面板可直接進入預約日曆');
 requireText(adminPage,"if(from==='tenant'&&tenant)return {href:'index.html?tenant='+encodeURIComponent(tenant)",'租戶後台可回到原營運首頁');
 if(homeRefreshCss.includes('@media(max-width:820px){#doingGlobalFixedNav'))fail('手機樣式會把隱藏的全平台導覽錯誤顯示在租戶頁');
 for(const page of ['world','access','applications','tenants','billing','exposure','support','members']){
@@ -72,8 +76,8 @@ for(const page of ['world','access','applications','tenants','billing','exposure
   if(!platformPage.includes(`data-platform-panel="${page}"`))fail(`平台切頁缺少內容：${page}`);
 }
 if(platformPage.includes('scrollIntoView({behavior:\'smooth\''))fail('平台仍存在舊式長頁捲動導覽');
-if(memberPage.includes('查看品牌'))fail('會員中心仍存在語意不明的重複品牌跳頁');
-if((memberPage.match(/data-page="brands"/g)||[]).length!==1||(memberPage.match(/data-panel="brands"/g)||[]).length!==1)fail('會員中心必須只有一個正式「我的品牌」分頁與內容面板');
+if(memberPage.includes('查看品牌'))fail('會員功能面板仍存在語意不明的重複品牌跳頁');
+if((memberPage.match(/data-page="brands"/g)||[]).length!==1||(memberPage.match(/data-panel="brands"/g)||[]).length!==1)fail('會員功能面板必須只有一個正式「我的品牌」分頁與內容面板');
 for(const field of ['approvedAt','paymentReportedAt','paidAt','checkinAt','refundedAt','participants','addonQty'])if(!worker.includes(field))fail(`會員活動回傳缺少欄位：${field}`);
 for(const marker of ['application_created','application_submitted','application_approved','supplement_requested','application_rejected'])if(!worker.includes(marker))fail(`申請時間軸缺少事件：${marker}`);
 if(!adminPage.includes('admin-final-responsive-fix'))fail('主辦後台缺少最終響應式修正');
@@ -105,4 +109,4 @@ for(const module of capabilityMap.modules||[]){
   if(module.area!=='未來擴充'&&!module.route)fail(`世界地圖模組缺少對應操作頁：${module.title}`);
 }
 requireText(platformPage,'title="開啟對應功能"','世界地圖可直接進入相應功能');
-console.log(`全系統靜態驗收通過：${pages.length} 頁、${frontendActions.size} 個前端 API 動作、後台按鈕函式完整。`);
+console.log(`全系統靜態驗收通過：${pages.length} 個正式功能頁＋member 相容轉址、${frontendActions.size} 個前端 API 動作、後台按鈕函式完整。`);

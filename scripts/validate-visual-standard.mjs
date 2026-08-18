@@ -9,7 +9,7 @@ const tokens=fs.readFileSync(new URL('../doing-design-tokens.css',import.meta.ur
 const pageStyles=fs.readFileSync(new URL('../doing-pastel-pages.css',import.meta.url),'utf8');
 const rules=fs.readFileSync(new URL('../DOING_首頁視覺基準.md',import.meta.url),'utf8');
 const capabilities=JSON.parse(fs.readFileSync(new URL('../doing-capabilities.json',import.meta.url),'utf8'));
-const pages=['member.html','register.html','about.html','admin.html','platform.html','onsite.html','photo.html'];
+const pages=['member-panel.html','register.html','about.html','admin.html','platform.html','onsite.html','photo.html'];
 assert(home.includes('.price-card.primary .price-label')&&home.includes('color:#173943!important'),'收費方案白色標題膠囊必須使用深色文字，避免標題消失');
 assert(!homeProductScript.includes('doing-proof-section')&&!homeProductScript.includes('doingSupportMount'),'首頁不得保留重複流程說明或另一套客服面板');
 assert(homeProductScript.includes('id="doingPublicSupportFab"')&&homeProductScript.includes('function openPublicSupport()'),'首頁客服必須進入獨立的 DOING 民眾智慧小幫手');
@@ -60,6 +60,9 @@ for(const page of pages){
   assert.ok(tokensAt>=0,`${page} 尚未載入首頁設計 Token`);
   assert.ok(pageStylesAt>tokensAt,`${page} 的逐頁視覺層載入順序錯誤`);
 }
+const memberCompat=fs.readFileSync(new URL('../member.html',import.meta.url),'utf8');
+assert.match(memberCompat,/member-panel\.html/,'member.html 必須只負責相容轉址至內部會員面板');
+assert.doesNotMatch(memberCompat,/doing-design-tokens\.css/,'相容轉址頁不應再載入舊完整視覺資源');
 
 const visual=capabilities.modules.find(module=>module.id==='platform-visual');
 assert.ok(visual,'世界樹缺少 DOING 平台視覺基準');
@@ -71,4 +74,4 @@ assert.match(tokens,/--doing-brand-secondary:#ccefa8/);
 assert.doesNotMatch(pageStyles,/body\.doing-member\{[^}]*doing-brand-pink/);
 assert.doesNotMatch(pageStyles,/body\.doing-photo\{[^}]*doing-brand-pink/);
 
-console.log(JSON.stringify({result:'PASS',standard:'DOING Sky Mint v2',primary:'sky-blue',secondary:'mint',pink:'accent-only',paletteColors:Object.keys(palette).length,pagesApplied:pages.length,smallTiles:'rounded-square-only',worldTreeStatus:'all_core_pages_done'},null,2));
+console.log(JSON.stringify({result:'PASS',standard:'DOING Sky Mint v2',primary:'sky-blue',secondary:'mint',pink:'accent-only',paletteColors:Object.keys(palette).length,pagesApplied:pages.length,memberCompat:true,smallTiles:'rounded-square-only',worldTreeStatus:'all_core_pages_done'},null,2));
