@@ -155,6 +155,11 @@ async function resolveTenantForRequest(env, p, req) {
   return '';
 }
 
+function crossTenantTokenDenied(payload, tenantId) {
+  const hinted=jwtTenantHint(payload && (payload.token||payload.admin_token));
+  return !!(hinted && hinted!=='platform' && hinted!==String(tenantId||'').trim().toLowerCase());
+}
+
 // ── JWT / Token 安全層（Google OAuth 升級）──────────────────────
 // JWT_SECRET 必須來自環境變數，不得有任何預設值
 function jwtSecret(env) {
@@ -11490,6 +11495,7 @@ async function routeGet(env, action, p, req) {
   if (!TENANT) {
     return new Response(JSON.stringify({ok:false, error:'無法辨識主辦空間，請從主辦提供的活動連結進入'}), {status:400, headers:corsHeaders()});
   }
+  if(crossTenantTokenDenied(p,TENANT))return jsonErr('營運空間不一致，已阻擋跨租戶請求',403);
   p.tenant = TENANT;
   p._tenantId = TENANT;  // 注入供 handler 使用
   // 連線測試 / 診斷
@@ -11657,6 +11663,7 @@ async function routePost(env, action, b, ctx, req) {
   if (!TENANT) {
     return new Response(JSON.stringify({ok:false, error:'無法辨識主辦空間'}), {status:400, headers:corsHeaders()});
   }
+  if(crossTenantTokenDenied(b,TENANT))return jsonErr('營運空間不一致，已阻擋跨租戶請求',403);
   b.tenant = TENANT;
   b._tenantId = TENANT;  // 注入供 handler 使用
   // 注入來源 IP 與 User-Agent（供不可抗力同意證據寫入）

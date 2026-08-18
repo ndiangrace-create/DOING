@@ -161,6 +161,10 @@ try{
   tables.tenants.push({id:'unrelated-tenant',name:'其他租戶',status:'active'});
   const crossTenantWorkspace=await jsonAction('createMemberWorkspaceAdminSession',{member_token:applicationMemberToken,tenantId:'unrelated-tenant'});
   assert.match(crossTenantWorkspace.error||'',/沒有這個營運空間的管理權限/,'會員不可要求換發其他租戶的後台憑證');
+  const crossTenantGet=await (await request('/?action=getTenantModuleProfile&tenant=unrelated-tenant&email='+encodeURIComponent('formal-flow-test@doing.invalid')+'&token='+encodeURIComponent(ownerToken))).json();
+  assert.match(crossTenantGet.error||'',/營運空間不一致/,'GET 不可用甲租戶後台憑證指定乙租戶');
+  const crossTenantPost=await jsonAction('createSession',{tenant:'unrelated-tenant',email:'formal-flow-test@doing.invalid',token:ownerToken,name:'跨租戶阻擋測試',status:'關閉',dates:[],modules:{registration:true}});
+  assert.match(crossTenantPost.error||'',/營運空間不一致/,'POST 不可用甲租戶後台憑證指定乙租戶');
 
   const approvedSession=await jsonAction('createSession',{tenant:tenantId,email:'formal-flow-test@doing.invalid',token:ownerToken,name:'核准功能測試場次',status:'關閉',dates:[],modules:{registration:true,review:true,payment:true,equipment:true,seatSelection:true,checkin:true,invoice:false,workshopSlots:true,service:true,participants:true,customFields:true,addons:true,agreement:true,resource:false}});
   assert.equal(approvedSession.success,true);

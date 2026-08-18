@@ -49,6 +49,7 @@ assert(home.includes("tenantTop.textContent=memberAuth.complete?(memberAuth.work
 assert(member.includes('安排預約日曆')&&member.includes('data-workspace-calendar'),'會員中心缺少安全的預約日曆直達入口');
 assert(member.includes('createMemberWorkspaceAdminSession')&&member.includes('data-workspace-admin'),'會員中心仍可能沿用其他租戶的後台登入');
 assert(worker.includes("if(action==='createMemberWorkspaceAdminSession')"),'Worker 缺少會員指定租戶後台憑證交換');
+assert(worker.includes("crossTenantTokenDenied(p,TENANT)")&&worker.includes("crossTenantTokenDenied(b,TENANT)"),'GET／POST 缺少後台憑證與指定租戶不一致的共同阻擋');
 assert(admin.includes('營運空間不一致，已阻擋載入其他租戶資料'),'後台未阻擋網址租戶與登入租戶不一致');
 assert(admin.includes("ADMIN_PAGE_STATE_KEY+':'+(AdminState.tenantId||'unknown')"),'後台頁面記憶未依租戶隔離');
 assert(admin.includes("if(from==='tenant'&&tenant)return {href:'index.html?tenant='+encodeURIComponent(tenant)"),'租戶後台缺少回到原營運首頁的路徑');
