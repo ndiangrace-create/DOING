@@ -5,7 +5,8 @@ const ws=fs.readFileSync('workspace.html','utf8');
 const ge=fs.readFileSync('doing-global-entry.js','utf8');
 const home=fs.readFileSync('doing-home-refresh.js','utf8');
 const homeCore=fs.readFileSync('doing-home-refresh-core.js','utf8');
-const member=fs.readFileSync('member.html','utf8');
+const memberCompat=fs.readFileSync('member.html','utf8');
+const member=fs.readFileSync('member-panel.html','utf8');
 const sql=fs.readFileSync('supabase_workspace_v20_guard.sql','utf8');
 const tree=JSON.parse(fs.readFileSync('doing-world-tree-v20.json','utf8'));
 need(Number(tree.version)===20,'世界樹版本必須是 v20');
@@ -20,17 +21,18 @@ need(ws.includes('data-view="month"')&&ws.includes('data-view="week"')&&ws.inclu
 need(ws.includes('getSessionsAdmin')&&ws.includes('getOperationUnitsAdmin')&&ws.includes('getBookingCalendarAdmin'),'日曆未使用既有正式 API');
 need(!/localStorage|sessionStorage/.test(ws),'工作空間不可把營運資料寫入瀏覽器儲存');
 need(ws.includes('bookingCalendarIcs')&&ws.includes('calendar.google.com/calendar/render'),'Google／Apple 日曆第一階段入口不完整');
-need(ge.includes('workspace.html'),'會員入口尚未切到 v20 工作空間');
-need(ge.includes("new URL('index.html',location.href)")&&ge.includes("returnUrl.searchParams.set('doing_login_flow','workspace')")&&ge.includes("location.replace(u.toString())"),'member.html 相容入口仍可能停回舊會員中心或重啟錯誤 OAuth 路徑');
-need(ge.includes('autoOpenAttempted')&&ge.includes('{automatic:true}'),'工作空間自動登入缺少單次嘗試防迴圈');
+need(memberCompat.includes("new URL('member-panel.html'")&&memberCompat.includes("new URL('index.html'"),'舊 member.html 尚未降級為相容轉址檔');
+need(memberCompat.length<5000,'舊 member.html 仍殘留完整會員中心畫面');
+need(member.includes('createMemberWorkspaceAdminSession')&&member.includes('我的品牌')&&member.includes('帳號與聯絡資料'),'既有會員功能未完整保留在 member-panel.html');
 need(home.includes("FLOW_VALUE='workspace'")&&home.includes('handoffToWorkspace')&&home.includes('createMemberWorkspaceAdminSession'),'首頁 LINE callback 尚未統一直接交棒工作空間');
 need(home.includes('doing-home-refresh-core.js')&&homeCore.includes('function initMemberAuth'),'首頁既有功能核心未被完整保留');
-need(home.includes("u.searchParams.set('mode','member')")&&home.includes("returnUrl.searchParams.set(FLOW_KEY,FLOW_VALUE)"),'首頁 LINE 登入未鎖定 member workspace flow');
-need(!/換機密碼/.test(member)&&!/type=["']password["']/i.test(member),'一般會員登入不得顯示密碼／換機密碼欄位');
+need(!/換機密碼/.test(member)&&!/type=["']password["']/i.test(member),'一般會員功能不得顯示密碼／換機密碼欄位');
 need(sql.includes('doing_single_owned_workspace_guard')&&sql.includes('doing_single_workspace_application_guard'),'一個工作空間後端防線不完整');
 need(!sql.includes('create table'),'v20 guard 不得建立同功能異名資料表');
 need(tree.billing?.status==='not_decided_for_v20','v20 不得自行定案計費');
 need(tree.forbiddenTarget==='2bl-v7'&&tree.deploymentTarget==='tobeloved-api','部署安全邊界錯誤');
 need(/name=["']viewport["']/.test(ws)&&ws.includes('doing-system.css?v=20260817-system5'),'工作空間未套用正式響應式框架');
-for(const [name,src] of [['workspace',ws],['home-login-router',home],['member-global-entry',ge]]){if(name==='member-global-entry'){new vm.Script(src,{filename:'doing-global-entry.js'});continue}let scripts=0;for(const m of src.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){if(!m[1].trim())continue;new vm.Script(m[1],{filename:name+'#script'+(++scripts)});}if(name==='workspace')need(scripts>0,'工作空間缺少可執行腳本');if(name==='home-login-router')new vm.Script(src,{filename:'doing-home-refresh.js'});}
-console.log('DOING World Tree v20 路徑驗證通過：舊 member 相容入口 → 單一首頁 LINE 路由 → member token → 我的 DOING；無 OAuth 自動迴圈；會員功能同頁抽屜；一般會員無密碼欄；1 工作空間、5 工作模組、10 共用模組。');
+new vm.Script(ge,{filename:'doing-global-entry.js'});
+for(const [name,src] of [['workspace',ws],['member-panel',member]]){let scripts=0;for(const m of src.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){if(!m[1].trim())continue;new vm.Script(m[1],{filename:name+'#script'+(++scripts)});}need(scripts>0,name+' 缺少可執行腳本');}
+new vm.Script(home,{filename:'doing-home-refresh.js'});
+console.log('DOING World Tree v20 路徑驗證通過：舊 member.html 已移除完整 UI，只保留相容轉址；既有會員功能完整保留於 member-panel；首頁 → LINE → 我的 DOING；1 工作空間、5 工作模組、10 共用模組。');
