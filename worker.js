@@ -3452,6 +3452,23 @@ async function hGetPlatformMemberProfile(env,p){
   return jsonOk({profile:{id:memberId,email,name:verified.row.name||verified.row.display_name||'',phone:verified.row.phone||'',lineId:verified.row.line_id||'',city:verified.row.city||'',primaryBrandId:primary?.id||v.brandId||'',brand:brandName,brand_name:brandName,brandIntro,sellCat:brandCategory,sellItem:brandItems,fb:primary?.facebook||v.facebook||'',ig:primary?.instagram||v.instagram||'',photo:primary?.photoUrl||v.photoUrl||'',company:primary?.company||v.company||'',taxId:primary?.taxId||v.taxId||''},brands,complete:platformMemberComplete(verified.row),provider:verified.row._identity?.provider||'',linkedProviders:[...new Set(identities.map(x=>String(x.provider||'')).filter(Boolean))],roles,platformAccess:platformStaff?{role:'platform_super_admin',name:platformStaff.name||'DOING 平台總管理者'}:null,applications:applications.map(x=>{const a=safeJson(x.application_json,{});return{id:x.id,unitName:a.unitName||x.brand_name||'',industryCategories:Array.isArray(a.industryCategories)?a.industryCategories:[],useCases:Array.isArray(a.useCases)?a.useCases:[],status:x.status||'pending',createdAt:x.created_at||'',approvedAt:x.approved_at||a.approvedAt||'',supplementRequestedAt:x.supplement_requested_at||a.supplementRequestedAt||'',supplementSubmittedAt:x.supplement_submitted_at||a.supplementSubmittedAt||'',rejectedAt:x.rejected_at||a.rejectedAt||'',tenantId:x.tenant_id||'',timeline:Array.isArray(a.timeline)?a.timeline:[]}}),workspaces:workspaces.map(x=>({id:x.tenant_id||x.id,name:x.name||x.tenant_id||x.id,role:x.role||'',isLocked:!!x.is_locked,lockedReason:x.locked_reason||''}))});
 }
 
+async function hCreateMemberWorkspaceAdminSession(env,b){
+  const verified=await verifiedPlatformMember(env,b.member_token||b.memberToken);
+  if(!verified||!verified.row||!verified.row.id)return jsonErr('會員登入已失效，請重新使用 LINE 登入',401);
+  const tenantId=String(b.tenantId||b.tenant_id||b.tenant||'').trim().toLowerCase();
+  if(!tenantId||tenantId==='platform')return jsonErr('找不到指定的營運空間',400);
+  const staff=await findStaffForPlatformMember(env,verified.row.id,tenantId);
+  if(!staff)return jsonErr('你沒有這個營運空間的管理權限',403);
+  const active=staff.is_active!==undefined?staff.is_active:staff.active;
+  if(active===false)return jsonErr('這個營運空間的管理權限已停用',403);
+  const tenantRows=await dbGet(env,'tenants',`id=eq.${encodeURIComponent(tenantId)}&status=eq.active&select=id,name,is_locked,locked_reason&limit=1`).catch(()=>[]);
+  const tenant=tenantRows[0];if(!tenant)return jsonErr('找不到可使用的營運空間',404);
+  const token=await issueAdminToken({...staff,email:staff.email||platformContactEmail(verified.row)},tenantId,env);
+  await dbUpdate(env,'staff',`id=eq.${encodeURIComponent(staff.id)}&tenant_id=eq.${encodeURIComponent(tenantId)}`,{last_login_at:nowIso(),platform_member_id:verified.row.id}).catch(()=>{});
+  await logAdminLogin(env,tenantId,staff.id,staff.email||platformContactEmail(verified.row),'member_session','success','tenant_session_exchange','','').catch(()=>{});
+  return jsonOk({ok:true,adminToken:token,tenantId,tenantName:tenant.name||tenantId,locked:!!tenant.is_locked,lockedReason:tenant.locked_reason||''});
+}
+
 function isQaApplication(row){
   const app=safeJson(row&&row.application_json,{}),name=String(app.unitName||(row&&row.brand_name)||'').trim();
   return app.qaTest===true||Boolean(String(app.qaRun||'').trim())||/^DOING QA(?:\s|$)/i.test(name);
@@ -11615,6 +11632,7 @@ async function routePost(env, action, b, ctx, req) {
   if(action==='createPlatformAccessInvite')return hCreatePlatformAccessInvite(env,b);
   if(action==='setPlatformAccessActive')return hSetPlatformAccessActive(env,b);
   if(action==='savePlatformMemberProfile')return hSavePlatformMemberProfile(env,b);
+  if(action==='createMemberWorkspaceAdminSession')return hCreateMemberWorkspaceAdminSession(env,b);
   if(action==='analyzeDoingApplication')return hAnalyzeDoingApplication(env,b);
   if(action==='rateDoingHelperReply')return hRateDoingHelperReply(env,b);
   if(action==='publishDoingHelperKnowledge')return hPublishDoingHelperKnowledge(env,b);

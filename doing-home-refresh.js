@@ -546,6 +546,7 @@ function openMyLogin(){closeMyEntry();if(memberAuth.complete)location.href='memb
 function startFirstApplication(){closeMyEntry();openMemberGate()}
 
 const memberAuth={token:'',profile:null,complete:false,resume:null,provider:'',linkedProviders:[],roles:[],applications:[],workspaces:[],brands:[]};
+async function openMemberWorkspaceAdmin(space,calendar=true){const tenantId=String(space&&space.id||'').trim().toLowerCase();if(!tenantId||!memberAuth.token){location.href='member.html#operations';return}try{const d=await apiPost('createMemberWorkspaceAdminSession',{member_token:memberAuth.token,tenantId});const u=new URL('admin.html',location.href);u.searchParams.set('tenant',d.tenantId);u.searchParams.set('from','tenant');u.searchParams.set('admin_token',d.adminToken);if(calendar)u.hash='calendar';location.href=u.toString()}catch(e){if(typeof toast==='function')toast(e.message||'無法進入這個營運空間');else alert(e.message||'無法進入這個營運空間')}}
 function isLineBrowser(){return /\bLine\//i.test(navigator.userAgent)||/LIFF/i.test(navigator.userAgent)}
 function memberReturnUrl(){const u=new URL(location.href);['member_token','member_status','member_login_error','login_error','member_linked'].forEach(k=>u.searchParams.delete(k));return u.toString()}
 function authStart(provider){
@@ -644,7 +645,7 @@ function wireSearch(){
 function wire(){
   ensureMemberGate();
   if(!isGlobal){
-    const openTenantMember=()=>{if(!memberAuth.complete){openMemberGate();return}const spaces=memberAuth.workspaces||[];location.href=spaces.length===1?`admin.html?tenant=${encodeURIComponent(spaces[0].id)}&from=tenant#calendar`:'member.html#operations'};
+    const openTenantMember=()=>{if(!memberAuth.complete){openMemberGate();return}const spaces=memberAuth.workspaces||[];if(spaces.length===1){openMemberWorkspaceAdmin(spaces[0],true);return}location.href='member.html#operations'};
     const top=$('memberLoginBtn');if(top)top.onclick=openTenantMember;
     document.querySelectorAll('.bottom-nav button[data-page="my"]').forEach(x=>x.onclick=openTenantMember);
     initMemberAuth();return

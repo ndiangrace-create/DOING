@@ -59,7 +59,8 @@ if(read('worker.txt')!==worker)fail('worker.js 與正式部署副本 worker.txt 
 const platformPage=read('platform.html'),memberPage=read('member.html'),adminPage=read('admin.html'),indexPage=read('index.html');
 requireText(indexPage,'function fallbackPublicImages(root=document)','公開活動圖片失效時必須顯示安全替代內容');
 const homeRefresh=read('doing-home-refresh.js'),homeRefreshCss=read('doing-home-refresh.css');
-requireText(homeRefresh,"spaces.length===1?`admin.html?tenant=${encodeURIComponent(spaces[0].id)}&from=tenant#calendar`:'member.html#operations'",'單一營運空間直接進入預約日曆，多空間先選擇');
+requireText(homeRefresh,'openMemberWorkspaceAdmin(spaces[0],true)','單一營運空間必須先換發指定租戶憑證再進入預約日曆');
+requireText(memberPage,'createMemberWorkspaceAdminSession','會員中心必須先換發指定租戶憑證再進入後台');
 requireText(memberPage,'安排預約日曆','會員中心可直接進入預約日曆');
 requireText(adminPage,"if(from==='tenant'&&tenant)return {href:'index.html?tenant='+encodeURIComponent(tenant)",'租戶後台可回到原營運首頁');
 if(homeRefreshCss.includes('@media(max-width:820px){#doingGlobalFixedNav'))fail('手機樣式會把隱藏的全平台導覽錯誤顯示在租戶頁');

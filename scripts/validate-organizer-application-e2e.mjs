@@ -154,6 +154,14 @@ try{
   const profileRes=await request('/?action=getTenantModuleProfile&tenant='+encodeURIComponent(tenantId)+'&email='+encodeURIComponent('formal-flow-test@doing.invalid')+'&token='+encodeURIComponent(ownerToken));
   const profile=await profileRes.json();assert.equal(profile.approvedFlags.invoice,false);assert.equal(profile.approvedFlags.workshopSlots,true);
 
+  const memberWorkspaceSession=await jsonAction('createMemberWorkspaceAdminSession',{member_token:applicationMemberToken,tenantId});
+  assert.equal(memberWorkspaceSession.ok,true);assert.equal(memberWorkspaceSession.tenantId,tenantId);assert.ok(memberWorkspaceSession.adminToken,'會員進入指定營運空間時必須換發該租戶專用後台憑證');
+  const memberAdminMe=await (await request('/?action=adminMe&email=_&token='+encodeURIComponent(memberWorkspaceSession.adminToken))).json();
+  assert.equal(memberAdminMe.tenant_id,tenantId,'會員後台憑證不可沿用其他租戶');
+  tables.tenants.push({id:'unrelated-tenant',name:'其他租戶',status:'active'});
+  const crossTenantWorkspace=await jsonAction('createMemberWorkspaceAdminSession',{member_token:applicationMemberToken,tenantId:'unrelated-tenant'});
+  assert.match(crossTenantWorkspace.error||'',/沒有這個營運空間的管理權限/,'會員不可要求換發其他租戶的後台憑證');
+
   const approvedSession=await jsonAction('createSession',{tenant:tenantId,email:'formal-flow-test@doing.invalid',token:ownerToken,name:'核准功能測試場次',status:'關閉',dates:[],modules:{registration:true,review:true,payment:true,equipment:true,seatSelection:true,checkin:true,invoice:false,workshopSlots:true,service:true,participants:true,customFields:true,addons:true,agreement:true,resource:false}});
   assert.equal(approvedSession.success,true);
   const blockedSession=await jsonAction('createSession',{tenant:tenantId,email:'formal-flow-test@doing.invalid',token:ownerToken,name:'未核准功能阻擋測試',status:'關閉',dates:[],modules:{registration:true,resource:true}});

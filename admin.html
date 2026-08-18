@@ -2284,8 +2284,9 @@ async function apiPost(body={}){
   finally{clearTimeout(timer)}
 }
 function currentTenantFromUrl(){
-  return String(new URL(location.href).searchParams.get('tenant')||localStorage.getItem(TENANT_KEY)||AdminState.tenantId||'').trim().toLowerCase();
+  return String(new URL(location.href).searchParams.get('tenant')||sessionStorage.getItem(TENANT_KEY)||AdminState.tenantId||'').trim().toLowerCase();
 }
+function requestedTenantFromUrl(){return String(new URL(location.href).searchParams.get('tenant')||'').trim().toLowerCase()}
 function startGoogleLogin(){
   const tenant=currentTenantFromUrl();
   if(!tenant){ toast('找不到主辦帳號，請回到公開首頁後長按左上品牌圖示 3 秒進入主辦工作台',6000); return; }
@@ -2309,6 +2310,8 @@ async function handleOAuthCallback(){
   try{
     const j=await fetch(endpoint()+'?action=adminMe&email=_&token='+encodeURIComponent(token)+'&_t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
     if(j.error||!j.email) throw new Error(j.error||'無權限登入後台');
+    const requested=requestedTenantFromUrl();
+    if(requested&&String(j.tenant_id||'').trim().toLowerCase()!==requested)throw new Error('營運空間不一致，已阻擋載入其他租戶資料');
     AdminState.tenantId=String(j.tenant_id||j.tenant?.id||'').trim();
     if(!AdminState.tenantId) throw new Error('登入資料不完整，請重新登入');
     sessionStorage.setItem(TENANT_KEY,AdminState.tenantId);
@@ -2358,12 +2361,12 @@ function saveAdminPageState(page){
   try{
     const p=page||AdminState.currentPage||'sessions', L=AdminState.currentLayer||'root';
     const st={page:p,layer:L,sid:AdminState.currentSessionId||'',filter:AdminState.currentFilter||'',dateKey:(L==='equipment')?(AdminState._navDateKey||''):'',dateLabel:(L==='equipment')?(AdminState._navDateLabel||''):'',updatedAt:Date.now()};
-    localStorage.setItem(ADMIN_PAGE_STATE_KEY,JSON.stringify(st));
+    localStorage.setItem(ADMIN_PAGE_STATE_KEY+':'+(AdminState.tenantId||'unknown'),JSON.stringify(st));
   }catch(e){}
 }
 function readAdminPageState(){
   try{
-    const raw=localStorage.getItem(ADMIN_PAGE_STATE_KEY); if(!raw)return null;
+    const raw=localStorage.getItem(ADMIN_PAGE_STATE_KEY+':'+(AdminState.tenantId||'unknown')); if(!raw)return null;
     const st=JSON.parse(raw);
     if(!st||!['sessions','calendar','finance','billing','todos','onsite','members','settings'].includes(st.page))return null;
     return st;
@@ -2372,6 +2375,7 @@ function readAdminPageState(){
 function logout(){
   if(AdminState.email&&AdminState.token) apiPost({action:'adminLogout'}).catch(()=>{});
   localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(TENANT_KEY);
   sessionStorage.removeItem(TENANT_KEY);
   location.reload();
 }
@@ -5546,8 +5550,11 @@ async function saveHomepageSettings(btn){ const old=btn.textContent; btn.disable
     try{
       const j=await fetch(endpoint()+'?action=adminMe&email=_&token='+encodeURIComponent(saved.token)+'&_t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
       if(j.error||!j.email) throw new Error(j.error||'登入已失效');
+      const requested=requestedTenantFromUrl();
+      if(requested&&String(j.tenant_id||'').trim().toLowerCase()!==requested){localStorage.removeItem(SESSION_KEY);sessionStorage.removeItem(TENANT_KEY);throw new Error('已阻擋沿用其他營運空間的登入，請從會員中心重新進入');}
       AdminState.tenantId=String(j.tenant_id||j.tenant?.id||saved.tenantId||'').trim();
       if(!AdminState.tenantId) throw new Error('登入資料不完整，請重新登入');
+      sessionStorage.setItem(TENANT_KEY,AdminState.tenantId);
       saveSession({email:j.email,token:saved.token,role:j.normalized_role||j.role||'',name:j.display_name||j.name||j.email,tenantId:AdminState.tenantId});
       enterAdmin();
     }catch(e){

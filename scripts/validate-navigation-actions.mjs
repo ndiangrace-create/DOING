@@ -44,9 +44,13 @@ for(const file of ['platform.html','admin.html','about.html','onsite.html','phot
 assert(read('index.html').includes("hiddenAdminSelector='#brandHoldTarget,.doing-nav-brand'"),'首頁總管入口條件遺失');
 assert(read('register.html').includes('setTimeout(()=>{cancelAdminHold();'),'活動頁總管入口條件遺失');
 assert(read('doing-global-entry.js').includes('setTimeout(enter,3000)'),'共同入口不是 3 秒長按');
-assert(home.includes("spaces.length===1?`admin.html?tenant=${encodeURIComponent(spaces[0].id)}&from=tenant#calendar`:'member.html#operations'"),'租戶會員入口未依單一／多營運空間正確分流');
+assert(home.includes('openMemberWorkspaceAdmin(spaces[0],true)'),'租戶會員入口未換發指定租戶的後台憑證');
 assert(home.includes("tenantTop.textContent=memberAuth.complete?(memberAuth.workspaces.length===1?'營運管理':'我的 DOING'):'LINE 登入'"),'租戶登入按鈕未清楚顯示營運入口');
-assert(member.includes('安排預約日曆')&&member.includes('&from=member#calendar'),'會員中心缺少預約日曆直達入口');
+assert(member.includes('安排預約日曆')&&member.includes('data-workspace-calendar'),'會員中心缺少安全的預約日曆直達入口');
+assert(member.includes('createMemberWorkspaceAdminSession')&&member.includes('data-workspace-admin'),'會員中心仍可能沿用其他租戶的後台登入');
+assert(worker.includes("if(action==='createMemberWorkspaceAdminSession')"),'Worker 缺少會員指定租戶後台憑證交換');
+assert(admin.includes('營運空間不一致，已阻擋載入其他租戶資料'),'後台未阻擋網址租戶與登入租戶不一致');
+assert(admin.includes("ADMIN_PAGE_STATE_KEY+':'+(AdminState.tenantId||'unknown')"),'後台頁面記憶未依租戶隔離');
 assert(admin.includes("if(from==='tenant'&&tenant)return {href:'index.html?tenant='+encodeURIComponent(tenant)"),'租戶後台缺少回到原營運首頁的路徑');
 assert(admin.includes("const ADMIN_HASH_PAGES=new Set(['sessions','calendar'")&&admin.includes("if(page==='calendar')loadUnifiedCalendar()"),'主辦後台的日曆深連結未接到正式日曆');
 
