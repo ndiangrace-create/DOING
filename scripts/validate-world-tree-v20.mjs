@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import vm from 'node:vm';
 const need=(ok,msg)=>{if(!ok)throw new Error(msg)};
 const ws=fs.readFileSync('workspace.html','utf8');
 const ge=fs.readFileSync('doing-global-entry.js','utf8');
@@ -20,4 +21,5 @@ need(!sql.includes('create table'),'v20 guard 不得建立同功能異名資料�
 need(tree.billing?.status==='not_decided_for_v20','v20 不得自行定案計費');
 need(tree.forbiddenTarget==='2bl-v7'&&tree.deploymentTarget==='tobeloved-api','部署安全邊界錯誤');
 need(/name=["']viewport["']/.test(ws)&&ws.includes('doing-system.css?v=20260817-system5'),'工作空間未套用正式響應式框架');
+let scripts=0;for(const m of ws.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){if(!m[1].trim())continue;new vm.Script(m[1],{filename:'workspace.html#script'+(++scripts)});}need(scripts>0,'工作空間缺少可執行腳本');
 console.log('DOING World Tree v20 結構驗證通過：1 工作空間、格狀日曆、5 工作模組、10 共用模組。');
