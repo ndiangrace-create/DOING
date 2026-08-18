@@ -2,7 +2,7 @@ import fs from 'node:fs';
 
 const read=file=>fs.readFileSync(file,'utf8');
 const assert=(value,message)=>{if(!value)throw new Error(message)};
-const platform=read('platform.html'),worker=read('worker.js'),admin=read('admin.html'),home=read('doing-home-refresh.js'),member=read('member.html');
+const platform=read('platform.html'),worker=read('worker.js'),admin=read('admin.html'),home=read('doing-home-refresh.js'),member=read('member.html'),register=read('register.html');
 
 for(const target of ['billing','issues','tenants','applications'])assert(platform.includes(`'${target}'`),`營運 KPI 缺少明確對應：${target}`);
 assert(platform.includes('id="platformOperationsDashboard"'),'平台缺少營運總覽');
@@ -42,7 +42,10 @@ for(const file of ['platform.html','admin.html','about.html','onsite.html','phot
   assert(read(file).includes('我的 DOING'),`${file} 缺少回到我的 DOING`);
 }
 assert(read('index.html').includes("hiddenAdminSelector='#brandHoldTarget,.doing-nav-brand'"),'首頁總管入口條件遺失');
-assert(read('register.html').includes('setTimeout(()=>{cancelAdminHold();'),'活動頁總管入口條件遺失');
+assert(register.includes('setTimeout(()=>{cancelAdminHold();'),'活動頁總管入口條件遺失');
+assert(register.includes("u.searchParams.set('tenant',urlTenant)"),'活動頁沒有把網址租戶帶入 frontBootstrap，會讀錯主辦空間');
+assert(register.includes("String(state.tenant||new URL(location.href).searchParams.get('tenant')"),'活動頁總管入口沒有使用目前租戶');
+assert(!register.includes('String(S.tenant||'),'活動頁仍引用不存在的租戶狀態變數');
 assert(read('doing-global-entry.js').includes('setTimeout(enter,3000)'),'共同入口不是 3 秒長按');
 assert(home.includes('openMemberWorkspaceAdmin(spaces[0],true)'),'租戶會員入口未換發指定租戶的後台憑證');
 assert(home.includes("tenantTop.textContent=memberAuth.complete?(memberAuth.workspaces.length===1?'營運管理':'我的 DOING'):'LINE 登入'"),'租戶登入按鈕未清楚顯示營運入口');
