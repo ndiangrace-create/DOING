@@ -5,7 +5,7 @@ const read=file=>fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
 const homeRouter=read('doing-home-refresh.js');
 const homeCore=fs.existsSync(new URL('../doing-home-refresh-core.js',import.meta.url))?read('doing-home-refresh-core.js'):homeRouter;
 const files={
-  index:read('index.html'),register:read('register.html'),member:read('member.html'),admin:read('admin.html'),
+  index:read('index.html'),register:read('register.html'),member:read('member-panel.html'),memberCompat:read('member.html'),admin:read('admin.html'),
   platform:read('platform.html'),about:read('about.html'),home:homeCore,homeRouter,worker:read('worker.js'),
   schema:read('supabase_login_identity_link.sql'),sources:read('doing-data-sources.json')
 };
@@ -13,6 +13,9 @@ const files={
 for(const [name,source] of Object.entries({index:files.index,register:files.register,member:files.member,admin:files.admin,platform:files.platform,about:files.about,home:files.home})){
   assert.match(source,/LINE 登入|LINE 驗證/,`${name} 缺少目前公開的 LINE 入口`);
 }
+assert.match(files.memberCompat,/member-panel\.html/,'member 相容入口未導向內部會員面板');
+assert.match(files.memberCompat,/index\.html/,'member 相容入口未回到新版首頁');
+assert.doesNotMatch(files.memberCompat,/使用 LINE 登入/,'member 相容入口不得再顯示舊登入 UI');
 for(const [name,source] of Object.entries({index:files.index,register:files.register,admin:files.admin,platform:files.platform})){
   assert.match(source,/Google 備援登入/,`${name} 的管理入口缺少 Google 備援登入`);
 }
@@ -54,8 +57,8 @@ assert.match(files.worker,/loginProvider:'google'/,'Google 申請完成後必須
 assert.match(files.worker,/platform_member_id/,'管理權限未連到共用會員編號');
 assert.match(files.worker,/roles\.push\('platform_admin'\)/,'共用會員資料未回傳平台總管理者身分');
 assert.match(files.worker,/platformAccess:platformStaff/,'會員中心缺少安全綁定後的平台入口資料');
-assert.match(files.member,/進入平台總管理者/,'會員中心缺少平台總管理者入口');
-assert.match(files.member,/需要備援登入時，可同步本人的 Google 帳號/,'會員中心未提供 Google 備援同步入口');
+assert.match(files.member,/進入平台總管理者/,'會員功能面板缺少平台總管理者入口');
+assert.match(files.member,/需要備援登入時，可同步本人的 Google 帳號/,'會員功能面板未提供 Google 備援同步入口');
 assert.match(files.platform,/同步登入帳號/,'平台登入頁缺少安全接回指引');
 assert.match(files.worker,/issueStaffInviteToken/,'缺少管理人員簽名邀請');
 assert.match(files.worker,/acceptStaffInvite/,'缺少本人 LINE 接受管理邀請流程');
@@ -70,4 +73,4 @@ for(const tableName of ['staff','platform_staff']){
 }
 const platformMembers=catalog.tables.find(x=>x.name==='platform_members');assert.ok(platformMembers);for(const column of ['contact_email','phone_normalized'])assert.ok(platformMembers.columns.includes(column),`platform_members 未登記 ${column}`);
 
-console.log(JSON.stringify({result:'PASS',publicLogin:'line',publicLoginRouting:files.homeRouter!==files.home?'single_router_to_workspace':'legacy_inline',managementBackupLogin:'google_visible_after_account_sync',lineEmail:'optional_until_provider_permission_is_enabled',identityAuthority:'provider_subject',accountMerge:'same_verified_provider_email_or_explicit_dual_login',emailPolicy:'unique_member_contact',phonePolicy:'unique_member_contact_without_identity_impersonation',loginPolicy:'oauth_login_allowed_duplicate_formal_write_blocked',adminBinding:'signed_email_invite_then_authenticated_line_accept',legacyAdminBinding:'verified_provider_email_only'},null,2));
+console.log(JSON.stringify({result:'PASS',publicLogin:'line',memberCompat:'redirect_only',publicLoginRouting:files.homeRouter!==files.home?'single_router_to_workspace':'legacy_inline',managementBackupLogin:'google_visible_after_account_sync',lineEmail:'optional_until_provider_permission_is_enabled',identityAuthority:'provider_subject',accountMerge:'same_verified_provider_email_or_explicit_dual_login',emailPolicy:'unique_member_contact',phonePolicy:'unique_member_contact_without_identity_impersonation',loginPolicy:'oauth_login_allowed_duplicate_formal_write_blocked',adminBinding:'signed_email_invite_then_authenticated_line_accept',legacyAdminBinding:'verified_provider_email_only'},null,2));
