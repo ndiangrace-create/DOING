@@ -41,16 +41,23 @@ async function createWorkspaceSession(token,tenantId){
   if(!r.ok||d.ok===false)throw new Error(d.error||'無法進入工作空間');
   return d.data??d.result??d;
 }
+async function openMemberWorkspaceAdmin(space,calendar=true){
+  const token=incomingToken||(()=>{try{return localStorage.getItem('doing_member_token')||''}catch(_){return''}})();
+  const tenantId=String(space?.id||space?.tenantId||space?.tenant_id||'').trim().toLowerCase();
+  if(!token||!tenantId)return false;
+  const session=await createWorkspaceSession(token,tenantId);
+  const u=workspaceTarget(session.tenantId||tenantId,session.adminToken||'');
+  if(calendar)u.hash='calendar';
+  location.replace(u.toString());
+  return true;
+}
 async function handoffToWorkspace(token,status){
   if(!token)return false;
   try{localStorage.setItem('doing_member_token',token)}catch(_){}
   const profile=await getProfile(token);
   if(!profile.complete){location.replace(memberTarget(token,'account',status||'profile_required').toString());return true;}
   const spaces=Array.isArray(profile.workspaces)?profile.workspaces:[];
-  if(spaces.length===1){
-    const tenantId=String(spaces[0]?.id||spaces[0]?.tenantId||spaces[0]?.tenant_id||'').trim().toLowerCase();
-    if(tenantId){const session=await createWorkspaceSession(token,tenantId);location.replace(workspaceTarget(session.tenantId||tenantId,session.adminToken||'').toString());return true;}
-  }
+  if(spaces.length===1){await openMemberWorkspaceAdmin(spaces[0],true);return true;}
   location.replace(memberTarget(token,spaces.length>1?'operations':'home',status||'ready').toString());
   return true;
 }
