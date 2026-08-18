@@ -17,21 +17,25 @@ if(targets.length){
  document.addEventListener('contextmenu',e=>{if(e.target.closest?.('[data-doing-admin-entry]'))e.preventDefault()},true);
 }
 
-// V20.2: member.html is a callback/compatibility layer, not an OAuth loop.
-// LINE may only be auto-started by an explicit ?login=1 request. A callback,
-// error, direct URL, or workspace fallback never re-launches OAuth by itself.
+// V20.3: member.html is only a compatibility/special-purpose page.
+// Normal visits must not stop on the legacy member UI. They either start LINE
+// once and return to the unified homepage router, or hand an existing member
+// token to the V20 workspace flow. Invite/account sections stay available.
 if(/(?:^|\/)member\.html$/i.test(location.pathname)){
  const TOKEN_KEY='doing_member_token';
  const params=()=>new URL(location.href).searchParams;
  const memberToken=()=>sessionStorage.getItem(TOKEN_KEY)||localStorage.getItem(TOKEN_KEY)||'';
  const explicitMemberSection=()=>/^#(?:activities|brands|account|operations)$/i.test(location.hash||'');
  const inviteMode=()=>params().has('staff_invite')||params().has('registration_invite');
- const loginRequested=()=>params().get('login')==='1';
  let autoOpening=false,autoOpenAttempted=false,lineStartAttempted=false;
  function startMemberLineLogin(){
    if(lineStartAttempted)return;lineStartAttempted=true;
-   const returnUrl=new URL('member.html',location.href);returnUrl.searchParams.delete('login');
-   const u=new URL(API+'/auth/line/start');u.searchParams.set('mode','member');u.searchParams.set('return_url',returnUrl.toString());location.replace(u.toString());
+   const returnUrl=new URL('index.html',location.href);
+   returnUrl.searchParams.set('doing_login_flow','workspace');
+   const u=new URL(API+'/auth/line/start');
+   u.searchParams.set('mode','member');
+   u.searchParams.set('return_url',returnUrl.toString());
+   location.replace(u.toString());
  }
  async function openV20Workspace(id,{automatic=false}={}){
    if(autoOpening)return;autoOpening=true;if(automatic)autoOpenAttempted=true;
@@ -56,7 +60,9 @@ if(/(?:^|\/)member\.html$/i.test(location.pathname)){
    }
  }
  const incoming=params().get('member_token'),loginError=params().get('member_login_error')||params().get('login_error');
- if(loginRequested()&&!memberToken()&&!inviteMode()&&!incoming&&!loginError){startMemberLineLogin();return;}
+ if(!memberToken()&&!inviteMode()&&!incoming&&!loginError&&!explicitMemberSection()){
+   startMemberLineLogin();return;
+ }
  const mo=new MutationObserver(applyMemberV20);mo.observe(document.documentElement,{childList:true,subtree:true});applyMemberV20();
  document.addEventListener('click',e=>{const el=e.target.closest?.('[data-v20-workspace]');if(!el)return;const id=el.getAttribute('data-v20-workspace');if(!id)return;e.preventDefault();e.stopImmediatePropagation();el.disabled=true;openV20Workspace(id).catch(err=>{alert(err.message||'無法進入工作空間');el.disabled=false})},true);
 }
