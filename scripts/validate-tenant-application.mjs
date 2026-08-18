@@ -1,9 +1,10 @@
 import fs from 'node:fs';
 
 const read=file=>fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
-const worker=read('worker.js'),about=read('about.html'),platform=read('platform.html'),admin=read('admin.html'),member=read('member.html');
+const worker=read('worker.js'),about=read('about.html'),platform=read('platform.html'),admin=read('admin.html'),member=read('member-panel.html'),memberCompat=read('member.html');
 const requiredKeys=['registration','review','payment','equipment','seatSelection','checkin','invoice','workshopSlots','service','resource','participants','customFields','addons','agreement','i18n','googleCalendar'];
 
+if(!memberCompat.includes('member-panel.html')||!memberCompat.includes('index.html'))throw new Error('member 相容入口未正確分流');
 for(const key of requiredKeys){
   if(!worker.includes(`${key}: true`))throw new Error(`Worker 核准模組缺少 ${key}`);
   if(!platform.includes(`${key}:`))throw new Error(`平台模組標籤缺少 ${key}`);
@@ -28,9 +29,8 @@ for(const handler of ['hCreateSession','hUpdateSession','hSaveOperationUnit']){
 }
 if(!admin.includes('系統會直接帶入已核准的常用功能'))throw new Error('主辦新增場次沒有說明核准模組預設');
 if(!admin.includes('尚未核准'))throw new Error('主辦場次編輯器沒有標示未核准功能');
-if(!member.includes('申請營運帳號'))throw new Error('會員中心缺少營運帳號入口');
+if(!member.includes('申請營運帳號'))throw new Error('會員功能面板缺少營運帳號入口');
 
-// 模擬五種實際營運情境的問卷配套，不接受只有名稱、沒有可操作功能的空模組。
 const blueprints={
   market:['registration','review','payment','equipment','seatSelection','addons','agreement','invoice','checkin','customFields','googleCalendar'],
   event:['registration','review','payment','participants','customFields','agreement','invoice','checkin','googleCalendar'],
@@ -46,7 +46,6 @@ for(const [type,keys] of Object.entries(blueprints)){
   }
 }
 
-// 模擬：市集申請 → 平台移除付款 → 主辦預設與 API 均不得重新開啟付款。
 const questionnaire=Object.fromEntries(blueprints.market.map(k=>[k,true]));
 const platformChoice={...questionnaire,payment:false};
 const approved=Object.fromEntries(requiredKeys.map(k=>[k,k==='registration'?true:platformChoice[k]===true]));
@@ -55,7 +54,6 @@ for(const key of requiredKeys)if(approved[key]===false)organizerDefaults[key]=fa
 if(!approved.registration||!approved.seatSelection||!approved.customFields)throw new Error('申請建議模組沒有正確通過');
 if(approved.payment||organizerDefaults.payment)throw new Error('平台關閉的模組仍能進入主辦預設');
 
-// 每個被問卷開啟的核心模組，都必須同時具備前台輸入、後端驗證／處理或正式管理畫面。
 const functionalEvidence={
   review:['needReview','review_status'],payment:['payment','payments'],equipment:['equipment','equip_json'],
   seatSelection:['seatSelection','stalls'],checkin:['checkin','checkin'],invoice:['invoice','invoice'],
