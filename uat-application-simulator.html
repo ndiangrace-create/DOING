@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>DOING｜申請流程 UAT 模擬</title>
+<style>
+:root{--bg:#f6faf9;--paper:#fff;--ink:#26343d;--muted:#66747d;--line:#dfe9e7;--main:#4f8f9d;--mint:#eaf5f1;--sky:#edf5f8;--shadow:0 12px 34px rgba(49,73,82,.08)}*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","Segoe UI",sans-serif}button,input{font:inherit}.top{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.topin{max-width:980px;margin:auto;display:flex;align-items:center;gap:10px;padding:10px 14px}.top img{width:40px;height:40px;object-fit:contain}.top b{font-size:18px}.badge{margin-left:auto;padding:6px 9px;border-radius:9px;background:var(--mint);color:#315e5a;font-size:12px;font-weight:900}.shell{max-width:980px;margin:auto;padding:18px 14px 70px}.hero{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--shadow)}.hero small{color:var(--main);font-weight:900}.hero h1{font-size:clamp(28px,5vw,44px);margin:6px 0 8px}.hero p{margin:0;color:var(--muted);line-height:1.7}.progress{margin:14px 0 18px;display:flex;gap:6px}.progress i{height:7px;flex:1;background:#dfe7e6;border-radius:999px}.progress i.on{background:var(--main)}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}.head{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}.head h2{margin:0;font-size:24px}.head p{margin:5px 0 0;color:var(--muted)}.count{white-space:nowrap;background:var(--sky);padding:7px 10px;border-radius:9px;font-weight:900}.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}.choice{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:14px;padding:13px;background:#fff;cursor:pointer;min-height:74px}.choice:has(input:checked){border-color:#9bc5cc;background:#f1f8f9;box-shadow:inset 0 0 0 1px #cde2e6}.choice input{width:22px;height:22px;flex:0 0 auto;margin-top:1px;accent-color:var(--main)}.choice b{display:block;line-height:1.4}.choice span{display:block;margin-top:3px;color:var(--muted);font-size:13px;line-height:1.45}.other{margin-top:14px}.other input{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}.actions{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:16px;flex-wrap:wrap}.btn{border:0;border-radius:11px;min-height:46px;padding:10px 16px;font-weight:900;cursor:pointer}.btn.primary{background:var(--main);color:#fff}.btn.alt{background:#fff;border:1px solid var(--line);color:var(--ink)}.btn.ghost{background:transparent;color:var(--muted)}.hint{font-size:13px;color:var(--muted)}.result{display:grid;gap:14px}.resultbox{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fff}.resultbox h3{margin:0 0 10px}.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{padding:8px 10px;border-radius:10px;background:var(--mint);font-weight:850}.selected-list{display:grid;gap:8px}.selected-item{padding:10px 12px;border-radius:11px;background:#f8fbfb;border:1px solid var(--line)}.notice{padding:12px 14px;border-radius:13px;background:#f3f8f7;color:#4f6269;line-height:1.6}.hidden{display:none!important}@media(max-width:680px){.choices{grid-template-columns:1fr}.shell{padding-top:12px}.hero,.card{border-radius:15px}.actions .btn{flex:1}.actions .btn.ghost{flex:0 0 100%}}
+</style>
+</head>
+<body>
+<header class="top"><div class="topin"><img src="doing-logo.png" alt="DOING"><b>申請流程互動模擬</b><span class="badge">UAT｜不會送出資料</span></div></header>
+<main class="shell">
+<section class="hero"><small>先確認工作方式，再填正式資料</small><h1>你的工作通常會遇到哪些情境？</h1><p>不限數量，可自由勾選、取消。這一版只模擬你會怎麼操作，不會建立租戶，也不會寫入正式資料庫。</p></section>
+<div class="progress" id="progress"></div>
+<section class="card" id="stage"></section>
+</main>
+<script>
+'use strict';
+const groups=[
+ {title:'時間與預約',desc:'只要你曾經需要安排時間，就把符合的情況都勾起來。',items:[
+  ['booking','我會接受客人預約','例如美容、美甲、攝影、諮詢、教學、服務預約'],['pick_date','客人可以自己選日期','不是每次都由我人工安排'],['pick_time','客人可以自己選時段','客人能從剩餘空檔挑時間'],['duration','不同服務需要不同時間','例如 60、90、120 分鐘'],['buffer','服務之間需要保留間隔','例如每位客人後保留 30 分鐘'],['multi_staff','有多位工作人員可以接單','每個人的可預約時間可能不同'],['staff_schedule','每位工作人員上班時間不同','需要各自排班'],['temp_off','會有臨時休假／停班','偶爾需要關掉原本開放的時間'],['group_booking','同一時段可以多人預約','例如團體課、教室、團體體驗'],['reschedule','需要處理改期','包含免費改期或改期限制'],['cancel','需要處理取消','需要留取消紀錄或規則'],['noshow','需要記錄爽約／未到','可能影響後續預約資格']
+ ]},
+ {title:'課程、活動與市集',desc:'你可能同時做很多種工作，不必只選一種。',items:[
+  ['course','我會開課／教學','固定或不定期課程都算'],['repeat_course','我會固定週期開課','例如每週、每月固定時間'],['event','我會辦單次活動','講座、展演、體驗、聚會等'],['registration','活動需要報名','需要留下正式參加紀錄'],['review','報名後需要人工審核','錄取、候補、不錄取'],['waitlist','需要候補名單','名額釋出後再補位'],['market','我會辦市集／招募攤商','需要管理攤商申請'],['vendor_review','攤商需要審核','看品牌、品項或過往紀錄'],['seat','需要安排攤位／座位','位置會影響報名或現場'],['equipment','會租借桌椅／帳篷／設備','設備數量與費用要跟著場次'],['project','我會做專案／接案','不是單次活動，而是持續追蹤一個案件'],['project_stage','專案會拆很多工作階段','需要追蹤每一階段進度']
+ ]},
+ {title:'收款、訂金與票券',desc:'只勾你真的會遇到的金流情境。',items:[
+  ['payment','需要收款／付款確認','可能是全額、尾款或人工確認'],['deposit','需要收訂金','先收一部分，之後補餘額'],['refundable_deposit','需要收可退押金／保證金','達成條件後退回'],['refund','需要退款','取消、異常或主辦取消時'],['invoice','需要發票資料','統編、抬頭、載具或 Email'],['addons','需要商品／服務加購','主要服務之外還能加購'],['tickets','需要賣票券','票券可以報到或核銷'],['coupon','需要優惠券','折扣碼、回訪優惠'],['finance','需要記錄收入與支出','希望工作和財務紀錄接在一起']
+ ]},
+ {title:'顧客、團隊與現場',desc:'這一區是日常管理與服務後續。',items:[
+  ['customer','需要累積顧客資料','同一位客人的預約、消費、取消都能留下來'],['customer_level','需要顧客分級','VIP、一般、觀察、黑名單等'],['birthday','需要生日提醒','方便回訪或優惠'],['notes','需要顧客備註','偏好、習慣、注意事項'],['photos','需要保存服務照片／檔案','例如作品照、施工照、成果檔案'],['form','需要問卷','服務前或報名前填資料'],['agreement','需要同意書／條款','送出前需要確認同意'],['esign','需要電子簽名','需要留下簽署紀錄'],['qr_checkin','需要 QR 報到','現場掃碼確認到場'],['qr_redeem','需要 QR 核銷','票券、商品或服務使用紀錄'],['team','需要多人一起管理','不是所有人都看全部資料'],['role','需要不同權限','例如主辦、財務、現場、工作人員'],['shift','需要排班','安排誰在哪一天工作'],['notification','需要通知提醒','預約前、活動前、付款、異常等'],['calendar_sync','需要 Google／Apple 日曆','把時間同步到個人行事曆'],['i18n','需要多語言','繁中以外還會服務其他語言使用者']
+ ]}
+];
+const state={step:0,selected:new Set(),other:''};
+const moduleMap={
+ booking:['預約','工作日曆'],pick_date:['預約'],pick_time:['預約'],duration:['預約'],buffer:['預約'],multi_staff:['團隊／排班','預約'],staff_schedule:['團隊／排班'],temp_off:['團隊／排班','預約'],group_booking:['預約','課程'],reschedule:['預約'],cancel:['預約'],noshow:['顧客管理'],
+ course:['課程'],repeat_course:['課程'],event:['活動'],registration:['活動'],review:['審核／候補'],waitlist:['審核／候補'],market:['市集'],vendor_review:['市集'],seat:['市集'],equipment:['設備／資源'],project:['專案'],project_stage:['專案'],
+ payment:['收款／訂金'],deposit:['收款／訂金'],refundable_deposit:['收款／訂金'],refund:['收款／訂金'],invoice:['發票資料'],addons:['商品／票券'],tickets:['商品／票券','QR 報到／核銷'],coupon:['優惠券／回訪'],finance:['進階財務'],
+ customer:['顧客管理'],customer_level:['顧客管理'],birthday:['優惠券／回訪'],notes:['顧客管理'],photos:['照片／檔案'],form:['問卷／自訂問題'],agreement:['電子簽名'],esign:['電子簽名'],qr_checkin:['QR 報到／核銷'],qr_redeem:['QR 報到／核銷'],team:['團隊／排班'],role:['團隊／排班'],shift:['團隊／排班'],notification:['通知提醒'],calendar_sync:['Google／Apple 日曆同步'],i18n:['多語言']
+};
+const $=id=>document.getElementById(id);
+function progress(){ $('progress').innerHTML=[0,1,2,3,4].map((_,i)=>'<i class="'+(i<=state.step?'on':'')+'"></i>').join('') }
+function countIn(group){return group.items.filter(([k])=>state.selected.has(k)).length}
+function render(){progress();if(state.step<groups.length){const g=groups[state.step];$('stage').innerHTML=`<div class="head"><div><h2>${g.title}</h2><p>${g.desc}</p></div><div class="count">已選 ${countIn(g)} 項</div></div><div class="choices">${g.items.map(([k,t,d])=>`<label class="choice"><input type="checkbox" value="${k}" ${state.selected.has(k)?'checked':''}><span><b>${t}</b><span>${d}</span></span></label>`).join('')}</div>${state.step===groups.length-1?`<div class="other"><input id="other" placeholder="還有其他情境嗎？可以自己補充" value="${escapeHtml(state.other)}"></div>`:''}<div class="actions"><button class="btn ${state.step?'alt':'ghost'}" id="back">${state.step?'← 上一步':'重新開始'}</button><span class="hint">不限勾選數量，也不用每一區都選。</span><button class="btn primary" id="next">${state.step===groups.length-1?'看建議功能':'下一區 →'}</button></div>`;
+ document.querySelectorAll('input[type=checkbox]').forEach(x=>x.onchange=()=>{x.checked?state.selected.add(x.value):state.selected.delete(x.value);render()});if($('other'))$('other').oninput=e=>state.other=e.target.value;
+ $('back').onclick=()=>{if(state.step===0){state.selected.clear();state.other='';render()}else{state.step--;render()}};$('next').onclick=()=>{state.step++;render()};return}
+ const selectedTexts=[];for(const g of groups)for(const [k,t] of g.items)if(state.selected.has(k))selectedTexts.push(t);const mods=[];for(const key of state.selected)for(const m of(moduleMap[key]||[]))if(!mods.includes(m))mods.push(m);
+ $('stage').innerHTML=`<div class="head"><div><h2>根據你的情境，先整理出這些建議功能</h2><p>這只是模擬結果。現在不會送出，也不會建立工作空間。</p></div><div class="count">共 ${mods.length} 類</div></div><div class="result"><div class="resultbox"><h3>建議功能</h3><div class="chips">${mods.length?mods.map(x=>`<span class="chip">${x}</span>`).join(''):'<span class="hint">目前還沒有勾選情境。</span>'}</div></div><div class="resultbox"><h3>你剛剛勾選的情境</h3><div class="selected-list">${selectedTexts.length?selectedTexts.map(x=>`<div class="selected-item">✓ ${x}</div>`).join(''):'<div class="hint">尚未勾選</div>'}${state.other?`<div class="selected-item">＋ ${escapeHtml(state.other)}</div>`:''}</div></div><div class="notice">正式版預計會在你確認這份建議後，才進入「品牌／聯絡／營運帳號資料」填寫。這一頁目前只拿來讓你實際操作、挑問題與調整順序。</div></div><div class="actions"><button class="btn alt" id="edit">← 回去修改</button><button class="btn ghost" id="reset">全部清除</button></div>`;$('edit').onclick=()=>{state.step=groups.length-1;render()};$('reset').onclick=()=>{state.step=0;state.selected.clear();state.other='';render()};
+}
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+render();
+</script>
+</body>
+</html>
