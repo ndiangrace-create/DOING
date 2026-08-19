@@ -26,15 +26,17 @@
       #applicationPanel .apply-side{display:none!important}
       #applicationPanel .smart-application-shell{display:block!important;width:100%!important;max-width:1180px!important;margin:0 auto!important}
       #applicationPanel #signupForm.apply-form{display:block!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
-      #applicationPanel #signupForm>.smart-flow-guide,#applicationPanel #signupForm .smart-flow-nav{display:none!important}
-      #applicationPanel #smartActivationV2{display:grid!important;width:100%!important;max-width:none!important;margin:0!important;gap:16px!important}
-      #applicationPanel #smartActivationV2 .sa-head,#applicationPanel #smartActivationV2 .sa-card{width:100%!important;padding:clamp(18px,2.4vw,30px)!important}
-      #applicationPanel #smartActivationV2 .sa-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
-      #applicationPanel #smartActivationV2 .sa-tools,#applicationPanel #smartActivationV2 .sa-fields{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-      @media(max-width:900px){#applicationPanel #smartActivationV2 .sa-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
-      @media(max-width:620px){#applicationPanel .apply-wrap,#applicationPanel .smart-application-shell{max-width:100%!important}#applicationPanel #smartActivationV2 .sa-grid,#applicationPanel #smartActivationV2 .sa-tools,#applicationPanel #smartActivationV2 .sa-fields{grid-template-columns:1fr!important}#applicationPanel #smartActivationV2 .sa-head,#applicationPanel #smartActivationV2 .sa-card{padding:16px!important}}
+      #applicationPanel #signupForm>.group,#applicationPanel #signupForm>.form-head,#applicationPanel #signupForm>.smart-flow-guide,#applicationPanel #signupForm .smart-flow-nav{display:none!important}
+      #applicationPanel #smartActivationV2{display:grid!important;width:100%!important;max-width:none!important;margin:0!important;gap:9px!important}
+      #applicationPanel #smartActivationV2 .sa-head,#applicationPanel #smartActivationV2 .sa-card{width:100%!important;padding:12px 14px!important}
+      #applicationPanel #smartActivationV2 .sa-grid,#applicationPanel #smartActivationV2 .sa-tools{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+      #applicationPanel #smartActivationV2 .sa-fields{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+      #applicationPanel #smartActivationV2 .sa-choice{min-height:42px!important;padding:7px 9px!important}
+      #applicationPanel #smartActivationV2 .sa-choice input[type=checkbox]{width:17px!important;height:17px!important;min-width:17px!important;min-height:17px!important;max-width:17px!important;max-height:17px!important;padding:0!important}
+      @media(max-width:980px){#applicationPanel #smartActivationV2 .sa-grid,#applicationPanel #smartActivationV2 .sa-tools{grid-template-columns:repeat(3,minmax(0,1fr))!important}#applicationPanel #smartActivationV2 .sa-fields{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+      @media(max-width:720px){#applicationPanel .apply-wrap,#applicationPanel .smart-application-shell{max-width:100%!important}#applicationPanel #smartActivationV2 .sa-grid,#applicationPanel #smartActivationV2 .sa-tools{grid-template-columns:repeat(2,minmax(0,1fr))!important}#applicationPanel #smartActivationV2 .sa-fields{grid-template-columns:1fr!important}#applicationPanel #smartActivationV2 .sa-head,#applicationPanel #smartActivationV2 .sa-card{padding:10px!important}}
     `;document.head.appendChild(style);
-    const form=$('signupForm');form?.querySelectorAll('.smart-flow-guide,.smart-flow-nav').forEach(x=>x.hidden=true);
+    const form=$('signupForm');form?.querySelectorAll(':scope>.group,:scope>.form-head,:scope>.smart-flow-guide,.smart-flow-nav').forEach(x=>{x.hidden=true;x.style.setProperty('display','none','important')});
   };
-  const smart=document.createElement('script');smart.src='doing-smart-activation.js?v=20260820-layout2';smart.defer=true;smart.addEventListener('load',normalizeSmartLayout);document.head.appendChild(smart);
+  const smart=document.createElement('script');smart.src='doing-smart-activation.js?v=20260820-compact3';smart.defer=true;smart.addEventListener('load',normalizeSmartLayout);document.head.appendChild(smart);
 })();
