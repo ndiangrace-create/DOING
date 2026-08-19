@@ -1,10 +1,10 @@
 (()=>{
 'use strict';
 
-// V20.2 login router: keep the existing homepage engine intact in
-// doing-home-refresh-core.js, but make the public "My DOING" login a single
-// OAuth -> member token -> workspace handoff. This prevents the homepage and
-// member.html from acting as two competing login controllers.
+// V20.5 login router: keep the existing homepage engine intact in
+// doing-home-refresh-core.js, but make every public "My DOING" entry use one
+// router. A stored member token is handled here instead of falling through to
+// the legacy homepage click handler.
 const API='https://tobeloved-api.ndiangrace.workers.dev';
 const FLOW_KEY='doing_login_flow';
 const FLOW_VALUE='workspace';
@@ -16,7 +16,7 @@ const incomingError=bootUrl.searchParams.get('member_login_error')||bootUrl.sear
 const incomingFlow=bootUrl.searchParams.get(FLOW_KEY)||'';
 
 function memberTarget(token,hash='home',status=''){
-  const u=new URL('member.html',location.href);
+  const u=new URL('member-panel.html',location.href);
   if(token)u.searchParams.set('member_token',token);
   if(status)u.searchParams.set('member_status',status);
   if(hash)u.hash=hash;
@@ -74,9 +74,15 @@ function installLoginCapture(){
   document.addEventListener('click',e=>{
     const target=e.target.closest?.('[data-my-action="login"],#globalMyNavBtn');
     if(!target)return;
-    let stored='';try{stored=localStorage.getItem('doing_member_token')||''}catch(_){}
-    if(stored)return; // Existing valid/invalid token remains handled by the core UI.
     e.preventDefault();e.stopImmediatePropagation();
+    let stored='';try{stored=localStorage.getItem('doing_member_token')||''}catch(_){}
+    if(stored){
+      handoffToWorkspace(stored,'ready').catch(error=>{
+        console.error('DOING stored-session handoff failed',error);
+        location.replace(memberTarget(stored,'home','ready').toString());
+      });
+      return;
+    }
     startMyDoingLineLogin();
   },true);
 }
