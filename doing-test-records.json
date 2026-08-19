@@ -1,14 +1,15 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-20T04:27:00+08:00",
-  "sourceFingerprint": "751e11d89c353c1ba8c3f74c80b09ad79f095c3c35c3730c7cd8f869d910275e",
-  "environment": "DOING『我的報名』與『申請營運帳號』路由分離驗收。固定規則：首頁『我的報名』只進會員報名紀錄；未登入時使用獨立 registrations LINE 回跳流程，登入後固定回 member-panel.html#activities；不因會員沒有工作空間而導向智慧申請。『申請營運帳號』維持獨立 smart-application.html。此規則已寫入 navigation regression，避免未來登入／工作空間分流再次覆蓋。Worker、Supabase 結構、計費與 2BL 均未修改。",
+  "recordedAt": "2026-08-20T04:44:00+08:00",
+  "sourceFingerprint": "f423c98dfc2e035bbda6b7e38dd6de182aed9c2c7f42fc39ce6f42a535136def",
+  "environment": "DOING 智慧申請單層框架驗收。固定規則：會員／設定／工作空間開啟智慧申請時，只能有一層正式申請框架；外層不得再出現舊 DOING 智慧申請標題框，iframe 使用 embed=1，smart-application.html 在嵌入模式隱藏自己的頁首與說明；每次重新開啟都移除舊 overlay 並建立新 iframe，加入版本參數，避免快取舊畫面。『我的報名』與『申請營運帳號』路由分離規則繼續保留。Worker、Supabase 結構、計費與 2BL 均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
   "authorizedSetupWrites": 0,
   "tests": [
     {"id":"syntax","command":"node --check worker.js && node --check doing-attribution.js && node --check doing-home-refresh.js && node --check doing-about-refresh.js && node --check doing-smart-activation.js && node --check doing-global-entry.js","result":"PASS","scope":"正式 Worker、首頁路由、about、智慧啟用與全域入口 JavaScript 語法"},
+    {"id":"smart-application-single-frame","command":"node scripts/validate-navigation-actions.mjs","result":"PASS","scope":"智慧申請浮層不得出現第二層舊標題框；embed 模式隱藏內頁頁首；每次開啟重建 iframe，不重用舊版"},
     {"id":"my-registrations-route-invariant","command":"node scripts/validate-navigation-actions.mjs","result":"PASS","scope":"『我的報名』固定回 member-panel.html#activities；與 smart-application.html 營運帳號申請完全分離；stored token 與 LINE callback 均不得改走工作空間／申請分流"},
     {"id":"smart-visual-system-preview","command":"PR #110 graphical smart-result preview + Safe Production regression","result":"PASS","scope":"圖像式工作空間卡、共用工具列、無可見確認 checkbox、主按鈕『開始建立你的 DOING 系統』"},
     {"id":"world-tree-v20","command":"node scripts/validate-world-tree-v20.mjs","result":"PASS","scope":"5 工作模組＋10 共用模組能力目錄與核准路徑"},
