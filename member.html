@@ -4,34 +4,74 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>DOING</title>
 <style>html,body{margin:0;min-height:100%;background:#fff}body{font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","Segoe UI",sans-serif}</style>
 </head>
 <body>
 <script>
-(()=>{
+(async()=>{
   'use strict';
+  const API='https://tobeloved-api.ndiangrace.workers.dev';
   const here=new URL(location.href);
   const params=here.searchParams;
   const hash=here.hash||'';
-  // member.html is redirect-only. All explicit member sections, including #home,
-  // must stay inside the internal member panel instead of bouncing back to index.
   const special=params.get('embed')==='1'||params.has('staff_invite')||params.has('registration_invite')||/^#(?:home|activities|brands|account|operations)$/i.test(hash);
-  if(special){
+  const panel=(targetHash=hash||'#home',token='')=>{
     const target=new URL('member-panel.html',here);
     target.search=here.search;
-    target.hash=hash;
+    if(token)target.searchParams.set('member_token',token);
+    target.hash=targetHash;
+    location.replace(target.toString());
+  };
+  if(special){panel();return;}
+
+  const incoming=params.get('member_token')||'';
+  if(incoming){
+    const target=new URL('index.html',here);
+    target.searchParams.set('member_token',incoming);
+    target.searchParams.set('doing_login_flow','workspace');
+    const status=params.get('member_status');
+    const error=params.get('member_login_error')||params.get('login_error');
+    if(status)target.searchParams.set('member_status',status);
+    if(error)target.searchParams.set('member_login_error',error);
     location.replace(target.toString());
     return;
   }
-  const target=new URL('index.html',here);
-  const memberToken=params.get('member_token');
-  const memberStatus=params.get('member_status');
-  const memberError=params.get('member_login_error')||params.get('login_error');
-  if(memberToken){target.searchParams.set('member_token',memberToken);target.searchParams.set('doing_login_flow','workspace');}
-  if(memberStatus)target.searchParams.set('member_status',memberStatus);
-  if(memberError)target.searchParams.set('member_login_error',memberError);
-  location.replace(target.toString());
+
+  let token='';
+  try{token=localStorage.getItem('doing_member_token')||''}catch(_){}
+  if(!token){location.replace(new URL('index.html',here).toString());return;}
+
+  try{
+    const profileUrl=new URL(API);
+    profileUrl.searchParams.set('action','getPlatformMemberProfile');
+    profileUrl.searchParams.set('member_token',token);
+    const profileResp=await fetch(profileUrl,{cache:'no-store'});
+    const profile=await profileResp.json().catch(()=>({}));
+    if(!profileResp.ok||profile.ok===false||profile.error)throw new Error(profile.error||'會員登入已失效');
+    if(profile.complete===false){panel('#account',token);return;}
+    const spaces=Array.isArray(profile.workspaces)?profile.workspaces:[];
+    if(spaces.length!==1){panel(spaces.length>1?'#operations':'#home',token);return;}
+    const tenantId=String(spaces[0]?.id||spaces[0]?.tenantId||spaces[0]?.tenant_id||'').trim().toLowerCase();
+    if(!tenantId){panel('#operations',token);return;}
+    const sessionResp=await fetch(API+'?action=createMemberWorkspaceAdminSession',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({member_token:token,tenantId})
+    });
+    const session=await sessionResp.json().catch(()=>({}));
+    if(!sessionResp.ok||session.ok===false||session.error||!session.adminToken)throw new Error(session.error||'無法進入工作空間');
+    const target=new URL('workspace.html',here);
+    target.searchParams.set('tenant',session.tenantId||tenantId);
+    target.searchParams.set('admin_token',session.adminToken);
+    target.searchParams.set('from','member');
+    target.hash='calendar';
+    location.replace(target.toString());
+  }catch(error){
+    console.error('DOING member compatibility handoff failed',error);
+    panel('#home',token);
+  }
 })();
 </script>
 </body>
