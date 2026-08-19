@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-20T01:32:00+08:00",
-  "sourceFingerprint": "3222aa19dd9467bf37f7af05ca1b9522f1373a2cfd59381fd35087418fa24b98",
+  "recordedAt": "2026-08-20T01:33:00+08:00",
+  "sourceFingerprint": "d261f47b3e2f258bd20566bdccb2aa3aaf364703a6963191a65754a1b1cd3ad9",
   "environment": "DOING 智慧申請正式流程 P0 修正驗收。固定順序為：工作／副業多選 → 必要角色補問 → 智慧小幫手白話整理與工具結果 → 使用者確認理解正確 → 才填姓名／品牌／電話／Email 等正式申請資料 → LINE 驗證 → 平台審核。前段問卷不建立正式申請資料。首頁重複申請標題與舊 frame 退役；正常 My DOING 不再停在 member-panel#home 登入過渡頁；單一工作空間直接進工作空間、無工作空間直接進智慧申請、多工作空間才進選擇頁。會員／設定等非首頁頁面的申請連結改為原頁開啟智慧申請 overlay，不再先跳回首頁。Worker、Supabase 結構、計費與 2BL 均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
