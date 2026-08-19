@@ -4,6 +4,7 @@ const read=file=>fs.readFileSync(file,'utf8');
 const assert=(value,message)=>{if(!value)throw new Error(message)};
 const homeRouter=read('doing-home-refresh.js'),home=fs.existsSync('doing-home-refresh-core.js')?read('doing-home-refresh-core.js'):homeRouter;
 const platform=read('platform.html'),worker=read('worker.js'),admin=read('admin.html'),member=read('member-panel.html'),memberCompat=read('member.html'),register=read('register.html');
+const globalEntry=read('doing-global-entry.js'),smartApplication=read('smart-application.html');
 
 for(const target of ['billing','issues','tenants','applications'])assert(platform.includes(`'${target}'`),`營運 KPI 缺少明確對應：${target}`);
 assert(platform.includes('id="platformOperationsDashboard"'),'平台缺少營運總覽');
@@ -41,15 +42,13 @@ for(const file of sharedPages){
 }
 assert(memberCompat.includes('member-panel.html')&&memberCompat.includes('index.html'),'member.html 相容轉址路徑不完整');
 assert(!memberCompat.includes('doing-logo.png'),'member.html 相容轉址不得再承載舊完整頁面框架');
-for(const file of ['platform.html','admin.html','about.html','onsite.html','photo.html','register.html']){
-  assert(read(file).includes('我的 DOING'),`${file} 缺少回到我的 DOING`);
-}
+for(const file of ['platform.html','admin.html','about.html','onsite.html','photo.html','register.html'])assert(read(file).includes('我的 DOING'),`${file} 缺少回到我的 DOING`);
 assert(read('index.html').includes("hiddenAdminSelector='#brandHoldTarget,.doing-nav-brand'"),'首頁總管入口條件遺失');
 assert(register.includes('setTimeout(()=>{cancelAdminHold();'),'活動頁總管入口條件遺失');
 assert(register.includes("u.searchParams.set('tenant',urlTenant)"),'活動頁沒有把網址租戶帶入 frontBootstrap，會讀錯主辦空間');
 assert(register.includes("String(state.tenant||new URL(location.href).searchParams.get('tenant')"),'活動頁總管入口沒有使用目前租戶');
 assert(!register.includes('String(S.tenant||'),'活動頁仍引用不存在的租戶狀態變數');
-assert(read('doing-global-entry.js').includes('setTimeout(enter,3000)'),'共同入口不是 3 秒長按');
+assert(globalEntry.includes('setTimeout(enter,3000)'),'共同入口不是 3 秒長按');
 assert(home.includes('openMemberWorkspaceAdmin(spaces[0],true)')||homeRouter.includes('openMemberWorkspaceAdmin(spaces[0],true)'),'租戶會員入口未換發指定租戶的後台憑證');
 assert(home.includes("tenantTop.textContent=memberAuth.complete?(memberAuth.workspaces.length===1?'營運管理':'我的 DOING'):'LINE 登入'"),'租戶登入按鈕未清楚顯示營運入口');
 if(homeRouter!==home){
@@ -62,6 +61,12 @@ if(homeRouter!==home){
   assert(!homeRouter.includes("if(stored){handoffToWorkspace(stored,'ready')"),'「我的報名」又被串回工作空間／申請營運帳號');
   assert(homeRouter.includes("location.href=applicationTarget().toString()"),'申請營運帳號沒有維持獨立智慧申請入口');
 }
+assert(globalEntry.includes("u.searchParams.set('embed','1')"),'智慧申請浮層未使用單層 embed 模式');
+assert(globalEntry.includes("if(overlay)overlay.remove()"),'智慧申請浮層仍重用舊 iframe，發布後可能顯示舊版');
+assert(!globalEntry.includes('doing-smart-overlay-head'),'智慧申請仍保留第二層舊標題框架');
+assert(globalEntry.includes('doing-smart-overlay-frame'),'智慧申請缺少單一浮層容器');
+assert(smartApplication.includes("get('embed')==='1'"),'智慧申請頁未辨識嵌入模式');
+assert(smartApplication.includes('html.is-embedded .smart-top')&&smartApplication.includes('display:none!important'),'嵌入智慧申請仍顯示第二層頁首框架');
 assert(member.includes('安排預約日曆')&&member.includes('data-workspace-calendar'),'會員功能面板缺少安全的預約日曆直達入口');
 assert(member.includes('createMemberWorkspaceAdminSession')&&member.includes('data-workspace-admin'),'會員功能面板仍可能沿用其他租戶的後台登入');
 assert(worker.includes("if(action==='createMemberWorkspaceAdminSession')"),'Worker 缺少會員指定租戶後台憑證交換');
