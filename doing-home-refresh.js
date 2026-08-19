@@ -3,7 +3,7 @@
 const API='https://tobeloved-api.ndiangrace.workers.dev';
 const FLOW_KEY='doing_login_flow';
 const FLOW_VALUE='workspace';
-const CORE='doing-home-refresh-core.js?v=20260819-final-entry1';
+const CORE='doing-home-refresh-core.js?v=20260820-clean1';
 const bootUrl=new URL(location.href);
 const incomingToken=bootUrl.searchParams.get('member_token')||'';
 const incomingStatus=bootUrl.searchParams.get('member_status')||'';
@@ -14,7 +14,7 @@ function releaseHomepageBoot(){if(homepageBootReleased)return;homepageBootReleas
 const homepageBootFailsafe=setTimeout(releaseHomepageBoot,1800);
 window.addEventListener('pageshow',()=>setTimeout(releaseHomepageBoot,50),{once:true});
 function memberTarget(token,hash='home',status=''){const u=new URL('member-panel.html',location.href);if(token)u.searchParams.set('member_token',token);if(status)u.searchParams.set('member_status',status);if(hash)u.hash=hash;return u}
-function applicationTarget(){const u=new URL('about.html',location.href);u.searchParams.set('fragment','1');u.searchParams.set('embed','1');u.hash='apply';return u}
+function applicationTarget(){return new URL('smart-application.html',location.href)}
 function workspaceTarget(tenantId,adminToken){const u=new URL('workspace.html',location.href);u.searchParams.set('tenant',String(tenantId||'').trim().toLowerCase());u.searchParams.set('admin_token',adminToken||'');u.searchParams.set('from','member');return u}
 async function getProfile(token){const u=new URL(API);u.searchParams.set('action','getPlatformMemberProfile');u.searchParams.set('member_token',token);const r=await fetch(u,{cache:'no-store'}),d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.error||'會員資料讀取失敗');return d.data??d.result??d}
 async function createWorkspaceSession(token,tenantId){const r=await fetch(API+'?action=createMemberWorkspaceAdminSession',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_token:token,tenantId})});const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.error||'無法進入工作空間');return d.data??d.result??d}
@@ -23,31 +23,11 @@ async function handoffToWorkspace(token,status){if(!token)return false;try{local
 function startMyDoingLineLogin(){const returnUrl=new URL(location.href);['member_token','member_status','member_login_error','login_error','member_linked'].forEach(k=>returnUrl.searchParams.delete(k));returnUrl.searchParams.set(FLOW_KEY,FLOW_VALUE);const u=new URL(API+'/auth/line/start');u.searchParams.set('mode','member');u.searchParams.set('return_url',returnUrl.toString());location.assign(u.toString())}
 function retireLegacyMemberEntry(){const legacy=document.getElementById('doingMyEntryModal');if(legacy)legacy.remove();document.querySelectorAll('[aria-controls="doingMyEntryModal"]').forEach(x=>x.removeAttribute('aria-controls'))}
 function installLoginCapture(){document.addEventListener('click',e=>{const target=e.target.closest?.('[data-my-action="login"],#globalMyNavBtn,#memberLoginBtn');if(!target)return;e.preventDefault();e.stopImmediatePropagation();let stored='';try{stored=localStorage.getItem('doing_member_token')||''}catch(_){}if(stored){handoffToWorkspace(stored,'ready').catch(error=>{console.error('DOING stored-session handoff failed',error);releaseHomepageBoot()});return}startMyDoingLineLogin()},true)}
-function ensureCriticalButtons(){
-  const nav=document.getElementById('doingGlobalFixedNav');
-  if(nav&&!document.getElementById('globalSupportNavBtn')){
-    const b=document.createElement('button');b.type='button';b.id='globalSupportNavBtn';b.className='g-pill pink doing-nav-action';b.textContent='客服';b.setAttribute('data-public-support-open','');nav.appendChild(b);
-  }
-}
-function openSupportFallback(){
-  const dialog=document.getElementById('doingPublicSupportDialog');
-  if(dialog){dialog.hidden=false;document.body.classList.add('doing-support-open');setTimeout(()=>document.getElementById('doingPublicSupportInput')?.focus(),30);return true}
-  const page=document.getElementById('pageSupport');
-  if(page){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));page.classList.add('active');page.hidden=false;page.scrollIntoView({behavior:'smooth',block:'start'});return true}
-  return false;
-}
-function installInteractionFallback(){
-  ensureCriticalButtons();
-  document.addEventListener('click',e=>{
-    const t=e.target.closest?.('#globalSupportNavBtn,#doingPublicSupportFab,[data-public-support-open],[data-go="support"]');
-    if(t){e.preventDefault();if(openSupportFallback())return}
-    const search=e.target.closest?.('#globalSearchNavBtn,[data-go="search"]');
-    if(search){const box=document.getElementById('doingPublicSearch')||document.getElementById('doingGlobalArtHome');if(box){e.preventDefault();box.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>{(document.getElementById('doingPublicSearchInput')||document.getElementById('doingGlobalSearchInput'))?.focus()},250)}return}
-    const org=e.target.closest?.('[data-organizer-target]');
-    if(org&&!e.defaultPrevented){const details=document.getElementById('doingOrganizerDetails');if(details){e.preventDefault();details.hidden=false;details.scrollIntoView({behavior:'smooth',block:'start'});location.hash='doingOrganizerDetails'} }
-  },false);
-  new MutationObserver(ensureCriticalButtons).observe(document.documentElement,{childList:true,subtree:true});
-}
-async function loadCore(){const response=await fetch(CORE,{cache:'no-store'});if(!response.ok)throw new Error('首頁功能載入失敗');const source=await response.text();(0,eval)(source+'\n//# sourceURL='+CORE)}
+function installApplicationRoute(){document.addEventListener('click',e=>{const target=e.target.closest?.('[data-organizer-target="apply"],a[href*="#apply"],[data-doing-smart-apply]');if(!target)return;e.preventDefault();e.stopImmediatePropagation();location.href=applicationTarget().toString()},true)}
+function ensureCriticalButtons(){const nav=document.getElementById('doingGlobalFixedNav');if(nav&&!document.getElementById('globalSupportNavBtn')){const b=document.createElement('button');b.type='button';b.id='globalSupportNavBtn';b.className='g-pill pink doing-nav-action';b.textContent='客服';b.setAttribute('data-public-support-open','');nav.appendChild(b)}}
+function openSupportFallback(){const dialog=document.getElementById('doingPublicSupportDialog');if(dialog){dialog.hidden=false;document.body.classList.add('doing-support-open');setTimeout(()=>document.getElementById('doingPublicSupportInput')?.focus(),30);return true}const page=document.getElementById('pageSupport');if(page){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));page.classList.add('active');page.hidden=false;page.scrollIntoView({behavior:'smooth',block:'start'});return true}return false}
+function installInteractionFallback(){ensureCriticalButtons();document.addEventListener('click',e=>{const t=e.target.closest?.('#globalSupportNavBtn,#doingPublicSupportFab,[data-public-support-open],[data-go="support"]');if(t){e.preventDefault();if(openSupportFallback())return}const search=e.target.closest?.('#globalSearchNavBtn,[data-go="search"]');if(search){const box=document.getElementById('doingPublicSearch')||document.getElementById('doingGlobalArtHome');if(box){e.preventDefault();box.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>{(document.getElementById('doingPublicSearchInput')||document.getElementById('doingGlobalSearchInput'))?.focus()},250)}return}},false);new MutationObserver(ensureCriticalButtons).observe(document.documentElement,{childList:true,subtree:true})}
+function loadCore(){return new Promise((resolve,reject)=>{if(document.querySelector('script[data-doing-home-core]'))return resolve();const script=document.createElement('script');script.src=CORE;script.async=false;script.dataset.doingHomeCore='1';script.onload=resolve;script.onerror=()=>reject(new Error('首頁功能載入失敗'));document.head.appendChild(script)})}
+installApplicationRoute();
 (async()=>{if(incomingFlow===FLOW_VALUE&&incomingToken){try{await handoffToWorkspace(incomingToken,incomingStatus);return}catch(error){console.error('DOING workspace handoff failed',error);releaseHomepageBoot();return}}if(incomingFlow===FLOW_VALUE&&incomingError){bootUrl.searchParams.delete(FLOW_KEY);history.replaceState({},'',bootUrl.pathname+bootUrl.search+bootUrl.hash)}try{await loadCore();retireLegacyMemberEntry();installLoginCapture()}catch(error){console.error(error)}finally{installInteractionFallback();clearTimeout(homepageBootFailsafe);releaseHomepageBoot()}})();
 })();
