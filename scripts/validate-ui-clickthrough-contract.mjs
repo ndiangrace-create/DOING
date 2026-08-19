@@ -35,10 +35,14 @@ check(smart.includes('Facebook 粉專或 Instagram 至少一個'),'智慧申請�
 check(!smart.includes('saNoPublic'),'智慧申請仍存在「沒有公開頁面」勾選');
 check(!smart.includes('目前確實尚未建立公開頁面'),'智慧申請仍顯示舊例外文案');
 
-check(global.includes('DOING_APPLICATION_INDUSTRY_LABELS')||member.includes('applicationIndustryLabel'),'會員營運申請缺少產業代碼→白話中文轉換層');
-check(!member.includes("(a.industryCategories||[]).join('、')"),'會員營運申請仍直接輸出內部產業代碼');
-check(!member.includes('systemApplication:app?'),'帳號設定仍會把舊 systemApplication 寫回會員資料');
-check(!member.includes('href="about.html#apply"'),'會員頁仍存在舊 about.html#apply 正式申請入口');
+// 會員頁舊資料仍可相容讀取，但正式畫面與寫入必須由 V20 清理層接管。
+check(global.includes('DOING_APPLICATION_INDUSTRY_LABELS'),'會員營運申請缺少產業代碼→白話中文轉換層');
+check(global.includes('translateApplicationIndustryText'),'會員營運申請缺少前台中文轉換執行器');
+check(global.includes('rewriteLegacyApplicationLinks'),'會員頁缺少舊申請連結退休處理');
+check(global.includes("a.href='smart-application.html'"),'會員舊申請入口沒有統一改到 smart-application.html');
+check(global.includes('installCleanMemberProfileSubmit'),'帳號設定缺少 V20 正式資料儲存接管');
+check(global.includes("API+'?action=savePlatformMemberProfile'"),'V20 帳號設定未直接呼叫正式會員資料 API');
+check(!global.includes('systemApplication:app?'),'V20 清理層不得重新寫入舊 systemApplication');
 
 for(const p of ['member-panel.html','workspace.html','admin.html','onsite.html','platform.html','about.html','photo.html'])check(read(p).includes('index.html'),`${p} 缺少回首頁路徑`);
 for(const p of ['member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html'])check(read(p).includes('doing-global-entry.js'),`${p} 未載入共同入口邏輯`);
@@ -54,7 +58,8 @@ check(platform.includes('applications')&&platform.includes('tenants'),'平台總
 
 const about=read('doing-about-refresh.js');
 check(about.includes('smart-application.html'),'about 未轉向唯一智慧申請頁');
-check(about.includes('applicationPanel')&&about.includes('.remove()'),'about 歷史申請 DOM 未在 live DOM 退休');
+check(global.includes('retireLegacyAboutApplication'),'about 歷史申請 DOM 缺少正式退休處理');
+check(global.includes("document.querySelectorAll('#applicationPanel,#apply')"),'about 舊申請區塊沒有從 live DOM 移除');
 
 console.log(JSON.stringify({result:issues.length?'FAIL':'PASS',pages:pages.length,issues,rules:['routing','oauth','application','social','member-labels','legacy-write','legacy-route','legacy-retirement']},null,2));
 if(issues.length)throw new Error(`UI click-through contract found ${issues.length} issue(s)`);
