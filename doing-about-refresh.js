@@ -18,10 +18,11 @@
   $('openApplication')?.addEventListener('click',()=>openApplication('',true));
   renderScene('market');
   fetch('https://tobeloved-api.ndiangrace.workers.dev?action=getPublicBillingPolicy',{cache:'no-store'}).then(r=>r.json()).then(p=>{if(!p||p.error)return;const free=Math.max(0,Number(p.freeActivityFee||0)),booking=Math.max(0,Number(p.bookingMonthlyFee||0)),rate=Math.max(0,Number(p.paidActivityRatePercent||0));$('publicFreeActivityFee').textContent=free.toLocaleString('zh-TW');$('publicBookingMonthlyFee').textContent=booking.toLocaleString('zh-TW');$('publicPaidActivityRate').textContent=String(rate);$('publicPaidExampleSmall').textContent='系統費 NT$'+Math.round(10000*rate/100).toLocaleString('zh-TW');$('publicPaidExampleLarge').textContent='系統費 NT$'+Math.round(50000*rate/100).toLocaleString('zh-TW');$('publicFreeActivityExample').textContent='系統費 NT$'+free.toLocaleString('zh-TW')+'／場';$('publicBookingExample').textContent='固定 NT$'+booking.toLocaleString('zh-TW')+'／月';scenes.event.story=`你可能平常接案，這個月想開一堂收費課，下個月又辦一場免費分享。收費活動不用先付月費，收到款項後才按實收 ${rate}% 計算；沒有日常預約，就不必付預約月費。`;const active=document.querySelector('[data-scene][aria-selected="true"]')?.dataset.scene;if(active)renderScene(active)}).catch(()=>{});
-  const url=new URL(location.href);if(url.searchParams.get('embed')==='1'){document.querySelectorAll('body>header,.hero,.quick-nav,#scenes,#workflow,#features,#pricing,#support,.footer,.apply-gate').forEach(x=>x?.classList.add('hidden'));openApplication('',false)}else if(location.hash==='#apply'||url.searchParams.has('application_status')||url.searchParams.has('login_error'))openApplication('',false);
+  const url=new URL(location.href);if(url.searchParams.get('embed')==='1'){document.querySelectorAll('body>header,.hero,.quick-nav,#scenes,#workflow,#features,#pricing,#support,.footer,.apply-gate,.doing-helper-section-head,.doing-helper-frame-head').forEach(x=>x?.classList.add('hidden'));openApplication('',false)}else if(location.hash==='#apply'||url.searchParams.has('application_status')||url.searchParams.has('login_error'))openApplication('',false);
   const normalizeSmartLayout=()=>{
     if(document.getElementById('doingSmartLayoutHotfix'))return;
     const style=document.createElement('style');style.id='doingSmartLayoutHotfix';style.textContent=`
+      .doing-helper-section-head,.doing-helper-frame-head{display:none!important}
       #applicationPanel .apply-wrap{display:block!important;width:100%!important;max-width:1180px!important;margin:0 auto!important}
       #applicationPanel .apply-side{display:none!important}
       #applicationPanel .smart-application-shell{display:block!important;width:100%!important;max-width:1180px!important;margin:0 auto!important}
@@ -36,7 +37,8 @@
       @media(max-width:980px){#applicationPanel #smartActivationV2 .sa-grid,#applicationPanel #smartActivationV2 .sa-tools{grid-template-columns:repeat(3,minmax(0,1fr))!important}#applicationPanel #smartActivationV2 .sa-fields{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
       @media(max-width:720px){#applicationPanel .apply-wrap,#applicationPanel .smart-application-shell{max-width:100%!important}#applicationPanel #smartActivationV2 .sa-grid,#applicationPanel #smartActivationV2 .sa-tools{grid-template-columns:repeat(2,minmax(0,1fr))!important}#applicationPanel #smartActivationV2 .sa-fields{grid-template-columns:1fr!important}#applicationPanel #smartActivationV2 .sa-head,#applicationPanel #smartActivationV2 .sa-card{padding:10px!important}}
     `;document.head.appendChild(style);
+    document.querySelectorAll('.doing-helper-section-head,.doing-helper-frame-head').forEach(x=>{x.hidden=true;x.style.setProperty('display','none','important')});
     const form=$('signupForm');form?.querySelectorAll(':scope>.group,:scope>.form-head,:scope>.smart-flow-guide,.smart-flow-nav').forEach(x=>{x.hidden=true;x.style.setProperty('display','none','important')});
   };
-  const smart=document.createElement('script');smart.src='doing-smart-activation.js?v=20260820-compact3';smart.defer=true;smart.addEventListener('load',normalizeSmartLayout);document.head.appendChild(smart);
+  const smart=document.createElement('script');smart.src='doing-smart-activation.js?v=20260820-flow4';smart.defer=true;smart.addEventListener('load',normalizeSmartLayout);document.head.appendChild(smart);
 })();
