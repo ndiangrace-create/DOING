@@ -23,6 +23,31 @@ async function handoffToWorkspace(token,status){if(!token)return false;try{local
 function startMyDoingLineLogin(){const returnUrl=new URL(location.href);['member_token','member_status','member_login_error','login_error','member_linked'].forEach(k=>returnUrl.searchParams.delete(k));returnUrl.searchParams.set(FLOW_KEY,FLOW_VALUE);const u=new URL(API+'/auth/line/start');u.searchParams.set('mode','member');u.searchParams.set('return_url',returnUrl.toString());location.assign(u.toString())}
 function retireLegacyMemberEntry(){const legacy=document.getElementById('doingMyEntryModal');if(legacy)legacy.remove();document.querySelectorAll('[aria-controls="doingMyEntryModal"]').forEach(x=>x.removeAttribute('aria-controls'))}
 function installLoginCapture(){document.addEventListener('click',e=>{const target=e.target.closest?.('[data-my-action="login"],#globalMyNavBtn,#memberLoginBtn');if(!target)return;e.preventDefault();e.stopImmediatePropagation();let stored='';try{stored=localStorage.getItem('doing_member_token')||''}catch(_){}if(stored){handoffToWorkspace(stored,'ready').catch(error=>{console.error('DOING stored-session handoff failed',error);releaseHomepageBoot()});return}startMyDoingLineLogin()},true)}
+function ensureCriticalButtons(){
+  const nav=document.getElementById('doingGlobalFixedNav');
+  if(nav&&!document.getElementById('globalSupportNavBtn')){
+    const b=document.createElement('button');b.type='button';b.id='globalSupportNavBtn';b.className='g-pill pink doing-nav-action';b.textContent='客服';b.setAttribute('data-public-support-open','');nav.appendChild(b);
+  }
+}
+function openSupportFallback(){
+  const dialog=document.getElementById('doingPublicSupportDialog');
+  if(dialog){dialog.hidden=false;document.body.classList.add('doing-support-open');setTimeout(()=>document.getElementById('doingPublicSupportInput')?.focus(),30);return true}
+  const page=document.getElementById('pageSupport');
+  if(page){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));page.classList.add('active');page.hidden=false;page.scrollIntoView({behavior:'smooth',block:'start'});return true}
+  return false;
+}
+function installInteractionFallback(){
+  ensureCriticalButtons();
+  document.addEventListener('click',e=>{
+    const t=e.target.closest?.('#globalSupportNavBtn,#doingPublicSupportFab,[data-public-support-open],[data-go="support"]');
+    if(t){e.preventDefault();if(openSupportFallback())return}
+    const search=e.target.closest?.('#globalSearchNavBtn,[data-go="search"]');
+    if(search){const box=document.getElementById('doingPublicSearch')||document.getElementById('doingGlobalArtHome');if(box){e.preventDefault();box.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>{(document.getElementById('doingPublicSearchInput')||document.getElementById('doingGlobalSearchInput'))?.focus()},250)}return}
+    const org=e.target.closest?.('[data-organizer-target]');
+    if(org&&!e.defaultPrevented){const details=document.getElementById('doingOrganizerDetails');if(details){e.preventDefault();details.hidden=false;details.scrollIntoView({behavior:'smooth',block:'start'});location.hash='doingOrganizerDetails'} }
+  },false);
+  new MutationObserver(ensureCriticalButtons).observe(document.documentElement,{childList:true,subtree:true});
+}
 async function loadCore(){const response=await fetch(CORE,{cache:'no-store'});if(!response.ok)throw new Error('首頁功能載入失敗');const source=await response.text();(0,eval)(source+'\n//# sourceURL='+CORE)}
-(async()=>{if(incomingFlow===FLOW_VALUE&&incomingToken){try{await handoffToWorkspace(incomingToken,incomingStatus);return}catch(error){console.error('DOING workspace handoff failed',error);releaseHomepageBoot();return}}if(incomingFlow===FLOW_VALUE&&incomingError){bootUrl.searchParams.delete(FLOW_KEY);history.replaceState({},'',bootUrl.pathname+bootUrl.search+bootUrl.hash)}try{await loadCore();retireLegacyMemberEntry();installLoginCapture()}catch(error){console.error(error)}finally{clearTimeout(homepageBootFailsafe);releaseHomepageBoot()}})();
+(async()=>{if(incomingFlow===FLOW_VALUE&&incomingToken){try{await handoffToWorkspace(incomingToken,incomingStatus);return}catch(error){console.error('DOING workspace handoff failed',error);releaseHomepageBoot();return}}if(incomingFlow===FLOW_VALUE&&incomingError){bootUrl.searchParams.delete(FLOW_KEY);history.replaceState({},'',bootUrl.pathname+bootUrl.search+bootUrl.hash)}try{await loadCore();retireLegacyMemberEntry();installLoginCapture()}catch(error){console.error(error)}finally{installInteractionFallback();clearTimeout(homepageBootFailsafe);releaseHomepageBoot()}})();
 })();
