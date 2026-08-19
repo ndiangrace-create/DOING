@@ -1,14 +1,15 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-20T05:23:00+08:00",
-  "sourceFingerprint": "3ae21880456e8b1d3c9736c2c2fc51c7d8b7291f38e84690161f8885bd86c4f7",
-  "environment": "DOING 智慧申請 LINE 驗證修正驗收。固定規則：智慧申請不可讓第三方 OAuth 在 iframe 內執行。會員／設定／工作空間若以 embed=1 開啟 smart-application.html，頁面會先跳回最外層 smart-application.html，再由最外層執行 LINE organizer_signup；避免 access.line.me 因 iframe 安全策略拒絕連線。同時保留單層框架規則、舊申請 DOM 退出正式路徑、『我的報名』與『申請營運帳號』路由分離。Worker、Supabase 結構、計費與 2BL 均未修改。",
+  "recordedAt": "2026-08-20T05:40:00+08:00",
+  "sourceFingerprint": "48f578432381c0560bd01a580327f592c80a5eb1bf6a7465dfc58b3869ea64b3",
+  "environment": "DOING 智慧申請公開資訊正式規則驗收。固定規則：申請營運帳號必須提供 Facebook 粉專或 Instagram 至少一個；不再提供『目前沒有公開頁面』勾選或例外，也不以一般官網替代。前端會驗證 Facebook／Instagram 網址格式，送出 payload 的 publicLinks 僅包含實際填寫的 Facebook／Instagram，noPublicLink 固定 false。LINE OAuth 必須在最外層頁面執行、單層框架、舊申請 DOM 退出正式路徑、『我的報名』與『申請營運帳號』路由分離規則繼續保留。Worker、Supabase 結構、計費與 2BL 均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
   "authorizedSetupWrites": 0,
   "tests": [
     {"id":"syntax","command":"node --check worker.js && node --check doing-attribution.js && node --check doing-home-refresh.js && node --check doing-about-refresh.js && node --check doing-smart-activation.js && node --check doing-global-entry.js","result":"PASS","scope":"正式 Worker、首頁路由、about、智慧啟用與全域入口 JavaScript 語法"},
+    {"id":"application-social-required","command":"node scripts/validate-application-social-required.mjs","result":"PASS","scope":"正式申請必須有 Facebook 粉專或 Instagram 至少一個；無公開頁面勾選已移除；網址格式受控；publicLinks 僅寫入 FB／IG"},
     {"id":"smart-oauth-top-level","command":"node scripts/validate-smart-oauth-top.mjs","result":"PASS","scope":"智慧申請 embed 模式必須先離開 iframe；LINE organizer_signup 不得在 iframe 內執行；移除 embed/v 避免跳轉循環"},
     {"id":"single-frame-global-invariant","command":"node scripts/validate-navigation-actions.mjs","result":"PASS","scope":"同一流程只能一層主框架；智慧申請 overlay 不得存在舊標題框／額外白色底框"},
     {"id":"legacy-about-application-retired","command":"doing-about-refresh.js live-DOM retirement + formal route regression","result":"PASS","scope":"about.html 歷史舊申請區塊不再進正式申請路徑"},
