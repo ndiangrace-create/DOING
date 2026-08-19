@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-19T10:56:00+08:00",
-  "sourceFingerprint": "04f86a7c58160672d67e71f8f79a33cab345cb6fc8857f6974b181c3cf4a0b3c",
-  "environment": "DOING v20.6 已登入會員入口修正驗收；首頁路由層在 localStorage 已有 member token 時不再放手給舊核心，而是直接讀取會員資料、換發指定工作空間憑證並進 workspace.html；無單一工作空間才進 member-panel.html；member.html 維持純相容轉址；未修改首頁核心、workspace、Worker 商業邏輯、Supabase schema、計費或 2bl-v7。",
+  "recordedAt": "2026-08-19T11:04:00+08:00",
+  "sourceFingerprint": "7779288d8a982ce4f685f724bf030c42d124e0f315075e7e25ac79027cd1ab80",
+  "environment": "DOING v20.7 發布快取保險驗收；即使手機仍載入舊首頁 JS 並導向 member.html，member.html 也會直接使用既有 member token 讀取正式會員 workspaces、換發 createMemberWorkspaceAdminSession，單一工作空間直接進 workspace.html；非單一工作空間或資料未完成才進 member-panel。未修改首頁核心、workspace、Worker 商業邏輯、Supabase schema、計費或 2bl-v7。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
   "authorizedSetupWrites": 1,
   "tests": [
-    {"id":"syntax","command":"node --check worker.js && node --check doing-attribution.js && node --check doing-home-refresh.js && node --check doing-home-refresh-core.js && node --check doing-about-refresh.js && node --check doing-global-entry.js","result":"PASS","scope":"Worker、首頁統一登入路由、既有首頁核心與前端 JavaScript 語法"},
+    {"id":"syntax","command":"node --check worker.js && node --check doing-attribution.js && node --check doing-home-refresh.js && node --check doing-home-refresh-core.js && node --check doing-about-refresh.js && node --check doing-global-entry.js","result":"PASS","scope":"Worker、首頁統一登入路由、member 相容入口與前端 JavaScript 語法"},
     {"id":"world-tree-v20","command":"node scripts/validate-world-tree-v20.mjs","result":"PASS","scope":"member 相容轉址、member-panel、首頁 LINE → member token → 我的 DOING、一個工作空間、5 工作模組、10 共用模組與 2BL 禁止邊界"},
     {"id":"login-providers","command":"node scripts/validate-login-providers.mjs","result":"PASS","scope":"LINE 優先登入、首頁單一路由直達工作空間、管理入口 Google 備援、共用會員安全規則"},
     {"id":"database-contact-uniqueness","command":"Supabase transaction rollback：重複 Email／登入 Email／正規化電話唯一索引驗收","result":"PASS","scope":"DOING_SaaS 正式 platform_members 三個唯一索引既有驗收；本次入口修正未新增正式資料寫入"},
