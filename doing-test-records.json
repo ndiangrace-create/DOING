@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "recordedAt": "2026-08-20T04:27:00+08:00",
-  "sourceFingerprint": "4ff4a16f434fa6b8269084df43a30e6e98a60459fc5e30bd3cc44ed3d698977d",
+  "sourceFingerprint": "751e11d89c353c1ba8c3f74c80b09ad79f095c3c35c3730c7cd8f869d910275e",
   "environment": "DOING『我的報名』與『申請營運帳號』路由分離驗收。固定規則：首頁『我的報名』只進會員報名紀錄；未登入時使用獨立 registrations LINE 回跳流程，登入後固定回 member-panel.html#activities；不因會員沒有工作空間而導向智慧申請。『申請營運帳號』維持獨立 smart-application.html。此規則已寫入 navigation regression，避免未來登入／工作空間分流再次覆蓋。Worker、Supabase 結構、計費與 2BL 均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
