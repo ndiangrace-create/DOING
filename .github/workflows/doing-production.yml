@@ -39,6 +39,7 @@ jobs:
           node --check doing-home-refresh.js
           test ! -f doing-home-refresh-core.js || node --check doing-home-refresh-core.js
           node --check doing-about-refresh.js
+          node --check doing-smart-activation.js
           node --check doing-global-entry.js
           node - <<'NODE'
           const fs=require('fs'),vm=require('vm');
