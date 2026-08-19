@@ -76,6 +76,7 @@ jobs:
         run: |
           node scripts/validate-full-system.mjs
           node scripts/validate-navigation-actions.mjs
+          node scripts/validate-smart-oauth-top.mjs
           node scripts/validate-platform-operations-e2e.mjs
       - name: Validate compact admin visual consistency
         run: node scripts/validate-admin-consistency.mjs

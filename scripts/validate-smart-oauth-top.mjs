@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+const html=fs.readFileSync('smart-application.html','utf8');
+const entry=fs.readFileSync('doing-global-entry.js','utf8');
+const assert=(v,m)=>{if(!v)throw new Error(m)};
+assert(html.includes("u.searchParams.get('embed')==='1'&&window.top!==window.self"),'嵌入智慧申請未辨識 iframe');
+assert(html.includes("window.top.location.replace(u.toString())"),'智慧申請未在第三方 OAuth 前跳回最外層頁面');
+assert(html.includes("u.searchParams.delete('embed')"),'跳出 iframe 後仍保留 embed 參數，可能形成循環');
+assert(entry.includes("u.searchParams.set('embed','1')"),'會員頁智慧申請入口未標示嵌入來源');
+assert(!html.includes('access.line.me'),'前端不得直接硬編碼 LINE 授權頁');
+console.log('smart application OAuth top-level invariant: OK');
