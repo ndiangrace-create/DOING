@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-20T00:36:00+08:00",
+  "recordedAt": "2026-08-20T00:46:00+08:00",
   "sourceFingerprint": "bde4c76547ecf4f9fd7c8c28f78bf21ee61895c4f2d6d9d44821a96d067a7104",
-  "environment": "DOING 智慧小幫手正式申請框架 hotfix 驗收；修正正式頁舊 smart-flow 框架與新 smartActivationV2 同時存在造成的雙欄擠壓、寬度錯誤與大面積留白。此次只調整 about 正式申請區版面與智慧啟用腳本快取版本：隱藏舊導引、移除 apply-side 雙欄、讓新入口使用完整內容寬度，並加入桌機／平板／手機欄數規則。智慧啟用邏輯、LINE 驗證、Worker、Supabase、計費與 2BL 均未修改。",
+  "environment": "DOING 智慧小幫手正式申請緊縮修復驗收。依正式頁實際截圖修正兩項 P0 UI 問題：舊 8 段 smart-flow 與新版智慧啟用入口重疊，以及工作／副業選項過大、checkbox 被全域 input min-height 放大。正式申請現在只保留單一新版流程；工作選項採桌機 4 欄、平板 3 欄、手機 2 欄，縮小卡片高度、字級、padding、欄距與上下留白；checkbox 強制回到 17px。LINE 驗證、申請後端、Worker、Supabase、計費與 2BL 均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
   "authorizedSetupWrites": 0,
   "tests": [
     {"id":"syntax","command":"node --check worker.js && node --check doing-attribution.js && node --check doing-home-refresh.js && node --check doing-about-refresh.js && node --check doing-smart-activation.js && node --check doing-global-entry.js","result":"PASS","scope":"正式 Worker、首頁路由、about 強化與智慧啟用入口 JavaScript 語法"},
-    {"id":"smart-helper-layout-hotfix","command":"PR #104 layout normalization + Safe Production regression","result":"PASS","scope":"舊 smart-flow 不再與新入口重疊；申請區單欄完整寬度；桌機3欄、平板2欄、手機1欄；功能邏輯不變"},
+    {"id":"smart-helper-compact-single-flow","command":"PR #105 compact single-flow repair + Safe Production regression","result":"PASS","scope":"舊 smart-flow 強制退役；新版單一路徑；桌機4欄、平板3欄、手機2欄；17px checkbox；縮小卡片與留白；功能邏輯不變"},
     {"id":"world-tree-v20","command":"node scripts/validate-world-tree-v20.mjs","result":"PASS","scope":"5 工作模組＋10 共用模組能力目錄與核准路徑"},
     {"id":"login-providers","command":"node scripts/validate-login-providers.mjs","result":"PASS","scope":"LINE 優先登入與共用會員安全規則"},
     {"id":"organizer-application-e2e","command":"node scripts/validate-organizer-application-e2e.mjs","result":"PASS","scope":"正式申請、平台核准、租戶建立與模組強制檢查；productionWrites 0"},
