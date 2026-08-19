@@ -1,69 +1,36 @@
 (()=>{
 'use strict';
 const API='https://tobeloved-api.ndiangrace.workers.dev';
+const TOKEN_KEY='doing_member_token';
 const targets=[...document.querySelectorAll('[data-doing-admin-entry]')];
 const style=document.createElement('style');
-style.textContent='[data-doing-admin-entry]{position:relative;user-select:none;-webkit-user-select:none}[data-doing-admin-entry].doing-entry-holding{outline:3px solid rgba(47,143,139,.28);outline-offset:3px;border-radius:16px}[data-doing-admin-entry] img{object-fit:contain}';
+style.textContent='[data-doing-admin-entry]{position:relative;user-select:none;-webkit-user-select:none}[data-doing-admin-entry].doing-entry-holding{outline:3px solid rgba(47,143,139,.28);outline-offset:3px;border-radius:16px}[data-doing-admin-entry] img{object-fit:contain}.doing-smart-overlay{position:fixed;inset:0;z-index:9999;background:rgba(24,38,43,.46);display:grid;place-items:center;padding:18px}.doing-smart-overlay-card{width:min(1180px,100%);height:min(88vh,900px);background:#fff;border-radius:20px;box-shadow:0 24px 70px rgba(24,38,43,.22);overflow:hidden;display:grid;grid-template-rows:auto 1fr}.doing-smart-overlay-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #dfe9e7}.doing-smart-overlay-head b{font-size:16px}.doing-smart-overlay-close{border:1px solid #dfe9e7;background:#fff;border-radius:9px;min-height:38px;padding:6px 12px;font-weight:800}.doing-smart-overlay iframe{border:0;width:100%;height:100%;background:#fff}@media(max-width:720px){.doing-smart-overlay{padding:0}.doing-smart-overlay-card{width:100%;height:100%;border-radius:0}}';
 document.head.appendChild(style);
 let timer=null,pointer=null,origin=null,target=null,opened=false;
 const tenant=()=>String(new URL(location.href).searchParams.get('tenant')||document.body.dataset.tenant||'').trim().toLowerCase();
 function clear(){if(timer)clearTimeout(timer);timer=null;pointer=null;origin=null;target?.classList.remove('doing-entry-holding');target=null}
 function enter(){const t=tenant();opened=true;clear();if(t){location.href='admin.html?tenant='+encodeURIComponent(t)+'&from='+encodeURIComponent(location.pathname.split('/').pop().replace('.html','')||'page');return}const u=new URL(API+'/auth/line/start');u.searchParams.set('mode','platform');u.searchParams.set('tenant','platform');location.href=u.toString()}
-if(targets.length){
- document.addEventListener('pointerdown',e=>{const el=e.target.closest?.('[data-doing-admin-entry]');if(!el||(e.pointerType==='mouse'&&e.button!==0))return;clear();opened=false;pointer=e.pointerId;origin={x:e.clientX,y:e.clientY};target=el;el.classList.add('doing-entry-holding');timer=setTimeout(enter,3000)},true);
- document.addEventListener('pointermove',e=>{if(e.pointerId!==pointer||!origin||!target)return;const r=target.getBoundingClientRect();if(Math.hypot(e.clientX-origin.x,e.clientY-origin.y)>12||e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)clear()},true);
- ['pointerup','pointercancel','lostpointercapture'].forEach(name=>document.addEventListener(name,clear,true));
- document.addEventListener('click',e=>{if(opened&&e.target.closest?.('[data-doing-admin-entry]')){e.preventDefault();e.stopImmediatePropagation();opened=false}},true);
- document.addEventListener('contextmenu',e=>{if(e.target.closest?.('[data-doing-admin-entry]'))e.preventDefault()},true);
-}
-
-// V20.3: member.html is only a compatibility/special-purpose page.
-// Normal visits must not stop on the legacy member UI. They either start LINE
-// once and return to the unified homepage router, or hand an existing member
-// token to the V20 workspace flow. Invite/account sections stay available.
-if(/(?:^|\/)member\.html$/i.test(location.pathname)){
- const TOKEN_KEY='doing_member_token';
+if(targets.length){document.addEventListener('pointerdown',e=>{const el=e.target.closest?.('[data-doing-admin-entry]');if(!el||(e.pointerType==='mouse'&&e.button!==0))return;clear();opened=false;pointer=e.pointerId;origin={x:e.clientX,y:e.clientY};target=el;el.classList.add('doing-entry-holding');timer=setTimeout(enter,3000)},true);document.addEventListener('pointermove',e=>{if(e.pointerId!==pointer||!origin||!target)return;const r=target.getBoundingClientRect();if(Math.hypot(e.clientX-origin.x,e.clientY-origin.y)>12||e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)clear()},true);['pointerup','pointercancel','lostpointercapture'].forEach(name=>document.addEventListener(name,clear,true));document.addEventListener('click',e=>{if(opened&&e.target.closest?.('[data-doing-admin-entry]')){e.preventDefault();e.stopImmediatePropagation();opened=false}},true);document.addEventListener('contextmenu',e=>{if(e.target.closest?.('[data-doing-admin-entry]'))e.preventDefault()},true)}
+function memberToken(){try{return sessionStorage.getItem(TOKEN_KEY)||localStorage.getItem(TOKEN_KEY)||''}catch(_){return''}}
+function smartApplicationUrl(){const u=new URL('about.html',location.href);u.searchParams.set('fragment','1');u.searchParams.set('embed','1');u.hash='apply';return u}
+function openSmartApplication(){let overlay=document.getElementById('doingSmartApplicationOverlay');if(overlay){overlay.hidden=false;return}overlay=document.createElement('div');overlay.id='doingSmartApplicationOverlay';overlay.className='doing-smart-overlay';overlay.innerHTML='<div class="doing-smart-overlay-card"><div class="doing-smart-overlay-head"><b>DOING 智慧申請</b><button type="button" class="doing-smart-overlay-close">關閉</button></div><iframe title="DOING 智慧申請" src="'+smartApplicationUrl().toString().replaceAll('&','&amp;')+'"></iframe></div>';document.body.appendChild(overlay);overlay.querySelector('.doing-smart-overlay-close').onclick=()=>overlay.hidden=true;overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.hidden=true})}
+const path=location.pathname.split('/').pop().toLowerCase();
+const inviteMode=()=>{const p=new URL(location.href).searchParams;return p.has('staff_invite')||p.has('registration_invite')};
+const explicitMemberSection=()=>/^#(?:activities|brands|account|operations)$/i.test(location.hash||'');
+function startMemberLineLogin(returnUrl=new URL(location.href)){const u=new URL(API+'/auth/line/start');u.searchParams.set('mode','member');u.searchParams.set('return_url',returnUrl.toString());location.replace(u.toString())}
+async function directMemberPanelHandoff(){if(path!=='member-panel.html'||explicitMemberSection()||inviteMode())return;const params=new URL(location.href).searchParams,incoming=params.get('member_token')||'',err=params.get('member_login_error')||params.get('login_error')||'';const token=incoming||memberToken();if(!token&&!err){const ret=new URL('index.html',location.href);ret.searchParams.set('doing_login_flow','workspace');startMemberLineLogin(ret);return}if(!token)return;try{if(incoming)localStorage.setItem(TOKEN_KEY,incoming)}catch(_){}try{const u=new URL(API);u.searchParams.set('action','getPlatformMemberProfile');u.searchParams.set('member_token',token);const r=await fetch(u,{cache:'no-store'}),d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)return;const p=d.data??d.result??d;if(!p.complete){location.replace('member-panel.html?member_token='+encodeURIComponent(token)+'#account');return}const spaces=Array.isArray(p.workspaces)?p.workspaces:[];if(spaces.length===1){const rr=await fetch(API+'?action=createMemberWorkspaceAdminSession',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_token:token,tenantId:spaces[0].id||spaces[0].tenantId||spaces[0].tenant_id})}),dd=await rr.json().catch(()=>({}));if(rr.ok&&dd.ok!==false){const data=dd.data??dd.result??dd,w=new URL('workspace.html',location.href);w.searchParams.set('tenant',data.tenantId||spaces[0].id);w.searchParams.set('admin_token',data.adminToken||'');w.searchParams.set('from','member');w.hash='calendar';location.replace(w.toString());return}}if(spaces.length>1){location.hash='operations';return}location.replace(smartApplicationUrl().toString())}catch(_){}}
+directMemberPanelHandoff();
+// From account/settings/workspace pages, application opens in-place instead of bouncing to homepage.
+document.addEventListener('click',e=>{if(path==='index.html'||path==='about.html')return;const el=e.target.closest?.('a[href*="about.html#apply"],a[href*="index.html#apply"],[data-doing-smart-apply]');if(!el)return;e.preventDefault();e.stopImmediatePropagation();openSmartApplication()},true);
+// Legacy member.html remains compatibility-only.
+if(path==='member.html'){
  const params=()=>new URL(location.href).searchParams;
- const memberToken=()=>sessionStorage.getItem(TOKEN_KEY)||localStorage.getItem(TOKEN_KEY)||'';
- const explicitMemberSection=()=>/^#(?:activities|brands|account|operations)$/i.test(location.hash||'');
- const inviteMode=()=>params().has('staff_invite')||params().has('registration_invite');
+ const explicit=()=>/^#(?:activities|brands|account|operations)$/i.test(location.hash||'');
+ const invite=()=>params().has('staff_invite')||params().has('registration_invite');
  let autoOpening=false,autoOpenAttempted=false,lineStartAttempted=false;
- function startMemberLineLogin(){
-   if(lineStartAttempted)return;lineStartAttempted=true;
-   const returnUrl=new URL('index.html',location.href);
-   returnUrl.searchParams.set('doing_login_flow','workspace');
-   const u=new URL(API+'/auth/line/start');
-   u.searchParams.set('mode','member');
-   u.searchParams.set('return_url',returnUrl.toString());
-   location.replace(u.toString());
- }
- async function openV20Workspace(id,{automatic=false}={}){
-   if(autoOpening)return;autoOpening=true;if(automatic)autoOpenAttempted=true;
-   const token=memberToken(),tenantId=String(id||'').trim().toLowerCase();
-   if(!token||!tenantId){autoOpening=false;return;}
-   try{
-     const r=await fetch(API+'?action=createMemberWorkspaceAdminSession',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_token:token,tenantId})});
-     const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.error||'無法進入工作空間');
-     const data=d.data??d.result??d,u=new URL('workspace.html',location.href);u.searchParams.set('tenant',data.tenantId||tenantId);u.searchParams.set('admin_token',data.adminToken||'');u.searchParams.set('from','member');location.replace(u.toString());
-   } finally {autoOpening=false;}
- }
- function applyMemberV20(){
-   const newBtn=document.getElementById('newOperationBtn');if(newBtn)newBtn.classList.add('hidden');
-   document.querySelectorAll('.tab[data-page="operations"]').forEach(x=>x.textContent='工作空間');
-   document.querySelectorAll('[data-panel="operations"] h2').forEach(x=>x.textContent='工作空間');
-   document.querySelectorAll('[data-workspace-admin]').forEach(x=>x.textContent='進入工作空間');
-   document.querySelectorAll('[data-workspace-calendar]').forEach(x=>{x.textContent='開啟工作日曆';x.dataset.v20Calendar='1'});
-   document.querySelectorAll('[data-workspace-admin],[data-workspace-calendar]').forEach(x=>x.setAttribute('data-v20-workspace',x.dataset.workspaceAdmin||x.dataset.workspaceCalendar||''));
-   if(memberToken()&&!explicitMemberSection()&&!inviteMode()&&!autoOpening&&!autoOpenAttempted){
-     const ids=[...new Set([...document.querySelectorAll('[data-v20-workspace]')].map(x=>x.getAttribute('data-v20-workspace')).filter(Boolean))];
-     if(ids.length===1)openV20Workspace(ids[0],{automatic:true}).catch(()=>{});
-   }
- }
- const incoming=params().get('member_token'),loginError=params().get('member_login_error')||params().get('login_error');
- if(!memberToken()&&!inviteMode()&&!incoming&&!loginError&&!explicitMemberSection()){
-   startMemberLineLogin();return;
- }
- const mo=new MutationObserver(applyMemberV20);mo.observe(document.documentElement,{childList:true,subtree:true});applyMemberV20();
- document.addEventListener('click',e=>{const el=e.target.closest?.('[data-v20-workspace]');if(!el)return;const id=el.getAttribute('data-v20-workspace');if(!id)return;e.preventDefault();e.stopImmediatePropagation();el.disabled=true;openV20Workspace(id).catch(err=>{alert(err.message||'無法進入工作空間');el.disabled=false})},true);
+ function startMemberLine(){if(lineStartAttempted)return;lineStartAttempted=true;const returnUrl=new URL('index.html',location.href);returnUrl.searchParams.set('doing_login_flow','workspace');startMemberLineLogin(returnUrl)}
+ async function openV20Workspace(id,{automatic=false}={}){if(autoOpening)return;autoOpening=true;if(automatic)autoOpenAttempted=true;const token=memberToken(),tenantId=String(id||'').trim().toLowerCase();if(!token||!tenantId){autoOpening=false;return}try{const r=await fetch(API+'?action=createMemberWorkspaceAdminSession',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_token:token,tenantId})});const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.error||'無法進入工作空間');const data=d.data??d.result??d,u=new URL('workspace.html',location.href);u.searchParams.set('tenant',data.tenantId||tenantId);u.searchParams.set('admin_token',data.adminToken||'');u.searchParams.set('from','member');location.replace(u.toString())}finally{autoOpening=false}}
+ function applyMemberV20(){const newBtn=document.getElementById('newOperationBtn');if(newBtn)newBtn.classList.add('hidden');document.querySelectorAll('.tab[data-page="operations"]').forEach(x=>x.textContent='工作空間');document.querySelectorAll('[data-panel="operations"] h2').forEach(x=>x.textContent='工作空間');document.querySelectorAll('[data-workspace-admin]').forEach(x=>x.textContent='進入工作空間');document.querySelectorAll('[data-workspace-calendar]').forEach(x=>{x.textContent='開啟工作日曆';x.dataset.v20Calendar='1'});document.querySelectorAll('[data-workspace-admin],[data-workspace-calendar]').forEach(x=>x.setAttribute('data-v20-workspace',x.dataset.workspaceAdmin||x.dataset.workspaceCalendar||''));if(memberToken()&&!explicit()&&!invite()&&!autoOpening&&!autoOpenAttempted){const ids=[...new Set([...document.querySelectorAll('[data-v20-workspace]')].map(x=>x.getAttribute('data-v20-workspace')).filter(Boolean))];if(ids.length===1)openV20Workspace(ids[0],{automatic:true}).catch(()=>{})}}
+ const incoming=params().get('member_token'),loginError=params().get('member_login_error')||params().get('login_error');if(!memberToken()&&!invite()&&!incoming&&!loginError&&!explicit()){startMemberLine();return}const mo=new MutationObserver(applyMemberV20);mo.observe(document.documentElement,{childList:true,subtree:true});applyMemberV20();document.addEventListener('click',e=>{const el=e.target.closest?.('[data-v20-workspace]');if(!el)return;const id=el.getAttribute('data-v20-workspace');if(!id)return;e.preventDefault();e.stopImmediatePropagation();el.disabled=true;openV20Workspace(id).catch(err=>{alert(err.message||'無法進入工作空間');el.disabled=false})},true)
 }
 })();
