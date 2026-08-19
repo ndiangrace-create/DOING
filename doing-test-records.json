@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "recordedAt": "2026-08-20T06:50:00+08:00",
-  "sourceFingerprint": "381f4865156f37e8837dc8ba433ba74c1ecca2e8eb42922630bf02a72eacd95e",
+  "sourceFingerprint": "e7b5ad0b9d2d405b1c81ece000dc31526bf2caeae5d9f95b2ff0893b3da6963f",
   "environment": "DOING 全系統 UI／路由／按鈕 Click-through 與新舊申請架構清理驗收。固定規則：首頁『我的報名』與『申請營運帳號』完全分流；智慧申請只走 smart-application.html、單層框架、LINE OAuth 必須在最外層執行；FB 粉專或 Instagram 至少一個；會員『我的營運』不得直接顯示內部產業代碼，必須轉為白話中文；帳號設定不得再把舊 systemApplication 寫回正式會員資料；會員頁舊 about.html#apply 入口在 live DOM 統一改到 smart-application.html；about 歷史申請區塊從 live DOM 移除。此輪 productionWrites=0；Worker、Supabase 結構、計費與 2BL 均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
