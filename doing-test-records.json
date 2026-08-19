@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-20T02:10:00+08:00",
-  "sourceFingerprint": "d261f47b3e2f258bd20566bdccb2aa3aaf364703a6963191a65754a1b1cd3ad9",
+  "recordedAt": "2026-08-20T02:22:00+08:00",
+  "sourceFingerprint": "60bd0f3b17894ae3141dae650ff589e918afd827609d2117754113f3b9daba8e",
   "environment": "DOING 正式首頁緊急啟動保護驗收。修正首頁 doing-global-boot 可能因 core 載入失敗、快取或返回頁面狀態而未解除，造成使用者看到首頁空白／無法開啟。新增首頁 boot failsafe：core 成功、失敗、pageshow 或 1.8 秒逾時都會釋放首頁畫面；既有智慧申請、工作空間分流與登入邏輯不變。Worker、Supabase 結構、計費與 2BL 均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
