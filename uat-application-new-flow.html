@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>DOING｜新版申請流程 UAT</title>
+<style>
+:root{--bg:#f6faf9;--paper:#fff;--ink:#26343d;--muted:#6a7880;--line:#dfe9e7;--main:#4f8f9d;--mint:#eaf5f1;--sky:#edf5f8;--shadow:0 12px 34px rgba(49,73,82,.08)}*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","Segoe UI",sans-serif}button,input,textarea{font:inherit}.top{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}.topin{max-width:980px;margin:auto;display:flex;align-items:center;gap:10px;padding:10px 14px}.top img{width:40px;height:40px;object-fit:contain}.top b{font-size:18px}.badge{margin-left:auto;background:var(--mint);padding:6px 9px;border-radius:9px;color:#315e5a;font-size:12px;font-weight:900}.shell{max-width:980px;margin:auto;padding:16px 14px 70px}.hero,.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.hero{padding:20px}.hero small{font-weight:900;color:var(--main)}.hero h1{font-size:clamp(28px,5vw,44px);margin:6px 0 8px}.hero p{margin:0;color:var(--muted);line-height:1.7}.progress{display:flex;gap:6px;margin:14px 0}.progress i{height:7px;flex:1;background:#dfe7e6;border-radius:999px}.progress i.on{background:var(--main)}.card{padding:18px}.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.head h2{margin:0;font-size:24px}.head p{margin:5px 0 0;color:var(--muted);line-height:1.6}.count{white-space:nowrap;background:var(--sky);padding:7px 10px;border-radius:9px;font-weight:900}.field{display:grid;gap:7px;margin-top:14px}.field label{font-weight:900}.field textarea,.field input{width:100%;border:1px solid var(--line);border-radius:13px;background:#fff;padding:12px}.field textarea{min-height:120px;resize:vertical}.example{font-size:13px;color:var(--muted);line-height:1.55}.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}.choice{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:14px;padding:13px;background:#fff;cursor:pointer;min-height:78px}.choice:has(input:checked){border-color:#9bc5cc;background:#f1f8f9;box-shadow:inset 0 0 0 1px #cde2e6}.choice input{width:22px;height:22px;flex:0 0 auto;margin-top:1px;accent-color:var(--main)}.choice b{display:block;line-height:1.4}.choice span span{display:block;margin-top:4px;color:var(--muted);font-size:13px;line-height:1.45}.actions{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:16px;flex-wrap:wrap}.btn{border:0;border-radius:11px;min-height:46px;padding:10px 16px;font-weight:900;cursor:pointer}.btn.primary{background:var(--main);color:#fff}.btn.alt{background:#fff;border:1px solid var(--line);color:var(--ink)}.btn.ghost{background:transparent;color:var(--muted)}.hint{font-size:13px;color:var(--muted)}.result{display:grid;gap:14px}.resultbox{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fff}.resultbox h3{margin:0 0 10px}.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{padding:8px 10px;border-radius:10px;background:var(--mint);font-weight:850}.summary{display:grid;gap:8px}.summary div{padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:#f9fbfb}.notice{padding:12px 14px;border-radius:13px;background:#f3f8f7;color:#4f6269;line-height:1.6}@media(max-width:680px){.choices{grid-template-columns:1fr}.actions .btn{flex:1}.actions .btn.ghost{flex:0 0 100%}.hero,.card{border-radius:15px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="topin"><img src="doing-logo.png" alt="DOING"><b>新版申請流程互動模擬</b><span class="badge">全新框架｜不送出資料</span></div></header>
+<main class="shell"><section class="hero"><small>先說你是誰，再讓系統理解你的工作</small><h1>不用先懂功能，先告訴我你平常都在忙什麼。</h1><p>這一版從零重做，不沿用前一版問卷。自由填寫放最前面，後面才用生活化選項補足情境。</p></section><div id="progress" class="progress"></div><section id="stage" class="card"></section></main>
+<script>
+'use strict';
+const state={step:0,workText:'',painText:'',types:new Set(),situations:new Set(),admin:new Set(),otherType:''};
+const workTypes=[
+ ['beauty','美甲／美睫／美容預約','我自己接客，會安排服務時間'],
+ ['hairspa','美髮／按摩／SPA','一對一或固定時段服務'],
+ ['photo','攝影／造型／個人服務','例如攝影、彩妝、造型、顧問'],
+ ['fortune','算命／塔羅／諮詢','需要預約時段的一對一服務'],
+ ['tutor','家教／一對一教學','固定或彈性安排學生時間'],
+ ['class','我自己開課／教學','例如美甲課、語言課、技能課'],
+ ['workshop','手作／體驗課程','例如香氛、陶藝、烘焙、DIY'],
+ ['group','團體課／團體活動','例如瑜珈、健身、導覽、團體體驗'],
+ ['event_host','我自己辦活動／講座／展演','我是主辦，不只是去參加'],
+ ['market_host','我自己舉辦市集／招募攤商','我要管理其他品牌或攤商'],
+ ['market_vendor','我是攤商，會參加別人的市集','我是參加者，不是市集主辦'],
+ ['foodtruck','餐車／攤位出攤','平常會到不同場地營業'],
+ ['groupbuy','團購／代購','會整理訂單、收款、出貨或取貨'],
+ ['retail','商品販售','實體或線上販售商品'],
+ ['design_job','設計／網站／品牌接案','接到需求後，需要一段時間完成'],
+ ['construction','室內設計／裝修／工程','例如丈量→設計→施工→驗收'],
+ ['wedding','婚禮／活動企劃','例如提案→確認→籌備→現場執行'],
+ ['guide','導覽／帶團／戶外體驗','有日期、名額與集合安排'],
+ ['rental','場地／教室／攝影棚出租','同一時間不能重複出租'],
+ ['pet','寵物美容／照護','需要預約、顧客與服務紀錄'],
+ ['home','到府服務','例如清潔、照護、維修、到府美容'],
+ ['other','其他工作','沒有符合的話可以自己補充']
+];
+const situations=[
+ ['pick_time','客人或參加者需要自己挑日期或時間','例如從你開放的空檔中選一個時段'],
+ ['different_time','不同服務需要的時間長短不一樣','例如基礎保養 60 分鐘、完整服務 120 分鐘'],
+ ['group_same_time','同一時間可能會有一整組人一起開始','例如 12 人手作課、瑜珈課、20 人導覽團'],
+ ['capacity','每個日期或時段都有上限','滿額後就不能再收人'],
+ ['review','對方送出資料後，我要先看過才能決定是否接受','例如攤商審核、課程資格、合作申請'],
+ ['place','我自己主辦活動時，需要安排不同人或單位的位置','例如市集攤位、展區、座位；如果只是去參加別人的活動不用勾'],
+ ['resource','同一個人員、房間或設備在同一時間不能重複使用','例如同一位美甲師不能同時接兩位客人；同一間教室不能同時開兩堂課'],
+ ['stages','我接的案子通常會分好幾個階段完成','例如裝修：丈量→設計→施工→驗收；婚禮：提案→確認→籌備→執行'],
+ ['handoff','同一件案子會由不同的人分工接著做','例如設計師先確認需求，再交給工班施工，最後由現場人員驗收'],
+ ['repeat_customer','同一位客人可能一直回來找我','我希望知道他以前做過什麼、偏好或注意事項']
+];
+const adminNeeds=[
+ ['money','我要確認誰已付款、誰還沒付款','常常需要對帳或追款'],
+ ['deposit','有些工作要先收訂金或階段款','先收一部分，之後再補餘額'],
+ ['refund','有些款項之後需要退回','例如退款、押金或保證金'],
+ ['change','常遇到改期、取消或臨時沒出現','希望每次異動都有紀錄'],
+ ['remind','我常常需要在事情發生前提醒對方','例如時間、地點、付款、行前通知'],
+ ['extra_info','不同工作會需要問不同資料','希望能自己增加問題'],
+ ['files','工作過程要留下照片、檔案或附件','之後還要找得到'],
+ ['sign','有些事情開始前需要確認條款、同意或簽名','不能只靠口頭'],
+ ['checkin','現場需要快速知道誰到了、誰還沒到','例如報到'],
+ ['redeem','有些票券或資格用過一次就不能再用','需要核銷紀錄'],
+ ['finance','我想知道每一份工作最後賺多少、花多少','不是只看收到多少錢'],
+ ['invoice','有些客人會需要發票資料','例如統編、抬頭、載具'],
+ ['staff','會有多位工作人員一起使用','每個人不一定能看全部內容'],
+ ['schedule','需要安排工作人員哪天上班、休息或請假','人員時間會影響接單'],
+ ['calendar','我想把工作時間放進 Google／Apple 日曆','避免重複手動新增'],
+ ['followup','我會做熟客回訪、生日提醒或再次邀請','希望可以累積顧客關係'],
+ ['addons','主要工作之外，還可能有商品或其他加購','希望跟同一筆工作一起處理']
+];
+const $=id=>document.getElementById(id);
+function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function progress(){ $('progress').innerHTML=[0,1,2,3,4].map((_,i)=>'<i class="'+(i<=state.step?'on':'')+'"></i>').join('') }
+function cards(items,set){return '<div class="choices">'+items.map(([k,t,d])=>`<label class="choice"><input type="checkbox" value="${k}" ${set.has(k)?'checked':''}><span><b>${t}</b><span>${d}</span></span></label>`).join('')+'</div>'}
+function bindSet(set){document.querySelectorAll('#stage input[type=checkbox]').forEach(x=>x.onchange=()=>{x.checked?set.add(x.value):set.delete(x.value);render()})}
+function nav(){const back=state.step>0?'<button class="btn alt" id="back">← 上一步</button>':'<button class="btn ghost" id="reset">重新開始</button>';return `<div class="actions">${back}<span class="hint">都可以複選，不限數量。</span><button class="btn primary" id="next">${state.step===3?'看建議結果':'下一步 →'}</button></div>`}
+function recommend(){const work=[];const tools=[];const T=state.types,S=state.situations,A=state.admin;
+ if(T.has('beauty')||T.has('hairspa')||T.has('photo')||T.has('fortune')||T.has('tutor')||T.has('pet')||T.has('home')||S.has('pick_time'))work.push('預約');
+ if(T.has('class')||T.has('workshop')||T.has('group')||S.has('group_same_time'))work.push('課程');
+ if(T.has('event_host')||T.has('guide'))work.push('活動');
+ if(T.has('market_host'))work.push('市集');
+ if(T.has('design_job')||T.has('construction')||T.has('wedding')||S.has('stages'))work.push('專案');
+ if(S.has('review'))tools.push('審核／候補');if(S.has('capacity'))tools.push('名額管理');if(S.has('place'))tools.push('位置安排');if(S.has('resource'))tools.push('人員／資源管理');if(S.has('repeat_customer')||A.has('followup'))tools.push('顧客管理');if(A.has('money')||A.has('deposit'))tools.push('收款／訂金');if(A.has('refund'))tools.push('退款／押金');if(A.has('change'))tools.push('異動紀錄');if(A.has('remind'))tools.push('通知提醒');if(A.has('extra_info'))tools.push('自訂問卷');if(A.has('files'))tools.push('照片／檔案');if(A.has('sign'))tools.push('電子簽名／條款');if(A.has('checkin'))tools.push('QR 報到');if(A.has('redeem'))tools.push('QR 核銷／票券');if(A.has('finance'))tools.push('進階財務');if(A.has('invoice'))tools.push('發票資料');if(A.has('staff'))tools.push('團隊／權限');if(A.has('schedule'))tools.push('團隊／排班');if(A.has('calendar'))tools.push('Google／Apple 日曆同步');if(A.has('addons'))tools.push('商品／加購');return {work:[...new Set(work)],tools:[...new Set(tools)]}}
+function render(){progress();if(state.step===0){$('stage').innerHTML=`<div class="head"><div><h2>先跟我說說你現在都在做什麼</h2><p>不用整理成正式介紹，照平常說話就可以。</p></div></div><div class="field"><label>你現在主要在做哪些工作？</label><textarea id="workText" placeholder="例如：我是美甲師，也會開美甲課；平常有正職，假日也會擺攤跟做團購。">${esc(state.workText)}</textarea><div class="example">也可以寫：我是市集主辦，但我自己也會參加其他人的市集。／我接裝修案，也會做居家顧問。</div></div><div class="field"><label>你現在最希望系統幫你改善什麼？</label><textarea id="painText" placeholder="例如：不要再一直私訊喬時間；我想把報名、收款、排位放在一起。">${esc(state.painText)}</textarea><div class="example">這兩格不會直接替你開功能，只是幫助系統理解你。</div></div>${nav()}`;$('workText').oninput=e=>state.workText=e.target.value;$('painText').oninput=e=>state.painText=e.target.value}
+ else if(state.step===1){$('stage').innerHTML=`<div class="head"><div><h2>你有哪些工作類型，希望一起整理？</h2><p>可以同時選很多種。自己主辦與只是參加別人的活動會分開判斷。</p></div><div class="count">已選 ${state.types.size}</div></div>${cards(workTypes,state.types)}<div class="field"><label>其他工作</label><input id="otherType" placeholder="沒有在上面看到的工作，可以自己寫" value="${esc(state.otherType)}"></div>${nav()}`;bindSet(state.types);$('otherType').oninput=e=>state.otherType=e.target.value}
+ else if(state.step===2){$('stage').innerHTML=`<div class="head"><div><h2>這些工作實際做起來，哪些情況會發生？</h2><p>每一題都有具體例子；不符合就不要勾。</p></div><div class="count">已選 ${state.situations.size}</div></div>${cards(situations,state.situations)}${nav()}`;bindSet(state.situations)}
+ else if(state.step===3){$('stage').innerHTML=`<div class="head"><div><h2>哪些行政事情最常讓你覺得麻煩？</h2><p>只勾真的會增加你工作量的事情。</p></div><div class="count">已選 ${state.admin.size}</div></div>${cards(adminNeeds,state.admin)}${nav()}`;bindSet(state.admin)}
+ else {const r=recommend();$('stage').innerHTML=`<div class="result"><div class="resultbox"><h3>你剛剛描述的工作</h3><div class="summary"><div><b>你目前的工作：</b><br>${esc(state.workText)||'未填寫'}</div><div><b>最想改善：</b><br>${esc(state.painText)||'未填寫'}</div></div></div><div class="resultbox"><h3>建議先開的工作模組</h3><div class="chips">${r.work.length?r.work.map(x=>'<span class="chip">'+x+'</span>').join(''):'<span class="hint">目前資訊還不足，不硬猜工作模組。</span>'}</div></div><div class="resultbox"><h3>依你明確勾選需求，建議的工具</h3><div class="chips">${r.tools.length?r.tools.map(x=>'<span class="chip">'+x+'</span>').join(''):'<span class="hint">目前沒有需要額外推薦的工具。</span>'}</div></div><div class="notice">這只是 UAT 建議結果，不會建立租戶、不會開功能。正式版本還會經過平台核准。</div><div class="actions"><button class="btn alt" id="back">← 回去修改</button><button class="btn primary" id="reset">重新測一次</button></div></div>`}
+ if($('next'))$('next').onclick=()=>{state.step++;render()};if($('back'))$('back').onclick=()=>{state.step--;render()};if($('reset'))$('reset').onclick=()=>{state.step=0;state.workText='';state.painText='';state.types.clear();state.situations.clear();state.admin.clear();state.otherType='';render()}}
+render();
+</script>
+</body>
+</html>
