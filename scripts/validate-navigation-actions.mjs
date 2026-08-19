@@ -64,9 +64,12 @@ if(homeRouter!==home){
 assert(globalEntry.includes("u.searchParams.set('embed','1')"),'智慧申請浮層未使用單層 embed 模式');
 assert(globalEntry.includes("if(overlay)overlay.remove()"),'智慧申請浮層仍重用舊 iframe，發布後可能顯示舊版');
 assert(!globalEntry.includes('doing-smart-overlay-head'),'智慧申請仍保留第二層舊標題框架');
-assert(globalEntry.includes('doing-smart-overlay-frame'),'智慧申請缺少單一浮層容器');
+assert(!globalEntry.includes('doing-smart-overlay-frame'),'智慧申請仍存在第二層外框容器');
+assert(globalEntry.includes('doing-smart-overlay>iframe'),'智慧申請 iframe 不是浮層直接子元素，仍可能形成雙層框架');
+assert(globalEntry.includes("overlay.innerHTML='<button")&&globalEntry.includes('<iframe title="DOING 智慧申請"'),'智慧申請浮層結構不是「關閉鍵＋單一 iframe」');
 assert(smartApplication.includes("get('embed')==='1'"),'智慧申請頁未辨識嵌入模式');
 assert(smartApplication.includes('html.is-embedded .smart-top')&&smartApplication.includes('display:none!important'),'嵌入智慧申請仍顯示第二層頁首框架');
+assert(smartApplication.includes('html.is-embedded,html.is-embedded body{background:transparent!important}'),'嵌入智慧申請仍有第二層白色頁面底框');
 assert(member.includes('安排預約日曆')&&member.includes('data-workspace-calendar'),'會員功能面板缺少安全的預約日曆直達入口');
 assert(member.includes('createMemberWorkspaceAdminSession')&&member.includes('data-workspace-admin'),'會員功能面板仍可能沿用其他租戶的後台登入');
 assert(worker.includes("if(action==='createMemberWorkspaceAdminSession')"),'Worker 缺少會員指定租戶後台憑證交換');
