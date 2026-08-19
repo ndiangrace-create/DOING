@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-20T00:46:00+08:00",
-  "sourceFingerprint": "bde4c76547ecf4f9fd7c8c28f78bf21ee61895c4f2d6d9d44821a96d067a7104",
+  "recordedAt": "2026-08-20T00:48:00+08:00",
+  "sourceFingerprint": "3222aa19dd9467bf37f7af05ca1b9522f1373a2cfd59381fd35087418fa24b98",
   "environment": "DOING 智慧小幫手正式申請緊縮修復驗收。依正式頁實際截圖修正兩項 P0 UI 問題：舊 8 段 smart-flow 與新版智慧啟用入口重疊，以及工作／副業選項過大、checkbox 被全域 input min-height 放大。正式申請現在只保留單一新版流程；工作選項採桌機 4 欄、平板 3 欄、手機 2 欄，縮小卡片高度、字級、padding、欄距與上下留白；checkbox 強制回到 17px。LINE 驗證、申請後端、Worker、Supabase、計費與 2BL 均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
