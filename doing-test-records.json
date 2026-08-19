@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-19T11:11:00+08:00",
-  "sourceFingerprint": "7779288d8a982ce4f685f724bf030c42d124e0f315075e7e25ac79027cd1ab80",
+  "recordedAt": "2026-08-19T11:12:00+08:00",
+  "sourceFingerprint": "2b32b65244ecdc41dfa8df26e4549fbd2f78952bf8bbb7dfe81ed23771317f92",
   "environment": "DOING v20.8 舊會員入口正式退役驗收；首頁既有核心功能保留，但 doingMyEntryModal 在核心載入後立即移除，不再成為任何會員入口。所有公開會員入口由 doing-home-refresh.js 單一路由接管；已有 member token 時單擊直接讀會員 workspaces、換發 createMemberWorkspaceAdminSession 並進 workspace.html，無 token 才啟動 LINE；首頁核心載入版本切為 20260819-final-entry1。未修改 workspace、首頁核心商業功能、Worker、Supabase schema、計費或 2bl-v7。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
