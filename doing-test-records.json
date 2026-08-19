@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-19T18:01:00+08:00",
-  "sourceFingerprint": "21604e6eca6df255f750091fa9ae0986b093690ac742fb1c1180e9b9df383f62",
-  "environment": "DOING 新版申請流程 UAT 全新框架驗收；新增獨立 uat-application-new-flow.html，不沿用舊 UAT 結構。流程固定為：自由描述工作與痛點 → 多選工作類型 → 具體工作情境 → 行政卡點 → 收斂推薦。自由填寫置於最前；主辦與參加他人活動分流；正式申請流程、Worker、Supabase、租戶、計費與 2bl-v7 均未修改。",
+  "recordedAt": "2026-08-19T18:14:00+08:00",
+  "sourceFingerprint": "fbd598e549d056e01f994218358dae8609954e2318899159c0ae709bf7f12ae1",
+  "environment": "DOING 智慧申請分析 UAT 驗收；新增獨立 uat-application-smart-analysis.html，沿用既有 analyzeDoingApplication 與 OpenAI 智慧分析能力，將自由描述、工作類型、實際情境與行政卡點一起送入分析；AI 失敗時退回規則備援。正式申請流程、Worker 商業邏輯、Supabase、租戶、計費與 2bl-v7 均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
@@ -31,7 +31,7 @@
     {"id":"navigation-actions","command":"node scripts/validate-navigation-actions.mjs","result":"PASS","scope":"平台與租戶導覽、首頁統一會員入口、工作平台依核准功能分流"},
     {"id":"platform-operations-e2e","command":"node scripts/validate-platform-operations-e2e.mjs","result":"PASS","scope":"租戶問題、場次／訂單深連結與處理閉環；productionWrites 0"},
     {"id":"persistent-change-ledger-e2e","command":"node scripts/validate-persistent-change-ledger-e2e.mjs","result":"PASS","scope":"append-only 變更紀錄、RLS、Verified Baseline 與受影響驗收"},
-    {"id":"doing-smart-helper-e2e","command":"node scripts/validate-doing-smart-helper-e2e.mjs","result":"PASS","scope":"智慧申請、客服、受控知識與資料隔離"},
+    {"id":"doing-smart-helper-e2e","command":"node scripts/validate-doing-smart-helper-e2e.mjs","result":"PASS","scope":"智慧申請、客服、受控知識與資料隔離；本次 UAT 直接沿用 analyzeDoingApplication"},
     {"id":"universal-booking","command":"node scripts/validate-universal-booking.mjs","result":"PASS","scope":"預約排班、空檔、服務時間、租戶隔離與顧客資料；預約入口對應既有營運總日曆"},
     {"id":"worker-sync","command":"cmp -s worker.js worker.txt","result":"PASS","scope":"正式 Worker 雙檔同步；本次 Worker 未修改"},
     {"id":"diff-quality","command":"git diff --check","result":"PASS","scope":"差異格式"}
