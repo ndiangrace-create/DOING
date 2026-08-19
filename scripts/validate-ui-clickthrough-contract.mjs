@@ -35,7 +35,6 @@ check(smart.includes('Facebook 粉專或 Instagram 至少一個'),'智慧申請�
 check(!smart.includes('saNoPublic'),'智慧申請仍存在「沒有公開頁面」勾選');
 check(!smart.includes('目前確實尚未建立公開頁面'),'智慧申請仍顯示舊例外文案');
 
-// 會員頁舊資料仍可相容讀取，但正式畫面與寫入必須由 V20 清理層接管。
 check(global.includes('DOING_APPLICATION_INDUSTRY_LABELS'),'會員營運申請缺少產業代碼→白話中文轉換層');
 check(global.includes('translateApplicationIndustryText'),'會員營運申請缺少前台中文轉換執行器');
 check(global.includes('rewriteLegacyApplicationLinks'),'會員頁缺少舊申請連結退休處理');
