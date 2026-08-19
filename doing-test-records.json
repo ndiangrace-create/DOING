@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-19T19:18:00+08:00",
-  "sourceFingerprint": "ac1640eae1ed64ed4c3c68244e278f7757548bf3cb49dac3e3b28a2391708ffb",
-  "environment": "DOING 智慧申請 UAT v3 能力積木模型驗收；新增獨立 uat-application-smart-v3.html，不覆蓋舊 UAT。架構固定為工作入口 → 能力積木 → 共用工具 → 智慧分析；維持預約／課程／活動／市集／專案五大工作模組。寄賣／百貨／通路合作與天氣／潮汐／海況／場地等外部成行條件改為下插能力積木，不新增第六工作模組。內建三組壓力測試案例：美甲＋辦市集＋百貨寄賣、導覽員＋天氣潮汐、室內設計師＋手作。沿用既有 analyzeDoingApplication；AI 僅理解與建議，正式權限仍由規則與平台核准。正式申請流程、Worker 商業邏輯、Supabase、租戶、計費與 2bl-v7 均未修改。",
+  "recordedAt": "2026-08-19T20:42:00+08:00",
+  "sourceFingerprint": "8732faae060c4d199fdcd1f5c0000cb139887f590afb0cb22c2cb8fc6ecf46c8",
+  "environment": "DOING 智慧申請 UAT v4 工作包結果模型驗收；新增獨立 uat-application-smart-v4.html，不覆蓋 v3。重新審視前面多輪 UAT 後，問卷縮成做哪些工作 → 最想改善什麼 → 只補問必要差異；結果頁不再直接顯示五大模組與能力標籤牆，而是先建立每一份工作包，再把能力掛在該工作下，最後只顯示跨工作共用底座。保留美甲＋市集＋百貨寄賣、導覽＋天氣潮汐、室內設計＋手作三組壓力測試。沿用既有 analyzeDoingApplication；AI 僅理解與建議，正式權限仍由規則與平台核准。正式申請流程、Worker 商業邏輯、Supabase、租戶、計費與 2bl-v7 均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
@@ -11,6 +11,7 @@
     {"id":"syntax","command":"node --check worker.js && node --check doing-attribution.js && node --check doing-home-refresh.js && node --check doing-home-refresh-core.js && node --check doing-about-refresh.js && node --check doing-global-entry.js","result":"PASS","scope":"Worker、首頁統一登入路由與既有正式 JavaScript 語法"},
     {"id":"smart-application-uat-v2","command":"PR #92 parse + full regression","result":"PASS","scope":"勾選優先、動態情境、動態行政需求、智慧分析、規則兜底、AI fail-soft；正式資料寫入 0"},
     {"id":"smart-application-uat-v3","command":"PR #93 capability-model UAT + three scenario presets + full regression","result":"PASS","scope":"工作入口、能力積木、共用工具、智慧分析四層；寄賣／通路結算與外部成行條件下插；三組指定斜槓案例可一鍵模擬；正式資料寫入 0"},
+    {"id":"smart-application-uat-v4","command":"PR #94 work-package UAT + three scenario presets + full regression","result":"PASS","scope":"問卷去重；結果改為每份工作包掛能力，再顯示跨工作共用底座；AI 只做理解與建議；正式資料寫入 0"},
     {"id":"world-tree-v20","command":"node scripts/validate-world-tree-v20.mjs","result":"PASS","scope":"workspace 核准模組、fail closed、預約直達營運總日曆、5 工作模組＋10 共用模組能力目錄"},
     {"id":"login-providers","command":"node scripts/validate-login-providers.mjs","result":"PASS","scope":"LINE 優先登入、首頁單一路由直達工作空間、管理入口 Google 備援、共用會員安全規則"},
     {"id":"database-contact-uniqueness","command":"Supabase transaction rollback：重複 Email／登入 Email／正規化電話唯一索引驗收","result":"PASS","scope":"DOING_SaaS 正式 platform_members 唯一索引既有驗收；本次無正式資料寫入"},
@@ -33,7 +34,7 @@
     {"id":"navigation-actions","command":"node scripts/validate-navigation-actions.mjs","result":"PASS","scope":"平台與租戶導覽、首頁統一會員入口、工作平台依核准功能分流"},
     {"id":"platform-operations-e2e","command":"node scripts/validate-platform-operations-e2e.mjs","result":"PASS","scope":"租戶問題、場次／訂單深連結與處理閉環；productionWrites 0"},
     {"id":"persistent-change-ledger-e2e","command":"node scripts/validate-persistent-change-ledger-e2e.mjs","result":"PASS","scope":"append-only 變更紀錄、RLS、Verified Baseline 與受影響驗收"},
-    {"id":"doing-smart-helper-e2e","command":"node scripts/validate-doing-smart-helper-e2e.mjs","result":"PASS","scope":"智慧申請、客服、受控知識與資料隔離；UAT v3 沿用 analyzeDoingApplication"},
+    {"id":"doing-smart-helper-e2e","command":"node scripts/validate-doing-smart-helper-e2e.mjs","result":"PASS","scope":"智慧申請、客服、受控知識與資料隔離；UAT v4 沿用 analyzeDoingApplication"},
     {"id":"universal-booking","command":"node scripts/validate-universal-booking.mjs","result":"PASS","scope":"預約排班、空檔、服務時間、租戶隔離與顧客資料；預約入口對應既有營運總日曆"},
     {"id":"worker-sync","command":"cmp -s worker.js worker.txt","result":"PASS","scope":"正式 Worker 雙檔同步；本次 Worker 未修改"},
     {"id":"diff-quality","command":"git diff --check","result":"PASS","scope":"差異格式"}
