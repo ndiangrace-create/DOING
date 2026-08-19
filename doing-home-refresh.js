@@ -1,14 +1,12 @@
 (()=>{
 'use strict';
 
-// V20.5 login router: keep the existing homepage engine intact in
-// doing-home-refresh-core.js, but make every public "My DOING" entry use one
-// router. A stored member token is handled here instead of falling through to
-// the legacy homepage click handler.
+// V20.7 final member entry: public My DOING has one entry only.
+// The retired member modal is removed after the existing homepage core loads.
 const API='https://tobeloved-api.ndiangrace.workers.dev';
 const FLOW_KEY='doing_login_flow';
 const FLOW_VALUE='workspace';
-const CORE='doing-home-refresh-core.js?v=20260819-login-router1';
+const CORE='doing-home-refresh-core.js?v=20260819-final-entry1';
 const bootUrl=new URL(location.href);
 const incomingToken=bootUrl.searchParams.get('member_token')||'';
 const incomingStatus=bootUrl.searchParams.get('member_status')||'';
@@ -70,9 +68,14 @@ function startMyDoingLineLogin(){
   u.searchParams.set('return_url',returnUrl.toString());
   location.assign(u.toString());
 }
+function retireLegacyMemberEntry(){
+  const legacy=document.getElementById('doingMyEntryModal');
+  if(legacy)legacy.remove();
+  document.querySelectorAll('[aria-controls="doingMyEntryModal"]').forEach(x=>x.removeAttribute('aria-controls'));
+}
 function installLoginCapture(){
   document.addEventListener('click',e=>{
-    const target=e.target.closest?.('[data-my-action="login"],#globalMyNavBtn');
+    const target=e.target.closest?.('[data-my-action="login"],#globalMyNavBtn,#memberLoginBtn');
     if(!target)return;
     e.preventDefault();e.stopImmediatePropagation();
     let stored='';try{stored=localStorage.getItem('doing_member_token')||''}catch(_){}
@@ -94,20 +97,20 @@ async function loadCore(){
 }
 
 (async()=>{
-  // LINE callback for the unified My DOING entry is handled before the old
-  // homepage member state can consume/clean the member_token query string.
   if(incomingFlow===FLOW_VALUE&&incomingToken){
     try{await handoffToWorkspace(incomingToken,incomingStatus);return}catch(error){
       console.error('DOING workspace handoff failed',error);
       location.replace(memberTarget(incomingToken,'operations',incomingStatus||'ready').toString());return;
     }
   }
-  // A failed callback must stop and show the normal login error; never restart
-  // OAuth automatically from this router.
   if(incomingFlow===FLOW_VALUE&&incomingError){
     bootUrl.searchParams.delete(FLOW_KEY);
     history.replaceState({},'',bootUrl.pathname+bootUrl.search+bootUrl.hash);
   }
-  try{await loadCore();installLoginCapture()}catch(error){console.error(error);}
+  try{
+    await loadCore();
+    retireLegacyMemberEntry();
+    installLoginCapture();
+  }catch(error){console.error(error);}
 })();
 })();
