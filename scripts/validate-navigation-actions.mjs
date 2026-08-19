@@ -56,6 +56,11 @@ if(homeRouter!==home){
   assert(homeRouter.includes('createMemberWorkspaceAdminSession'),'首頁單一路由未換發工作空間憑證');
   assert(homeRouter.includes('handoffToWorkspace'),'首頁單一路由未直接交棒我的 DOING');
   assert(homeRouter.includes('doing-home-refresh-core.js'),'首頁登入路由未載入完整首頁核心');
+  assert(homeRouter.includes("const REGISTRATION_FLOW='registrations'"),'首頁缺少「我的報名」獨立登入流程');
+  assert(homeRouter.includes("memberTarget(token,'activities'"),'「我的報名」沒有固定回會員報名紀錄');
+  assert(homeRouter.includes('startRegistrationsLineLogin'),'「我的報名」未使用獨立 LINE 回跳流程');
+  assert(!homeRouter.includes("if(stored){handoffToWorkspace(stored,'ready')"),'「我的報名」又被串回工作空間／申請營運帳號');
+  assert(homeRouter.includes("location.href=applicationTarget().toString()"),'申請營運帳號沒有維持獨立智慧申請入口');
 }
 assert(member.includes('安排預約日曆')&&member.includes('data-workspace-calendar'),'會員功能面板缺少安全的預約日曆直達入口');
 assert(member.includes('createMemberWorkspaceAdminSession')&&member.includes('data-workspace-admin'),'會員功能面板仍可能沿用其他租戶的後台登入');
