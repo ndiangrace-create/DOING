@@ -31,4 +31,31 @@ if(path==='member.html'){
  function applyMemberV20(){const newBtn=document.getElementById('newOperationBtn');if(newBtn)newBtn.classList.add('hidden');document.querySelectorAll('.tab[data-page="operations"]').forEach(x=>x.textContent='工作空間');document.querySelectorAll('[data-panel="operations"] h2').forEach(x=>x.textContent='工作空間');document.querySelectorAll('[data-workspace-admin]').forEach(x=>x.textContent='進入工作空間');document.querySelectorAll('[data-workspace-calendar]').forEach(x=>{x.textContent='開啟工作日曆';x.dataset.v20Calendar='1'});document.querySelectorAll('[data-workspace-admin],[data-workspace-calendar]').forEach(x=>x.setAttribute('data-v20-workspace',x.dataset.workspaceAdmin||x.dataset.workspaceCalendar||''));if(memberToken()&&!explicit()&&!invite()&&!autoOpening&&!autoOpenAttempted){const ids=[...new Set([...document.querySelectorAll('[data-v20-workspace]')].map(x=>x.getAttribute('data-v20-workspace')).filter(Boolean))];if(ids.length===1)openV20Workspace(ids[0],{automatic:true}).catch(()=>{})}}
  const incoming=params().get('member_token'),loginError=params().get('member_login_error')||params().get('login_error');if(!memberToken()&&!invite()&&!incoming&&!loginError&&!explicit()){startMemberLine();return}const mo=new MutationObserver(applyMemberV20);mo.observe(document.documentElement,{childList:true,subtree:true});applyMemberV20();document.addEventListener('click',e=>{const el=e.target.closest?.('[data-v20-workspace]');if(!el)return;const id=el.getAttribute('data-v20-workspace');if(!id)return;e.preventDefault();e.stopImmediatePropagation();el.disabled=true;openV20Workspace(id).catch(err=>{alert(err.message||'無法進入工作空間');el.disabled=false})},true)
 }
+
+// V20 正式會員／申請清理層：舊申請資料只保留相容讀取，不得再成為前台正式路徑。
+const DOING_APPLICATION_INDUSTRY_LABELS={
+ beauty_wellness:'美容／美甲／按摩／SPA',space_studio:'空間／設備出租',market_retail:'市集／商品販售',professional_service:'設計／接案／工程',event_exhibition:'活動／講座／展演',education:'課程／手作／教學',tour_outdoor:'導覽／戶外體驗',craft_experience:'手作／體驗',other:'其他工作／副業'
+};
+function translateApplicationIndustryText(root=document){
+ const scope=root.querySelector?.('[data-panel="operations"],#operations')||document.querySelector('[data-panel="operations"],#operations');if(!scope)return;
+ const walker=document.createTreeWalker(scope,NodeFilter.SHOW_TEXT);let node;
+ while((node=walker.nextNode())){
+   let text=node.nodeValue||'',next=text;
+   for(const [code,label] of Object.entries(DOING_APPLICATION_INDUSTRY_LABELS))next=next.replace(new RegExp('\\b'+code+'\\b','g'),label);
+   if(next!==text)node.nodeValue=next;
+ }
+}
+function rewriteLegacyApplicationLinks(root=document){
+ root.querySelectorAll?.('a[href*="about.html#apply"],a[href*="index.html#apply"]').forEach(a=>{a.href='smart-application.html';a.setAttribute('data-doing-smart-apply','1')});
+}
+function installCleanMemberProfileSubmit(){
+ if(path!=='member-panel.html')return;const form=document.getElementById('profileForm');if(!form||form.dataset.v20CleanSubmit==='1')return;form.dataset.v20CleanSubmit='1';
+ form.onsubmit=async e=>{e.preventDefault();const fd=new FormData(form),btn=form.querySelector('[type=submit]'),msg=document.getElementById('formMessage');if(msg)msg.textContent='';if(btn)btn.disabled=true;try{const r=await fetch(API+'?action=savePlatformMemberProfile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_token:memberToken(),name:fd.get('name'),email:fd.get('email'),phone:fd.get('phone'),city:fd.get('city'),lineId:fd.get('lineId')})}),d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.error||'儲存失敗');if(typeof window.loadProfile==='function'){await window.loadProfile();if(typeof window.switchPage==='function')window.switchPage('home')}else location.reload()}catch(err){if(msg)msg.textContent=err.message||'儲存失敗'}finally{if(btn)btn.disabled=false}};
+}
+function retireLegacyAboutApplication(){if(path!=='about.html')return;document.querySelectorAll('#applicationPanel,#apply').forEach(el=>el.remove())}
+function applyFormalV20Cleanup(){
+ if(path==='member-panel.html'){translateApplicationIndustryText();rewriteLegacyApplicationLinks();installCleanMemberProfileSubmit()}
+ if(path==='about.html')retireLegacyAboutApplication();
+}
+setTimeout(()=>{applyFormalV20Cleanup();if(path==='member-panel.html'){const mo=new MutationObserver(()=>applyFormalV20Cleanup());mo.observe(document.body,{childList:true,subtree:true})}},0);
 })();
