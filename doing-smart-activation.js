@@ -2,196 +2,47 @@
 'use strict';
 const API='https://tobeloved-api.ndiangrace.workers.dev';
 const form=document.getElementById('signupForm');
-if(!form||form.dataset.activationV3)return;
-form.dataset.activationV3='1';
-form.dataset.activationV2='1';
-
-const works=[
-  ['beauty','美容／美甲／按摩／SPA','💅'],
-  ['market','市集','🏪'],
-  ['event','活動／講座／展演','🎟️'],
-  ['course','課程／手作／教學','🎓'],
-  ['guide','導覽／戶外體驗','🧭'],
-  ['project','設計／接案／工程','🧩'],
-  ['commerce','商品販售／團購','📦'],
-  ['consign','寄賣／通路','🛍️'],
-  ['rental','空間／設備出租','🏠'],
-  ['other','其他工作／副業','＋']
-];
+if(!form||form.dataset.activationV4)return;
+form.dataset.activationV4='1';form.dataset.activationV3='1';form.dataset.activationV2='1';
+const works=[['beauty','美容／美甲／按摩／SPA','💅'],['market','市集','🏪'],['event','活動／講座／展演','🎟️'],['course','課程／手作／教學','🎓'],['guide','導覽／戶外體驗','🧭'],['project','設計／接案／工程','🧩'],['commerce','商品販售／團購','📦'],['consign','寄賣／通路','🛍️'],['rental','空間／設備出租','🏠'],['other','其他工作／副業','＋']];
 const implied={beauty:'provider',event:'organizer',course:'organizer',guide:'guide',project:'provider',commerce:'seller',rental:'operator',other:'custom'};
-const roles={
-  market:[['organizer','我是主辦'],['participant','我是攤商／參與者'],['both','兩種都有']],
-  consign:[['operator','我經營寄賣／通路'],['seller','我的商品去別人的通路寄賣'],['both','兩種都有']]
-};
-const units={
-  beauty:'一筆預約／一次服務',event:'一場活動',course:'一梯課程／體驗',guide:'一梯導覽／體驗',project:'一個客戶案件',commerce:'商品與訂單',rental:'一個可預約資源／時段',other:'一種自訂工作',
-  market:{organizer:'一場市集',participant:'一次出攤紀錄',both:'一場市集＋自己的出攤紀錄'},
-  consign:{operator:'寄賣品牌與商品',seller:'一段自己的寄賣合作',both:'寄賣通路＋自己的寄賣合作'}
-};
+const roles={market:[['organizer','我是主辦'],['participant','我是攤商／參與者'],['both','兩種都有']],consign:[['operator','我經營寄賣／通路'],['seller','我的商品去別人的通路寄賣'],['both','兩種都有']]};
+const units={beauty:'一筆預約／一次服務',event:'一場活動',course:'一梯課程／體驗',guide:'一梯導覽／體驗',project:'一個客戶案件',commerce:'商品與訂單',rental:'一個可預約資源／時段',other:'一種自訂工作',market:{organizer:'一場市集',participant:'一次出攤紀錄',both:'一場市集＋自己的出攤紀錄'},consign:{operator:'寄賣品牌與商品',seller:'一段自己的寄賣合作',both:'寄賣通路＋自己的寄賣合作'}};
 const toolMap={beauty:['預約與空檔'],event:['活動管理'],course:['課程管理'],guide:['導覽梯次'],project:['案件管理'],commerce:['商品與訂單'],rental:['資源預約'],other:['自訂工作入口'],market_organizer:['市集管理'],market_participant:['我的出攤紀錄'],consign_operator:['寄賣通路管理'],consign_seller:['我的寄賣合作']};
 const common=['工作總日曆','收款與對帳','通知提醒','照片／檔案'];
 const useMap={beauty:['beauty','service_booking'],event:['event'],course:['workshop'],guide:['guide'],project:['general'],commerce:['general'],rental:['resource_booking'],other:['general']};
 const industryMap={beauty:'beauty_wellness',market:'market_retail',event:'event_exhibition',course:'education',guide:'tour_outdoor',project:'professional_service',commerce:'market_retail',consign:'market_retail',rental:'space_studio',other:'other'};
-const state={step:0,works:new Set(),roles:{},analysis:null,info:{}};
-
+const state={step:0,works:new Set(),roles:{},analysis:null,confirmed:false,info:{}};
 function retireLegacyFlow(){
-  form.querySelectorAll(':scope > .group,:scope > .form-head,:scope > .smart-flow-guide').forEach(el=>{
-    el.hidden=true;
-    el.setAttribute('aria-hidden','true');
-    el.style.setProperty('display','none','important');
-  });
+  form.querySelectorAll(':scope > .group,:scope > .form-head,:scope > .smart-flow-guide').forEach(el=>{el.hidden=true;el.setAttribute('aria-hidden','true');el.style.setProperty('display','none','important')});
   form.classList.remove('is-smart-flow');
+  document.querySelectorAll('.doing-helper-section-head,.doing-helper-frame-head').forEach(el=>{el.hidden=true;el.style.setProperty('display','none','important')});
 }
-retireLegacyFlow();
-new MutationObserver(retireLegacyFlow).observe(form,{childList:true,subtree:false,attributes:true,attributeFilter:['class','hidden','style']});
-
-const box=document.createElement('div');
-box.id='smartActivationV2';
-box.innerHTML=`
-<style>
-#signupForm>#smartActivationV2{display:grid;gap:9px!important;margin:0!important}
-#signupForm>.group,#signupForm>.form-head,#signupForm>.smart-flow-guide{display:none!important}
-#smartActivationV2 .sa-head,#smartActivationV2 .sa-card{border:1px solid #dfe9e7;border-radius:14px;background:#fff;padding:12px 14px}
-#smartActivationV2 .sa-head{background:#edf5f8}
-#smartActivationV2 .sa-head small{font-size:13px;font-weight:800}
-#smartActivationV2 .sa-head h2{font-size:22px;line-height:1.28;margin:2px 0 3px}
-#smartActivationV2 .sa-head p,#smartActivationV2 .sa-muted{font-size:14px;color:#6b7880;line-height:1.45;margin:0}
-#smartActivationV2 .sa-card h3{font-size:20px;line-height:1.3;margin:0 0 3px}
-#smartActivationV2 .sa-card h4{font-size:15px;margin:10px 0 5px}
-#smartActivationV2 .sa-progress{display:flex;gap:4px}
-#smartActivationV2 .sa-progress i{height:4px;flex:1;background:#dfe7e6;border-radius:99px}
-#smartActivationV2 .sa-progress i.on{background:#4f8f9d}
-#smartActivationV2 .sa-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px}
-#smartActivationV2 .sa-tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
-#smartActivationV2 .sa-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
-#smartActivationV2 .sa-choice,#smartActivationV2 .sa-tool,#smartActivationV2 .sa-role{border:1px solid #dfe9e7;border-radius:9px;background:#fff}
-#smartActivationV2 .sa-choice{display:flex;align-items:center;gap:7px;min-height:42px;padding:7px 9px;cursor:pointer}
-#smartActivationV2 .sa-choice b{font-size:15px;line-height:1.25}
-#smartActivationV2 .sa-choice>span:first-of-type{font-size:16px;line-height:1}
-#smartActivationV2 .sa-choice.on,#smartActivationV2 .sa-role.on{background:#f1f8f9;border-color:#8dbbc4}
+retireLegacyFlow();new MutationObserver(retireLegacyFlow).observe(form,{childList:true,subtree:false,attributes:true,attributeFilter:['class','hidden','style']});
+const box=document.createElement('div');box.id='smartActivationV2';box.innerHTML=`<style>
+#signupForm>#smartActivationV2{display:grid;gap:9px!important;margin:0!important}#signupForm>.group,#signupForm>.form-head,#signupForm>.smart-flow-guide,.doing-helper-section-head,.doing-helper-frame-head{display:none!important}
+#smartActivationV2 .sa-head,#smartActivationV2 .sa-card{border:1px solid #dfe9e7;border-radius:14px;background:#fff;padding:12px 14px}#smartActivationV2 .sa-head{background:#edf5f8}#smartActivationV2 .sa-head small{font-size:13px;font-weight:800}#smartActivationV2 .sa-head h2{font-size:22px;line-height:1.28;margin:2px 0 3px}#smartActivationV2 .sa-head p,#smartActivationV2 .sa-muted{font-size:14px;color:#6b7880;line-height:1.45;margin:0}#smartActivationV2 .sa-card h3{font-size:20px;line-height:1.3;margin:0 0 3px}#smartActivationV2 .sa-card h4{font-size:15px;margin:10px 0 5px}
+#smartActivationV2 .sa-progress{display:flex;gap:4px}#smartActivationV2 .sa-progress i{height:4px;flex:1;background:#dfe7e6;border-radius:99px}#smartActivationV2 .sa-progress i.on{background:#4f8f9d}
+#smartActivationV2 .sa-grid,#smartActivationV2 .sa-tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px}#smartActivationV2 .sa-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+#smartActivationV2 .sa-choice,#smartActivationV2 .sa-tool,#smartActivationV2 .sa-role{border:1px solid #dfe9e7;border-radius:9px;background:#fff}#smartActivationV2 .sa-choice{display:flex;align-items:center;gap:7px;min-height:42px;padding:7px 9px;cursor:pointer}#smartActivationV2 .sa-choice b{font-size:15px;line-height:1.25}#smartActivationV2 .sa-choice>span:first-of-type{font-size:16px;line-height:1}#smartActivationV2 .sa-choice.on,#smartActivationV2 .sa-role.on{background:#f1f8f9;border-color:#8dbbc4}
 #smartActivationV2 .sa-choice input[type=checkbox],#smartActivationV2 #saConfirm,#smartActivationV2 #saNoPublic{appearance:auto!important;-webkit-appearance:checkbox!important;width:17px!important;height:17px!important;min-width:17px!important;max-width:17px!important;min-height:17px!important;max-height:17px!important;padding:0!important;margin:0!important;flex:0 0 17px!important;border-radius:3px!important;accent-color:#4f8f9d}
-#smartActivationV2 .sa-role-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:6px}
-#smartActivationV2 .sa-role{width:100%;min-height:40px;padding:7px 9px;text-align:left;cursor:pointer;font-size:14px;font-weight:800}
-#smartActivationV2 .sa-role-block{margin:10px 0 0}
-#smartActivationV2 .sa-role-note{font-size:13px;margin-top:4px}
-#smartActivationV2 .sa-tool{padding:7px 9px;min-height:38px}
-#smartActivationV2 .sa-tool b{font-size:14px;line-height:1.25;display:block}
-#smartActivationV2 .sa-tool .sa-muted{font-size:12px}
-#smartActivationV2 .sa-field{display:grid;gap:3px}
-#smartActivationV2 .sa-field label{font-size:13px;font-weight:800}
-#smartActivationV2 .sa-field input,#smartActivationV2 .sa-field select{width:100%;min-height:40px!important;height:40px;padding:7px 9px;border:1px solid #dfe9e7;border-radius:8px;font-size:14px}
-#smartActivationV2 .sa-actions{display:flex;justify-content:space-between;gap:7px;margin-top:9px}
-#smartActivationV2 .sa-btn{border:0;border-radius:9px;min-height:38px;padding:7px 12px;font-size:14px;font-weight:800;cursor:pointer}
-#smartActivationV2 .sa-primary{background:#4f8f9d;color:#fff}
-#smartActivationV2 .sa-alt{background:#fff;border:1px solid #dfe9e7}
-#smartActivationV2 .sa-summary{background:#eaf5f1;border-radius:10px;padding:9px 11px;font-size:14px;line-height:1.5}
-#smartActivationV2 .sa-error{display:none;color:#9a342f;background:#fff1ef;padding:7px 9px;border-radius:8px;font-size:14px}
-@media(max-width:980px){#smartActivationV2 .sa-grid,#smartActivationV2 .sa-tools{grid-template-columns:repeat(3,minmax(0,1fr))}#smartActivationV2 .sa-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:720px){#smartActivationV2 .sa-grid,#smartActivationV2 .sa-tools{grid-template-columns:repeat(2,minmax(0,1fr))}#smartActivationV2 .sa-fields{grid-template-columns:1fr}#smartActivationV2 .sa-role-grid{grid-template-columns:1fr}#smartActivationV2 .sa-head,#smartActivationV2 .sa-card{padding:10px}#smartActivationV2 .sa-choice{min-height:39px;padding:6px 7px}#smartActivationV2 .sa-choice b{font-size:14px}#smartActivationV2 .sa-actions .sa-btn{flex:1}}
-</style>
-<div class="sa-head"><small>DOING 智慧小幫手｜工具啟用入口</small><h2>你目前同時在做哪些工作或副業？</h2><p>可複選。先辨識工作組合；真正的時間、價格、人員與流程規則，進入系統後再設定。</p></div>
-<div class="sa-progress" id="saProgress"></div>
-<div class="sa-card" id="saStage"></div>
-<div class="sa-error" id="saError"></div>`;
-form.prepend(box);
-
+#smartActivationV2 .sa-role-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:6px}#smartActivationV2 .sa-role{width:100%;min-height:40px;padding:7px 9px;text-align:left;cursor:pointer;font-size:14px;font-weight:800}#smartActivationV2 .sa-role-block{margin:10px 0 0}#smartActivationV2 .sa-role-note{font-size:13px;margin-top:4px}
+#smartActivationV2 .sa-tool{padding:7px 9px;min-height:38px}#smartActivationV2 .sa-tool b{font-size:14px;line-height:1.25;display:block}#smartActivationV2 .sa-tool .sa-muted{font-size:12px}#smartActivationV2 .sa-field{display:grid;gap:3px}#smartActivationV2 .sa-field label{font-size:13px;font-weight:800}#smartActivationV2 .sa-field input,#smartActivationV2 .sa-field select{width:100%;min-height:40px!important;height:40px;padding:7px 9px;border:1px solid #dfe9e7;border-radius:8px;font-size:14px}
+#smartActivationV2 .sa-actions{display:flex;justify-content:space-between;gap:7px;margin-top:9px}#smartActivationV2 .sa-btn{border:0;border-radius:9px;min-height:38px;padding:7px 12px;font-size:14px;font-weight:800;cursor:pointer}#smartActivationV2 .sa-primary{background:#4f8f9d;color:#fff}#smartActivationV2 .sa-alt{background:#fff;border:1px solid #dfe9e7}#smartActivationV2 .sa-summary{background:#eaf5f1;border-radius:10px;padding:9px 11px;font-size:14px;line-height:1.5}#smartActivationV2 .sa-error{display:none;color:#9a342f;background:#fff1ef;padding:7px 9px;border-radius:8px;font-size:14px}
+@media(max-width:980px){#smartActivationV2 .sa-grid,#smartActivationV2 .sa-tools{grid-template-columns:repeat(3,minmax(0,1fr))}#smartActivationV2 .sa-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:720px){#smartActivationV2 .sa-grid,#smartActivationV2 .sa-tools{grid-template-columns:repeat(2,minmax(0,1fr))}#smartActivationV2 .sa-fields,#smartActivationV2 .sa-role-grid{grid-template-columns:1fr}#smartActivationV2 .sa-head,#smartActivationV2 .sa-card{padding:10px}#smartActivationV2 .sa-choice{min-height:39px;padding:6px 7px}#smartActivationV2 .sa-choice b{font-size:14px}#smartActivationV2 .sa-actions .sa-btn{flex:1}}
+</style><div class="sa-head"><small>DOING 智慧小幫手｜工具啟用入口</small><h2>你目前同時在做哪些工作或副業？</h2><p>先理解工作，再確認工具；確認後才填正式申請資料。</p></div><div class="sa-progress" id="saProgress"></div><div class="sa-card" id="saStage"></div><div class="sa-error" id="saError"></div>`;form.prepend(box);
 const $=id=>document.getElementById(id),stage=$('saStage'),err=$('saError'),labels=Object.fromEntries(works.map(x=>[x[0],x[1]]));
-const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const role=w=>state.roles[w]||implied[w]||'';
-const unit=w=>typeof units[w]==='string'?units[w]:(units[w]?.[role(w)]||'');
-const ambiguous=()=>[...state.works].filter(w=>roles[w]);
-const showErr=m=>{err.textContent=m;err.style.display='block'};
-const clearErr=()=>{err.style.display='none';err.textContent=''};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const role=w=>state.roles[w]||implied[w]||'',unit=w=>typeof units[w]==='string'?units[w]:(units[w]?.[role(w)]||''),ambiguous=()=>[...state.works].filter(w=>roles[w]);
+const showErr=m=>{err.textContent=m;err.style.display='block'},clearErr=()=>{err.style.display='none';err.textContent=''};
 const nav=(label='下一步 →')=>`<div class="sa-actions">${state.step?'<button class="sa-btn sa-alt" id="saBack" type="button">← 上一步</button>':'<span></span>'}<button class="sa-btn sa-primary" id="saNext" type="button">${label}</button></div>`;
-function tools(){
-  const out=new Set(common);
-  for(const w of state.works){
-    const r=role(w);
-    if(w==='market'){
-      if(r==='organizer'||r==='both')out.add(...toolMap.market_organizer);
-      if(r==='participant'||r==='both')out.add(...toolMap.market_participant);
-    }else if(w==='consign'){
-      if(r==='operator'||r==='both')out.add(...toolMap.consign_operator);
-      if(r==='seller'||r==='both')out.add(...toolMap.consign_seller);
-    }else (toolMap[w]||[]).forEach(x=>out.add(x));
-  }
-  return [...out];
-}
-function compat(){
-  const u=new Set(),i=new Set();
-  for(const w of state.works){
-    i.add(industryMap[w]||'other');
-    if(w==='market'){
-      const r=role(w);
-      if(r==='organizer'||r==='both')u.add('market');
-      if(r==='participant')u.add('general');
-    }else if(w==='consign')u.add('general');
-    else (useMap[w]||['general']).forEach(x=>u.add(x));
-  }
-  return {useCases:[...u],industryCategories:[...i]};
-}
-function bind(){
-  $('saBack')?.addEventListener('click',()=>{state.step=Math.max(0,state.step-1);render()});
-  $('saNext')?.addEventListener('click',advance);
-}
-async function summarize(){
-  const c=compat(),work=[...state.works].map(w=>`${labels[w]}：${unit(w)}`).join('；');
-  try{
-    const r=await fetch(API+'?action=analyzeDoingApplication',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'analyzeDoingApplication',scope:'application',topic:'summary',useCases:c.useCases,painPoints:['other'],workSituations:[],openAnswers:{industry:[...state.works].map(w=>labels[w]).join('、'),work,pain:'工具啟用入口不以痛點決定工具'}})}),d=await r.json();
-    if(!r.ok||d.error)throw 0;
-    return {reply:d.reply||'',summaryId:d.summaryId||'',topic:'summary',scope:'doing_only',confirmed:false};
-  }catch(_){
-    return {reply:`我理解你同時在做：${work}。我會依工作與角色先準備對應工具，細部設定進入系統後再完成。`,summaryId:'',topic:'summary',scope:'doing_only',confirmed:false};
-  }
-}
-async function advance(){
-  clearErr();
-  if(state.step===0){
-    if(!state.works.size)return showErr('請至少選一種目前正在做的工作或副業。');
-    for(const w of state.works)if(implied[w])state.roles[w]=implied[w];
-    state.step=ambiguous().length?1:2;return render();
-  }
-  if(state.step===1){
-    for(const w of ambiguous())if(!state.roles[w])return showErr(`請補充「${labels[w]}」裡你的角色。`);
-    state.step=2;return render();
-  }
-  if(state.step===2){
-    const unitName=$('saUnit').value.trim(),ownerName=$('saOwner').value.trim(),phone=$('saPhone').value.trim(),email=$('saEmail').value.trim(),region=$('saRegion').value,publicLink=$('saPublic').value.trim(),noPublic=$('saNoPublic').checked;
-    if(!unitName||!ownerName||!phone||!email||!region)return showErr('請把有 * 的基本資料填完整。');
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return showErr('Email 格式不正確。');
-    if(!publicLink&&!noPublic)return showErr('請提供一個公開介紹網址，或勾選目前確實尚未建立。');
-    state.info={unitName,ownerName,phone,email,region,publicLink,noPublic};
-    state.analysis=await summarize();state.step=3;return render();
-  }
-  if(!$('saConfirm')?.checked)return showErr('請先確認 DOING 對你的工作理解正確。');
-  submit();
-}
-function render(){
-  retireLegacyFlow();clearErr();
-  $('saProgress').innerHTML=[0,1,2,3].map((_,i)=>`<i class="${i<=state.step?'on':''}"></i>`).join('');
-  if(state.step===0){
-    stage.innerHTML=`<h3>選你現在有在做的工作</h3><p class="sa-muted">可以一次勾很多個。</p><div class="sa-grid">${works.map(([k,t,icon])=>`<label class="sa-choice ${state.works.has(k)?'on':''}"><input type="checkbox" value="${k}" ${state.works.has(k)?'checked':''}><span>${icon}</span><b>${t}</b></label>`).join('')}</div>${nav('繼續 →')}`;
-    stage.querySelectorAll('input[type=checkbox]').forEach(x=>x.onchange=()=>{x.checked?state.works.add(x.value):state.works.delete(x.value);x.closest('.sa-choice').classList.toggle('on',x.checked)});return bind();
-  }
-  if(state.step===1){
-    stage.innerHTML=`<h3>只補一個必要角色</h3><p class="sa-muted">只有角色會直接影響工具方向時才問。</p>${ambiguous().map(w=>`<div class="sa-role-block"><b>${labels[w]}</b><div class="sa-role-grid">${roles[w].map(([r,t])=>`<button class="sa-role ${state.roles[w]===r?'on':''}" data-w="${w}" data-r="${r}" type="button">${t}</button>`).join('')}</div>${state.roles[w]?`<p class="sa-muted sa-role-note">先理解為：<b>${unit(w)}</b></p>`:''}</div>`).join('')}${nav('繼續 →')}`;
-    stage.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{state.roles[b.dataset.w]=state.roles[b.dataset.w]===b.dataset.r?'':b.dataset.r;render()});return bind();
-  }
-  if(state.step===2){
-    const i=state.info;
-    stage.innerHTML=`<h3>申請基本資料</h3><p class="sa-muted">只留申請與聯絡資料。</p><div class="sa-fields"><div class="sa-field"><label>營運單位／品牌／工作室 *</label><input id="saUnit" value="${escapeHtml(i.unitName||'')}"></div><div class="sa-field"><label>姓名 *</label><input id="saOwner" value="${escapeHtml(i.ownerName||'')}"></div><div class="sa-field"><label>聯絡電話 *</label><input id="saPhone" value="${escapeHtml(i.phone||'')}"></div><div class="sa-field"><label>Email *</label><input id="saEmail" type="email" value="${escapeHtml(i.email||'')}"></div><div class="sa-field"><label>所在地區 *</label><select id="saRegion"><option value="">請選擇</option>${['台北市','新北市','桃園市','新竹市／新竹縣','苗栗縣','台中市','彰化縣','南投縣','雲林縣','嘉義市／嘉義縣','台南市','高雄市','屏東縣','宜蘭縣','花蓮縣','台東縣','離島／其他'].map(x=>`<option ${i.region===x?'selected':''}>${x}</option>`).join('')}</select></div><div class="sa-field"><label>公開介紹網址</label><input id="saPublic" value="${escapeHtml(i.publicLink||'')}" placeholder="官網、FB、IG 擇一"></div></div><label class="sa-choice" style="margin-top:7px"><input id="saNoPublic" type="checkbox" ${i.noPublic?'checked':''}><span><b>目前確實尚未建立公開頁面</b></span></label>${nav('讓小幫手整理 →')}`;return bind();
-  }
-  const work=[...state.works].map(w=>`<div class="sa-tool"><b>${labels[w]}</b><span class="sa-muted">${unit(w)}</span></div>`).join('');
-  stage.innerHTML=`<h3>我這樣理解你的工作，對嗎？</h3><div class="sa-summary"><b>DOING 智慧小幫手</b><div>${escapeHtml(state.analysis?.reply||'')}</div></div><h4>你的工作組合</h4><div class="sa-tools">${work}</div><h4>核准後先準備的工具</h4><div class="sa-tools">${tools().map(t=>`<div class="sa-tool"><b>${t}</b></div>`).join('')}</div><p class="sa-muted" style="margin-top:7px">這裡只決定工具入口；細部營運設定進入系統後再做。</p><label class="sa-choice" style="margin-top:7px"><input id="saConfirm" type="checkbox"><span><b>對，就是這樣。</b></span></label>${nav('使用 LINE 驗證並送出 →')}`;bind();
-}
-async function submit(){
-  const b=$('saNext');b.disabled=true;b.textContent='正在保存申請資料…';
-  const c=compat(),p={activationProfile:{version:3,workTypes:[...state.works],roles:{...state.roles},tools:tools()},unitName:state.info.unitName,ownerName:state.info.ownerName,phone:state.info.phone,email:state.info.email,contactEmail:state.info.email,region:state.info.region,industryCategories:c.industryCategories,useCases:c.useCases,workSituations:[],painPoints:['other'],primaryPainPoint:'other',otherPainPoint:'工具啟用入口不以痛點決定功能；舊版相容欄位。',assistantAnalysis:{...state.analysis,confirmed:true,scope:'doing_only'},publicLinks:state.info.publicLink?[state.info.publicLink]:[],noPublicLink:state.info.noPublic,confirmations:{confirmReal:true,confirmUse:true,confirmReview:true},operationStage:'operating',helperUnderstanding:{version:3,activationOnly:true,summary:state.analysis?.reply||''}};
-  try{
-    const r=await fetch(API+'?action=createOrganizerApplicationDraft',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'createOrganizerApplicationDraft',application:p})}),d=await r.json();
-    if(!r.ok||d.error)throw new Error(d.error||'申請資料保存失敗');
-    const u=new URL(API+'/auth/line/start');u.searchParams.set('mode','organizer_signup');u.searchParams.set('application_id',d.applicationId);location.href=u;
-  }catch(e){showErr(e.message||'申請資料保存失敗');b.disabled=false;b.textContent='使用 LINE 驗證並送出 →';}
-}
+function tools(){const out=new Set(common);for(const w of state.works){const r=role(w);if(w==='market'){if(r==='organizer'||r==='both')out.add(...toolMap.market_organizer);if(r==='participant'||r==='both')out.add(...toolMap.market_participant)}else if(w==='consign'){if(r==='operator'||r==='both')out.add(...toolMap.consign_operator);if(r==='seller'||r==='both')out.add(...toolMap.consign_seller)}else (toolMap[w]||[]).forEach(x=>out.add(x))}return [...out]}
+function compat(){const u=new Set(),i=new Set();for(const w of state.works){i.add(industryMap[w]||'other');if(w==='market'){const r=role(w);if(r==='organizer'||r==='both')u.add('market');if(r==='participant')u.add('general')}else if(w==='consign')u.add('general');else (useMap[w]||['general']).forEach(x=>u.add(x))}return{useCases:[...u],industryCategories:[...i]}}
+function bind(){$('saBack')?.addEventListener('click',()=>{state.step=Math.max(0,state.step-1);render()});$('saNext')?.addEventListener('click',advance)}
+async function summarize(){const c=compat(),work=[...state.works].map(w=>`${labels[w]}：${unit(w)}`).join('；');try{const r=await fetch(API+'?action=analyzeDoingApplication',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'analyzeDoingApplication',scope:'application',topic:'summary',useCases:c.useCases,painPoints:['other'],workSituations:[],openAnswers:{industry:[...state.works].map(w=>labels[w]).join('、'),work,pain:'工具啟用入口不以痛點決定工具'}})}),d=await r.json();if(!r.ok||d.error)throw 0;return{reply:d.reply||'',summaryId:d.summaryId||'',topic:'summary',scope:'doing_only',confirmed:false}}catch(_){return{reply:`我理解你同時在做：${work}。我會依工作與角色先準備對應工具，細部設定進入系統後再完成。`,summaryId:'',topic:'summary',scope:'doing_only',confirmed:false}}}
+async function goSummary(){state.analysis=await summarize();state.confirmed=false;state.step=2;render()}
+async function advance(){clearErr();if(state.step===0){if(!state.works.size)return showErr('請至少選一種目前正在做的工作或副業。');for(const w of state.works)if(implied[w])state.roles[w]=implied[w];if(ambiguous().length){state.step=1;return render()}return goSummary()}if(state.step===1){for(const w of ambiguous())if(!state.roles[w])return showErr(`請補充「${labels[w]}」裡你的角色。`);return goSummary()}if(state.step===2){if(!$('saConfirm')?.checked)return showErr('請先確認 DOING 對你的工作理解正確。');state.confirmed=true;state.analysis={...state.analysis,confirmed:true};state.step=3;return render()}return submit()}
+function render(){retireLegacyFlow();clearErr();$('saProgress').innerHTML=[0,1,2,3].map((_,i)=>`<i class="${i<=state.step?'on':''}"></i>`).join('');if(state.step===0){stage.innerHTML=`<h3>選你現在有在做的工作</h3><p class="sa-muted">可以一次勾很多個。</p><div class="sa-grid">${works.map(([k,t,icon])=>`<label class="sa-choice ${state.works.has(k)?'on':''}"><input type="checkbox" value="${k}" ${state.works.has(k)?'checked':''}><span>${icon}</span><b>${t}</b></label>`).join('')}</div>${nav('繼續 →')}`;stage.querySelectorAll('input[type=checkbox]').forEach(x=>x.onchange=()=>{x.checked?state.works.add(x.value):state.works.delete(x.value);x.closest('.sa-choice').classList.toggle('on',x.checked)});return bind()}if(state.step===1){stage.innerHTML=`<h3>只補一個必要角色</h3><p class="sa-muted">只有角色會直接影響工具方向時才問。</p>${ambiguous().map(w=>`<div class="sa-role-block"><b>${labels[w]}</b><div class="sa-role-grid">${roles[w].map(([r,t])=>`<button class="sa-role ${state.roles[w]===r?'on':''}" data-w="${w}" data-r="${r}" type="button">${t}</button>`).join('')}</div>${state.roles[w]?`<p class="sa-muted sa-role-note">先理解為：<b>${unit(w)}</b></p>`:''}</div>`).join('')}${nav('讓小幫手整理 →')}`;stage.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{state.roles[b.dataset.w]=state.roles[b.dataset.w]===b.dataset.r?'':b.dataset.r;render()});return bind()}if(state.step===2){const work=[...state.works].map(w=>`<div class="sa-tool"><b>${labels[w]}</b><span class="sa-muted">${unit(w)}</span></div>`).join('');stage.innerHTML=`<h3>我這樣理解你的工作，對嗎？</h3><div class="sa-summary"><b>DOING 智慧小幫手</b><div>${esc(state.analysis?.reply||'')}</div></div><h4>你的工作組合</h4><div class="sa-tools">${work}</div><h4>核准後先準備的工具</h4><div class="sa-tools">${tools().map(t=>`<div class="sa-tool"><b>${t}</b></div>`).join('')}</div><p class="sa-muted" style="margin-top:7px">目前還沒有建立正式申請資料。確認理解正確後，下一步才填姓名、品牌與聯絡資料。</p><label class="sa-choice" style="margin-top:7px"><input id="saConfirm" type="checkbox"><span><b>對，就是這樣。</b></span></label>${nav('確認，填正式申請資料 →')}`;return bind()}const i=state.info;stage.innerHTML=`<h3>最後填正式申請資料</h3><p class="sa-muted">前面的工作問卷已確認；現在才建立正式申請所需資料。</p><div class="sa-fields"><div class="sa-field"><label>營運單位／品牌／工作室 *</label><input id="saUnit" value="${esc(i.unitName||'')}"></div><div class="sa-field"><label>姓名 *</label><input id="saOwner" value="${esc(i.ownerName||'')}"></div><div class="sa-field"><label>聯絡電話 *</label><input id="saPhone" value="${esc(i.phone||'')}"></div><div class="sa-field"><label>Email *</label><input id="saEmail" type="email" value="${esc(i.email||'')}"></div><div class="sa-field"><label>所在地區 *</label><select id="saRegion"><option value="">請選擇</option>${['台北市','新北市','桃園市','新竹市／新竹縣','苗栗縣','台中市','彰化縣','南投縣','雲林縣','嘉義市／嘉義縣','台南市','高雄市','屏東縣','宜蘭縣','花蓮縣','台東縣','離島／其他'].map(x=>`<option ${i.region===x?'selected':''}>${x}</option>`).join('')}</select></div><div class="sa-field"><label>公開介紹網址</label><input id="saPublic" value="${esc(i.publicLink||'')}" placeholder="官網、FB、IG 擇一"></div></div><label class="sa-choice" style="margin-top:7px"><input id="saNoPublic" type="checkbox" ${i.noPublic?'checked':''}><span><b>目前確實尚未建立公開頁面</b></span></label>${nav('使用 LINE 驗證並送出 →')}`;bind()}
+async function submit(){const unitName=$('saUnit')?.value.trim()||'',ownerName=$('saOwner')?.value.trim()||'',phone=$('saPhone')?.value.trim()||'',email=$('saEmail')?.value.trim()||'',region=$('saRegion')?.value||'',publicLink=$('saPublic')?.value.trim()||'',noPublic=!!$('saNoPublic')?.checked;if(!unitName||!ownerName||!phone||!email||!region)return showErr('請把有 * 的基本資料填完整。');if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return showErr('Email 格式不正確。');if(!publicLink&&!noPublic)return showErr('請提供一個公開介紹網址，或勾選目前確實尚未建立。');state.info={unitName,ownerName,phone,email,region,publicLink,noPublic};const b=$('saNext');b.disabled=true;b.textContent='正在保存申請資料…';const c=compat(),p={activationProfile:{version:4,workTypes:[...state.works],roles:{...state.roles},tools:tools()},unitName,ownerName,phone,email,contactEmail:email,region,industryCategories:c.industryCategories,useCases:c.useCases,workSituations:[],painPoints:['other'],primaryPainPoint:'other',otherPainPoint:'工具啟用入口不以痛點決定功能；舊版相容欄位。',assistantAnalysis:{...state.analysis,confirmed:true,scope:'doing_only'},publicLinks:publicLink?[publicLink]:[],noPublicLink:noPublic,confirmations:{confirmReal:true,confirmUse:true,confirmReview:true},operationStage:'operating',helperUnderstanding:{version:4,activationOnly:true,confirmedBeforeFormalData:true,summary:state.analysis?.reply||''}};try{const r=await fetch(API+'?action=createOrganizerApplicationDraft',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'createOrganizerApplicationDraft',application:p})}),d=await r.json();if(!r.ok||d.error)throw new Error(d.error||'申請資料保存失敗');const u=new URL(API+'/auth/line/start');u.searchParams.set('mode','organizer_signup');u.searchParams.set('application_id',d.applicationId);location.href=u}catch(e){showErr(e.message||'申請資料保存失敗');b.disabled=false;b.textContent='使用 LINE 驗證並送出 →'}}
 render();
 })();
