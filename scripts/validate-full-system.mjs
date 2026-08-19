@@ -110,3 +110,4 @@ for(const module of capabilityMap.modules||[]){
 }
 requireText(platformPage,'title="開啟對應功能"','世界地圖可直接進入相應功能');
 console.log(`全系統靜態驗收通過：${pages.length} 個正式功能頁＋member 相容轉址、${frontendActions.size} 個前端 API 動作、後台按鈕函式完整。`);
+await import('./validate-ui-clickthrough-contract.mjs');
