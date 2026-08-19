@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "recordedAt": "2026-08-20T05:23:00+08:00",
-  "sourceFingerprint": "c5caff00255e179eceb24d2a3a64035a18bccee738bc0eaacc4ed8393b1afb5f",
+  "sourceFingerprint": "3ae21880456e8b1d3c9736c2c2fc51c7d8b7291f38e84690161f8885bd86c4f7",
   "environment": "DOING 智慧申請 LINE 驗證修正驗收。固定規則：智慧申請不可讓第三方 OAuth 在 iframe 內執行。會員／設定／工作空間若以 embed=1 開啟 smart-application.html，頁面會先跳回最外層 smart-application.html，再由最外層執行 LINE organizer_signup；避免 access.line.me 因 iframe 安全策略拒絕連線。同時保留單層框架規則、舊申請 DOM 退出正式路徑、『我的報名』與『申請營運帳號』路由分離。Worker、Supabase 結構、計費與 2BL 均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
