@@ -12,8 +12,8 @@ const tree=JSON.parse(fs.readFileSync('doing-world-tree-v20.json','utf8'));
 need(Number(tree.version)===20,'世界樹版本必須是 v20');
 need(tree.workspaceRule?.ownedWorkspacePerMember===1,'一會員只能擁有一個自己的工作空間');
 need(tree.workspaceRule?.collaborationAcrossOtherWorkspaces===true,'不得誤傷受邀協作空間');
-for(const text of ['預約','課程','活動','市集','專案'])need(ws.includes(text),'工作空間缺少工作模組：'+text);
-for(const text of ['商品／票券','QR 報到／核銷','收款／訂金','優惠券／回訪','通知提醒','團隊／排班','進階財務','照片／檔案','電子簽名','Google／Apple 日曆'])need(ws.includes(text),'工作空間缺少共用模組：'+text);
+for(const text of ['預約','課程','活動','市集','專案'])need(ws.includes(text),'工作空間缺少工作模組定義：'+text);
+for(const text of ['商品／票券','QR 報到／核銷','收款／訂金','優惠券／回訪','通知提醒','團隊／排班','進階財務','照片／檔案','電子簽名','Google／Apple 日曆'])need(ws.includes(text),'工作空間缺少共用模組定義：'+text);
 for(const text of ['我的報名','我的品牌','帳號設定','切換工作空間'])need(ws.includes(text),'我的 DOING 抽屜缺少入口：'+text);
 need(ws.includes('id="drawer"')&&ws.includes('id="memberFrame"'),'會員功能尚未收進工作空間抽屜');
 need(!ws.includes('會員中心'),'工作空間仍露出舊會員中心名稱');
@@ -21,6 +21,12 @@ need(ws.includes('data-view="month"')&&ws.includes('data-view="week"')&&ws.inclu
 need(ws.includes('getSessionsAdmin')&&ws.includes('getOperationUnitsAdmin')&&ws.includes('getBookingCalendarAdmin'),'日曆未使用既有正式 API');
 need(!/localStorage|sessionStorage/.test(ws),'工作空間不可把營運資料寫入瀏覽器儲存');
 need(ws.includes('bookingCalendarIcs')&&ws.includes('calendar.google.com/calendar/render'),'Google／Apple 日曆第一階段入口不完整');
+need(ws.includes('getTenantModuleProfile')&&ws.includes('approvedFlags'),'工作平台未讀取正式問卷／平台核准模組');
+need(ws.includes('renderWorkspaceAccess')&&ws.includes('workTypesFrom'),'工作平台未依核准結果動態產生工作入口');
+need(ws.includes("hash:'calendar'")&&ws.includes("S.selected.kind==='booking'?'calendar':'sessions'"),'預約入口未直接進既有營運總日曆');
+need(ws.includes('無法讀取已核准功能，為避免誤開功能已停止載入'),'核准模組讀取失敗時必須 fail closed，不可回退成全開');
+need(!ws.includes('<h3>5 個工作模組</h3>')&&!ws.includes('<h3>10 個共用模組</h3>'),'工作平台不可把世界樹能力總表當成租戶已開放功能');
+need(ws.includes('這裡只會出現問卷申請後由平台核准的功能'),'工作平台缺少核准模組顯示契約');
 need(memberCompat.includes("new URL('member-panel.html'")&&memberCompat.includes("new URL('index.html'"),'舊 member.html 尚未降級為相容轉址檔');
 need(memberCompat.includes("home|activities|brands|account|operations"),'member.html #home 未納入內部面板路由，可能形成首頁往返循環');
 need(memberCompat.length<5000,'舊 member.html 仍殘留完整會員中心畫面');
@@ -36,4 +42,4 @@ need(/name=["']viewport["']/.test(ws)&&ws.includes('doing-system.css?v=20260817-
 new vm.Script(ge,{filename:'doing-global-entry.js'});
 for(const [name,src] of [['workspace',ws],['member-panel',member]]){let scripts=0;for(const m of src.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){if(!m[1].trim())continue;new vm.Script(m[1],{filename:name+'#script'+(++scripts)});}need(scripts>0,name+' 缺少可執行腳本');}
 new vm.Script(home,{filename:'doing-home-refresh.js'});
-console.log('DOING World Tree v20 路徑驗證通過：舊 member.html 已移除完整 UI，只保留相容轉址；#home 與會員功能分頁不再回彈首頁；既有會員功能完整保留於 member-panel；首頁 → LINE → 我的 DOING；1 工作空間、5 工作模組、10 共用模組。');
+console.log('DOING World Tree v20 路徑驗證通過：租戶工作平台只顯示問卷／平台核准模組；核准資料讀取失敗時 fail closed；預約直達既有營運總日曆；世界樹仍保留 5 工作模組與 10 共用模組能力目錄。');
