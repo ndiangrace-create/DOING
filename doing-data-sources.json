@@ -253,6 +253,20 @@
       ]
     },
     {
+      "key": "market-app-core",
+      "tables": [
+        "platform_members",
+        "platform_member_identities",
+        "mobile_auth_exchanges",
+        "registrations",
+        "registration_members",
+        "seat_operation_logs",
+        "notifications",
+        "mobile_push_devices",
+        "mobile_push_deliveries"
+      ]
+    },
+    {
       "key": "future-roadmap",
       "tables": [
         "platform_settings",
@@ -3029,6 +3043,30 @@
       "columns": ["id","tenant_id","operation_unit_id","name","trigger_type","offset_minutes","audience","channel","title_template","body_template","active","config_json","created_by","created_at","updated_at"],
       "workerAccess": ["get","insert","update"],
       "moduleKeys": ["future-roadmap"],
+      "state": "active"
+    },
+    {
+      "name": "mobile_auth_exchanges",
+      "rlsEnabled": true,
+      "columns": ["id","code_hash","platform_member_id","provider","code_challenge","device_id","app_state","expires_at","used_at","created_at"],
+      "workerAccess": ["get","insert","update"],
+      "moduleKeys": ["market-app-core"],
+      "state": "active"
+    },
+    {
+      "name": "mobile_push_devices",
+      "rlsEnabled": true,
+      "columns": ["id","platform_member_id","installation_id","app_id","platform","provider","push_token","token_hash","environment","locale","timezone","permission_status","active","last_seen_at","revoked_at","created_at","updated_at"],
+      "workerAccess": ["get","insert","update"],
+      "moduleKeys": ["market-app-core"],
+      "state": "active"
+    },
+    {
+      "name": "mobile_push_deliveries",
+      "rlsEnabled": true,
+      "columns": ["id","notification_id","tenant_id","platform_member_id","device_id","provider","platform","status","payload_json","attempt_count","next_attempt_at","sent_at","last_error","created_at","updated_at"],
+      "workerAccess": ["get","insert","update"],
+      "moduleKeys": ["market-app-core"],
       "state": "active"
     },
     {
