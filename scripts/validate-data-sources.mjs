@@ -40,6 +40,13 @@ for(const domain of settings.domains){
   settingKeys.add(domain.key);
   if(!Array.isArray(domain.tables)||!domain.tables.length)fail('正式設定缺少 Supabase 資料表：'+domain.key);
   for(const table of domain.tables)if(!tableNames.has(table))fail('正式設定引用未盤點資料表：'+domain.key+' -> '+table);
+  if(domain.managedBy==='migration'){
+    if(!domain.migration||!fs.existsSync(root+'/'+domain.migration))fail('治理型設定缺少受版本控制 migration：'+domain.key);
+    const migration=fs.readFileSync(root+'/'+domain.migration,'utf8');
+    if(!domain.settingKey||!migration.includes(domain.settingKey))fail('治理型設定 migration 未寫入正式 settingKey：'+domain.key);
+    if(!migration.includes('platform_settings'))fail('治理型設定未寫入 Supabase platform_settings：'+domain.key);
+    continue;
+  }
   if(!Array.isArray(domain.readActions)||!domain.readActions.length)fail('正式設定缺少讀取 API：'+domain.key);
   if(!Array.isArray(domain.writeActions)||!domain.writeActions.length)fail('正式設定缺少寫入 API：'+domain.key);
   for(const action of [...domain.readActions,...domain.writeActions])if(!worker.includes(action))fail('正式設定 API 未存在 Worker：'+domain.key+' -> '+action);
