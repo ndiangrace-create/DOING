@@ -6,20 +6,24 @@ const homeRouter=read('doing-home-refresh.js');
 const homeCore=fs.existsSync(new URL('../doing-home-refresh-core.js',import.meta.url))?read('doing-home-refresh-core.js'):homeRouter;
 const files={
   index:read('index.html'),register:read('register.html'),member:read('member-panel.html'),memberCompat:read('member.html'),admin:read('admin.html'),
-  platform:read('platform.html'),about:read('about.html'),home:homeCore,homeRouter,worker:read('worker.js'),
+  platform:read('platform.html'),about:read('about.html'),smartPage:read('smart-application.html'),smart:read('doing-smart-activation.js'),home:homeCore,homeRouter,worker:read('worker.js'),
   schema:read('supabase_login_identity_link.sql'),sources:read('doing-data-sources.json')
 };
 
-for(const [name,source] of Object.entries({index:files.index,register:files.register,member:files.member,admin:files.admin,platform:files.platform,about:files.about,home:files.home})){
+for(const [name,source] of Object.entries({index:files.index,register:files.register,member:files.member,admin:files.admin,platform:files.platform,home:files.home})){
   assert.match(source,/LINE 登入|LINE 驗證/,`${name} 缺少目前公開的 LINE 入口`);
 }
+assert.match(files.smartPage+files.smart,/LINE 驗證|organizer_signup/,'智慧申請缺少目前正式 LINE 驗證入口');
+assert.match(files.about,/smart-application\.html/,'about 申請相容網址必須導向智慧申請');
+assert.ok(files.about.length<5000,'about 已退休，不得再次承載登入或申請完整 UI');
+assert.doesNotMatch(files.about,/LINE 登入|LINE 驗證/,'about redirect-only 相容頁不得再次出現第二套 LINE 入口');
 assert.match(files.memberCompat,/member-panel\.html/,'member 相容入口未導向內部會員面板');
 assert.match(files.memberCompat,/index\.html/,'member 相容入口未回到新版首頁');
 assert.doesNotMatch(files.memberCompat,/使用 LINE 登入/,'member 相容入口不得再顯示舊登入 UI');
 for(const [name,source] of Object.entries({index:files.index,register:files.register,admin:files.admin,platform:files.platform})){
   assert.match(source,/Google 備援登入/,`${name} 的管理入口缺少 Google 備援登入`);
 }
-assert.doesNotMatch(files.about,/id="signupGoogleBtn"/,'公開營運申請目前只能顯示 LINE 驗證');
+assert.doesNotMatch(files.smartPage,/id="signupGoogleBtn"/,'公開營運申請目前只能顯示 LINE 驗證');
 for(const [name,source] of Object.entries({home:files.home})){
   const googleButtons=[...source.matchAll(/<button[^>]*(?:Google|google)[^>]*>/gi)].map(x=>x[0]);
   assert.ok(googleButtons.length,`${name} 應保留 Google 按鈕程式`);
@@ -73,4 +77,4 @@ for(const tableName of ['staff','platform_staff']){
 }
 const platformMembers=catalog.tables.find(x=>x.name==='platform_members');assert.ok(platformMembers);for(const column of ['contact_email','phone_normalized'])assert.ok(platformMembers.columns.includes(column),`platform_members 未登記 ${column}`);
 
-console.log(JSON.stringify({result:'PASS',publicLogin:'line',memberCompat:'redirect_only',publicLoginRouting:files.homeRouter!==files.home?'single_router_to_workspace':'legacy_inline',managementBackupLogin:'google_visible_after_account_sync',lineEmail:'optional_until_provider_permission_is_enabled',identityAuthority:'provider_subject',accountMerge:'same_verified_provider_email_or_explicit_dual_login',emailPolicy:'unique_member_contact',phonePolicy:'unique_member_contact_without_identity_impersonation',loginPolicy:'oauth_login_allowed_duplicate_formal_write_blocked',adminBinding:'signed_email_invite_then_authenticated_line_accept',legacyAdminBinding:'verified_provider_email_only'},null,2));
+console.log(JSON.stringify({result:'PASS',publicLogin:'line',applicationSurface:'smart-application-only',aboutCompat:'redirect_only',memberCompat:'redirect_only',publicLoginRouting:files.homeRouter!==files.home?'single_router_to_workspace':'legacy_inline',managementBackupLogin:'google_visible_after_account_sync',lineEmail:'optional_until_provider_permission_is_enabled',identityAuthority:'provider_subject',accountMerge:'same_verified_provider_email_or_explicit_dual_login',emailPolicy:'unique_member_contact',phonePolicy:'unique_member_contact_without_identity_impersonation',loginPolicy:'oauth_login_allowed_duplicate_formal_write_blocked',adminBinding:'signed_email_invite_then_authenticated_line_accept',legacyAdminBinding:'verified_provider_email_only'},null,2));
