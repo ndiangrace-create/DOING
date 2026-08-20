@@ -38,7 +38,8 @@ jobs:
           node --check doing-attribution.js
           node --check doing-home-refresh.js
           test ! -f doing-home-refresh-core.js || node --check doing-home-refresh-core.js
-          node --check doing-about-refresh.js
+          test ! -f doing-about-refresh.js
+          test ! -f doing-about-refresh.css
           node --check doing-smart-activation.js
           node --check doing-global-entry.js
           node - <<'NODE'
@@ -93,6 +94,9 @@ jobs:
           grep -q 'index.html' member.html
           ! grep -q 'doing-app' member.html
           ! grep -q 'doing-logo.png' member.html
+          grep -q 'smart-application.html' about.html
+          ! grep -q 'apply-wrap' about.html
+          ! grep -q 'smart-flow-guide' about.html
           grep -q "hiddenAdminSelector='#brandHoldTarget,.doing-nav-brand'" index.html
           grep -q "document.addEventListener('pointerdown'" index.html
           grep -q "e.target.closest?.(hiddenAdminSelector)" index.html
