@@ -42,6 +42,7 @@ jobs:
           test ! -f doing-about-refresh.css
           node --check doing-smart-activation.js
           node --check doing-global-entry.js
+          node --check doing-auto-activation-status.js
           node - <<'NODE'
           const fs=require('fs'),vm=require('vm');
           for(const f of ['index.html','register.html','member.html','member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html']){
@@ -80,6 +81,7 @@ jobs:
           node scripts/validate-smart-oauth-top.mjs
           node scripts/validate-application-social-required.mjs
           node scripts/validate-platform-operations-e2e.mjs
+          node scripts/validate-naming-autoactivation-retention.mjs
       - name: Validate compact admin visual consistency
         run: node scripts/validate-admin-consistency.mjs
       - name: Validate reusable test records
