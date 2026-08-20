@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-20T16:36:00+08:00",
-  "sourceFingerprint": "01f4bb2e6a39457c1589465bf32c963ad3043b78812a0cd5c2766bb038b22050",
-  "environment": "DOING 世界樹 v20 Release Candidate 驗收。9 條主流程已固定；正式名稱『我的報名』對應 member-panel.html#activities → getMyRegsGlobal / hGetMyRegsGlobal → registrations；18 類正式設定均以 Supabase 為 SSOT，其中治理型名稱／自動開通／90 天保留政策由受版本控制 migration 寫入 platform_settings。一般營運申請改為 LINE 驗證後自動建立唯一工作空間；只有身分衝突、必要資料異常或 provisioning 失敗才進 platform_risk_cases 人工複核。Worker 已同步修正 LINE／Google 驗證後讀回 tenant_apply_logs 最終狀態，approved 顯示工作空間已建立、manual_review 才顯示人工確認，並恢復 Google 補件 replaced／supplement_submitted 閉環；worker.js 與 worker.txt 完全同步。supabase_auto_activation_retention_v20.sql 已在正式 Supabase 使用 BEGIN/ROLLBACK 做不落地 dry-run：成功路徑建立 tenant/tenant_settings/owner/billing link 並 approved；失敗路徑 manual_review；100 天未驗證草稿可清除；registrations/payments 未受影響。supabase_retention_cron_v20.sql 亦以 transaction dry-run 驗證每日 cron 可建立後 rollback。about/member 只保留 redirect-only；smart-application.html 是唯一正式營運申請頁。真人 LINE OAuth、手機、第三方付款、相機、正式總管等仍依 DOING_UAT_CLICKTHROUGH_V20.md 標示待真人 UAT，不以程式模擬冒充真人 PASS。productionWrites=0；未部署；2BL 未修改。",
+  "recordedAt": "2026-08-20T17:58:00+08:00",
+  "sourceFingerprint": "01759102b04fa03d50adbfcb32af874ac490f5d0737438939659fbf215ad82cc",
+  "environment": "DOING 世界樹 v20 Release Candidate＋六角色完整流程 UAT 契約驗收。正式名稱『我的報名』對應 member-panel.html#activities → getMyRegsGlobal / hGetMyRegsGlobal → registrations；18 類正式設定以 Supabase 為 SSOT。一般營運申請 LINE 驗證後自動建立唯一工作空間，例外才進 platform_risk_cases。新增 validate-role-journey-uat.mjs，固定驗證一般使用者／報名者、品牌使用者、營運申請者、租戶擁有者／主辦管理員、現場工作人員／實際出攤者、平台總管六種角色，逐條檢查入口→按鈕→頁面→權限→API→Supabase→完成狀態→下一步／返回。程式級流程可走通；真人 LINE OAuth、手機、第三方付款、相機、LINE 內建瀏覽器、正式總管登入等仍依 DOING_UAT_CLICKTHROUGH_V20.md 維持待真人 UAT，不以模擬冒充真人 PASS。productionWrites=0；2BL 未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
@@ -10,6 +10,7 @@
   "tests": [
     {"id":"syntax","command":"node -e \"import('./worker.js')\" && node --check doing-attribution.js && node --check doing-home-refresh.js && node --check doing-smart-activation.js && node --check doing-global-entry.js && node --check doing-auto-activation-status.js","result":"PASS","scope":"正式 ES module Worker、首頁路由、智慧啟用、自動開通狀態與全域入口 JavaScript 語法；已退休 doing-about-refresh.js/css 不得存在"},
     {"id":"world-tree-v20-flow-contract","command":"node scripts/validate-world-tree-v20.mjs","result":"PASS","scope":"世界樹 v20 固定 9 條完整主流程、每條皆含操作路徑與完成判準；保留 5 工作模組＋10 共用模組"},
+    {"id":"role-journey-uat","command":"node scripts/validate-role-journey-uat.mjs","result":"PASS","scope":"6 種角色逐條驗證入口、按鈕、頁面、權限、API、Supabase、完成狀態與下一步／返回；真人瀏覽器項目維持 pending_by_contract"},
     {"id":"settings-ssot","command":"node scripts/validate-data-sources.mjs","result":"PASS","scope":"18 類正式設定必須有 Supabase 資料根；可調設定使用 Worker 讀寫 API，治理型設定使用受版本控制 migration 寫入 platform_settings；瀏覽器不得保存正式設定或營運資料"},
     {"id":"naming-autoactivation-retention","command":"node scripts/validate-naming-autoactivation-retention.mjs","result":"PASS","scope":"我的報名唯一名稱／registrations 唯一主資料根、LINE 驗證後自動開通、例外人工複核、90 天暫存清理與每日批次治理契約"},
     {"id":"database-migration-dry-run","command":"Supabase BEGIN → install auto activation/retention functions+trigger → create synthetic success/failure applications → cleanup → assertions → ROLLBACK","result":"PASS","scope":"成功申請 approved 且建立 tenant/tenant_settings/owner/billing link；失敗申請 manual_review；100 天未驗證草稿刪除；registrations/payments 計數不變；正式資料 0 寫入"},
@@ -37,7 +38,7 @@
     {"id":"navigation-actions","command":"node scripts/validate-navigation-actions.mjs","result":"PASS","scope":"平台與租戶導覽、首頁報名入口、工作平台、智慧申請單層與相容頁分流"},
     {"id":"platform-operations-e2e","command":"node scripts/validate-platform-operations-e2e.mjs","result":"PASS","scope":"平台問題、場次／訂單深連結與處理閉環；productionWrites 0"},
     {"id":"universal-booking","command":"node scripts/validate-universal-booking.mjs","result":"PASS","scope":"預約排班、空檔、服務時間、租戶隔離與顧客資料"},
-    {"id":"worker-sync","command":"cmp -s worker.js worker.txt","result":"PASS","scope":"正式 Worker 雙檔同步；本次只修改『我的報名』正式名稱與 LINE／Google 驗證後自動開通狀態讀回／Google 補件閉環，不動 2BL 或計費"},
+    {"id":"worker-sync","command":"cmp -s worker.js worker.txt","result":"PASS","scope":"正式 Worker 雙檔同步；本輪六角色 UAT 契約不修改 Worker，不動 2BL 或計費"},
     {"id":"diff-quality","command":"git diff --check","result":"PASS","scope":"差異格式"}
   ]
 }
