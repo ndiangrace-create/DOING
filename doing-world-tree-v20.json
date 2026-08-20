@@ -1,6 +1,6 @@
 {
   "version": 20,
-  "updatedAt": "2026-08-20",
+  "updatedAt": "2026-08-21",
   "status": "release_candidate",
   "authority": "Supabase",
   "workspaceRule": {
@@ -146,10 +146,28 @@
     "desktop": "month_grid",
     "mobile": ["month", "week", "list"],
     "sources": ["sessions", "operation_units", "booking_calendars", "registrations"],
+    "bookingRoster": "同頁顯示正式預約表，直接沿用 registrations、timeslots 與 booking_calendars，不建立第二套預約資料",
     "externalCalendarRule": "DOING remains SSOT; external deletion never deletes DOING data"
   },
+  "moduleArchitecture": {
+    "model": "shared_core_with_pluggable_work_modes",
+    "sharedCore": ["workspace", "calendar", "members", "registrations", "payments", "finance", "files", "audit"],
+    "activationRule": "租戶只顯示已核准模組；停用模組只關閉入口與新操作，不得刪除既有正式資料",
+    "reactivationRule": "重新開啟模組後必須沿用相同資料識別與歷史紀錄",
+    "noDuplicateRoot": true
+  },
+  "dataPortability": {
+    "ownerSelfService": true,
+    "platformApprovalRequired": false,
+    "availableWhenTenantLocked": true,
+    "authority": "Supabase",
+    "formats": ["complete_json", "session_xlsx", "csv_reports"],
+    "includes": ["營運資料", "模組設定", "操作歷程", "檔案連結"],
+    "excludes": ["平台機密", "登入憑證", "其他租戶資料"],
+    "rule": "租戶擁有者可隨時取回自己的正式營運資料，不得以停用模組、帳號鎖定或停止付費阻止下載。"
+  },
   "workModules": [
-    {"key":"booking","name":"預約","reuse":"booking calendars, availability, operation units"},
+    {"key":"booking","name":"預約","reuse":"booking calendars, availability, operation units, service items, timeslots, registrations and booking roster"},
     {"key":"course","name":"課程","reuse":"sessions, operation units, timeslots, registrations"},
     {"key":"event","name":"活動","reuse":"events, sessions, registrations"},
     {"key":"market","name":"市集","reuse":"events, sessions, registrations, onsite, seats"},
@@ -183,6 +201,6 @@
     "autoActivationMigration": "supabase_auto_activation_retention_v20.sql",
     "retentionCronMigration": "supabase_retention_cron_v20.sql",
     "databaseGuardMigration": "supabase_workspace_v20_guard.sql",
-    "regression": ["scripts/validate-world-tree-v20.mjs", "scripts/validate-naming-autoactivation-retention.mjs"]
+    "regression": ["scripts/validate-world-tree-v20.mjs", "scripts/validate-naming-autoactivation-retention.mjs", "scripts/validate-universal-booking.mjs", "scripts/validate-operational-readiness.mjs"]
   }
 }

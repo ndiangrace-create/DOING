@@ -1,6 +1,6 @@
 {
-  "version": 19,
-  "updatedAt": "2026-08-18",
+  "version": 20,
+  "updatedAt": "2026-08-21",
   "statusLabels": {
     "done": "已完成",
     "verify": "已有功能，待實際確認",
@@ -722,6 +722,24 @@
           "evidence": "admin.html / renderUnifiedCalendar"
         },
         {
+          "label": "服務型預約表與月曆共用正式資料",
+          "status": "done",
+          "note": "預約表直接沿用 registrations、timeslots 與 booking_calendars，可搜尋顧客並開啟原正式紀錄，不建立第二套預約資料。",
+          "evidence": "admin.html / renderBookingRoster / getBookingCalendarAdmin / validate-operational-readiness"
+        },
+        {
+          "label": "模組停用保留資料並可重新開啟續用",
+          "status": "done",
+          "note": "功能旗標只控制入口與新操作；正式資料仍保存在原資料表，模組異動寫入 audit_logs。",
+          "evidence": "tenant_settings.module_flags_json / audit_logs / hSavePlatformTenantModules"
+        },
+        {
+          "label": "租戶擁有者自行下載全部營運資料",
+          "status": "done",
+          "note": "不需平台批准，帳號鎖定仍可下載；排除登入憑證、平台機密與其他租戶資料。",
+          "evidence": "exportTenantData / openTenantDataExport / validate-operational-readiness"
+        },
+        {
           "label": "手機橫向滑動且日期格不壓縮",
           "status": "done",
           "evidence": "admin.html / calendar responsive CSS"
@@ -729,7 +747,7 @@
         {
           "label": "新租戶從零建立第一個營運項目",
           "status": "verify",
-          "evidence": "夜貓美甲已依使用者授權建立第一個草稿預約營運項目、正式服務目錄與預約日曆；尚待發布入口修正後由租戶管理者實際操作驗證。",
+          "evidence": "正式 Supabase 於 2026-08-21 核對：夜貓美甲仍停在 LINE 驗證待完成，尚未建立租戶、營運項目、服務目錄或預約日曆；程式契約已通過，必須等本人完成 LINE 後進行首筆正式驗證。",
           "formalVerification": {
             "number": 27,
             "priority": "P1",
@@ -741,14 +759,16 @@
             "dataScope": "指定新租戶",
             "operationPermission": "管理者新增",
             "fieldVisibility": "租戶內欄位",
-            "note": "已依使用者授權在既有正式資料表建立夜貓美甲第一個草稿預約營運項目、4 項服務與預約日曆；未公開、未建立時段、未產生費用。因營運入口修正尚未發布，仍需租戶管理者實際進入後台驗證操作。",
+            "note": "正式資料庫目前只有 LINE 驗證待完成的申請；不可把測試模擬紀錄當成正式租戶資料。待本人完成 LINE 後，再驗證自動建立工作空間與第一個預約營運項目。",
             "setupEvidence": {
-              "sessionId": "SES_NIGHTCAT_BOOKING",
-              "operationUnitId": "UNT_NIGHTCAT_BEAUTY",
-              "calendarId": "CAL_NIGHTCAT_PRIMARY",
-              "serviceCount": 4,
+              "applicationStatus": "line_verification_pending",
+              "tenantCreated": false,
+              "sessionId": null,
+              "operationUnitId": null,
+              "calendarId": null,
+              "serviceCount": 0,
               "timeslotCount": 0,
-              "status": "draft",
+              "status": "awaiting_real_line_verification",
               "deploymentPerformed": false
             }
           }
