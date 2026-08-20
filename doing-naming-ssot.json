@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "updatedAt": "2026-08-20T15:07:00+08:00",
+  "rule": "同一功能只允許一個正式名稱、一個資料根、一組正式 API；相容路由可保留但不得形成第二套資料或畫面。",
+  "contracts": [
+    {
+      "key": "my-registrations",
+      "userFacingName": "我的報名",
+      "forbiddenUserFacingAliases": ["我的紀錄", "報名紀錄中心"],
+      "memberRoute": "member-panel.html#activities",
+      "routeAliasPolicy": "activities 僅為 UI hash，相容保留，不是第二個資料模組",
+      "primaryApi": "getMyRegsGlobal",
+      "primaryHandler": "hGetMyRegsGlobal",
+      "primaryTable": "registrations",
+      "relatedTables": ["registration_members", "registration_member_invites", "registration_items"],
+      "relatedTablesRule": "relatedTables 只保存成員／邀請／明細，不得另存一份報名主紀錄。"
+    },
+    {
+      "key": "my-brands",
+      "userFacingName": "我的品牌",
+      "memberRoute": "member-panel.html#brands",
+      "primaryTable": "brands",
+      "membershipTable": "brand_members"
+    },
+    {
+      "key": "my-operations",
+      "userFacingName": "我的營運",
+      "memberRoute": "member-panel.html#operations",
+      "workspacePage": "workspace.html",
+      "primaryTables": ["tenants", "tenant_settings", "staff"],
+      "applicationTable": "tenant_apply_logs"
+    },
+    {
+      "key": "smart-application",
+      "userFacingName": "智慧申請",
+      "onlyFormalPage": "smart-application.html",
+      "applicationTable": "tenant_apply_logs",
+      "moduleFlagsTable": "tenant_settings",
+      "moduleFlagsColumn": "module_flags_json"
+    }
+  ],
+  "databaseNamingRule": "不得因 UI 改名建立同功能異名資料表；資料庫沿用既有正式名稱。",
+  "apiNamingRule": "不得為同一動作新增第二個同義 API；舊 alias 只可做相容轉接並指向同一 handler。"
+}
