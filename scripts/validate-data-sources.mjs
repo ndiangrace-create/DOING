@@ -3,6 +3,7 @@ import fs from 'node:fs';
 const root=process.cwd();
 const catalog=JSON.parse(fs.readFileSync(root+'/doing-data-sources.json','utf8'));
 const capabilities=JSON.parse(fs.readFileSync(root+'/doing-capabilities.json','utf8'));
+const settings=JSON.parse(fs.readFileSync(root+'/doing-settings-ssot.json','utf8'));
 const worker=fs.readFileSync(root+'/worker.js','utf8');
 const fail=(message)=>{throw new Error(message)};
 if(catalog.authority?.projectName!=='DOING_SaaS'||catalog.authority?.schema!=='public')fail('資料權威必須是 DOING_SaaS/public');
@@ -25,10 +26,30 @@ for(const helper of ['dbGet','dbInsert','dbUpsert','dbUpdate','dbUpdateReturning
 }
 for(const name of refs)if(!tableNames.has(name))fail('Worker 引用未經正式盤點的資料表：'+name);
 const allowed=new Set(catalog.browserStorage.allowedKeys||[]);
-for(const page of ['index.html','register.html','member.html','admin.html','onsite.html','platform.html','about.html','photo.html']){
+for(const page of ['index.html','register.html','member.html','member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html','workspace.html']){
   const source=fs.readFileSync(root+'/'+page,'utf8');
   const re=/(?:localStorage|sessionStorage)\.(?:getItem|setItem|removeItem)\(\s*['"]([^'"]+)/g;
   let match;while((match=re.exec(source)))if(!allowed.has(match[1]))fail(page+' 使用未核准的瀏覽器資料鍵：'+match[1]);
 }
+if(settings.authority?.project!=='DOING_SaaS'||settings.authority?.schema!=='public'||settings.authority?.api!=='tobeloved-api')fail('正式設定 SSOT 必須是 DOING_SaaS/public/tobeloved-api');
+if(settings.browserStorage?.formalSettingsAllowed!==false||settings.browserStorage?.businessDataAllowed!==false)fail('正式設定與營運資料不可保存在瀏覽器');
+if(!Array.isArray(settings.domains)||!settings.domains.length)fail('正式設定 SSOT 清單不可為空');
+const settingKeys=new Set();
+for(const domain of settings.domains){
+  if(!domain.key||settingKeys.has(domain.key))fail('正式設定 SSOT key 缺少或重複：'+String(domain.key||''));
+  settingKeys.add(domain.key);
+  if(!Array.isArray(domain.tables)||!domain.tables.length)fail('正式設定缺少 Supabase 資料表：'+domain.key);
+  for(const table of domain.tables)if(!tableNames.has(table))fail('正式設定引用未盤點資料表：'+domain.key+' -> '+table);
+  if(domain.managedBy==='migration'){
+    if(!domain.migration||!fs.existsSync(root+'/'+domain.migration))fail('治理型設定缺少受版本控制 migration：'+domain.key);
+    const migration=fs.readFileSync(root+'/'+domain.migration,'utf8');
+    if(!domain.settingKey||!migration.includes(domain.settingKey))fail('治理型設定 migration 未寫入正式 settingKey：'+domain.key);
+    if(!migration.includes('platform_settings'))fail('治理型設定未寫入 Supabase platform_settings：'+domain.key);
+    continue;
+  }
+  if(!Array.isArray(domain.readActions)||!domain.readActions.length)fail('正式設定缺少讀取 API：'+domain.key);
+  if(!Array.isArray(domain.writeActions)||!domain.writeActions.length)fail('正式設定缺少寫入 API：'+domain.key);
+  for(const action of [...domain.readActions,...domain.writeActions])if(!worker.includes(action))fail('正式設定 API 未存在 Worker：'+domain.key+' -> '+action);
+}
 if(worker!==fs.readFileSync(root+'/worker.txt','utf8'))fail('worker.js / worker.txt 不一致');
-console.log('資料來源驗證完成：'+tableNames.size+' 個真實資料表、'+refs.size+' 個 Worker 讀寫引用、'+moduleMap.size+' 個世界樹模組。');
+console.log('資料來源驗證完成：'+tableNames.size+' 個真實資料表、'+refs.size+' 個 Worker 讀寫引用、'+moduleMap.size+' 個世界樹模組、'+settings.domains.length+' 類正式設定全部以 Supabase 為 SSOT。');

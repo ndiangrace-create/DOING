@@ -1,0 +1,36 @@
+{
+  "version": 2,
+  "updatedAt": "2026-08-20",
+  "authority": {
+    "project": "DOING_SaaS",
+    "projectRef": "nayonqbzejoojexxxkyg",
+    "schema": "public",
+    "api": "tobeloved-api",
+    "rule": "所有正式設定必須經 Worker 或受版本控制的資料庫 migration 從 Supabase 讀取／寫入；前端不得把正式設定永久保存在 localStorage 或 sessionStorage。"
+  },
+  "browserStorage": {
+    "formalSettingsAllowed": false,
+    "businessDataAllowed": false,
+    "allowedPurpose": "登入 token、登入錯誤暫存、語系與非業務介面偏好"
+  },
+  "domains": [
+    {"key":"platform_billing_policy","label":"平台收費設定","tables":["platform_settings"],"readActions":["getPlatformBillingPolicy","getPublicBillingPolicy"],"writeActions":["savePlatformBillingPolicy"]},
+    {"key":"platform_payment_profile","label":"平台收款設定","tables":["platform_settings"],"readActions":["getPlatformPaymentProfile"],"writeActions":["savePlatformPaymentProfile"]},
+    {"key":"tenant_company","label":"營運單位基本設定","tables":["tenants"],"readActions":["getCompanySettings"],"writeActions":["saveCompanySettings"]},
+    {"key":"tenant_site","label":"前台與品牌公開設定","tables":["tenants"],"readActions":["getSiteConfig"],"writeActions":["saveSiteConfig"]},
+    {"key":"tenant_modules","label":"核准模組與工作預設","tables":["tenants","tenant_settings"],"readActions":["getTenantModuleProfile"],"writeActions":["saveTenantModuleProfile"]},
+    {"key":"tenant_theme","label":"租戶視覺主題","tables":["tenant_settings"],"readActions":["getTenantTheme"],"writeActions":["saveTenantTheme"]},
+    {"key":"tenant_payment","label":"租戶付款設定","tables":["tenant_settings","tenants"],"readActions":["getPaymentSettings","getPaymentProfiles"],"writeActions":["savePaymentSettings","savePaymentProfile","disablePaymentProfile"]},
+    {"key":"email_templates","label":"通知信件模板","tables":["email_templates"],"readActions":["getEmailTemplates"],"writeActions":["saveEmailTemplate"]},
+    {"key":"agreement_templates","label":"合約與同意書模板","tables":["tenant_agreement_templates"],"readActions":["getAgreementTemplate","getAgreementTemplates"],"writeActions":["saveAgreementTemplate","saveAgreementTemplates"]},
+    {"key":"booking_calendar","label":"工作日曆設定","tables":["booking_calendars"],"readActions":["getBookingCalendarAdmin"],"writeActions":["saveBookingCalendar"]},
+    {"key":"availability","label":"可預約時段與例外","tables":["availability_rules","availability_exceptions"],"readActions":["getAvailabilityAdmin"],"writeActions":["saveAvailabilityRule","saveAvailabilityException"]},
+    {"key":"staff_permissions","label":"團隊與場次權限","tables":["staff","staff_session_permissions"],"readActions":["getStaff"],"writeActions":["addStaff","setStaffActive","updateStaffSessions"]},
+    {"key":"promotion_rules","label":"優惠與回訪規則","tables":["promotion_rules"],"readActions":["getPromotionRulesAdmin"],"writeActions":["savePromotionRule","deletePromotionRule"]},
+    {"key":"venue_maps","label":"場地圖與排位模板","tables":["venue_map_templates"],"readActions":["listVenueMaps"],"writeActions":["saveVenueMap","applyVenueMap","deleteVenueMap"]},
+    {"key":"photo_activity","label":"拍照活動設定","tables":["photo_activities","photo_activity_frames"],"readActions":["listPhotoActivities"],"writeActions":["savePhotoActivity","deletePhotoActivity","savePhotoActivityFrame","deletePhotoActivityFrame"]},
+    {"key":"doing_naming_contract","label":"正式名稱與資料根對照","tables":["platform_settings"],"managedBy":"migration","migration":"supabase_auto_activation_retention_v20.sql","settingKey":"doing_naming_contract"},
+    {"key":"doing_workspace_activation_policy","label":"營運申請自動開通政策","tables":["platform_settings","tenant_apply_logs","platform_risk_cases"],"managedBy":"migration","migration":"supabase_auto_activation_retention_v20.sql","settingKey":"doing_workspace_activation_policy"},
+    {"key":"doing_data_retention_policy","label":"90天暫存資料保留政策","tables":["platform_settings"],"managedBy":"migration","migration":"supabase_auto_activation_retention_v20.sql","settingKey":"doing_data_retention_policy"}
+  ]
+}

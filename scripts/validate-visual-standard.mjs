@@ -9,7 +9,7 @@ const tokens=fs.readFileSync(new URL('../doing-design-tokens.css',import.meta.ur
 const pageStyles=fs.readFileSync(new URL('../doing-pastel-pages.css',import.meta.url),'utf8');
 const rules=fs.readFileSync(new URL('../DOING_首頁視覺基準.md',import.meta.url),'utf8');
 const capabilities=JSON.parse(fs.readFileSync(new URL('../doing-capabilities.json',import.meta.url),'utf8'));
-const pages=['member-panel.html','register.html','about.html','admin.html','platform.html','onsite.html','photo.html'];
+const pages=['member-panel.html','register.html','admin.html','platform.html','onsite.html','photo.html'];
 assert(home.includes('.price-card.primary .price-label')&&home.includes('color:#173943!important'),'收費方案白色標題膠囊必須使用深色文字，避免標題消失');
 assert(!homeProductScript.includes('doing-proof-section')&&!homeProductScript.includes('doingSupportMount'),'首頁不得保留重複流程說明或另一套客服面板');
 assert(homeProductScript.includes('id="doingPublicSupportFab"')&&homeProductScript.includes('function openPublicSupport()'),'首頁客服必須進入獨立的 DOING 民眾智慧小幫手');
@@ -45,7 +45,6 @@ assert.match(rules,/小型格子禁止使用 `50%` 或 `999px` 圓角/);
 assert.match(tokens,/--doing-brand-small-tile-radius:14px/);
 assert.match(pageStyles,/body\.doing-member/);
 assert.match(pageStyles,/body\.doing-register/);
-assert.match(pageStyles,/body\.doing-about-refresh/);
 assert.match(pageStyles,/body\.doing-admin/);
 assert.match(pageStyles,/body\.doing-platform/);
 assert.match(pageStyles,/body\.doing-onsite/);
@@ -63,15 +62,19 @@ for(const page of pages){
 const memberCompat=fs.readFileSync(new URL('../member.html',import.meta.url),'utf8');
 assert.match(memberCompat,/member-panel\.html/,'member.html 必須只負責相容轉址至內部會員面板');
 assert.doesNotMatch(memberCompat,/doing-design-tokens\.css/,'相容轉址頁不應再載入舊完整視覺資源');
+const aboutCompat=fs.readFileSync(new URL('../about.html',import.meta.url),'utf8');
+assert.ok(aboutCompat.length<5000,'about.html 已退休後不得再載入完整舊視覺頁');
+assert.match(aboutCompat,/smart-application\.html/,'about 申請相容入口必須導向智慧申請');
+assert.doesNotMatch(aboutCompat,/doing-design-tokens\.css|doing-pastel-pages\.css|doing-about-refresh/,'about 相容頁不得重新載入舊完整視覺資產');
 
 const visual=capabilities.modules.find(module=>module.id==='platform-visual');
 assert.ok(visual,'世界樹缺少 DOING 平台視覺基準');
 assert.ok(visual.features.some(feature=>feature.status==='done'&&feature.label.includes('天空藍與薄荷綠主色')));
-assert.ok(visual.features.some(feature=>feature.status==='done'&&feature.label.includes('逐頁套用')),'七個核心頁面完成套用後必須同步世界樹');
+assert.ok(visual.features.some(feature=>feature.status==='done'&&feature.label.includes('逐頁套用')),'核心正式頁面完成套用後必須同步世界樹');
 
 assert.match(tokens,/--doing-brand-primary:#91d7f4/);
 assert.match(tokens,/--doing-brand-secondary:#ccefa8/);
 assert.doesNotMatch(pageStyles,/body\.doing-member\{[^}]*doing-brand-pink/);
 assert.doesNotMatch(pageStyles,/body\.doing-photo\{[^}]*doing-brand-pink/);
 
-console.log(JSON.stringify({result:'PASS',standard:'DOING Sky Mint v2',primary:'sky-blue',secondary:'mint',pink:'accent-only',paletteColors:Object.keys(palette).length,pagesApplied:pages.length,memberCompat:true,smallTiles:'rounded-square-only',worldTreeStatus:'all_core_pages_done'},null,2));
+console.log(JSON.stringify({result:'PASS',standard:'DOING Sky Mint v2',primary:'sky-blue',secondary:'mint',pink:'accent-only',paletteColors:Object.keys(palette).length,pagesApplied:pages.length,memberCompat:true,aboutCompat:'redirect-only',smallTiles:'rounded-square-only',worldTreeStatus:'all_core_pages_done'},null,2));

@@ -34,13 +34,15 @@ jobs:
           cmp worker.js worker.txt
       - name: Parse JavaScript and HTML scripts
         run: |
-          node --check worker.js
+          node -e "import('./worker.js')"
           node --check doing-attribution.js
           node --check doing-home-refresh.js
           test ! -f doing-home-refresh-core.js || node --check doing-home-refresh-core.js
-          node --check doing-about-refresh.js
+          test ! -f doing-about-refresh.js
+          test ! -f doing-about-refresh.css
           node --check doing-smart-activation.js
           node --check doing-global-entry.js
+          node --check doing-auto-activation-status.js
           node - <<'NODE'
           const fs=require('fs'),vm=require('vm');
           for(const f of ['index.html','register.html','member.html','member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html']){
@@ -79,6 +81,7 @@ jobs:
           node scripts/validate-smart-oauth-top.mjs
           node scripts/validate-application-social-required.mjs
           node scripts/validate-platform-operations-e2e.mjs
+          node scripts/validate-naming-autoactivation-retention.mjs
       - name: Validate compact admin visual consistency
         run: node scripts/validate-admin-consistency.mjs
       - name: Validate reusable test records
@@ -93,6 +96,9 @@ jobs:
           grep -q 'index.html' member.html
           ! grep -q 'doing-app' member.html
           ! grep -q 'doing-logo.png' member.html
+          grep -q 'smart-application.html' about.html
+          ! grep -q 'apply-wrap' about.html
+          ! grep -q 'smart-flow-guide' about.html
           grep -q "hiddenAdminSelector='#brandHoldTarget,.doing-nav-brand'" index.html
           grep -q "document.addEventListener('pointerdown'" index.html
           grep -q "e.target.closest?.(hiddenAdminSelector)" index.html

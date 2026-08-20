@@ -3,7 +3,7 @@ import fs from 'node:fs';
 const read=file=>fs.readFileSync(file,'utf8');
 const assert=(value,message)=>{if(!value)throw new Error(message)};
 const homeRouter=read('doing-home-refresh.js'),home=fs.existsSync('doing-home-refresh-core.js')?read('doing-home-refresh-core.js'):homeRouter;
-const platform=read('platform.html'),worker=read('worker.js'),admin=read('admin.html'),member=read('member-panel.html'),memberCompat=read('member.html'),register=read('register.html');
+const platform=read('platform.html'),worker=read('worker.js'),admin=read('admin.html'),member=read('member-panel.html'),memberCompat=read('member.html'),aboutCompat=read('about.html'),register=read('register.html');
 const globalEntry=read('doing-global-entry.js'),smartApplication=read('smart-application.html');
 
 for(const target of ['billing','issues','tenants','applications'])assert(platform.includes(`'${target}'`),`營運 KPI 缺少明確對應：${target}`);
@@ -32,7 +32,7 @@ for(const [label,target] of [['進行中場次',"switchPage(\\'sessions\\')"],['
   assert(admin.includes(label)&&admin.includes(target),`租戶後台 KPI 對應遺失：${label}`);
 }
 
-const sharedPages=['platform.html','admin.html','member-panel.html','about.html','onsite.html','photo.html'];
+const sharedPages=['platform.html','admin.html','member-panel.html','onsite.html','photo.html'];
 for(const file of sharedPages){
   const html=read(file);
   assert(html.includes('doing-logo.png'),`${file} 左上角未使用首頁 DOING LOGO`);
@@ -42,7 +42,9 @@ for(const file of sharedPages){
 }
 assert(memberCompat.includes('member-panel.html')&&memberCompat.includes('index.html'),'member.html 相容轉址路徑不完整');
 assert(!memberCompat.includes('doing-logo.png'),'member.html 相容轉址不得再承載舊完整頁面框架');
-for(const file of ['platform.html','admin.html','about.html','onsite.html','photo.html','register.html'])assert(read(file).includes('我的 DOING'),`${file} 缺少回到我的 DOING`);
+assert(aboutCompat.includes('smart-application.html')&&aboutCompat.includes('index.html'),'about.html 相容轉址路徑不完整');
+assert(aboutCompat.length<5000&&!aboutCompat.includes('doing-logo.png')&&!aboutCompat.includes('doing-global-entry.js'),'about.html 必須是輕量 redirect-only，不得再承載舊完整框架');
+for(const file of ['platform.html','admin.html','onsite.html','photo.html','register.html'])assert(read(file).includes('我的 DOING'),`${file} 缺少回到我的 DOING`);
 assert(read('index.html').includes("hiddenAdminSelector='#brandHoldTarget,.doing-nav-brand'"),'首頁總管入口條件遺失');
 assert(register.includes('setTimeout(()=>{cancelAdminHold();'),'活動頁總管入口條件遺失');
 assert(register.includes("u.searchParams.set('tenant',urlTenant)"),'活動頁沒有把網址租戶帶入 frontBootstrap，會讀錯主辦空間');

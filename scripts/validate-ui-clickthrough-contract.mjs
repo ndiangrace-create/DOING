@@ -10,6 +10,8 @@ for(const p of pages)check(exists(p),`缺少正式頁面：${p}`);
 const home=read('doing-home-refresh.js')+(exists('doing-home-refresh-core.js')?read('doing-home-refresh-core.js'):'');
 const global=read('doing-global-entry.js');
 const member=read('member-panel.html');
+const memberCompat=read('member.html');
+const about=read('about.html');
 const workspace=read('workspace.html');
 const admin=read('admin.html');
 const register=read('register.html');
@@ -43,8 +45,14 @@ check(global.includes('installCleanMemberProfileSubmit'),'帳號設定缺少 V20
 check(global.includes("API+'?action=savePlatformMemberProfile'"),'V20 帳號設定未直接呼叫正式會員資料 API');
 check(!global.includes('systemApplication:app?'),'V20 清理層不得重新寫入舊 systemApplication');
 
-for(const p of ['member-panel.html','workspace.html','admin.html','onsite.html','platform.html','about.html','photo.html'])check(read(p).includes('index.html'),`${p} 缺少回首頁路徑`);
-for(const p of ['member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html'])check(read(p).includes('doing-global-entry.js'),`${p} 未載入共同入口邏輯`);
+check(memberCompat.length<5000&&memberCompat.includes('member-panel.html')&&memberCompat.includes('index.html'),'member.html 必須只保留相容轉址，不得承載舊會員 UI');
+check(about.length<5000,'about.html 過大，疑似又承載舊正式頁面');
+check(about.includes("isApply?'smart-application.html':'index.html'"),'about.html 未依用途導向唯一正式入口');
+for(const forbidden of ['apply-wrap','apply-form','smart-flow-guide','doing-helper','id="apply"','doing-about-refresh.js','doing-about-refresh.css'])check(!about.includes(forbidden),'about.html 又出現已退休框架：'+forbidden);
+check(!exists('doing-about-refresh.js')&&!exists('doing-about-refresh.css'),'已退休 about shell 資產仍存在');
+
+for(const p of ['member-panel.html','workspace.html','admin.html','onsite.html','platform.html','photo.html'])check(read(p).includes('index.html'),`${p} 缺少回首頁路徑`);
+for(const p of ['member-panel.html','admin.html','onsite.html','platform.html','photo.html'])check(read(p).includes('doing-global-entry.js'),`${p} 未載入共同入口邏輯`);
 
 check(member.includes('我的營運')||member.includes('operations'),'會員頁缺少我的營運內容');
 check(member.includes('帳號設定')||member.includes('account'),'會員頁缺少帳號設定內容');
@@ -55,10 +63,5 @@ check(register.includes('member_token'),'報名頁缺少會員登入／身分串
 check(onsite.includes('報到')||onsite.includes('checkin'),'現場頁缺少報到功能');
 check(platform.includes('applications')&&platform.includes('tenants'),'平台總管缺少申請／租戶入口');
 
-const about=read('doing-about-refresh.js');
-check(about.includes('smart-application.html'),'about 未轉向唯一智慧申請頁');
-check(global.includes('retireLegacyAboutApplication'),'about 歷史申請 DOM 缺少正式退休處理');
-check(global.includes("document.querySelectorAll('#applicationPanel,#apply')"),'about 舊申請區塊沒有從 live DOM 移除');
-
-console.log(JSON.stringify({result:issues.length?'FAIL':'PASS',pages:pages.length,issues,rules:['routing','oauth','application','social','member-labels','legacy-write','legacy-route','legacy-retirement']},null,2));
+console.log(JSON.stringify({result:issues.length?'FAIL':'PASS',pages:pages.length,issues,rules:['routing','oauth','application','social','member-labels','legacy-write','redirect-only-legacy-pages','single-surface']},null,2));
 if(issues.length)throw new Error(`UI click-through contract found ${issues.length} issue(s)`);

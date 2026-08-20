@@ -7,11 +7,24 @@ const home=fs.readFileSync('doing-home-refresh.js','utf8');
 const homeCore=fs.readFileSync('doing-home-refresh-core.js','utf8');
 const memberCompat=fs.readFileSync('member.html','utf8');
 const member=fs.readFileSync('member-panel.html','utf8');
+const about=fs.readFileSync('about.html','utf8');
 const sql=fs.readFileSync('supabase_workspace_v20_guard.sql','utf8');
 const tree=JSON.parse(fs.readFileSync('doing-world-tree-v20.json','utf8'));
+const settings=JSON.parse(fs.readFileSync('doing-settings-ssot.json','utf8'));
 need(Number(tree.version)===20,'世界樹版本必須是 v20');
 need(tree.workspaceRule?.ownedWorkspacePerMember===1,'一會員只能擁有一個自己的工作空間');
 need(tree.workspaceRule?.collaborationAcrossOtherWorkspaces===true,'不得誤傷受邀協作空間');
+need(tree.settingsSSOT?.authority==='Supabase'&&tree.settingsSSOT?.inventory==='doing-settings-ssot.json','世界樹缺少正式設定 Supabase SSOT');
+need(settings.browserStorage?.formalSettingsAllowed===false,'正式設定不得保存在瀏覽器');
+need(Array.isArray(settings.domains)&&settings.domains.length>=10,'正式設定 SSOT 盤點不足');
+need(Array.isArray(tree.flowContracts)&&tree.flowContracts.length===9,'世界樹必須固定九條主流程契約');
+const flowIds=new Set(tree.flowContracts.map(x=>x.id));
+for(const id of ['public-registration','member-brand','smart-application','workspace-modules-calendar','tenant-admin-operations','onsite','platform-admin','data-authority','legacy-retirement'])need(flowIds.has(id),'世界樹缺少主流程：'+id);
+for(const flow of tree.flowContracts){need(Array.isArray(flow.path)&&flow.path.length>=3,'主流程缺少完整操作路徑：'+flow.id);need(flow.acceptance,'主流程缺少完成判準：'+flow.id)}
+need(tree.singleSurfaceRule?.formalApplicationPage==='smart-application.html'&&tree.singleSurfaceRule?.maxPrimaryFramesPerFlow===1,'單層正式畫面規則缺失');
+need(about.includes("isApply?'smart-application.html':'index.html'"),'about 相容頁沒有依用途導回唯一正式入口');
+need(!about.includes('apply-wrap')&&!about.includes('smart-flow-guide')&&!about.includes('doing-about-refresh.js'),'about 仍殘留舊申請框架');
+need(about.length<5000,'about 相容頁過大，疑似又塞回舊正式 UI');
 for(const text of ['預約','課程','活動','市集','專案'])need(ws.includes(text),'工作空間缺少工作模組定義：'+text);
 for(const text of ['商品／票券','QR 報到／核銷','收款／訂金','優惠券／回訪','通知提醒','團隊／排班','進階財務','照片／檔案','電子簽名','Google／Apple 日曆'])need(ws.includes(text),'工作空間缺少共用模組定義：'+text);
 for(const text of ['我的報名','我的品牌','帳號設定','切換工作空間'])need(ws.includes(text),'我的 DOING 抽屜缺少入口：'+text);
@@ -42,4 +55,4 @@ need(/name=["']viewport["']/.test(ws)&&ws.includes('doing-system.css?v=20260817-
 new vm.Script(ge,{filename:'doing-global-entry.js'});
 for(const [name,src] of [['workspace',ws],['member-panel',member]]){let scripts=0;for(const m of src.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){if(!m[1].trim())continue;new vm.Script(m[1],{filename:name+'#script'+(++scripts)});}need(scripts>0,name+' 缺少可執行腳本');}
 new vm.Script(home,{filename:'doing-home-refresh.js'});
-console.log('DOING World Tree v20 路徑驗證通過：租戶工作平台只顯示問卷／平台核准模組；核准資料讀取失敗時 fail closed；預約直達既有營運總日曆；世界樹仍保留 5 工作模組與 10 共用模組能力目錄。');
+console.log('DOING World Tree v20 路徑驗證通過：9 條主流程、單層正式畫面、Supabase 設定 SSOT、5 工作模組與 10 共用模組均已建立固定契約。');
