@@ -5332,6 +5332,10 @@ async function hGoogleCallback(env, url) {
           rejected_at:null,rejected_by:null,rejection_reason:null
         }
       );
+      await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{status:'replaced',note:'已併入補件申請'}).catch(()=>{});
+      const u=new URL(doingSiteUrl(env));u.hash='apply';u.searchParams.set('application_status','supplement_submitted');u.searchParams.set('application_id',supplement.id);
+      return Response.redirect(u.toString(),302);
+    }
     await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{brand_name:brand,contact_name:contact,contact_email:contactEmail,contact_phone:phone,event_type:(appPayload.useCases||[]).join(','),plan_type:'review',note:'Google 驗證完成，正在建立工作空間',status:'pending',application_json:applicationJson});
     // workspace_auto_activation_status_google：Google 僅為備援，但狀態規則與 LINE 共用同一正式申請資料根。
     const activationRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&select=status,tenant_id,note`).catch(()=>[]),activation=activationRows[0]||{},activationStatus=String(activation.status||'pending');
