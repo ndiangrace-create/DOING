@@ -11,7 +11,7 @@ for(const key of requiredKeys){
   if(!platform.includes(`${key}:`))throw new Error(`平台模組標籤缺少 ${key}`);
 }
 const applicationSurface=smartPage+smart+worker+platform;
-for(const marker of ['doingSmartHelper','doingApplicationPlan','confirmations.confirmReal','module_flags','approvedModuleFlags']){
+for(const marker of ['smartActivationV2','analyzeDoingApplication','doingApplicationPlan','module_flags','approvedModuleFlags']){
   if(!applicationSurface.includes(marker))throw new Error(`申請流程缺少 ${marker}`);
 }
 for(const useCase of ['market','event','workshop','beauty','service_booking','resource_booking','guide','general']){
