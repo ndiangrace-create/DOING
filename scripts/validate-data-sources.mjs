@@ -26,7 +26,7 @@ for(const helper of ['dbGet','dbInsert','dbUpsert','dbUpdate','dbUpdateReturning
 }
 for(const name of refs)if(!tableNames.has(name))fail('Worker 引用未經正式盤點的資料表：'+name);
 const allowed=new Set(catalog.browserStorage.allowedKeys||[]);
-for(const page of ['index.html','register.html','member.html','member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html','workspace.html']){
+for(const page of ['index.html','register.html','member.html','member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html','workspace.html','operations-center.html','consignment.html']){
   const source=fs.readFileSync(root+'/'+page,'utf8');
   const re=/(?:localStorage|sessionStorage)\.(?:getItem|setItem|removeItem)\(\s*['"]([^'"]+)/g;
   let match;while((match=re.exec(source)))if(!allowed.has(match[1]))fail(page+' 使用未核准的瀏覽器資料鍵：'+match[1]);
