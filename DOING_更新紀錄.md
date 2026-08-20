@@ -4,7 +4,7 @@
 
 ## 2026-08-21｜DOING Core 補齊 Market App 三個正式接口
 
-狀態：Core、資料庫 migration 與固定驗收已建立；全系統回歸及正式部署結果完成後更新。
+狀態：正式資料庫 migration、全系統回歸與 `tobeloved-api` 部署已完成；原生 App 與推播供應商仍依下列真人／真機項目驗證。
 
 - LINE 原生登入固定回跳 `doingmarket://auth/line`，網址只帶五分鐘一次性交換碼，不放會員 Token；App 必須以裝置綁定的 PKCE verifier 再向 HTTPS Core 交換。
 - 攤商可取得兩分鐘短效個人 QR；工作人員掃碼仍須通過原有租戶、場次與 checkin 權限，成功後回寫同一筆正式報名並留下操作紀錄。
