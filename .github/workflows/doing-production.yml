@@ -45,7 +45,7 @@ jobs:
           node --check doing-auto-activation-status.js
           node - <<'NODE'
           const fs=require('fs'),vm=require('vm');
-          for(const f of ['index.html','register.html','member.html','member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html']){
+          for(const f of ['index.html','register.html','member.html','member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html','operations-center.html','consignment.html']){
             const source=fs.readFileSync(f,'utf8');let count=0;
             for(const match of source.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){
               if(!match[1].trim())continue;
@@ -84,6 +84,7 @@ jobs:
           node scripts/validate-naming-autoactivation-retention.mjs
           node scripts/validate-role-journey-uat.mjs
           node scripts/validate-universal-booking.mjs
+          node scripts/validate-operational-closeout.mjs
           node scripts/validate-operational-readiness.mjs
       - name: Validate compact admin visual consistency
         run: node scripts/validate-admin-consistency.mjs

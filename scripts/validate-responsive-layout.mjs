@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 
 const root=process.cwd();
-const pages=['index.html','register.html','member-panel.html','admin.html','onsite.html','platform.html','photo.html'];
+const pages=['index.html','register.html','member-panel.html','admin.html','onsite.html','platform.html','photo.html','operations-center.html','consignment.html'];
 const fail=(message)=>{throw new Error(message)};
 for(const page of pages){
   const source=fs.readFileSync(root+'/'+page,'utf8');

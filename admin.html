@@ -2204,7 +2204,7 @@ body.doing-admin .settings-tile{min-height:92px!important;padding:12px!important
 <section id="adminPage" class="hidden">
   <header class="topbar"><div class="topbar-in">
     <div class="brand"><a class="admin-member-home" href="index.html" data-doing-admin-entry aria-label="回到 DOING 首頁" title="回到首頁"><img src="doing-logo.png" alt="DOING" style="width:46px;height:46px;object-fit:contain"><div><div class="brand-title">DOING 活動營運管理系統</div><div class="brand-sub"><span class="admin-member-back">← 回到首頁</span><span id="whoText" class="admin-member-context">尚未登入</span></div></div></a></div>
-    <div class="actions"><a id="adminReturnLink" class="btn secondary small" href="member.html#operations" onclick="returnFromAdmin(event)"><span id="adminReturnLabel">我的 DOING</span></a><button class="btn secondary small" onclick="openSupportCenter()">系統客服 <span id="supportUnreadBadge" class="doing-unread">0</span></button><button class="btn secondary small hide-sm" onclick="refreshCurrentPage()">重新整理</button><button class="btn secondary small" onclick="openOnsiteWorkerPage()">現場入口</button><button class="btn gray small" onclick="logout()">登出</button></div>
+    <div class="actions"><a id="adminReturnLink" class="btn secondary small" href="member.html#operations" onclick="returnFromAdmin(event)"><span id="adminReturnLabel">我的 DOING</span></a><button class="btn secondary small" onclick="openOperationalCenter()">完整營運中心</button><button class="btn secondary small" onclick="openSupportCenter()">系統客服 <span id="supportUnreadBadge" class="doing-unread">0</span></button><button class="btn secondary small hide-sm" onclick="refreshCurrentPage()">重新整理</button><button class="btn secondary small" onclick="openOnsiteWorkerPage()">現場入口</button><button class="btn gray small" onclick="logout()">登出</button></div>
   </div></header>
   <nav class="tabs" aria-label="DOING 後台主選單">
       <button id="tab-todos" class="tab" onclick="switchPage('todos')">待辦</button>
@@ -2566,6 +2566,7 @@ function loadOnsite(){
 }
 
 function openOnsiteWorkerPage(){const u=new URL('onsite.html',location.href);u.searchParams.set('tenant',currentTenantFromUrl());u.searchParams.set('from','admin');window.open(u.toString(),'_blank','noopener')}
+function openOperationalCenter(){const u=new URL('operations-center.html',location.href);u.searchParams.set('tenant',currentTenantFromUrl());u.searchParams.set('admin_token',AdminState.token||'');location.href=u.toString()}
 async function openOnsiteShifts(){openPanel('工讀生工時紀錄','依場次、姓名、開始與結束時間計算','<div class="loading">載入中…</div>');try{const rows=await api({action:'onsiteShiftList'});$('panelBody').innerHTML=tableFromRows(rows,['sessionName','operatorName','startedAt','endedAt','hours','operationCount'],['場次','姓名','開始時間','結束時間','工時','操作筆數'])}catch(e){$('panelBody').innerHTML='<div class="empty">載入失敗：'+safe(e.message)+'</div>'}}
 async function loadOnsiteList(sid){
   sid=sid||$('onsiteSession')?.value||(AdminState.onsite&&AdminState.onsite.sid)||'';

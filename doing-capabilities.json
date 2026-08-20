@@ -1,5 +1,5 @@
 {
-  "version": 20,
+  "version": 21,
   "updatedAt": "2026-08-21",
   "statusLabels": {
     "done": "已完成",
@@ -788,7 +788,8 @@
           "booking_calendars",
           "availability_rules",
           "availability_exceptions",
-          "session_bundles"
+          "session_bundles",
+          "service_visits"
         ]
       }
     },
@@ -1131,29 +1132,29 @@
       "features": [
         {
           "label": "攤商填寫當日營業額",
-          "status": "later",
-          "evidence": "performance report",
-          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
+          "status": "done",
+          "evidence": "vendor_sales_reports / submitVendorSalesReport / member-panel.html"
         },
         {
           "label": "不提供NT$0快速選項",
-          "status": "later",
-          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
+          "status": "done",
+          "evidence": "member-panel.html 手動輸入與二次確認／validate-operational-closeout"
         },
         {
           "label": "管理者不可修改攤商業績",
-          "status": "later",
-          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
+          "status": "done",
+          "evidence": "guard_vendor_sales_amount 資料庫不可覆寫觸發器"
         },
         {
           "label": "完成回報後啟動保證金退還",
-          "status": "later",
-          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
+          "status": "done",
+          "evidence": "deposit_refund_status=eligible / deposit_refund_eligible 通知；不自動動真錢"
         },
         {
           "label": "真實場次結案驗收",
-          "status": "later",
-          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
+          "status": "verify",
+          "note": "功能已完成，仍依固定規則等待真實場次結案與真實退款驗證。",
+          "evidence": "operations-center.html / vendor_sales_reports / refundDeposit"
         }
       ],
       "dataSource": {
@@ -1162,6 +1163,7 @@
         "schema": "public",
         "tables": [
           "registrations",
+          "vendor_sales_reports",
           "finance_ledger"
         ]
       }
@@ -1175,28 +1177,28 @@
       "features": [
         {
           "label": "寄賣檔期設定",
-          "status": "later",
-          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
+          "status": "done",
+          "evidence": "consignment_periods / saveConsignmentPeriod / operations-center.html"
         },
         {
           "label": "寄賣申請與審核",
-          "status": "later",
-          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
+          "status": "done",
+          "evidence": "consignment.html / applyConsignment / reviewConsignmentApplication"
         },
         {
           "label": "商品與條碼",
-          "status": "later",
-          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
+          "status": "done",
+          "evidence": "consignment_products / inventory_movements / saveConsignmentProduct"
         },
         {
           "label": "POS銷售",
-          "status": "later",
-          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
+          "status": "done",
+          "evidence": "record_consignment_pos_sale / recordPosSale / operations-center.html"
         },
         {
           "label": "完整庫存與結算E2E",
-          "status": "later",
-          "note": "已完成資料庫盤點，但尚未發現可正式執行的 Worker 讀寫流程；不得宣稱完成。"
+          "status": "done",
+          "evidence": "單一資料庫交易寫入銷售、明細、庫存與 finance_ledger；validate-operational-closeout"
         }
       ],
       "dataSource": {
@@ -1205,6 +1207,12 @@
         "schema": "public",
         "tables": [
           "registration_items",
+          "consignment_periods",
+          "consignment_applications",
+          "consignment_products",
+          "pos_sales",
+          "pos_sale_items",
+          "inventory_movements",
           "finance_ledger"
         ]
       }
@@ -1452,35 +1460,44 @@
     },
     {
       "id": "future-roadmap",
-      "area": "未來擴充",
-      "title": "已登記、現在先不做",
-      "summary": "保留方向，但先完成第一個租戶營運與收入閉環。",
+      "area": "正式營運擴充",
+      "title": "進階營運閉環",
+      "summary": "自有網域、候補、會員方案、服務流程、主視覺與自動通知共用正式核心。",
+      "route": "operations-center.html",
       "features": [
         {
           "label": "租戶自有網域與代設定",
-          "status": "later"
+          "status": "verify",
+          "note": "申請、驗證檔檢查與正式入口更新已完成；每個真實網域仍需租戶完成 DNS／驗證檔操作。",
+          "evidence": "tenant_domains / saveTenantDomain / checkTenantDomain"
         },
         {
           "label": "自動候補與遞補期限",
-          "status": "later"
+          "status": "done",
+          "evidence": "sessions.modules_json.waitlistPolicy / runWaitlistAutomation"
         },
         {
           "label": "套票、次數券與會員方案",
-          "status": "later",
-          "note": "已完成票券所在流程與三種第一階段類型；待定案共享、核銷、退款及跨品牌規則後實作。"
+          "status": "done",
+          "note": "第一階段固定為本人或指定群組共享、租戶內核銷；不跨品牌、不改平台計費。",
+          "evidence": "membership_plans / membership_subscriptions / customer_wallets / customer_wallet_ledger"
         },
         {
           "label": "美類服務功能表與顧客到店／開始／完成操作",
-          "status": "later",
-          "note": "工作流程與問卷對應已完成；下一步依流程製作功能表，不可固定命名為美甲師。"
+          "status": "done",
+          "note": "沿用通用服務項目、工作人員／資源與預約日曆；介面不固定稱為美甲師。",
+          "evidence": "service_items / booking_calendars / service_visits / updateServiceVisit"
         },
         {
           "label": "AI活動主視覺生成",
-          "status": "later"
+          "status": "done",
+          "evidence": "generateSessionVisual / session_visual_assets / admin.html"
         },
         {
           "label": "自動化行銷流程",
-          "status": "later"
+          "status": "done",
+          "note": "營運必要通知與已同意行銷名單分流，不把正式名單存到前端。",
+          "evidence": "marketing_automations / marketing_automation_runs / notifications / runMarketingAutomations"
         }
       ],
       "dataSource": {
@@ -1488,7 +1505,21 @@
         "project": "DOING_SaaS",
         "schema": "public",
         "tables": [
-          "platform_settings"
+          "platform_settings",
+          "tenant_domains",
+          "sessions",
+          "registrations",
+          "membership_plans",
+          "membership_subscriptions",
+          "customer_wallets",
+          "customer_wallet_ledger",
+          "service_items",
+          "service_visits",
+          "ai_visual_jobs",
+          "session_visual_assets",
+          "marketing_automations",
+          "marketing_automation_runs",
+          "notifications"
         ]
       }
     }

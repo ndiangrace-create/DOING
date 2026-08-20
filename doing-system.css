@@ -390,3 +390,9 @@ body.doing-app :where(.tabs,.platform-nav,.scenario-tabs,.portal-row,.doing-quic
   body.doing-app :where(.tabs,.platform-nav,.scenario-tabs,.portal-row,.doing-quick-tags,.filter-row,.subtabs)>*{flex:0 0 auto!important;max-width:calc(100vw - 36px)!important}
   body.doing-app table:not(.seat-map){display:block!important;width:100%!important;max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
 }
+/* v21：全系統文字與彈性格防破框。內容可以換行，但不可把卡片或畫面撐出視窗。 */
+html,body{max-width:100%;overflow-x:hidden}
+body.doing-app :where(main,section,article,div,nav,header,footer,form,label,.card,.panel,.row,.actions,.grid){min-width:0}
+body.doing-app :where(h1,h2,h3,h4,p,span,b,strong,small,a,button,label,td,th,.chip,.status){max-width:100%;overflow-wrap:anywhere;word-break:normal}
+body.doing-app :where(input,select,textarea){max-width:100%;min-width:0}
+body.doing-app :where(.btn,button){white-space:normal;text-align:center;line-height:1.35}

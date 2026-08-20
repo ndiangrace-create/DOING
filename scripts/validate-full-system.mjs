@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 
-const pages=['index.html','register.html','member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html'];
+const pages=['index.html','register.html','member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html','operations-center.html','consignment.html'];
 const read=file=>fs.readFileSync(file,'utf8');
 const worker=read('worker.js');
 
@@ -55,7 +55,7 @@ const frontendActions=new Set();
 for(const file of pages){
   const source=read(file);
   for(const m of source.matchAll(/\b(?:apiGet|apiPost)\(\s*['"]([^'"]+)['"]/g))frontendActions.add(m[1]);
-  if(['platform.html','onsite.html'].includes(file))for(const m of source.matchAll(/(?<![.\w])(?:get|post)\(\s*['"]([^'"]+)['"]/g))frontendActions.add(m[1]);
+  if(['platform.html','onsite.html','operations-center.html','consignment.html'].includes(file))for(const m of source.matchAll(/(?<![.\w])(?:get|post)\(\s*['"]([^'"]+)['"]/g))frontendActions.add(m[1]);
   for(const m of source.matchAll(/\baction\s*:\s*['"]([^'"]+)['"]/g))frontendActions.add(m[1]);
 }
 const nonRoutePayloadActions=new Set(['admin_assign','admin_unassign']);
