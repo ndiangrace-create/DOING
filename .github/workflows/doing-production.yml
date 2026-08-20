@@ -86,6 +86,7 @@ jobs:
           node scripts/validate-universal-booking.mjs
           node scripts/validate-operational-closeout.mjs
           node scripts/validate-operational-readiness.mjs
+          node scripts/validate-market-app-core-contracts.mjs
       - name: Validate compact admin visual consistency
         run: node scripts/validate-admin-consistency.mjs
       - name: Validate reusable test records

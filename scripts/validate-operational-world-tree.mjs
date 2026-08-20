@@ -47,7 +47,7 @@ for(const journey of tree.journeys){
     for(const table of step.tables)if(table!=='Supabase public schema')need(tableNames.has(table),'營運世界樹引用未盤點的 Supabase 資料表：'+journey.id+'/'+step.id+' -> '+table);
   }
 }
-need(!JSON.stringify(tree).match(/Market App|手機板APP|mobile app/i),'DOING 營運世界樹不得再納入 Market App');
+need(!JSON.stringify(tree).match(/Market App (?:SSOT|資料庫|後端)|手機板APP (?:SSOT|資料庫|後端)/i),'Market App 不得成為 DOING Core 之外的第二套資料或後端權威');
 need(tree.workspaceRule?.ownedWorkspacePerMember===1&&tree.workspaceRule?.collaborationAcrossOtherWorkspaces===true,'工作空間唯一性契約錯誤');
 need(tree.namingSSOT?.myRegistrations==='我的報名'&&tree.namingSSOT?.primaryApi==='getMyRegsGlobal'&&tree.namingSSOT?.primaryTable==='registrations','我的報名固定契約錯誤');
 need(tree.retentionPolicy?.transientDays===90&&tree.retentionPolicy?.formalBusinessDataPreserved===true,'90 天清理安全契約錯誤');

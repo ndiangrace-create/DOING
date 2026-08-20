@@ -485,6 +485,15 @@ async function sha256Hex(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
 }
+function bytesToBase64Url(bytes){
+  let binary='';for(const b of bytes)binary+=String.fromCharCode(b);
+  return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+async function sha256Base64Url(str){
+  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(str||'')));
+  return bytesToBase64Url(new Uint8Array(digest));
+}
+function randomOpaqueToken(){const bytes=new Uint8Array(32);crypto.getRandomValues(bytes);return bytesToBase64Url(bytes)}
 async function hmacSha256Base64(secret, message) {
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey('raw', enc.encode(secret), {name:'HMAC',hash:'SHA-256'}, false, ['sign']);
@@ -2984,6 +2993,87 @@ async function verifiedMemberRegistration(env,token,registrationId,tenantId=''){
   const links=await dbGet(env,'registration_members',`registration_id=eq.${encodeURIComponent(rid)}&platform_member_id=eq.${encodeURIComponent(mid)}&status=eq.active&select=id,permissions_json`).catch(()=>[]);
   return links.length?{verified,registration:r,link:links[0]}:null;
 }
+
+// ── Market App 正式 Core 契約：原生登入、個人 QR、裝置推播 ──
+async function hExchangeMarketAppAuthCode(env,b){
+  const code=String(b.code||'').trim(),verifier=String(b.code_verifier||b.codeVerifier||'').trim(),deviceId=String(b.device_id||b.deviceId||'').trim();
+  if(!/^[A-Za-z0-9_-]{43,128}$/.test(code)||verifier.length<43||verifier.length>128||!deviceId)return jsonErr('登入交換資料不完整');
+  const codeHash=await sha256Hex(code),challenge=await sha256Base64Url(verifier),now=nowIso();
+  const consumed=await dbUpdateReturning(env,'mobile_auth_exchanges',`code_hash=eq.${encodeURIComponent(codeHash)}&code_challenge=eq.${encodeURIComponent(challenge)}&device_id=eq.${encodeURIComponent(deviceId)}&used_at=is.null&expires_at=gt.${encodeURIComponent(now)}`,{used_at:now});
+  const row=consumed[0];if(!row)return jsonErr('登入交換碼已失效或已使用');
+  const member=await getPlatformMemberById(env,row.platform_member_id);if(!member)return jsonErr('會員資料不存在');
+  const identities=await dbGet(env,'platform_member_identities',`member_id=eq.${encodeURIComponent(member.id)}&provider=eq.line&select=*&order=created_at.asc&limit=1`).catch(()=>[]),identity=identities[0];
+  if(!identity)return jsonErr('LINE 身分資料不存在');
+  const memberToken=await issueMemberToken({email:member.email,provider:'line',provider_subject:identity.provider_subject,display_name:member.display_name,avatar_url:member.avatar_url},env);
+  return jsonOk({ok:true,member_token:memberToken,token_type:'Bearer',expires_in:30*24*60*60,member_status:platformMemberComplete(member)?'ready':'profile_required'});
+}
+
+async function hGetMarketVendorQr(env,b){
+  const access=await verifiedMemberRegistration(env,b.member_token||b.memberToken||b.token,b.registrationId||b.regId);
+  if(!access)return jsonErr('只有這筆報名的本人或已授權出攤者可取得 QR');
+  if(access.link&&!safeJson(access.link.permissions_json,{}).checkin)return jsonErr('此成員沒有報到權限');
+  const reg=access.registration,guard=checkinGuard(reg,false);if(guard)return jsonErr(guard);
+  const now=Date.now(),expiresAt=now+2*60*1000;
+  const qrToken=await signAdminJwt({iss:'DOING',type:'market_vendor_checkin',jti:crypto.randomUUID(),platform_member_id:access.verified.row.id,registration_id:reg.id,tenant_id:reg.tenant_id,session_id:reg.session_id,issued_at:now,expires_at:expiresAt},env);
+  return jsonOk({ok:true,qr_token:qrToken,registration_id:reg.id,expires_at:new Date(expiresAt).toISOString(),refresh_after_seconds:90});
+}
+
+async function hScanMarketVendorQr(env,b){
+  const payload=await verifyAdminJwt(String(b.qr_token||b.qrToken||''),env).catch(()=>null);
+  if(!payload||payload.iss!=='DOING'||payload.type!=='market_vendor_checkin')return jsonErr('QR 已失效，請攤商重新顯示');
+  const T=String(payload.tenant_id||''),rid=String(payload.registration_id||''),sid=String(payload.session_id||'');
+  if(!T||!rid||!await verifyStaff(env,b.email,b.token,T,'checkin',sid))return jsonErr('無權限');
+  const rows=await dbGet(env,'registrations',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(rid)}&session_id=eq.${encodeURIComponent(sid)}&select=*`),reg=rows[0];
+  if(!reg)return jsonErr('找不到報名');
+  const memberId=String(payload.platform_member_id||''),isOwner=[reg.platform_member_id,reg.submitted_by_member_id].map(String).includes(memberId);
+  const links=isOwner?[]:await dbGet(env,'registration_members',`registration_id=eq.${encodeURIComponent(rid)}&platform_member_id=eq.${encodeURIComponent(memberId)}&status=eq.active&select=permissions_json`).catch(()=>[]);
+  if(!isOwner&&(!links[0]||!safeJson(links[0].permissions_json,{}).checkin))return jsonErr('這個 QR 已無報到權限');
+  if(String(reg.checkin_status||'')==='已報到')return jsonOk({ok:true,already_checked_in:true,registration_id:rid,checkin_at:reg.checkin_at||null});
+  const guard=checkinGuard(reg,false);if(guard)return jsonErr(guard);
+  const now=nowIso();await dbUpdate(env,'registrations',`tenant_id=eq.${encodeURIComponent(T)}&id=eq.${encodeURIComponent(rid)}`,checkinData(false,now));
+  const operator=await staffDisplayName(env,T,b.email);
+  await dbInsert(env,'seat_operation_logs',{id:genId('OPL'),tenant_id:T,session_id:sid,registration_id:rid,stall_id:null,action:'marketAppQrCheckin',operator_type:'staff',operator_id:operator,note:'Market App 個人 QR 掃碼報到',created_at:now}).catch(()=>{});
+  return jsonOk({ok:true,registration_id:rid,checkin_at:now});
+}
+
+function validPushToken(v){const s=String(v||'').trim();return s.length>=32&&s.length<=4096&&!/[\s\x00-\x1f]/.test(s)}
+async function hRegisterMarketPushToken(env,b){
+  const verified=await verifiedPlatformMember(env,b.member_token||b.memberToken||b.token);if(!verified)return jsonErr('會員登入已失效，請重新登入');
+  const platform=String(b.platform||'').toLowerCase(),provider=String(b.provider||'').toLowerCase(),installationId=String(b.installation_id||b.installationId||'').trim(),pushToken=String(b.push_token||b.pushToken||'').trim();
+  if(!['ios','android'].includes(platform)||!((platform==='ios'&&['apns','fcm'].includes(provider))||(platform==='android'&&provider==='fcm'))||!/^[A-Za-z0-9._:-]{8,160}$/.test(installationId)||!validPushToken(pushToken))return jsonErr('裝置推播資料格式不正確');
+  const tokenHash=await sha256Hex(pushToken),mid=String(verified.row.id),now=nowIso();
+  await dbUpdate(env,'mobile_push_devices',`provider=eq.${encodeURIComponent(provider)}&token_hash=eq.${encodeURIComponent(tokenHash)}&platform_member_id=neq.${encodeURIComponent(mid)}`,{active:false,revoked_at:now,updated_at:now}).catch(()=>{});
+  const old=await dbGet(env,'mobile_push_devices',`platform_member_id=eq.${encodeURIComponent(mid)}&installation_id=eq.${encodeURIComponent(installationId)}&provider=eq.${encodeURIComponent(provider)}&select=*`).catch(()=>[]);
+  const data={platform,provider,push_token:pushToken,token_hash:tokenHash,environment:['sandbox','production'].includes(String(b.environment))?String(b.environment):'production',locale:String(b.locale||'zh-TW').slice(0,20),timezone:String(b.timezone||'Asia/Taipei').slice(0,80),permission_status:['authorized','provisional'].includes(String(b.permission_status||b.permissionStatus))?String(b.permission_status||b.permissionStatus):'authorized',active:true,last_seen_at:now,revoked_at:null,updated_at:now};
+  let row;if(old[0]){await dbUpdate(env,'mobile_push_devices',`id=eq.${encodeURIComponent(old[0].id)}&platform_member_id=eq.${encodeURIComponent(mid)}`,data);row={...old[0],...data}}else row=await dbInsert(env,'mobile_push_devices',{id:genId('MPD'),platform_member_id:mid,installation_id:installationId,app_id:'doing_market',created_at:now,...data});
+  return jsonOk({ok:true,device:{id:row.id,platform:row.platform,provider:row.provider,installation_id:installationId,active:true,last_seen_at:now}});
+}
+async function hUnregisterMarketPushToken(env,b){
+  const verified=await verifiedPlatformMember(env,b.member_token||b.memberToken||b.token);if(!verified)return jsonErr('會員登入已失效，請重新登入');
+  const installationId=String(b.installation_id||b.installationId||'').trim();if(!installationId)return jsonErr('缺少裝置識別');const now=nowIso();
+  await dbUpdate(env,'mobile_push_devices',`platform_member_id=eq.${encodeURIComponent(verified.row.id)}&installation_id=eq.${encodeURIComponent(installationId)}`,{active:false,push_token:'',revoked_at:now,updated_at:now});
+  return jsonOk({ok:true});
+}
+async function hQueueMarketPushNotification(env,b){
+  const rid=String(b.registrationId||b.regId||'').trim();if(!rid)return jsonErr('缺少報名識別');
+  const regs=await dbGet(env,'registrations',`id=eq.${encodeURIComponent(rid)}&select=*`).catch(()=>[]),reg=regs[0];if(!reg)return jsonErr('找不到報名');
+  const T=String(reg.tenant_id||''),sid=String(reg.session_id||'');if(!await verifyStaff(env,b.email,b.token,T,'announce',sid))return jsonErr('無權限');
+  const title=String(b.title||'DOING 通知').trim().slice(0,120),body=String(b.body||b.message||'').trim().slice(0,500);if(!body)return jsonErr('通知內容不可空白');
+  const mid=String(reg.platform_member_id||'');if(!mid)return jsonErr('這筆報名尚未綁定正式會員');
+  const devices=await dbGet(env,'mobile_push_devices',`platform_member_id=eq.${encodeURIComponent(mid)}&active=eq.true&permission_status=in.(authorized,provisional)&select=id,provider,platform`).catch(()=>[]),notificationId=genId('NTF'),now=nowIso();
+  await dbInsert(env,'notifications',{id:notificationId,tenant_id:T,operation_unit_id:reg.operation_unit_id||null,session_id:sid||null,registration_id:rid,member_email:normEmail(reg.email),event_key:'market_app_push',channel:'push',title,body,status:devices.length?'queued':'skipped',scheduled_at:null,sent_at:null,error_message:devices.length?null:'no_active_device',meta_json:{source:'market_app',data:(b.data&&typeof b.data==='object')?b.data:{}},created_at:now});
+  for(const device of devices)await dbInsert(env,'mobile_push_deliveries',{id:genId('MPN'),notification_id:notificationId,tenant_id:T,platform_member_id:mid,device_id:device.id,provider:device.provider,platform:device.platform,status:'queued',payload_json:{title,body,data:(b.data&&typeof b.data==='object')?b.data:{}},attempt_count:0,next_attempt_at:now,sent_at:null,last_error:null,created_at:now,updated_at:now});
+  return jsonOk({ok:true,notification_id:notificationId,status:devices.length?'queued':'skipped',device_count:devices.length});
+}
+
+async function dispatchMarketPushQueue(env){
+  if(!env.MOBILE_PUSH_GATEWAY_URL||!env.MOBILE_PUSH_GATEWAY_TOKEN)return {skipped:true};
+  const rows=await dbGet(env,'mobile_push_deliveries',`status=eq.queued&next_attempt_at=lte.${encodeURIComponent(nowIso())}&select=*&order=created_at.asc&limit=50`).catch(()=>[]);let sent=0,failed=0;
+  for(const row of rows){const devices=await dbGet(env,'mobile_push_devices',`id=eq.${encodeURIComponent(row.device_id)}&active=eq.true&select=*`).catch(()=>[]),device=devices[0];if(!device){await dbUpdate(env,'mobile_push_deliveries',`id=eq.${encodeURIComponent(row.id)}`,{status:'cancelled',last_error:'device_inactive',updated_at:nowIso()});continue}
+    try{const res=await fetch(env.MOBILE_PUSH_GATEWAY_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${env.MOBILE_PUSH_GATEWAY_TOKEN}`},body:JSON.stringify({provider:device.provider,platform:device.platform,environment:device.environment,token:device.push_token,...safeJson(row.payload_json,{})})});if(!res.ok)throw new Error(`gateway_${res.status}`);await dbUpdate(env,'mobile_push_deliveries',`id=eq.${encodeURIComponent(row.id)}`,{status:'sent',attempt_count:safeNum(row.attempt_count)+1,sent_at:nowIso(),last_error:null,updated_at:nowIso()});sent++}catch(e){const count=safeNum(row.attempt_count)+1;await dbUpdate(env,'mobile_push_deliveries',`id=eq.${encodeURIComponent(row.id)}`,{status:count>=5?'failed':'queued',attempt_count:count,next_attempt_at:new Date(Date.now()+Math.min(3600,count*300)*1000).toISOString(),last_error:String(e.message||e).slice(0,300),updated_at:nowIso()});failed++}
+  }
+  return {sent,failed};
+}
 async function hGetMyOperationalTasks(env,p){
   const verified=await verifiedPlatformMember(env,p&&(p.member_token||p.memberToken||p.token));if(!verified||!verified.row)return jsonErr('請先登入 DOING 會員');
   const mid=String(verified.row.id||''),email=platformContactEmail(verified.row),own=await dbGet(env,'registrations',`or=(platform_member_id.eq.${encodeURIComponent(mid)},submitted_by_member_id.eq.${encodeURIComponent(mid)})&select=id,tenant_id,session_id,operation_unit_id,brand_id,name,brand_name,deposit,review_status,payment_status,created_at`).catch(()=>[]),links=await dbGet(env,'registration_members',`platform_member_id=eq.${encodeURIComponent(mid)}&status=eq.active&select=registration_id`).catch(()=>[]),linkedIds=links.map(x=>x.registration_id).filter(Boolean);
@@ -4988,7 +5078,7 @@ function lineRedirectUri(env, requestUrl) {
 
 async function issueLineOAuthState(env, extra={}) {
   const now=Date.now();
-  return signAdminJwt({iss:'DOING',type:'line_oauth_state',mode:String(extra.mode||'').slice(0,40),tenant:String(extra.tenant||'').trim().toLowerCase().slice(0,120),application_id:String(extra.application_id||'').slice(0,120),return_url:String(extra.return_url||'').slice(0,1800),link_member_id:String(extra.link_member_id||'').slice(0,120),nonce:String(extra.nonce||'').slice(0,120),issued_at:now,expires_at:now+10*60*1000},env);
+  return signAdminJwt({iss:'DOING',type:'line_oauth_state',mode:String(extra.mode||'').slice(0,40),tenant:String(extra.tenant||'').trim().toLowerCase().slice(0,120),application_id:String(extra.application_id||'').slice(0,120),return_url:String(extra.return_url||'').slice(0,1800),link_member_id:String(extra.link_member_id||'').slice(0,120),nonce:String(extra.nonce||'').slice(0,120),code_challenge:String(extra.code_challenge||'').slice(0,128),device_id:String(extra.device_id||'').slice(0,160),app_state:String(extra.app_state||'').slice(0,160),issued_at:now,expires_at:now+10*60*1000},env);
 }
 
 async function verifyLineOAuthState(env, token) {
@@ -5212,10 +5302,12 @@ async function upsertPlatformIdentity(env,{provider,subject,email='',displayName
 async function hLineStart(env,url){
   if(!env.LINE_LOGIN_CHANNEL_ID)return new Response('LINE Login 尚未設定 Channel ID',{status:500});
   const mode=String(url.searchParams.get('mode')||'member').trim().toLowerCase(),tenant=String(url.searchParams.get('tenant')||'').trim().toLowerCase(),nonce=crypto.randomUUID();
+  const nativeApp=mode==='market_app',codeChallenge=String(url.searchParams.get('code_challenge')||'').trim(),deviceId=String(url.searchParams.get('device_id')||'').trim(),appState=String(url.searchParams.get('app_state')||'').trim();
+  if(nativeApp&&(!/^[A-Za-z0-9_-]{43,128}$/.test(codeChallenge)||!/^[A-Za-z0-9._:-]{8,160}$/.test(deviceId)||!appState||appState.length>160))return new Response('原生 App 登入資料不完整',{status:400});
   const link=mode==='link'?await verifyIdentityLinkStart(env,url.searchParams.get('link_token'),'line'):null;
   if(mode==='link'&&!link)return new Response('帳號連結已失效，請回會員中心重新操作',{status:400});
   const fallback=mode==='platform'||tenant==='platform'?platformSiteUrl(env):mode==='organizer_signup'?doingSiteUrl(env)+'#apply':doingSiteUrl(env);
-  const state=await issueLineOAuthState(env,{mode,tenant,application_id:url.searchParams.get('application_id')||'',return_url:link?.return_url||url.searchParams.get('return_url')||fallback,link_member_id:link?.member_id||'',nonce});
+  const state=await issueLineOAuthState(env,{mode,tenant,application_id:url.searchParams.get('application_id')||'',return_url:link?.return_url||url.searchParams.get('return_url')||fallback,link_member_id:link?.member_id||'',nonce,code_challenge:codeChallenge,device_id:deviceId,app_state:appState});
   // LINE Email 權限需經 LINE Developers 另行審核。尚未核准時仍以固定 provider subject
   // 完成安全登入；有核准並明確開啟設定時，才額外取得已驗證 Email 做跨服務自動合併。
   const lineEmailEnabled=String(env.LINE_LOGIN_EMAIL_ENABLED||'').trim().toLowerCase()==='true';
@@ -5229,7 +5321,7 @@ async function hLineCallback(env,url){
   const mode=String(statePayload&&statePayload.mode||'member').trim().toLowerCase(),tenant=String(statePayload&&statePayload.tenant||'').trim().toLowerCase();
   const memberTarget=safeDoingReturnUrl(env,statePayload&&statePayload.return_url),applicationTarget=new URL(doingSiteUrl(env)),adminTarget=new URL(adminLoginSiteUrl(env)),platformTarget=new URL(platformSiteUrl(env));applicationTarget.hash='apply';
   const target=mode==='organizer_signup'?applicationTarget:mode==='platform'||tenant==='platform'?platformTarget:mode==='admin'||tenant?adminTarget:memberTarget;
-  const fail=reason=>{target.searchParams.set(['member','link'].includes(mode)?'member_login_error':'login_error',reason);return Response.redirect(target.toString(),302)};
+  const fail=reason=>{if(mode==='market_app')return Response.redirect(`doingmarket://auth/line?error=${encodeURIComponent(reason)}&state=${encodeURIComponent(String(statePayload&&statePayload.app_state||''))}`,302);target.searchParams.set(['member','link'].includes(mode)?'member_login_error':'login_error',reason);return Response.redirect(target.toString(),302)};
   if(!statePayload)return fail('invalid_or_expired_state');
   if(url.searchParams.get('error'))return fail('line_cancelled');
   const code=url.searchParams.get('code');
@@ -5241,6 +5333,12 @@ async function hLineCallback(env,url){
     const profile=await verifyHttp.json();if(!verifyHttp.ok||String(profile.aud)!==String(env.LINE_LOGIN_CHANNEL_ID)||!profile.sub||String(profile.nonce||'')!==String(statePayload.nonce||''))throw new Error('id_token_verify_failed');
     const verifiedEmail=normEmail(profile.email||''),lineSubject=String(profile.sub),lineName=String(profile.name||''),lineAvatar=String(profile.picture||'');
     let member=await upsertPlatformIdentity(env,{provider:'line',subject:lineSubject,email:verifiedEmail,displayName:lineName,avatarUrl:lineAvatar,preferredMemberId:mode==='link'?statePayload.link_member_id:''});
+
+    if(mode==='market_app'){
+      const exchangeCode=randomOpaqueToken();
+      await dbInsert(env,'mobile_auth_exchanges',{id:genId('MAX'),code_hash:await sha256Hex(exchangeCode),platform_member_id:member.id,provider:'line',code_challenge:String(statePayload.code_challenge||''),device_id:String(statePayload.device_id||''),app_state:String(statePayload.app_state||''),expires_at:new Date(Date.now()+5*60*1000).toISOString(),used_at:null,created_at:nowIso()});
+      return Response.redirect(`doingmarket://auth/line?code=${encodeURIComponent(exchangeCode)}&state=${encodeURIComponent(String(statePayload.app_state||''))}`,302);
+    }
 
     if(mode==='link'){
       const original=await getPlatformMemberById(env,statePayload.link_member_id);if(!original)return fail('identity_link_target_not_found');
@@ -11951,6 +12049,12 @@ async function enforceSessionModuleForAction(env,T,action,b){
 
 async function routePost(env, action, b, ctx, req) {
   // 平台層動作不綁 Tenant。
+  if(action==='exchangeMarketAppAuthCode')return hExchangeMarketAppAuthCode(env,b);
+  if(action==='getMarketVendorQr')return hGetMarketVendorQr(env,b);
+  if(action==='scanMarketVendorQr')return hScanMarketVendorQr(env,b);
+  if(action==='registerMarketPushToken')return hRegisterMarketPushToken(env,b);
+  if(action==='unregisterMarketPushToken')return hUnregisterMarketPushToken(env,b);
+  if(action==='queueMarketPushNotification')return hQueueMarketPushNotification(env,b);
   if(action==='trackPlatformAttribution')return hTrackPlatformAttribution(env,b);
   if(action==='createIdentityLink')return hCreateIdentityLink(env,b,req);
   if(action==='acceptStaffInvite')return hAcceptStaffInvite(env,b);
@@ -12316,6 +12420,7 @@ export default {
   },
 
   async scheduled(event, env, ctx) {
+    await dispatchMarketPushQueue(env);
     await syncExposureStatuses(env);
     await runWaitlistAutomation(env);
     const utcHour = new Date(event.scheduledTime).getUTCHours();
