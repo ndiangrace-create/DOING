@@ -28,6 +28,8 @@ jobs:
       - name: One-time v20 worker canonical patch
         if: github.event_name == 'pull_request' && github.head_ref == 'audit/world-tree-uat-settings-ssot-20260820'
         run: |
+          git fetch origin "${GITHUB_HEAD_REF}:${GITHUB_HEAD_REF}"
+          git checkout "${GITHUB_HEAD_REF}"
           node scripts/apply-v20-worker-canonical-patch.mjs
           if git diff --quiet -- worker.js worker.txt; then
             echo 'Worker already canonical.'
