@@ -44,8 +44,8 @@
 1. 申請營運帳號 → `smart-application.html`。
 2. 工作多選 → 必要角色補問。
 3. 圖像式系統預覽 → 使用者確認理解。
-4. 才出現正式姓名／品牌／電話／Email／FB／IG。
-5. Facebook 粉專或 Instagram 至少一個。
+4. 才出現正式姓名／品牌／電話／Email／品牌或社群公開網址。
+5. Facebook、Instagram、官網或作品頁至少一個；未輸入協定時自動補上 `https://`。
 6. LINE 驗證必須離開 iframe，在 top-level OAuth。
 7. LINE 驗證完成 → 一般情況**自動建立工作空間**，不再等待平台逐筆人工核准。
 8. 自動建立固定沿用 `tenant_apply_logs → tenants / tenant_settings / staff`；核准模組寫入 `tenant_settings.module_flags_json`，不得另開同功能資料表。

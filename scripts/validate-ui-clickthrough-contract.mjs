@@ -32,8 +32,8 @@ check(smartPage.includes("window.top!==window.self"),'智慧申請未檢查 ifra
 check(smartPage.includes("window.top.location.replace"),'智慧申請未在 OAuth 前跳回頂層');
 check(smart.includes("mode','organizer_signup"),'智慧申請缺少 LINE organizer_signup');
 
-check(smart.includes('saFacebook')&&smart.includes('saInstagram'),'智慧申請缺少 FB／IG 欄位');
-check(smart.includes('Facebook 粉專或 Instagram 至少一個'),'智慧申請缺少 FB／IG 必填阻擋');
+check(smart.includes('saFacebook')&&smart.includes('saInstagram'),'智慧申請缺少公開網址欄位');
+check(smart.includes('請至少提供一個品牌、社群、官網或作品頁網址。'),'智慧申請缺少公開網址至少一個的必填阻擋');
 check(!smart.includes('saNoPublic'),'智慧申請仍存在「沒有公開頁面」勾選');
 check(!smart.includes('目前確實尚未建立公開頁面'),'智慧申請仍顯示舊例外文案');
 

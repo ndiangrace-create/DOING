@@ -4128,13 +4128,25 @@ async function hAnalyzeDoingApplication(env,b){
   return doingHelperResult(env,b,{reply:answer.reply,topic,scopeStatus:'doing_only',source:answer.source,engineStatus:answer.engineStatus,summaryId:genId('HLP')},selections);
 }
 
+function normalizeApplicationPublicUrl(value){
+  const raw=String(value||'').trim();
+  if(!raw)return '';
+  const candidate=/^https?:\/\//i.test(raw)?raw:`https://${raw.replace(/^\/+/, '')}`;
+  try{
+    const url=new URL(candidate);
+    if(!['http:','https:'].includes(url.protocol)||!url.hostname.includes('.')||url.username||url.password)return '';
+    return url.toString().slice(0,1000);
+  }catch(_){return ''}
+}
+
 // 營運帳號申請先完整寫入資料庫，再以申請編號進行 LINE 驗證；Google 流程保留但不從公開入口觸發。
 async function hCreateOrganizerApplicationDraft(env,b){
   const app=(b&&b.application&&typeof b.application==='object')?b.application:{};
   const unitName=String(app.unitName||'').trim(),ownerName=String(app.ownerName||'').trim(),phone=String(app.phone||'').trim(),contactEmail=normEmail(app.contactEmail||app.email||'');
   const industries=Array.isArray(app.industryCategories)?app.industryCategories.map(String).filter(Boolean).slice(0,20):[];
   const useCases=doingHelperSelections(app,'useCases');
-  const publicLinks=Array.isArray(app.publicLinks)?app.publicLinks.map(x=>String(x||'').trim()).filter(Boolean).slice(0,8):[];
+  const rawPublicLinks=Array.isArray(app.publicLinks)?app.publicLinks.map(x=>String(x||'').trim()).filter(Boolean).slice(0,8):[];
+  const publicLinks=rawPublicLinks.map(normalizeApplicationPublicUrl).filter(Boolean);
   if(!unitName||!ownerName||!phone||!contactEmail)return jsonErr('營運單位、姓名、Email 與聯絡電話不可空白');
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail))return jsonErr('Email 格式不正確');
   if(!industries.length)return jsonErr('請至少選擇一個產業類別');
@@ -4142,7 +4154,8 @@ async function hCreateOrganizerApplicationDraft(env,b){
   const workSituations=doingHelperSelections(app,'workSituations'),painPoints=doingHelperSelections(app,'painPoints');
   const assistantAnalysis=(app.assistantAnalysis&&typeof app.assistantAnalysis==='object')?app.assistantAnalysis:{};
   if(!painPoints.length||assistantAnalysis.confirmed!==true||String(assistantAnalysis.scope||'')!=='doing_only')return jsonErr('請先完成 DOING 智慧小幫手整理並確認');
-  if(!publicLinks.length&&app.noPublicLink!==true)return jsonErr('請至少提供一項公開資訊');
+  if(rawPublicLinks.length!==publicLinks.length)return jsonErr('公開網址格式不正確');
+  if(!publicLinks.length)return jsonErr('請至少提供一個品牌、社群、官網或作品頁網址');
   const confirmations=(app.confirmations&&typeof app.confirmations==='object')?app.confirmations:{};
   if(confirmations.confirmReal!==true||confirmations.confirmUse!==true||confirmations.confirmReview!==true)return jsonErr('請先完成送出前確認');
   const id=genId('APL'),createdAt=nowIso();

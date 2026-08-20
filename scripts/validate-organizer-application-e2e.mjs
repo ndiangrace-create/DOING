@@ -106,7 +106,7 @@ try{
     unitName:'DOING 正式申請流程測試',ownerName:'DOING 測試人員',contactEmail:'formal-flow-test@doing.invalid',phone:'0900000000',
     industryCategories:['market_retail','craft_experience'],useCases:['market','workshop'],
     workSituations:['team','appointment','deposit'],
-    painPoints:['payment','schedule','extras','seating','checkin'],primaryPainPoint:'payment',noPublicLink:true,publicLinks:[],
+    painPoints:['payment','schedule','extras','seating','checkin'],primaryPainPoint:'payment',noPublicLink:false,publicLinks:['www.ndian.live'],
     assistantAnalysis:{reply:'已依工作方式完成整理',summaryId:'HLP_TEST',topic:'summary',scope:'doing_only',confirmed:true},
     confirmations:{confirmReal:true,confirmUse:true,confirmReview:true},
     needFlags:{payment:true,workshopSlots:true,calendar:true,equipment:true,addons:true,seatSelection:true,checkin:true},
@@ -121,6 +121,7 @@ try{
   assert.equal(draft.ok,true);assert.ok(draft.applicationId);
   let row=tables.tenant_apply_logs.find(x=>x.id===draft.applicationId);
   assert.equal(row.status,'line_verification_pending');
+  assert.deepEqual(row.application_json.publicLinks,['https://www.ndian.live/']);
 
   const start=await request('/auth/line/start?mode=organizer_signup&application_id='+encodeURIComponent(draft.applicationId));
   assert.equal(start.status,302);const lineStartUrl=new URL(start.headers.get('location')),state=lineStartUrl.searchParams.get('state');lineNonce=lineStartUrl.searchParams.get('nonce');assert.ok(state);assert.ok(lineNonce);assert.match(lineStartUrl.searchParams.get('scope'),/email/);
