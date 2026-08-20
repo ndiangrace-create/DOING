@@ -16,6 +16,8 @@ assert.ok(admin.includes('id="bookingRosterList"')&&admin.includes('function ren
 assert.ok(admin.includes('registrations＋timeslots＋booking_calendars'),'預約表必須清楚沿用同一份正式資料');
 assert.ok(register.includes('getAvailableStartsPublic')&&register.includes('selectDynamicBookingSlot'),'顧客預約表沒有接上正式空檔計算');
 assert.ok(worker.includes("case 'getBookingCalendarAdmin'")&&worker.includes("case 'getAvailableStartsPublic'"),'預約月曆與顧客空檔 API 不完整');
+assert.ok(worker.includes("provider=eq.line")&&worker.includes('lineAlreadyLinked:true')&&worker.includes('memberEmail===contactEmail'),'已綁定 LINE 的正式會員仍可能在重新申請時卡住');
+assert.ok(read('doing-smart-activation.js').includes("localStorage.getItem('doing_member_token')")&&read('doing-smart-activation.js').includes('if(d.lineVerified)'),'智慧申請沒有沿用已驗證會員身分');
 
 for(const marker of [
   'TENANT_PORTABLE_TABLES',
