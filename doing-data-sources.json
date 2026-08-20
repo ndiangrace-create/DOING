@@ -1,6 +1,6 @@
 {
-  "version": 5,
-  "auditedAt": "2026-08-18",
+  "version": 6,
+  "auditedAt": "2026-08-21",
   "authority": {
     "projectName": "DOING_SaaS",
     "projectRef": "nayonqbzejoojexxxkyg",
@@ -131,7 +131,8 @@
         "booking_calendars",
         "availability_rules",
         "availability_exceptions",
-        "session_bundles"
+        "session_bundles",
+        "service_visits"
       ]
     },
     {
@@ -203,6 +204,7 @@
       "key": "advanced-performance",
       "tables": [
         "registrations",
+        "vendor_sales_reports",
         "finance_ledger"
       ]
     },
@@ -210,6 +212,12 @@
       "key": "advanced-consignment",
       "tables": [
         "registration_items",
+        "consignment_periods",
+        "consignment_applications",
+        "consignment_products",
+        "pos_sales",
+        "pos_sale_items",
+        "inventory_movements",
         "finance_ledger"
       ]
     },
@@ -247,7 +255,21 @@
     {
       "key": "future-roadmap",
       "tables": [
-        "platform_settings"
+        "platform_settings",
+        "tenant_domains",
+        "sessions",
+        "registrations",
+        "membership_plans",
+        "membership_subscriptions",
+        "customer_wallets",
+        "customer_wallet_ledger",
+        "service_items",
+        "service_visits",
+        "ai_visual_jobs",
+        "session_visual_assets",
+        "marketing_automations",
+        "marketing_automation_runs",
+        "notifications"
       ]
     }
   ],
@@ -2051,12 +2073,17 @@
         "is_primary",
         "verified",
         "status",
+        "verification_token",
+        "requested_by",
+        "verified_at",
+        "last_checked_at",
+        "verification_error",
         "created_at",
         "updated_at"
       ],
-      "workerAccess": [],
-      "moduleKeys": [],
-      "state": "schema_only"
+      "workerAccess": ["get","insert","update"],
+      "moduleKeys": ["future-roadmap"],
+      "state": "active"
     },
     {
       "name": "idempotency_keys",
@@ -2915,6 +2942,102 @@
       "workerAccess": [],
       "moduleKeys": [],
       "state": "schema_only"
+    },
+    {
+      "name": "vendor_sales_reports",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","session_id","registration_id","platform_member_id","report_date","gross_sales","note","deposit_refund_status","submitted_at","updated_at"],
+      "workerAccess": ["get","insert"],
+      "moduleKeys": ["advanced-performance"],
+      "state": "active"
+    },
+    {
+      "name": "consignment_periods",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","operation_unit_id","name","starts_at","ends_at","commission_percent","status","config_json","created_by","created_at","updated_at"],
+      "workerAccess": ["get","insert","update"],
+      "moduleKeys": ["advanced-consignment"],
+      "state": "active"
+    },
+    {
+      "name": "consignment_applications",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","period_id","platform_member_id","brand_id","applicant_email","brand_name","status","note","reviewed_by","reviewed_at","created_at","updated_at"],
+      "workerAccess": ["get","insert","update"],
+      "moduleKeys": ["advanced-consignment"],
+      "state": "active"
+    },
+    {
+      "name": "consignment_products",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","period_id","application_id","name","sku","barcode","unit_price","opening_stock","current_stock","status","config_json","created_at","updated_at"],
+      "workerAccess": ["get","insert","update"],
+      "moduleKeys": ["advanced-consignment"],
+      "state": "active"
+    },
+    {
+      "name": "pos_sales",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","period_id","total_amount","payment_method","status","idempotency_key","operator_email","created_at","voided_at"],
+      "workerAccess": ["get"],
+      "moduleKeys": ["advanced-consignment"],
+      "state": "active"
+    },
+    {
+      "name": "pos_sale_items",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","sale_id","product_id","application_id","quantity","unit_price","line_total","created_at"],
+      "workerAccess": ["get"],
+      "moduleKeys": ["advanced-consignment"],
+      "state": "active"
+    },
+    {
+      "name": "inventory_movements",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","product_id","sale_id","movement_type","quantity_delta","stock_after","note","operator_email","created_at"],
+      "workerAccess": ["get","insert"],
+      "moduleKeys": ["advanced-consignment"],
+      "state": "active"
+    },
+    {
+      "name": "membership_plans",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","operation_unit_id","service_item_id","name","plan_type","included_quantity","valid_days","price","sharing_mode","status","config_json","created_by","created_at","updated_at"],
+      "workerAccess": ["get","insert","update"],
+      "moduleKeys": ["future-roadmap"],
+      "state": "active"
+    },
+    {
+      "name": "membership_subscriptions",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","plan_id","wallet_id","platform_member_id","owner_email","status","starts_at","expires_at","created_at","updated_at"],
+      "workerAccess": ["get","insert"],
+      "moduleKeys": ["future-roadmap"],
+      "state": "active"
+    },
+    {
+      "name": "service_visits",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","registration_id","operation_unit_id","service_item_id","status","arrived_at","started_at","completed_at","updated_by","note","created_at","updated_at"],
+      "workerAccess": ["get","insert","update"],
+      "moduleKeys": ["tenant-operations","future-roadmap"],
+      "state": "active"
+    },
+    {
+      "name": "marketing_automations",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","operation_unit_id","name","trigger_type","offset_minutes","audience","channel","title_template","body_template","active","config_json","created_by","created_at","updated_at"],
+      "workerAccess": ["get","insert","update"],
+      "moduleKeys": ["future-roadmap"],
+      "state": "active"
+    },
+    {
+      "name": "marketing_automation_runs",
+      "rlsEnabled": true,
+      "columns": ["id","tenant_id","automation_id","registration_id","member_email","scheduled_for","status","notification_id","error_message","created_at"],
+      "workerAccess": ["get","insert"],
+      "moduleKeys": ["future-roadmap"],
+      "state": "active"
     }
   ]
 }
