@@ -1,6 +1,6 @@
 {
   "version": 20,
-  "updatedAt": "2026-08-18",
+  "updatedAt": "2026-08-20",
   "status": "release_candidate",
   "authority": "Supabase",
   "workspaceRule": {
@@ -8,6 +8,122 @@
     "collaborationAcrossOtherWorkspaces": true,
     "browserBusinessDataAllowed": false
   },
+  "singleSurfaceRule": {
+    "formalApplicationPage": "smart-application.html",
+    "legacyAboutPage": "redirect_only",
+    "maxPrimaryFramesPerFlow": 1,
+    "rule": "同一流程只能存在一個正式主畫面；舊申請頁、舊 helper shell、第二層 frame／modal 不得重新成為正式路徑。"
+  },
+  "settingsSSOT": {
+    "authority": "Supabase",
+    "project": "DOING_SaaS",
+    "schema": "public",
+    "api": "tobeloved-api",
+    "inventory": "doing-settings-ssot.json",
+    "rule": "所有正式設定必須由 Worker 從 Supabase 讀取，修改後寫回 Supabase；前端不得以 localStorage／sessionStorage 保存正式設定或營運資料。",
+    "browserStoragePurpose": "僅登入 token、登入錯誤暫存、語系與非業務介面偏好"
+  },
+  "flowContracts": [
+    {
+      "id": "public-registration",
+      "name": "一般使用者報名流程",
+      "status": "programmatic_pass",
+      "roles": ["訪客", "會員", "報名者"],
+      "path": ["找活動", "活動內容", "報名", "我的報名", "審核／付款", "報到", "退款／完成紀錄"],
+      "pages": ["index.html", "register.html", "member-panel.html#activities", "onsite.html"],
+      "authority": ["sessions", "registrations", "payments", "refunds", "notifications"],
+      "acceptance": "每一步必須保持同一筆正式報名識別，會員只看本人，租戶只看本租戶；完成後可回到我的報名。",
+      "realBrowserUAT": ["LINE 登入", "第三方付款或外部頁跳轉", "手機報到"]
+    },
+    {
+      "id": "member-brand",
+      "name": "品牌使用者流程",
+      "status": "programmatic_pass",
+      "roles": ["會員", "品牌擁有者", "品牌管理者", "品牌成員"],
+      "path": ["會員登入", "我的品牌", "建立／編輯品牌", "邀請／申請加入", "管理者確認", "品牌成員權限生效"],
+      "pages": ["member-panel.html#brands"],
+      "authority": ["brands", "brand_members", "brand_access_requests", "platform_members"],
+      "acceptance": "同名品牌只提示不自動合併；品牌權限需由正式關聯決定。",
+      "realBrowserUAT": ["LINE 本人接受邀請", "手機品牌編輯"]
+    },
+    {
+      "id": "smart-application",
+      "name": "營運申請到工作空間",
+      "status": "programmatic_pass",
+      "roles": ["申請者", "平台總管"],
+      "path": ["智慧小幫手", "工作判斷", "角色補問", "圖像式系統預覽", "正式資料", "FB／IG 驗證", "LINE 驗證", "平台審核", "建立工作空間"],
+      "pages": ["smart-application.html", "platform.html#platform-applications", "workspace.html"],
+      "authority": ["platform_members", "platform_member_identities", "tenant_apply_logs", "tenants", "tenant_settings", "staff"],
+      "acceptance": "正式資料只能在確認系統組合後建立；Facebook 粉專或 Instagram 至少一個；LINE OAuth 必須在 top-level；核准後才建立正式工作空間。",
+      "realBrowserUAT": ["LINE OAuth", "平台總管真人審核", "核准後重新登入"]
+    },
+    {
+      "id": "workspace-modules-calendar",
+      "name": "工作空間與工作日曆",
+      "status": "programmatic_pass",
+      "roles": ["租戶擁有者", "協作者"],
+      "path": ["工作空間", "讀取核准模組", "工作總日曆", "預約／課程／活動／市集／專案入口", "對應管理功能"],
+      "pages": ["workspace.html", "admin.html#calendar", "admin.html#sessions"],
+      "authority": ["tenant_settings", "sessions", "operation_units", "booking_calendars", "availability_rules", "availability_exceptions"],
+      "acceptance": "核准資料讀取失敗時 fail closed；只顯示平台核准功能；外部日曆只同步或顯示，不得反向刪除 DOING 正式資料。",
+      "realBrowserUAT": ["手機／桌機日曆切換", "Google／Apple 加入日曆"]
+    },
+    {
+      "id": "tenant-admin-operations",
+      "name": "主辦後台完整營運",
+      "status": "programmatic_pass",
+      "roles": ["租戶擁有者", "主辦管理員", "財務", "場次人員"],
+      "path": ["營運項目／場次", "報名審核", "付款", "設備／資源", "排位", "通知", "財務", "結案"],
+      "pages": ["admin.html"],
+      "authority": ["events", "sessions", "operation_units", "registrations", "payments", "refunds", "seat_maps", "seat_assignments", "finance_items", "finance_ledger", "notifications"],
+      "acceptance": "每個按鈕必須對應存在的 Worker action；狀態與金額以資料庫為準，不由前端自行推算成正式值。",
+      "realBrowserUAT": ["真實場次新增／編輯", "真實收退款", "真實場次結案"]
+    },
+    {
+      "id": "onsite",
+      "name": "現場操作",
+      "status": "programmatic_pass",
+      "roles": ["現場工作人員", "實際出攤者"],
+      "path": ["現場登入", "選擇場次", "搜尋名單", "報到", "現場狀態／押金", "出攤成員", "撤場／完成"],
+      "pages": ["onsite.html", "member-panel.html#activities"],
+      "authority": ["registrations", "registration_members", "staff_session_permissions", "staff_action_logs", "audit_logs"],
+      "acceptance": "現場人員只能看到授權場次所需欄位；實際出攤者用本人 LINE 身分操作。",
+      "realBrowserUAT": ["真實手機", "LINE 內建瀏覽器", "現場通行碼"]
+    },
+    {
+      "id": "platform-admin",
+      "name": "平台總管處理閉環",
+      "status": "programmatic_pass",
+      "roles": ["平台總管"],
+      "path": ["平台登入", "申請", "租戶", "問題中心", "指定場次／訂單深連結", "處理", "留下紀錄"],
+      "pages": ["platform.html"],
+      "authority": ["platform_staff", "tenant_apply_logs", "tenants", "platform_issue_records", "audit_logs", "platform_settings"],
+      "acceptance": "平台操作必須保留來源與稽核紀錄；不得因返回或切換租戶遺失平台身分。",
+      "realBrowserUAT": ["正式總管登入", "真人審核／補件／拒絕", "手機平台頁"]
+    },
+    {
+      "id": "data-authority",
+      "name": "資料來源與租戶隔離",
+      "status": "programmatic_pass",
+      "roles": ["全角色"],
+      "path": ["前端操作", "tobeloved-api", "角色／租戶驗證", "Supabase 讀寫", "回傳目前正式狀態"],
+      "pages": ["all"],
+      "authority": ["Supabase public schema"],
+      "acceptance": "Supabase 是唯一正式營運資料來源；跨租戶請求必須被拒絕；Worker.js 與 worker.txt 必須同步。",
+      "realBrowserUAT": []
+    },
+    {
+      "id": "legacy-retirement",
+      "name": "新舊架構與單層畫面防回歸",
+      "status": "programmatic_pass",
+      "roles": ["全角色"],
+      "path": ["任一正式入口", "唯一正式頁面", "唯一主框架", "下一個正式步驟"],
+      "pages": ["about.html redirect-only", "member.html redirect-only", "smart-application.html"],
+      "authority": ["doing-world-tree-v20.json", "scripts/validate-ui-clickthrough-contract.mjs"],
+      "acceptance": "舊申請頁、舊 member UI、舊 helper shell、第二層申請 frame 不得重新出現；相容網址只能 redirect，不得再承載正式 UI。",
+      "realBrowserUAT": ["舊書籤／快取網址進入後確認只到新入口"]
+    }
+  ],
   "calendar": {
     "role": "unified_work_entry",
     "desktop": "month_grid",
@@ -43,6 +159,9 @@
   "implementation": {
     "workspacePage": "workspace.html",
     "memberEntry": "doing-global-entry.js",
+    "formalApplication": "smart-application.html",
+    "legacyAbout": "about.html redirect-only",
+    "settingsInventory": "doing-settings-ssot.json",
     "databaseGuardMigration": "supabase_workspace_v20_guard.sql",
     "regression": "scripts/validate-world-tree-v20.mjs"
   }
