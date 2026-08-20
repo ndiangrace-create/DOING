@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-21T00:38:09+08:00",
-  "sourceFingerprint": "3951898812fa34cb69430ddd8f47ea9d2a62b4725083df6211963ab7525b57e9",
-  "environment": "DOING 世界樹 v20 Release Candidate＋正式營運收尾。共用核心與插件式工作模式、服務預約月曆、正式預約表、租戶完整資料下載、會員總覽桌機三格、文字不破框及『我的報名』名稱統一已加入固定契約。Supabase DOING_SaaS 為唯一正式來源；正式核對顯示夜貓美甲仍停在 LINE 驗證待完成，尚無正式租戶、場次、服務、日曆、時段或預約，不再以測試模擬冒充正式資料。兩個內部 SECURITY DEFINER 防重複函式已收回 anon／authenticated 執行權，安全 WARN 歸零。真人 LINE OAuth、手機、相機、付款、退款、現場通行碼、正式總管登入與首筆正式預約仍維持待真人 UAT。自動驗收 productionWrites=0；2BL 未修改；計費未修改。",
+  "recordedAt": "2026-08-21T00:56:00+08:00",
+  "sourceFingerprint": "08a84e28502ef193caa30da5b7fef4d627ef3ca8b75583a907a7cfbd6a69efa1",
+  "environment": "DOING 世界樹 v20 Release Candidate＋正式營運收尾。共用核心與插件式工作模式、服務預約月曆、正式預約表、租戶完整資料下載、會員總覽桌機三格、文字不破框及『我的報名』名稱統一已加入固定契約。夜貓美甲的孤立 LINE 待驗證草稿已在確認沒有 tenant、staff、付款或報名關聯後刪除；會員、品牌及 LINE／Google 身分完整保留。智慧申請已修正為：有效會員登入、Email／電話相同且已綁定 LINE 時，直接沿用既有 LINE 驗證完成送出與工作空間自動建立，不再重跑容易中斷的 OAuth 回圈；資料不一致時仍走正式 LINE 驗證。Supabase DOING_SaaS 為唯一正式來源。真人手機、相機、付款、退款、現場通行碼、正式總管登入與重新申請首筆工作空間仍維持待真人 UAT。自動驗收 productionWrites=0；2BL 未修改；計費未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
@@ -40,6 +40,7 @@
     {"id":"platform-operations-e2e","command":"node scripts/validate-platform-operations-e2e.mjs","result":"PASS","scope":"平台問題、場次／訂單深連結與處理閉環；productionWrites 0"},
     {"id":"universal-booking","command":"node scripts/validate-universal-booking.mjs","result":"PASS","scope":"預約排班、空檔、服務時間、租戶隔離與顧客資料"},
     {"id":"operational-readiness","command":"node scripts/validate-operational-readiness.mjs","result":"PASS","scope":"插件式共用核心、正式預約表、租戶資料可攜權、桌機三格、文字不破框、我的報名名稱與 SECURITY DEFINER 權限契約；productionWrites 0"},
+    {"id":"linked-line-reapplication","command":"node scripts/validate-operational-readiness.mjs","result":"PASS","scope":"已登入且已綁定 LINE 的正式會員，Email／電話一致時沿用既有驗證送出營運申請；資料不一致時仍走 OAuth；productionWrites 0"},
     {"id":"supabase-security","command":"Supabase advisors + has_function_privilege verification","result":"PASS","scope":"doing_guard_single_owned_workspace 與 doing_guard_workspace_application 對 anon／authenticated 均不可執行；安全 WARN 0"},
     {"id":"worker-sync","command":"cmp -s worker.js worker.txt","result":"PASS","scope":"正式 Worker 雙檔同步；不動 2BL 或計費"},
     {"id":"diff-quality","command":"git diff --check","result":"PASS","scope":"差異格式"}

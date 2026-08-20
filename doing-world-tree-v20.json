@@ -71,7 +71,7 @@
       "exceptionPath": ["身分衝突／必要資料異常／建立失敗", "platform_risk_cases", "平台人工複核"],
       "pages": ["smart-application.html", "member-panel.html#operations", "workspace.html", "platform.html#platform-applications"],
       "authority": ["platform_members", "platform_member_identities", "tenant_apply_logs", "tenants", "tenant_settings", "staff", "platform_risk_cases"],
-      "acceptance": "正式資料只能在確認系統組合後建立；Facebook 粉專或 Instagram 至少一個；LINE OAuth 必須在 top-level；一般申請 LINE 驗證後自動建立工作空間，只有風險或衝突才轉人工複核；不得建立第二套申請或工作空間資料表。",
+      "acceptance": "正式資料只能在確認系統組合後建立；Facebook 粉專或 Instagram 至少一個；未綁定 LINE 時 OAuth 必須在 top-level；已登入且 Email／電話相同、既有 LINE identity 有效的正式會員可沿用驗證，不重跑 OAuth；一般申請驗證後自動建立工作空間，只有風險或衝突才轉人工複核；不得建立第二套申請或工作空間資料表。",
       "realBrowserUAT": ["LINE OAuth", "自動開通後進入我的 DOING", "風險例外人工複核"]
     },
     {

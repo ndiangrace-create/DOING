@@ -127,19 +127,19 @@
           "evidence": "rejectApply"
         },
         {
-          "label": "核准後自動建立租戶與擁有者",
+          "label": "LINE 驗證後自動建立租戶與擁有者",
           "status": "done",
-          "evidence": "approveApply"
+          "evidence": "doing_auto_activate_workspace / organizer_signup"
         },
         {
-          "label": "核准後寄送通過通知",
+          "label": "自動開通後寄送通過通知",
           "status": "done",
-          "evidence": "approveApply email"
+          "evidence": "organizer_signup activation status email"
         },
         {
-          "label": "用夜貓美甲完成第一次正式核准",
-          "status": "done",
-          "note": "正式庫確認申請 approved、租戶 doing 已建立且 active。"
+          "label": "用夜貓美甲完成第一次正式開通",
+          "status": "verify",
+          "note": "舊的 LINE 待驗證孤立草稿已安全刪除；會員、品牌與 LINE／Google 身分保留。待本人重新申請，驗證沿用既有 LINE 身分並自動建立唯一工作空間。"
         }
       ],
       "dataSource": {
@@ -481,9 +481,9 @@
         },
         {
           "label": "正式購買到首頁顯示E2E",
-          "status": "done",
-          "note": "夜貓美甲正式收費已啟用，首頁與活動頁均可讀到 7 個可預約日期；正式 Pages E2E 與 Worker 讀回通過。",
-          "evidence": "register.html tenant-aware frontBootstrap / production workflow 32089690977 / pages workflow 32089690306"
+          "status": "verify",
+          "note": "目前沒有可用來驗證曝光購買到首頁顯示的夜貓美甲正式租戶或正式活動，不得以舊模擬資料冒充完成。",
+          "evidence": "待第一個正式租戶與曝光訂單完成真人 E2E"
         }
       ],
       "dataSource": {
@@ -634,7 +634,7 @@
         {
           "label": "夜貓美甲核准後轉為可管理",
           "status": "verify",
-          "note": "營運入口、指定租戶憑證交換與跨租戶阻擋已部署並通過自動 E2E；待夜貓美甲本人以正式 LINE 帳號重新進入營運管理確認。"
+          "note": "舊孤立申請已刪除，營運入口、指定租戶憑證交換與跨租戶阻擋已通過自動 E2E；待本人重新申請、自動建立工作空間後進入營運管理確認。"
         },
         {
           "label": "視覺與DOING首頁完整一致",
@@ -747,7 +747,7 @@
         {
           "label": "新租戶從零建立第一個營運項目",
           "status": "verify",
-          "evidence": "正式 Supabase 於 2026-08-21 核對：夜貓美甲仍停在 LINE 驗證待完成，尚未建立租戶、營運項目、服務目錄或預約日曆；程式契約已通過，必須等本人完成 LINE 後進行首筆正式驗證。",
+          "evidence": "正式 Supabase 於 2026-08-21 核對：舊的 LINE 待驗證孤立草稿已刪除，尚未建立租戶、營運項目、服務目錄或預約日曆；重新申請時可沿用既有 LINE identity，之後進行首筆正式驗證。",
           "formalVerification": {
             "number": 27,
             "priority": "P1",
@@ -759,16 +759,16 @@
             "dataScope": "指定新租戶",
             "operationPermission": "管理者新增",
             "fieldVisibility": "租戶內欄位",
-            "note": "正式資料庫目前只有 LINE 驗證待完成的申請；不可把測試模擬紀錄當成正式租戶資料。待本人完成 LINE 後，再驗證自動建立工作空間與第一個預約營運項目。",
+            "note": "舊申請已安全刪除且未影響會員或品牌；不可把測試模擬紀錄當成正式租戶資料。待本人重新申請後，再驗證沿用既有 LINE 身分、自動建立工作空間與第一個預約營運項目。",
             "setupEvidence": {
-              "applicationStatus": "line_verification_pending",
+              "applicationStatus": "deleted_for_clean_reapplication",
               "tenantCreated": false,
               "sessionId": null,
               "operationUnitId": null,
               "calendarId": null,
               "serviceCount": 0,
               "timeslotCount": 0,
-              "status": "awaiting_real_line_verification",
+              "status": "awaiting_real_reapplication",
               "deploymentPerformed": false
             }
           }

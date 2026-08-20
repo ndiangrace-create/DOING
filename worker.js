@@ -4063,11 +4063,24 @@ async function hCreateOrganizerApplicationDraft(env,b){
   const id=genId('APL'),createdAt=nowIso();
   const safeAssistantAnalysis={reply:doingHelperSafeReply(assistantAnalysis.reply,''),summaryId:String(assistantAnalysis.summaryId||'').slice(0,80),topic:DOING_HELPER_ALLOWED.topics.has(String(assistantAnalysis.topic||''))?String(assistantAnalysis.topic):'summary',scope:'doing_only',confirmed:true};
   const systemPlan=doingApplicationPlan(useCases,painPoints,workSituations);
-  const applicationJson={...app,contactEmail,ownerName,contactName:ownerName,billingName:ownerName,industryCategories:industries,useCases,workSituations,painPoints,assistantAnalysis:safeAssistantAnalysis,dataPolicy:'same_brand_customer_shared_work_records_separate',needFlags:systemPlan.needFlags,moduleProfile:systemPlan.moduleProfile,publicLinks,createdAt,timeline:[...(Array.isArray(app.timeline)?app.timeline:[]),{key:'application_created',label:'建立申請',at:createdAt}]};
+  let applicationJson={...app,contactEmail,ownerName,contactName:ownerName,billingName:ownerName,industryCategories:industries,useCases,workSituations,painPoints,assistantAnalysis:safeAssistantAnalysis,dataPolicy:'same_brand_customer_shared_work_records_separate',needFlags:systemPlan.needFlags,moduleProfile:systemPlan.moduleProfile,publicLinks,createdAt,timeline:[...(Array.isArray(app.timeline)?app.timeline:[]),{key:'application_created',label:'建立申請',at:createdAt}]};
   await dbInsert(env,'tenant_apply_logs',{
     id,brand_name:unitName,contact_name:ownerName,contact_email:contactEmail,contact_phone:phone,
     event_type:useCases.join(','),plan_type:'review',note:'等待 LINE 驗證',status:'line_verification_pending',application_json:applicationJson,created_at:createdAt
   });
+  // 已登入且已綁定 LINE 的正式會員，不必再繞一次 OAuth。有效會員 token＋同一 Email／電話＋既有 LINE identity 即視為本次驗證成立。
+  const memberToken=String(b.member_token||b.memberToken||'').trim(),verified=memberToken?await verifiedPlatformMember(env,memberToken):null;
+  if(verified){
+    const memberId=String(verified.row.id||''),memberEmail=normEmail(verified.row.contact_email||verified.row.email||''),memberPhone=normPhone(verified.row.phone_normalized||verified.row.phone||'');
+    const lineIdentities=memberId?await dbGet(env,'platform_member_identities',`member_id=eq.${encodeURIComponent(memberId)}&provider=eq.line&select=id&limit=1`).catch(()=>[]):[];
+    if(lineIdentities[0]&&memberEmail===contactEmail&&memberPhone===normPhone(phone)){
+      const submittedAt=nowIso();
+      applicationJson={...applicationJson,memberId,loginProvider:'line',lineAlreadyLinked:true,submittedAt,timeline:[...applicationJson.timeline,{key:'application_submitted',label:'沿用已驗證 LINE 身分送出',at:submittedAt}]};
+      await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(id)}`,{status:'pending',note:'沿用已驗證 LINE 身分，正在建立工作空間',application_json:applicationJson,updated_at:submittedAt});
+      const activated=(await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(id)}&select=status,tenant_id,note`).catch(()=>[]))[0]||{};
+      return jsonOk({ok:true,applicationId:id,lineVerified:true,status:String(activated.status||'pending'),tenantId:String(activated.tenant_id||'')});
+    }
+  }
   return jsonOk({ok:true,applicationId:id});
 }
 
