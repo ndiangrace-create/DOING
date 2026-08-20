@@ -34,7 +34,7 @@ jobs:
           cmp worker.js worker.txt
       - name: Parse JavaScript and HTML scripts
         run: |
-          node --check worker.js
+          node --input-type=module --check < worker.js
           node --check doing-attribution.js
           node --check doing-home-refresh.js
           test ! -f doing-home-refresh-core.js || node --check doing-home-refresh-core.js
