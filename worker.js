@@ -1110,7 +1110,7 @@ function memberUrl(regId, tenantCtx) {
   if (!base) return '';
   const tid = (tenantCtx && tenantCtx.id) || '';  // M-02：id 缺漏時不輸出 'undefined' 字串
   const sep = base.includes('?') ? '&' : '?';
-  // 前台以 page=member 判斷要開「我的紀錄」；member=1 一併保留以相容舊連結。
+  // 前台以 page=member 判斷要開「我的報名」；member=1 一併保留以相容舊連結。
   return base + sep + 'page=member&member=1&tenant=' + encodeURIComponent(tid) + (regId ? '&pay='+encodeURIComponent(regId) : '');
 }
 function emailBtn(label, href, bg, color, extraStyle='') {
@@ -1133,9 +1133,9 @@ function defaultEmailTemplates() {
 設備：[設備]
 應繳金額：NT$ [應繳金額]
 
-請回到「我的紀錄」查看審核進度與報名狀態。
+請回到「我的報名」查看審核進度與報名狀態。
 
-[按鈕:前往我的紀錄]`,
+[按鈕:前往我的報名]`,
       is_active:false,
       group:'報名流程'
     },
@@ -1153,11 +1153,11 @@ function defaultEmailTemplates() {
 設備：[設備]
 應繳金額：NT$ [應繳金額]
 
-攤位號碼將於活動前公布，屆時請至「我的紀錄」查看；行前通知信也會一併附上您的攤位與場地圖。
+攤位號碼將於活動前公布，屆時請至「我的報名」查看；行前通知信也會一併附上您的攤位與場地圖。
 
-請回到報名系統「我的紀錄」登入查看繳費資訊、付款帳戶與最新進度。
+請回到報名系統「我的報名」登入查看繳費資訊、付款帳戶與最新進度。
 
-[按鈕:前往我的紀錄]`,
+[按鈕:前往我的報名]`,
       is_active:true,
       group:'審核流程'
     },
@@ -1169,9 +1169,9 @@ function defaultEmailTemplates() {
 
 感謝您報名 [場次名稱]。
 
-很抱歉，本場次未錄取。您仍可回到「我的紀錄」查看報名紀錄，或查看其他開放場次。
+很抱歉，本場次未錄取。您仍可回到「我的報名」查看報名紀錄，或查看其他開放場次。
 
-[按鈕:前往我的紀錄]`,
+[按鈕:前往我的報名]`,
       is_active:false,
       group:'審核流程'
     },
@@ -1188,9 +1188,9 @@ function defaultEmailTemplates() {
 設備：[設備]
 應繳金額：NT$ [應繳金額]
 
-請回到「我的紀錄」查看付款帳戶並完成繳費。
+請回到「我的報名」查看付款帳戶並完成繳費。
 
-[按鈕:前往我的紀錄]`,
+[按鈕:前往我的報名]`,
       is_active:true,
       group:'付款流程'
     },
@@ -1207,9 +1207,9 @@ function defaultEmailTemplates() {
 回報金額：NT$ [回報金額]
 末五碼：[末五碼]
 
-請回到「我的紀錄」查看付款確認進度。
+請回到「我的報名」查看付款確認進度。
 
-[按鈕:前往我的紀錄]`,
+[按鈕:前往我的報名]`,
       is_active:false,
       group:'付款流程'
     },
@@ -1226,9 +1226,9 @@ function defaultEmailTemplates() {
 設備：[設備]
 攤位號碼：[攤位號碼]
 
-您可回到「我的紀錄」查看最新報名狀態。
+您可回到「我的報名」查看最新報名狀態。
 
-[按鈕:前往我的紀錄]`,
+[按鈕:前往我的報名]`,
       is_active:false,
       group:'付款流程'
     },
@@ -1240,9 +1240,9 @@ function defaultEmailTemplates() {
 
 您報名的 [場次名稱] 已取消。
 
-詳細狀態可回到「我的紀錄」查詢。
+詳細狀態可回到「我的報名」查詢。
 
-[按鈕:前往我的紀錄]`,
+[按鈕:前往我的報名]`,
       is_active:false,
       group:'取消／退款'
     },
@@ -1254,9 +1254,9 @@ function defaultEmailTemplates() {
 
 我們已收到您 [場次名稱] 的退款申請。
 
-主辦確認後，將依退款規則處理。您可回到「我的紀錄」查看進度。
+主辦確認後，將依退款規則處理。您可回到「我的報名」查看進度。
 
-[按鈕:前往我的紀錄]`,
+[按鈕:前往我的報名]`,
       is_active:false,
       group:'取消／退款'
     },
@@ -1270,9 +1270,9 @@ function defaultEmailTemplates() {
 
 退費金額：NT$ [退費金額]
 
-款項將依實際金流或帳務處理時間退回。詳細紀錄可回到「我的紀錄」查詢。
+款項將依實際金流或帳務處理時間退回。詳細紀錄可回到「我的報名」查詢。
 
-[按鈕:前往我的紀錄]`,
+[按鈕:前往我的報名]`,
       is_active:true,
       group:'取消／退款'
     },
@@ -1284,9 +1284,9 @@ function defaultEmailTemplates() {
 
 您報名的 [場次名稱] 因逾期未完成繳費，系統已取消本筆報名並釋出名額。
 
-詳細狀態可回到「我的紀錄」查詢。
+詳細狀態可回到「我的報名」查詢。
 
-[按鈕:前往我的紀錄]`,
+[按鈕:前往我的報名]`,
       is_active:true,
       group:'付款流程'
     },
@@ -1305,9 +1305,9 @@ function defaultEmailTemplates() {
 
 場地圖：[場地圖網址]
 
-請留意報到、進場與現場規範。詳細資訊可回到「我的紀錄」查看。
+請留意報到、進場與現場規範。詳細資訊可回到「我的報名」查看。
 
-[按鈕:前往我的紀錄]
+[按鈕:前往我的報名]
 [按鈕:加入官方LINE]`,
       is_active:true,
       group:'活動通知'
@@ -1327,10 +1327,10 @@ function defaultEmailTemplates() {
 延期場次：[新場次]
 請於 [選擇期限] 前完成選擇
 
-請回到「我的紀錄」選擇「延期」或「退費」。
+請回到「我的報名」選擇「延期」或「退費」。
 逾期未選擇者，系統將自動歸為退費處理。
 
-[按鈕:前往我的紀錄]`,
+[按鈕:前往我的報名]`,
       is_active:true,
       group:'不可抗力'
     },
@@ -1346,9 +1346,9 @@ function defaultEmailTemplates() {
 新場次：[新場次]
 退費金額：NT$ [退費金額]
 
-請回到「我的紀錄」查看完整狀態。
+請回到「我的報名」查看完整狀態。
 
-[按鈕:前往我的紀錄]`,
+[按鈕:前往我的報名]`,
       is_active:true,
       group:'不可抗力'
     },
@@ -1378,7 +1378,7 @@ function defaultEmailTemplates() {
 
 [通知內容]
 
-[按鈕:前往我的紀錄]`,
+[按鈕:前往我的報名]`,
       is_active:false,
       group:'系統管理'
     }
@@ -1406,7 +1406,7 @@ function renderEmailTemplateBody(body, vars, tenantCtx, regId) {
       let href = '';
       if (label.includes('邀請') || (label.includes('後台') && vars && vars['邀請連結'])) href = (vars && vars['邀請連結']) || '';
       else if (label.includes('後台')) href = (tenantCtx && tenantCtx.siteUrl) || FALLBACK_SITE_URL;
-      else if (label.includes('繳費') || label.includes('我的紀錄') || label.includes('報名紀錄') || label.includes('會員')) href = memberUrl(regId || null, tenantCtx);
+      else if (label.includes('繳費') || label.includes('我的報名') || label.includes('報名紀錄') || label.includes('會員')) href = memberUrl(regId || null, tenantCtx);
       else if (label.includes('LINE') || label.includes('客服')) href = (tenantCtx && tenantCtx.lineUrl) || '';
       else if (label.includes('活動')) href = (tenantCtx && tenantCtx.siteUrl) || FALLBACK_SITE_URL;
       if (href) parts.push(emailBtn(label, href, label.includes('LINE') ? '#06C755' : '#2d6a4f', '#fff'));
@@ -1580,7 +1580,7 @@ async function mailRegConfirm(env, email, displayName, sesName, regId, total, st
   return sendTemplateEmail(env, tenantId, 'registration_received', email, vars, tenantCtx, regId, {targetId:regId, targetTable:'registrations'});
 }
 
-// ② 錄取通知：資料由 DB / Worker 帶入，前台只回我的紀錄查詢
+// ② 錄取通知：資料由 DB / Worker 帶入，前台只回我的報名查詢
 async function mailApproval(env, email, displayName, sesName, regId, fee, stallCount, selectedDates, equip, sesEquipJson, tenantCtx=null) {
   const tenantId = tenantCtx?.id || '';
   const vars = {
@@ -1706,7 +1706,7 @@ async function mailPreEventReminder(env, email, displayName, sesName, date, venu
     '活動日期': date || '未設定',
     '報名日期': date || '未設定',
     '地點': venue || '未設定',
-    '設備': equip || '請以我的紀錄顯示為準',
+    '設備': equip || '請以我的報名顯示為準',
     '攤位號碼': stallNo || '請至現場服務台洽詢',
     '場地圖網址': mapUrl || '（本場無場地圖，請以現場為準）',
   };
@@ -3705,9 +3705,9 @@ async function hGetMyRegs(env, p) {
 }
 // getRegLookup（信件深連結用：依 regId 反查 email，不依賴瀏覽器暫存）
 // B-02：本 API 原本可用 regId 反查 Email，而 regId 又能串取消／選位／付款／退費，
-// 形成完整攻擊鏈。已停用，改由 Email＋手機登入「我的紀錄」取得自己的報名。
+// 形成完整攻擊鏈。已停用，改由 Email＋手機登入「我的報名」取得自己的報名。
 async function hGetRegLookup(env, p) {
-  return jsonErr('為保護個資，此查詢已停用。請使用 Email＋手機登入「我的紀錄」。');
+  return jsonErr('為保護個資，此查詢已停用。請使用 Email＋手機登入「我的報名」。');
 }
 
 // getAnnouncements
@@ -5108,9 +5108,21 @@ async function hLineCallback(env,url){
       const submittedAt=nowIso(),applicationJson={...appPayload,ownerName:contact,contactName:contact,billingName:contact,moduleProfile:profileConfig,memberId:member.id,loginProvider:'line',lineSubject,lineDisplayName:lineName,submittedAt,timeline:[...(Array.isArray(appPayload.timeline)?appPayload.timeline:[]),{key:'application_submitted',label:'LINE 驗證並送出',at:submittedAt}]};
       const existingRows=await dbGet(env,'tenant_apply_logs',`contact_email=eq.${encodeURIComponent(contactEmail)}&status=eq.supplement_required&select=id,status,supplement_count,brand_name`).catch(()=>[]),supplement=existingRows.find(x=>String(x.brand_name||'').trim().toLowerCase()===brand.toLowerCase());
       if(supplement){await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(supplement.id)}`,{brand_name:brand,contact_name:contact,contact_email:contactEmail,contact_phone:phone,event_type:(appPayload.useCases||[]).join(','),status:'pending',plan_type:'review',note:'LINE 驗證後補件重新送出',application_json:applicationJson,supplement_submitted_at:submittedAt,supplement_count:safeNum(supplement.supplement_count)+1,rejected_at:null,rejected_by:null,rejection_reason:null});await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{status:'replaced',note:'已併入補件申請'}).catch(()=>{});applicationTarget.searchParams.set('application_status','supplement_submitted');applicationTarget.searchParams.set('application_id',supplement.id);return Response.redirect(applicationTarget.toString(),302)}
-      await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{brand_name:brand,contact_name:contact,contact_email:contactEmail,contact_phone:phone,event_type:(appPayload.useCases||[]).join(','),plan_type:'review',note:'LINE 驗證完成',status:'pending',application_json:applicationJson});
-      try{await sendEmail(env,contactEmail,'【DOING】營運帳號申請已送出',emailWrap(`<p>${contact} 您好：</p><p>你的 DOING 營運帳號申請已送出，目前等待平台審核。</p><p><b>申請編號：</b>${applicationId}</p><p>審核通過或需要補件時，系統會再寄信通知。</p>`))}catch(e){}
-      applicationTarget.searchParams.set('application_status','pending');applicationTarget.searchParams.set('application_id',applicationId);return Response.redirect(applicationTarget.toString(),302);
+      await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{brand_name:brand,contact_name:contact,contact_email:contactEmail,contact_phone:phone,event_type:(appPayload.useCases||[]).join(','),plan_type:'review',note:'LINE 驗證完成，正在建立工作空間',status:'pending',application_json:applicationJson});
+      // workspace_auto_activation_status_line：DB trigger 會同步完成自動開通或轉人工複核；回跳與通知必須讀回正式狀態，不可固定寫「等待平台審核」。
+      const activationRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&select=status,tenant_id,note`).catch(()=>[]),activation=activationRows[0]||{},activationStatus=String(activation.status||'pending');
+      if(activationStatus==='approved'){
+        try{await sendEmail(env,contactEmail,'【DOING】工作空間已建立',emailWrap(`<p>${contact} 您好：</p><p>你的 LINE 驗證已完成，DOING 工作空間已自動建立，可以直接開始設定與使用。</p><p><b>申請編號：</b>${applicationId}</p>`));}catch(e){}
+        applicationTarget.searchParams.set('application_status','approved');
+        if(activation.tenant_id)applicationTarget.searchParams.set('tenant_id',String(activation.tenant_id));
+      }else if(activationStatus==='manual_review'){
+        try{await sendEmail(env,contactEmail,'【DOING】LINE 驗證完成｜資料需要人工確認',emailWrap(`<p>${contact} 您好：</p><p>你的 LINE 驗證已完成，但這筆申請有身分或資料需要 DOING 人員確認；資料已安全保留，不需要重新申請。</p><p><b>申請編號：</b>${applicationId}</p>`));}catch(e){}
+        applicationTarget.searchParams.set('application_status','manual_review');
+      }else{
+        try{await sendEmail(env,contactEmail,'【DOING】LINE 驗證完成',emailWrap(`<p>${contact} 您好：</p><p>你的 LINE 驗證已完成，系統正在建立工作空間；不需要等待一般人工審核。</p><p><b>申請編號：</b>${applicationId}</p>`));}catch(e){}
+        applicationTarget.searchParams.set('application_status',activationStatus||'pending');
+      }
+      applicationTarget.searchParams.set('application_id',applicationId);return Response.redirect(applicationTarget.toString(),302);
     }
 
     if(mode==='platform'||tenant==='platform'){
@@ -5320,17 +5332,15 @@ async function hGoogleCallback(env, url) {
           rejected_at:null,rejected_by:null,rejection_reason:null
         }
       );
-      await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{status:'replaced',note:'已併入補件申請'}).catch(()=>{});
-      const u=new URL(doingSiteUrl(env));u.hash='apply';u.searchParams.set('application_status','supplement_submitted');u.searchParams.set('application_id',supplement.id);
-      return Response.redirect(u.toString(),302);
-    }
-    await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{
-      brand_name:brand,contact_name:contact,contact_email:contactEmail,contact_phone:phone,
-      event_type:(appPayload.useCases||[]).join(','),plan_type:'review',note:'Google 驗證完成',status:'pending',application_json:applicationJson
-    });
-    try{await sendEmail(env,contactEmail,'【DOING】營運帳號申請已送出',emailWrap(`<p>${contact} 您好：</p><p>你的 DOING 營運帳號申請已送出，目前等待平台審核。</p><p><b>申請編號：</b>${applicationId}</p><p>審核通過或需要補件時，系統會再寄信通知。</p>`));}catch(e){}
-    const u=new URL(doingSiteUrl(env));u.hash='apply';u.searchParams.set('application_status','pending');u.searchParams.set('application_id',applicationId);
-    return Response.redirect(u.toString(),302);
+    await dbUpdate(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}`,{brand_name:brand,contact_name:contact,contact_email:contactEmail,contact_phone:phone,event_type:(appPayload.useCases||[]).join(','),plan_type:'review',note:'Google 驗證完成，正在建立工作空間',status:'pending',application_json:applicationJson});
+    // workspace_auto_activation_status_google：Google 僅為備援，但狀態規則與 LINE 共用同一正式申請資料根。
+    const activationRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&select=status,tenant_id,note`).catch(()=>[]),activation=activationRows[0]||{},activationStatus=String(activation.status||'pending');
+    try{
+      const subject=activationStatus==='approved'?'【DOING】工作空間已建立':activationStatus==='manual_review'?'【DOING】身分驗證完成｜資料需要人工確認':'【DOING】身分驗證完成';
+      const message=activationStatus==='approved'?'你的身分驗證已完成，DOING 工作空間已自動建立，可以直接開始設定與使用。':activationStatus==='manual_review'?'你的身分驗證已完成，但這筆申請有身分或資料需要 DOING 人員確認；資料已安全保留，不需要重新申請。':'你的身分驗證已完成，系統正在建立工作空間；不需要等待一般人工審核。';
+      await sendEmail(env,contactEmail,subject,emailWrap(`<p>${contact} 您好：</p><p>${message}</p><p><b>申請編號：</b>${applicationId}</p>`));
+    }catch(e){}
+    const u=new URL(doingSiteUrl(env));u.hash='apply';u.searchParams.set('application_status',activationStatus||'pending');u.searchParams.set('application_id',applicationId);if(activation.tenant_id)u.searchParams.set('tenant_id',String(activation.tenant_id));return Response.redirect(u.toString(),302);
   }
 
   if(statePayload.mode==='platform'||tenant==='platform'){
