@@ -13,7 +13,7 @@ declare
   app jsonb := coalesce(new.application_json,'{}'::jsonb);
   member_id text := nullif(trim(coalesce(app->>'memberId','')),'');
   public_links jsonb := coalesce(app->'publicLinks','[]'::jsonb);
-  tenant_id text := 'tn_' || substr(md5(new.id),1,16);
+  new_tenant_id text := 'tn_' || substr(md5(new.id),1,16);
   owner_email text := lower(trim(coalesce(new.contact_email,'')));
   owner_name text := trim(coalesce(new.contact_name,''));
   billing_id uuid;
@@ -44,7 +44,7 @@ begin
     insert into public.platform_risk_cases(
       id,source_tenant_id,platform_member_id,severity,status,reason,evidence_json,platform_restriction_json,created_at,updated_at
     ) values (
-      gen_random_uuid(),null,member_id,'review','pending','營運申請自動開通前置檢查未通過',
+      gen_random_uuid()::text,null,member_id,'review','pending','營運申請自動開通前置檢查未通過',
       jsonb_build_array(jsonb_build_object('applicationId',new.id,'reason','missing_or_conflicting_identity_or_public_link')),
       jsonb_build_object('autoActivationBlocked',true),activated_at,activated_at
     );
@@ -57,7 +57,7 @@ begin
       id,slug,name,status,config_json,plan_type,contact_name,contact_phone,notify_email,
       tenant_type,legal_name,responsible_name,responsible_phone,responsible_email,created_at,updated_at
     ) values (
-      tenant_id,tenant_id,new.brand_name,'active',
+      new_tenant_id,new_tenant_id,new.brand_name,'active',
       jsonb_build_object('sourceApplicationId',new.id,'autoActivated',true,'moduleProfile',coalesce(app->'moduleProfile','{}'::jsonb)),
       'trial',owner_name,new.contact_phone,owner_email,
       coalesce(nullif(new.tenant_type,''),'personal'),nullif(new.legal_name,''),owner_name,new.contact_phone,owner_email,
@@ -67,7 +67,7 @@ begin
     insert into public.tenant_settings(
       tenant_id,organizer_name,module_flags_json,created_at,updated_at
     ) values (
-      tenant_id,new.brand_name,module_flags,activated_at,activated_at
+      new_tenant_id,new.brand_name,module_flags,activated_at,activated_at
     ) on conflict (tenant_id) do update
       set organizer_name=excluded.organizer_name,
           module_flags_json=excluded.module_flags_json,
@@ -77,7 +77,7 @@ begin
       id,tenant_id,email,name,display_name,role,normalized_role,perms_json,limit_sessions,
       scope_type,active,is_active,platform_member_id,created_at,updated_at
     ) values (
-      'stf_'||substr(md5(new.id||member_id),1,20),tenant_id,owner_email,owner_name,owner_name,
+      'stf_'||substr(md5(new.id||member_id),1,20),new_tenant_id,owner_email,owner_name,owner_name,
       'organizer_owner','organizer_owner',
       '{"events":true,"sessions":true,"review":true,"finance":true,"checkin":true,"announce":true,"members":true,"settings":true}'::jsonb,
       '','all',true,true,member_id,activated_at,activated_at
@@ -97,16 +97,16 @@ begin
     returning id into billing_id;
 
     insert into public.billing_entity_tenants(tenant_id,billing_entity_id,linked_at)
-    values(tenant_id,billing_id,activated_at)
+    values(new_tenant_id,billing_id,activated_at)
     on conflict (tenant_id) do update set billing_entity_id=excluded.billing_entity_id,linked_at=excluded.linked_at;
 
-    update public.tenants set billing_entity_id=billing_id,updated_at=activated_at where id=tenant_id;
+    update public.tenants set billing_entity_id=billing_id,updated_at=activated_at where id=new_tenant_id;
 
     next_timeline := coalesce(app->'timeline','[]'::jsonb)
       || jsonb_build_array(jsonb_build_object('key','workspace_auto_activated','label','LINE 驗證完成，自動建立工作空間','at',activated_at));
 
     update public.tenant_apply_logs
-       set status='approved',tenant_id=tenant_id,approved_at=activated_at,approved_by='system:auto',
+       set status='approved',tenant_id=new_tenant_id,approved_at=activated_at,approved_by='system:auto',
            note='LINE 驗證完成，已自動開通工作空間',
            application_json=app || jsonb_build_object('autoActivated',true,'activatedAt',activated_at,'timeline',next_timeline),
            updated_at=activated_at
@@ -121,7 +121,7 @@ begin
     insert into public.platform_risk_cases(
       id,source_tenant_id,platform_member_id,severity,status,reason,evidence_json,platform_restriction_json,created_at,updated_at
     ) values (
-      gen_random_uuid(),null,member_id,'high','pending','營運申請自動開通失敗',
+      gen_random_uuid()::text,null,member_id,'high','pending','營運申請自動開通失敗',
       jsonb_build_array(jsonb_build_object('applicationId',new.id,'databaseError',left(sqlerrm,500))),
       jsonb_build_object('autoActivationBlocked',true),activated_at,activated_at
     );
