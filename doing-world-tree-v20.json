@@ -23,6 +23,22 @@
     "rule": "所有正式設定必須由 Worker 從 Supabase 讀取，修改後寫回 Supabase；前端不得以 localStorage／sessionStorage 保存正式設定或營運資料。",
     "browserStoragePurpose": "僅登入 token、登入錯誤暫存、語系與非業務介面偏好"
   },
+  "namingSSOT": {
+    "inventory": "doing-naming-ssot.json",
+    "myRegistrations": "我的報名",
+    "primaryTable": "registrations",
+    "primaryApi": "getMyRegsGlobal",
+    "forbiddenUserFacingAliases": ["我的紀錄"],
+    "rule": "同一功能只允許一個正式使用者名稱與一個正式資料根；相容網址不得形成第二套資料或畫面。"
+  },
+  "retentionPolicy": {
+    "transientDays": 90,
+    "formalBusinessDataPreserved": true,
+    "cleanupFunction": "doing_cleanup_transient_data",
+    "schedule": "daily_batched",
+    "purgeOnly": ["未驗證且未連到工作空間的申請草稿", "未連到正式報名的匿名曝光事件"],
+    "neverPurgeByThisRule": ["registrations", "payments", "refunds", "finance", "tenants", "staff", "已登入會員正式資料", "有持續使用的工作紀錄"]
+  },
   "flowContracts": [
     {
       "id": "public-registration",
@@ -50,12 +66,13 @@
       "id": "smart-application",
       "name": "營運申請到工作空間",
       "status": "programmatic_pass",
-      "roles": ["申請者", "平台總管"],
-      "path": ["智慧小幫手", "工作判斷", "角色補問", "圖像式系統預覽", "正式資料", "FB／IG 驗證", "LINE 驗證", "平台審核", "建立工作空間"],
-      "pages": ["smart-application.html", "platform.html#platform-applications", "workspace.html"],
-      "authority": ["platform_members", "platform_member_identities", "tenant_apply_logs", "tenants", "tenant_settings", "staff"],
-      "acceptance": "正式資料只能在確認系統組合後建立；Facebook 粉專或 Instagram 至少一個；LINE OAuth 必須在 top-level；核准後才建立正式工作空間。",
-      "realBrowserUAT": ["LINE OAuth", "平台總管真人審核", "核准後重新登入"]
+      "roles": ["申請者", "平台總管例外複核"],
+      "path": ["智慧小幫手", "工作判斷", "角色補問", "圖像式系統預覽", "正式資料", "FB／IG 驗證", "LINE 驗證", "自動建立工作空間"],
+      "exceptionPath": ["身分衝突／必要資料異常／建立失敗", "platform_risk_cases", "平台人工複核"],
+      "pages": ["smart-application.html", "member-panel.html#operations", "workspace.html", "platform.html#platform-applications"],
+      "authority": ["platform_members", "platform_member_identities", "tenant_apply_logs", "tenants", "tenant_settings", "staff", "platform_risk_cases"],
+      "acceptance": "正式資料只能在確認系統組合後建立；Facebook 粉專或 Instagram 至少一個；LINE OAuth 必須在 top-level；一般申請 LINE 驗證後自動建立工作空間，只有風險或衝突才轉人工複核；不得建立第二套申請或工作空間資料表。",
+      "realBrowserUAT": ["LINE OAuth", "自動開通後進入我的 DOING", "風險例外人工複核"]
     },
     {
       "id": "workspace-modules-calendar",
@@ -65,7 +82,7 @@
       "path": ["工作空間", "讀取核准模組", "工作總日曆", "預約／課程／活動／市集／專案入口", "對應管理功能"],
       "pages": ["workspace.html", "admin.html#calendar", "admin.html#sessions"],
       "authority": ["tenant_settings", "sessions", "operation_units", "booking_calendars", "availability_rules", "availability_exceptions"],
-      "acceptance": "核准資料讀取失敗時 fail closed；只顯示平台核准功能；外部日曆只同步或顯示，不得反向刪除 DOING 正式資料。",
+      "acceptance": "核准資料讀取失敗時 fail closed；只顯示已開通功能；外部日曆只同步或顯示，不得反向刪除 DOING 正式資料。",
       "realBrowserUAT": ["手機／桌機日曆切換", "Google／Apple 加入日曆"]
     },
     {
@@ -95,11 +112,11 @@
       "name": "平台總管處理閉環",
       "status": "programmatic_pass",
       "roles": ["平台總管"],
-      "path": ["平台登入", "申請", "租戶", "問題中心", "指定場次／訂單深連結", "處理", "留下紀錄"],
+      "path": ["平台登入", "風險例外／人工複核", "租戶", "問題中心", "指定場次／訂單深連結", "處理", "留下紀錄"],
       "pages": ["platform.html"],
-      "authority": ["platform_staff", "tenant_apply_logs", "tenants", "platform_issue_records", "audit_logs", "platform_settings"],
-      "acceptance": "平台操作必須保留來源與稽核紀錄；不得因返回或切換租戶遺失平台身分。",
-      "realBrowserUAT": ["正式總管登入", "真人審核／補件／拒絕", "手機平台頁"]
+      "authority": ["platform_staff", "tenant_apply_logs", "tenants", "platform_risk_cases", "platform_issue_records", "audit_logs", "platform_settings"],
+      "acceptance": "一般申請不需人工審核；平台處理例外、風險、補件與問題時必須保留來源與稽核紀錄；不得因返回或切換租戶遺失平台身分。",
+      "realBrowserUAT": ["正式總管登入", "風險例外複核", "手機平台頁"]
     },
     {
       "id": "data-authority",
@@ -109,7 +126,7 @@
       "path": ["前端操作", "tobeloved-api", "角色／租戶驗證", "Supabase 讀寫", "回傳目前正式狀態"],
       "pages": ["all"],
       "authority": ["Supabase public schema"],
-      "acceptance": "Supabase 是唯一正式營運資料來源；跨租戶請求必須被拒絕；Worker.js 與 worker.txt 必須同步。",
+      "acceptance": "Supabase 是唯一正式營運資料來源；跨租戶請求必須被拒絕；正式設定不得存在瀏覽器；Worker.js 與 worker.txt 必須同步。",
       "realBrowserUAT": []
     },
     {
@@ -162,7 +179,10 @@
     "formalApplication": "smart-application.html",
     "legacyAbout": "about.html redirect-only",
     "settingsInventory": "doing-settings-ssot.json",
+    "namingInventory": "doing-naming-ssot.json",
+    "autoActivationMigration": "supabase_auto_activation_retention_v20.sql",
+    "retentionCronMigration": "supabase_retention_cron_v20.sql",
     "databaseGuardMigration": "supabase_workspace_v20_guard.sql",
-    "regression": "scripts/validate-world-tree-v20.mjs"
+    "regression": ["scripts/validate-world-tree-v20.mjs", "scripts/validate-naming-autoactivation-retention.mjs"]
   }
 }
