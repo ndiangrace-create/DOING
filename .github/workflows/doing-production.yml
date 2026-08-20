@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: doing-tobeloved-api-production
@@ -25,21 +25,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: One-time Google supplement closure repair
-        if: github.event_name == 'pull_request' && github.head_ref == 'audit/world-tree-uat-settings-ssot-20260820'
-        run: |
-          git fetch origin "${GITHUB_HEAD_REF}:${GITHUB_HEAD_REF}"
-          git checkout "${GITHUB_HEAD_REF}"
-          node scripts/fix-google-supplement-closure.mjs
-          if git diff --quiet -- worker.js worker.txt; then
-            echo 'Google supplement closure already repaired.'
-          else
-            git config user.name 'DOING Release Bot'
-            git config user.email 'actions@users.noreply.github.com'
-            git add worker.js worker.txt
-            git commit -m 'DOING v20：恢復 Google 補件閉環並修正 Worker 語法'
-            git push origin HEAD:${GITHUB_HEAD_REF}
-          fi
       - name: Verify fixed production target
         run: |
           test "$TARGET_WORKER" = "tobeloved-api"
