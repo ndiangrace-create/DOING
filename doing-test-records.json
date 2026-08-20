@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "recordedAt": "2026-08-21T05:55:29+08:00",
-  "sourceFingerprint": "c5eb82df299e3035f935e2adc599bc3bec0be23576e410c2302f06692af02eee",
+  "sourceFingerprint": "a7d5cafc312b1873c60be6e08f90d9b27aff12867d1f20a93c16a8f9ca949ff6",
   "environment": "DOING 正式營運功能完成候選版。21 模組／194 項功能已整理為 167 項完成、27 項待真人確認、0 項阻斷、0 項尚未開發；營運世界樹為 6 角色、9 條主幹、30 個完整步驟。預約日曆與預約表、攤商業績、保證金可退資格、寄賣申請／商品／POS／庫存／結算、套票與會員方案、服務到店流程、自動候補、自動通知、自有網域驗證、AI 活動主視覺及租戶完整資料下載均已接正式 Worker 與 Supabase。新增 12 個營運資料表已套用 migration、啟用 RLS 並封鎖瀏覽器直連；POS 以單一資料庫交易扣庫存並建立財務流水。LINE OAuth、LINE 內建瀏覽器、真實手機、相機、第三方付款、真實收退款、真實場次結案、正式平台總管登入與現場通行碼仍維持待真人 UAT。自動驗收 productionWrites=0；2BL 未修改；計費未修改；Market App 不納入。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
