@@ -63,7 +63,7 @@ jobs:
         run: node scripts/validate-visual-standard.mjs
       - name: Validate platform attribution flow
         run: node scripts/validate-platform-attribution.mjs
-      - name: Validate capability world map
+      - name: Validate capability inventory and operational world tree
         run: node scripts/validate-capabilities.mjs
       - name: Validate mobile seat map
         run: node scripts/validate-seat-map.mjs

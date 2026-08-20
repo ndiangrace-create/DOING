@@ -9,7 +9,7 @@ const member=read('member-panel.html');
 const register=read('register.html');
 const workspace=read('workspace.html');
 const workspaceGuard=read('supabase_workspace_v20_guard.sql');
-const tree=JSON.parse(read('doing-world-tree-v20.json'));
+const tree=JSON.parse(read('doing-operational-world-tree.json'));
 
 assert.equal(worker,workerMirror,'Worker 正式鏡像未同步');
 assert.ok(admin.includes('id="bookingRosterList"')&&admin.includes('function renderBookingRoster()'),'租戶後台缺少可直接操作的正式預約表');

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 const read=f=>fs.readFileSync(new URL('../'+f,import.meta.url),'utf8');
 const names=JSON.parse(read('doing-naming-ssot.json'));
-const world=JSON.parse(read('doing-world-tree-v20.json'));
+const world=JSON.parse(read('doing-operational-world-tree.json'));
 const member=read('member-panel.html');
 const helper=read('doing-smart-activation.js');
 const smartPage=read('smart-application.html');
@@ -50,11 +50,11 @@ assert.match(migration,/doing_naming_contract/);
 assert.match(migration,/doing_data_retention_policy/);
 assert.match(migration,/doing_workspace_activation_policy/);
 
-const flow=world.flowContracts?.find(x=>x.id==='smart-application');
-assert.ok(flow,'世界樹缺少營運申請主流程');
-assert.ok(flow.path.includes('LINE 驗證'));
-assert.ok(flow.path.some(x=>/自動/.test(x)),'世界樹營運申請仍未標記自動開通');
-assert.ok(!flow.path.includes('平台審核'),'平台審核不可再是一般申請必經節點');
+const flow=world.journeys?.find(x=>x.id==='smart-application');
+assert.ok(flow,'營運世界樹缺少營運申請主流程');
+assert.ok(flow.steps.some(x=>x.id==='line-verification'));
+assert.ok(flow.steps.some(x=>x.id==='provisioning'&&/自動/.test(x.label+x.completion)),'營運世界樹仍未標記自動開通');
+assert.ok(!flow.steps.some(x=>x.label==='平台審核'),'平台審核不可再是一般申請必經節點');
 assert.equal(world.namingSSOT?.myRegistrations,'我的報名');
 assert.equal(world.retentionPolicy?.transientDays,90);
 assert.equal(world.retentionPolicy?.formalBusinessDataPreserved,true);

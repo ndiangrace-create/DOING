@@ -419,7 +419,7 @@ DIY 手作課程：
 - `已確認`：收費活動不設每月封頂，不得重新套用舊版 NT$3,800 封頂規則。
 - `已確認`：持續預約／工作室服務，每個營運帳號每月 NT$688，不抽取服務營業額。
 - `已確認`：租戶後台必須提供「系統帳務」頁，顯示計費規則、逐場金額、平台繳費資料、付款回報與確認狀態；平台總管可查看並確認回報。
-- `權威資料來源`：Supabase `platform_settings.platform_billing_policy`；程式預設值、公開說明、主辦後台、平台總管與功能世界樹必須保持一致。
+- `權威資料來源`：Supabase `platform_settings.platform_billing_policy`；程式預設值、公開說明、主辦後台、平台總管、功能盤點與營運世界樹必須保持一致。
 
 ## 十一、Persistent Change Ledger／Incremental Verification
 
