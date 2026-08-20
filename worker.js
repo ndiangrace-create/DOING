@@ -2089,7 +2089,7 @@ async function enforceTenantFeature(env, tenantId, action) {
 
 // 租戶後台角色是 API 的正式邊界，不只靠前端隱藏按鈕。
 const TENANT_ROLE_ACTIONS = {
-  owner: new Set(['saveTenantModuleProfile','addStaff','removeStaff','setStaffActive','setStaffScope','updateStaffPerms','updateStaffScope','updateStaffSessions']),
+  owner: new Set(['saveTenantModuleProfile','exportTenantData','addStaff','removeStaff','setStaffActive','setStaffScope','updateStaffPerms','updateStaffScope','updateStaffSessions']),
   settingsRead: new Set(['getTenantModuleProfile','getTenantTheme','getStaff','getCompanySettings','getSiteConfig','getEmailTemplates','getPaymentSettings','getPaymentProfiles','getAgreementTemplate','getAgreementTemplates','listVenueMaps','listPhotoActivities']),
   settings: new Set(['saveCompanySettings','saveSiteConfig','saveEmailTemplate','testEmail','savePaymentSettings','savePaymentProfile','disablePaymentProfile','saveAgreementTemplate','saveAgreementTemplates','saveVenueMap','applyVenueMap','deleteVenueMap','savePhotoActivity','deletePhotoActivity','savePhotoActivityFrame','deletePhotoActivityFrame','savePromotionRule','deletePromotionRule']),
   finance: new Set(['financeOverview','financeReport','adminFinanceAnomalies','getFinance','getPayments','getFinancePaymentGroups','getSessionCashbook','saveFinanceItem','deleteFinanceItem','saveSessionCashItem','deleteSessionCashItem','confirmPayment','confirmRefund','confirmForceRefund','refundDeposit','applyForceRefund','applyForceRefundFM','markPaymentScreenshot','sendPaymentReminder','getInvoiceList','updateInvoiceStatus','downloadSession']),
@@ -4614,12 +4614,52 @@ async function hUnlockTenant(env, b) { return jsonErr('舊試用解鎖流程已�
 
 // ── 場次下載 Excel ────────────────────────────────────────────────
 
+// 租戶資料可攜權：模組停用、帳號鎖定或停止付費都不得阻止租戶擁有者取回自己的正式資料。
+// 僅匯出帶 tenant_id 的租戶資料與本租戶主檔；平台機密、登入憑證與其他租戶資料永不匯出。
+const TENANT_PORTABLE_TABLES=Object.freeze([
+  'tenant_settings','staff','events','sessions','operation_units','booking_calendars','availability_rules','availability_exceptions','service_items','resources','timeslots',
+  'members','registration_members','registration_member_invites','registrations','registration_items','payments','payment_allocations','refunds','invoices',
+  'finance_items','finance_ledger','finance_audit_logs','billing_logs','billing_session_charges','transfer_settlements','customer_wallets','customer_wallet_ledger',
+  'stalls','equipment_items','seat_maps','seat_assignments','seat_operation_logs','venue_map_templates','session_bundles',
+  'staff_session_permissions','staff_action_logs','onsite_passcodes','force_majeure_logs','announcements','notifications','email_templates','report_templates',
+  'tenant_agreement_templates','promotion_rules','reward_ledger','short_links','photo_activities','photo_activity_frames','photo_leads','session_visual_assets',
+  'support_threads','support_messages','audit_logs','admin_login_logs','error_logs','idempotency_keys','session_stats','tenant_domains','translations',
+  'construction_projects','construction_members','construction_stages','construction_updates','construction_quotes','construction_payments','construction_expenses','construction_signoffs'
+]);
+const TENANT_EXPORT_SECRET_KEYS=/(?:^|_)(?:password|secret|token|nonce|authorization)(?:_|$)|(?:^|_)(?:passcode|code)_hash$/i;
+function tenantExportSafe(value,key=''){
+  if(TENANT_EXPORT_SECRET_KEYS.test(String(key||'')))return '[已排除憑證]';
+  if(Array.isArray(value))return value.map(x=>tenantExportSafe(x));
+  if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,tenantExportSafe(v,k)]));
+  return value;
+}
+function tenantExportFileReferences(tables){
+  const out=[],seen=new Set(),walk=(value,path)=>{if(Array.isArray(value)){value.forEach((x,i)=>walk(x,path+'['+i+']'));return}if(value&&typeof value==='object'){Object.entries(value).forEach(([k,v])=>walk(v,path+'.'+k));return}if(typeof value!=='string'||!/^https?:\/\//i.test(value))return;if(!/(?:url|photo|image|cover|file|attachment|logo|frame|visual)/i.test(path))return;if(seen.has(value))return;seen.add(value);out.push({source:path,url:value})};
+  Object.entries(tables).forEach(([name,rows])=>walk(rows,name));return out;
+}
+async function hExportTenantData(env,p){
+  const T=p._tenantId;
+  if(!await verifyStaff(env,p.email,p.token,T,'superadmin'))return jsonErr('只有租戶擁有者可以下載全部營運資料',403);
+  const tenantRows=await dbGet(env,'tenants',`id=eq.${encodeURIComponent(T)}&select=*`).catch(()=>[]);
+  if(!tenantRows[0])return jsonErr('找不到主辦空間');
+  const tables={},warnings=[];
+  for(let i=0;i<TENANT_PORTABLE_TABLES.length;i+=6){
+    const batch=TENANT_PORTABLE_TABLES.slice(i,i+6);
+    const results=await Promise.all(batch.map(async table=>{try{return [table,await dbGet(env,table,`tenant_id=eq.${encodeURIComponent(T)}&select=*`)]}catch(e){warnings.push({table,message:'目前沒有可匯出的資料'});return [table,[]]}}));
+    for(const [table,rows] of results)tables[table]=tenantExportSafe(rows);
+  }
+  const approvedModules=await getTenantModuleFlags(env,T),moduleProfile=await getTenantModuleProfileValue(env,T),safeTables=tenantExportSafe(tables),bundle={
+    exportVersion:1,exportedAt:nowIso(),authority:'Supabase',tenant:tenantExportSafe(tenantRows[0]),moduleState:{approvedModules,profile:moduleProfile,preservationRule:'停用模組只隱藏功能，不刪除正式資料；重新開啟後沿用原紀錄。'},
+    tables:safeTables,fileReferences:tenantExportFileReferences(safeTables),warnings,policy:{selfService:true,platformApprovalRequired:false,availableWhenLocked:true,crossTenantDataIncluded:false,secretsIncluded:false}
+  };
+  await writeAuditLog(env,T,p.email||'','organizer_owner','export_tenant_data','tenants',T,null,{exportedAt:bundle.exportedAt,tableCount:Object.keys(tables).length,fileCount:bundle.fileReferences.length}).catch(()=>{});
+  return jsonOk(bundle);
+}
+
 // GET /downloadSession — 下載單場次完整 Excel
 async function hDownloadSession(env,p){
   const TENANT=p._tenantId;
   if(!await verifyStaff(env,p.email,p.token,TENANT))return jsonErr('無權限');
-  const lockCheck=await checkTenantLocked(env,TENANT);
-  if(lockCheck.locked)return jsonErr('帳號已鎖定，無法下載資料，請先續費');
   const sesId=String(p.sessionId||'').trim();
   if(!sesId)return jsonErr('請指定場次');
 
@@ -11753,6 +11793,7 @@ async function routeGet(env, action, p, req) {
     case 'getTenantTheme': return hGetTenantTheme(env,p);
     case 'getSupportThreads': return hGetSupportThreads(env,p);
     case 'getSupportMessages': return hGetSupportMessages(env,p);
+    case 'exportTenantData':   return hExportTenantData(env,p);
     case 'downloadSession':     return hDownloadSession(env,p);
     case 'getRegs':             return hGetRegs(env,p);
     case 'getRegsBySession':    return hGetRegsBySession(env,p);

@@ -96,3 +96,8 @@ for each row execute function public.doing_guard_workspace_application();
 
 comment on function public.doing_guard_single_owned_workspace() is 'DOING v20: one member owns at most one workspace; collaboration in other workspaces remains allowed.';
 comment on function public.doing_guard_workspace_application() is 'DOING v20: blocks duplicate self-owned workspace applications while preserving collaborator invitations.';
+
+-- 兩個函式只供資料表 trigger 內部執行，不是公開 RPC。
+-- PostgreSQL 預設會把新函式的 EXECUTE 給 PUBLIC；必須明確收回，避免 anon / authenticated 直接呼叫 SECURITY DEFINER。
+revoke all on function public.doing_guard_single_owned_workspace() from public, anon, authenticated;
+revoke all on function public.doing_guard_workspace_application() from public, anon, authenticated;

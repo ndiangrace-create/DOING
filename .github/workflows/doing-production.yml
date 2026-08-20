@@ -83,6 +83,8 @@ jobs:
           node scripts/validate-platform-operations-e2e.mjs
           node scripts/validate-naming-autoactivation-retention.mjs
           node scripts/validate-role-journey-uat.mjs
+          node scripts/validate-universal-booking.mjs
+          node scripts/validate-operational-readiness.mjs
       - name: Validate compact admin visual consistency
         run: node scripts/validate-admin-consistency.mjs
       - name: Validate reusable test records
