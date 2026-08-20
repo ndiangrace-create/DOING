@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-21T02:43:14+08:00",
-  "sourceFingerprint": "73b25d3dcbd08200f85bffb865954317a97859cd52cfa4be30caed70de8550c0",
+  "recordedAt": "2026-08-21T05:55:29+08:00",
+  "sourceFingerprint": "c5eb82df299e3035f935e2adc599bc3bec0be23576e410c2302f06692af02eee",
   "environment": "DOING 正式營運功能完成候選版。21 模組／194 項功能已整理為 167 項完成、27 項待真人確認、0 項阻斷、0 項尚未開發；營運世界樹為 6 角色、9 條主幹、30 個完整步驟。預約日曆與預約表、攤商業績、保證金可退資格、寄賣申請／商品／POS／庫存／結算、套票與會員方案、服務到店流程、自動候補、自動通知、自有網域驗證、AI 活動主視覺及租戶完整資料下載均已接正式 Worker 與 Supabase。新增 12 個營運資料表已套用 migration、啟用 RLS 並封鎖瀏覽器直連；POS 以單一資料庫交易扣庫存並建立財務流水。LINE OAuth、LINE 內建瀏覽器、真實手機、相機、第三方付款、真實收退款、真實場次結案、正式平台總管登入與現場通行碼仍維持待真人 UAT。自動驗收 productionWrites=0；2BL 未修改；計費未修改；Market App 不納入。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
@@ -19,7 +19,7 @@
     {"id":"real-browser-uat-contract","command":"DOING_UAT_CLICKTHROUGH_V20.md contract review + operational world tree humanUAT markers","result":"PASS","scope":"6 角色真人 UAT 清單已建立；LINE OAuth、手機、相機、付款、正式總管等未實際真人操作項目明確維持待驗證，不宣稱真人 PASS"},
     {"id":"legacy-pages-redirect-only","command":"node scripts/validate-ui-clickthrough-contract.mjs && node scripts/validate-navigation-actions.mjs","result":"PASS","scope":"about/member 相容頁只准 redirect；about 舊大型頁、apply-wrap、smart-flow-guide、第二層申請框、doing-about-refresh.js/css 不得復活"},
     {"id":"ui-clickthrough-contract","command":"node scripts/validate-ui-clickthrough-contract.mjs","result":"PASS","scope":"10 個主要路徑之首頁／我的報名／我的營運／帳號設定／智慧申請／工作空間／主辦後台／現場／平台總管／相容頁的路由與單層畫面契約"},
-    {"id":"application-social-required","command":"node scripts/validate-application-social-required.mjs","result":"PASS","scope":"正式申請必須有 Facebook 粉專或 Instagram 至少一個；無公開頁面例外已移除；網址格式受控"},
+    {"id":"application-social-required","command":"node scripts/validate-application-social-required.mjs","result":"PASS","scope":"正式申請必須有品牌、社群、官網或作品頁至少一個；缺少協定自動補 https；不安全或錯誤網址會阻擋"},
     {"id":"smart-oauth-top-level","command":"node scripts/validate-smart-oauth-top.mjs","result":"PASS","scope":"智慧申請 embed 模式必須先離開 iframe；LINE organizer_signup 不得在 iframe 內執行"},
     {"id":"single-frame-global-invariant","command":"node scripts/validate-navigation-actions.mjs","result":"PASS","scope":"同一流程只能一層主框架；智慧申請 overlay 為關閉鍵＋單一 iframe"},
     {"id":"member-v20-application-cleanup","command":"node scripts/validate-ui-clickthrough-contract.mjs","result":"PASS","scope":"會員營運申請內部代碼轉白話中文、舊申請連結改至 smart-application、帳號設定不再寫回 systemApplication"},
