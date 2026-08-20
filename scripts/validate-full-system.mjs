@@ -106,8 +106,8 @@ for(const marker of [
 ])requireText(adminPage,marker,`主辦營運待辦可讀可操作 ${marker}`);
 const capabilityMap=JSON.parse(read('doing-capabilities.json'));
 for(const module of capabilityMap.modules||[]){
-  if(module.area!=='未來擴充'&&!module.route)fail(`世界地圖模組缺少對應操作頁：${module.title}`);
+  if(module.area!=='未來擴充'&&!module.route)fail(`功能盤點模組缺少對應操作頁：${module.title}`);
 }
-requireText(platformPage,'title="開啟對應功能"','世界地圖可直接進入相應功能');
+for(const marker of ['DOING 營運世界樹','data-world-role','data-world-status','下一步／返回'])requireText(platformPage,marker,`營運世界樹缺少可操作導航 ${marker}`);
 console.log(`全系統靜態驗收通過：${pages.length} 個正式功能頁＋member 相容轉址、${frontendActions.size} 個前端 API 動作、後台按鈕函式完整。`);
 await import('./validate-ui-clickthrough-contract.mjs');

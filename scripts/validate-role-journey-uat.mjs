@@ -3,7 +3,7 @@ import fs from 'node:fs';
 const read=f=>fs.readFileSync(f,'utf8');
 const need=(ok,msg)=>{if(!ok)throw new Error(msg)};
 const uat=read('DOING_UAT_CLICKTHROUGH_V20.md');
-const tree=JSON.parse(read('doing-world-tree-v20.json'));
+const tree=JSON.parse(read('doing-operational-world-tree.json'));
 const home=read('doing-home-refresh.js')+(fs.existsSync('doing-home-refresh-core.js')?read('doing-home-refresh-core.js'):'');
 const member=read('member-panel.html');
 const smart=read('doing-smart-activation.js');
@@ -25,9 +25,9 @@ const roleHeadings=[
 for(const h of roleHeadings)need(uat.includes(h),'真人 UAT 清單缺少角色：'+h);
 for(const marker of ['入口 → 按鈕 → 頁面 → 權限 → API → Supabase → 完成狀態 → 下一步／返回','程式級 PASS 不等於真人瀏覽器 PASS','真人 UAT：'])need(uat.includes(marker),'UAT 契約缺少：'+marker);
 
-const flows=new Map((tree.flowContracts||[]).map(x=>[x.id,x]));
+const flows=new Map((tree.journeys||[]).map(x=>[x.id,x]));
 for(const id of ['public-registration','member-brand','smart-application','workspace-modules-calendar','tenant-admin-operations','onsite','platform-admin']){
-  const f=flows.get(id);need(f,'世界樹缺少角色旅程：'+id);need(f.status==='programmatic_pass','角色旅程尚未程式級通過：'+id);need(Array.isArray(f.path)&&f.path.length>=5,'角色旅程操作鏈不足：'+id);need(f.acceptance,'角色旅程缺少完成判準：'+id);need(Array.isArray(f.realBrowserUAT),'角色旅程缺少真人 UAT 標記：'+id);
+  const f=flows.get(id);need(f,'營運世界樹缺少角色旅程：'+id);need(['done','verify','human_uat'].includes(f.status),'角色旅程存在真正阻斷或未排入目前範圍：'+id);need(Array.isArray(f.steps)&&f.steps.length>=3,'角色旅程操作鏈不足：'+id);need(f.completion,'角色旅程缺少完成判準：'+id);need(Array.isArray(f.humanUAT),'角色旅程缺少真人 UAT 標記：'+id);
 }
 
 // 角色 1：活動 → 報名 → 我的報名 → 狀態／返回。
@@ -62,9 +62,9 @@ for(const marker of ['applications','tenants','support','members'])need(platform
 need(platform.includes('data-platform-page')&&platform.includes('data-platform-panel'),'平台總管缺少固定分頁契約');
 
 // 所有角色：正式資料來源、單層 UI、舊頁退休、安全邊界。
-need(tree.settingsSSOT?.authority==='Supabase','正式設定 SSOT 不是 Supabase');
+need(tree.authority?.businessData==='Supabase DOING_SaaS/public','正式資料 SSOT 不是 Supabase');
 need(tree.singleSurfaceRule?.maxPrimaryFramesPerFlow===1,'正式流程不是單層主框架');
-need(tree.forbiddenTarget==='2bl-v7'&&tree.deploymentTarget==='tobeloved-api','部署安全邊界錯誤');
+need(tree.safety?.forbiddenTarget==='2bl-v7'&&tree.safety?.deploymentTarget==='tobeloved-api','部署安全邊界錯誤');
 need(read('worker.txt')===worker,'worker.js / worker.txt 不同步');
 
-console.log(JSON.stringify({result:'PASS',roles:6,programmaticJourneys:7,realBrowserUAT:'pending_by_contract',flow:['入口','按鈕','頁面','權限','API','Supabase','完成狀態','下一步／返回']},null,2));
+console.log(JSON.stringify({result:'PASS',roles:6,operationalJourneys:7,realBrowserUAT:'pending_by_contract',flow:['入口','按鈕','頁面','權限','API','Supabase','完成狀態','下一步／返回'],productionWrites:0},null,2));

@@ -15,9 +15,9 @@ const moduleMap=new Map((catalog.modules||[]).map(x=>[x.key,x.tables||[]]));
 for(const module of capabilities.modules||[]){
   const key=module.key||module.id;
   const tables=module.dataSource?.tables||[];
-  if(!moduleMap.has(key))fail('世界樹缺少資料來源模組：'+key);
-  if(JSON.stringify(tables)!==JSON.stringify(moduleMap.get(key)))fail('世界樹與資料目錄不同步：'+key);
-  for(const name of tables)if(!tableNames.has(name))fail('世界樹引用不存在資料表：'+name);
+  if(!moduleMap.has(key))fail('功能盤點缺少資料來源模組：'+key);
+  if(JSON.stringify(tables)!==JSON.stringify(moduleMap.get(key)))fail('功能盤點與資料目錄不同步：'+key);
+  for(const name of tables)if(!tableNames.has(name))fail('功能盤點引用不存在資料表：'+name);
 }
 const refs=new Set();
 for(const helper of ['dbGet','dbInsert','dbUpsert','dbUpdate','dbUpdateReturning','dbDelete']){
@@ -52,4 +52,4 @@ for(const domain of settings.domains){
   for(const action of [...domain.readActions,...domain.writeActions])if(!worker.includes(action))fail('正式設定 API 未存在 Worker：'+domain.key+' -> '+action);
 }
 if(worker!==fs.readFileSync(root+'/worker.txt','utf8'))fail('worker.js / worker.txt 不一致');
-console.log('資料來源驗證完成：'+tableNames.size+' 個真實資料表、'+refs.size+' 個 Worker 讀寫引用、'+moduleMap.size+' 個世界樹模組、'+settings.domains.length+' 類正式設定全部以 Supabase 為 SSOT。');
+console.log('資料來源驗證完成：'+tableNames.size+' 個真實資料表、'+refs.size+' 個 Worker 讀寫引用、'+moduleMap.size+' 個功能盤點模組、'+settings.domains.length+' 類正式設定全部以 Supabase 為 SSOT。');

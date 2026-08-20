@@ -1377,40 +1377,40 @@
     {
       "id": "platform-map",
       "area": "平台總管",
-      "title": "DOING 系統世界地圖",
-      "summary": "一眼查看所有模組、實際功能及缺口。",
+      "title": "DOING 營運世界樹",
+      "summary": "依角色查看入口、操作、系統支撐、完成結果與目前驗證狀態。",
       "route": "platform.html#platform-world",
       "features": [
         {
-          "label": "所有模組集中在平台總管",
+          "label": "六角色與九條營運主幹集中在平台總管",
           "status": "done",
-          "evidence": "doing-capabilities.json / platform.html"
+          "evidence": "doing-operational-world-tree.json / platform.html"
         },
         {
-          "label": "每個模組直接顯示全部功能",
+          "label": "每個步驟顯示頁面、按鈕、權限、API 與 Supabase",
           "status": "done",
-          "evidence": "doing-capabilities.json / platform.html"
+          "evidence": "doing-operational-world-tree.json / platform.html"
         },
         {
-          "label": "世界地圖功能直接連到對應操作頁",
+          "label": "每個步驟顯示狀態變化、完成判準與下一步／返回",
           "status": "done",
-          "evidence": "doing-capabilities.json route / platform.html world-feature"
+          "evidence": "doing-operational-world-tree.json journeys[].steps / platform.html"
         },
         {
-          "label": "自動計算完成數",
+          "label": "依角色與驗證狀態篩選營運旅程",
           "status": "done",
-          "evidence": "doing-capabilities.json / platform.html"
+          "evidence": "platform.html data-world-role / data-world-status"
         },
         {
-          "label": "手機可直接閱讀",
+          "label": "手機單欄閱讀且文字不破框",
           "status": "verify",
           "note": "已完成響應式版面，待真機確認",
-          "evidence": "doing-capabilities.json / platform.html"
+          "evidence": "platform.html world-step-grid / overflow-wrap"
         },
         {
-          "label": "開發PR同步更新功能紀錄",
+          "label": "正式路徑變動必須同步營運世界樹契約",
           "status": "done",
-          "evidence": "doing-capabilities.json / platform.html"
+          "evidence": "scripts/validate-operational-world-tree.mjs / DOING_OPERATIONAL_WORLD_TREE.md"
         },
         {
           "label": "Persistent Change Ledger 永久追加變更、決策、修正、部署與正式驗證紀錄",

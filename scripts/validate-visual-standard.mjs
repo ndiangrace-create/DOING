@@ -68,13 +68,13 @@ assert.match(aboutCompat,/smart-application\.html/,'about 申請相容入口必�
 assert.doesNotMatch(aboutCompat,/doing-design-tokens\.css|doing-pastel-pages\.css|doing-about-refresh/,'about 相容頁不得重新載入舊完整視覺資產');
 
 const visual=capabilities.modules.find(module=>module.id==='platform-visual');
-assert.ok(visual,'世界樹缺少 DOING 平台視覺基準');
+assert.ok(visual,'功能盤點缺少 DOING 平台視覺基準');
 assert.ok(visual.features.some(feature=>feature.status==='done'&&feature.label.includes('天空藍與薄荷綠主色')));
-assert.ok(visual.features.some(feature=>feature.status==='done'&&feature.label.includes('逐頁套用')),'核心正式頁面完成套用後必須同步世界樹');
+assert.ok(visual.features.some(feature=>feature.status==='done'&&feature.label.includes('逐頁套用')),'核心正式頁面完成套用後必須同步功能盤點');
 
 assert.match(tokens,/--doing-brand-primary:#91d7f4/);
 assert.match(tokens,/--doing-brand-secondary:#ccefa8/);
 assert.doesNotMatch(pageStyles,/body\.doing-member\{[^}]*doing-brand-pink/);
 assert.doesNotMatch(pageStyles,/body\.doing-photo\{[^}]*doing-brand-pink/);
 
-console.log(JSON.stringify({result:'PASS',standard:'DOING Sky Mint v2',primary:'sky-blue',secondary:'mint',pink:'accent-only',paletteColors:Object.keys(palette).length,pagesApplied:pages.length,memberCompat:true,aboutCompat:'redirect-only',smallTiles:'rounded-square-only',worldTreeStatus:'all_core_pages_done'},null,2));
+console.log(JSON.stringify({result:'PASS',standard:'DOING Sky Mint v2',primary:'sky-blue',secondary:'mint',pink:'accent-only',paletteColors:Object.keys(palette).length,pagesApplied:pages.length,memberCompat:true,aboutCompat:'redirect-only',smallTiles:'rounded-square-only',capabilityInventoryStatus:'all_core_pages_done'},null,2));

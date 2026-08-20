@@ -1,0 +1,120 @@
+{
+  "version": 21,
+  "schemaVersion": 1,
+  "title": "DOING 營運世界樹",
+  "updatedAt": "2026-08-21",
+  "status": "release_candidate",
+  "purpose": "顯示誰從哪裡進入、做什麼、系統如何支撐、目前是否真的完成；不是功能清單。",
+  "authority": {
+    "businessData": "Supabase DOING_SaaS/public",
+    "api": "tobeloved-api",
+    "operationalContract": "doing-operational-world-tree.json",
+    "capabilityInventory": "doing-capabilities.json",
+    "rule": "Supabase 是正式營運資料唯一來源；營運世界樹是路徑與驗收契約；功能盤點只負責列出能力，三者不得混成第二套資料。"
+  },
+  "layers": [
+    {"id":"role","name":"角色","question":"誰在使用？"},
+    {"id":"journey","name":"使用路徑","question":"從哪裡進去、按什麼、下一步去哪？"},
+    {"id":"support","name":"系統支撐","question":"是哪個頁面、權限、API、Supabase 資料與狀態？"},
+    {"id":"verification","name":"開發狀態","question":"程式已完成、待確認、被阻斷、稍後開發，或必須真人驗證？"}
+  ],
+  "statusCatalog": {
+    "done": {"label":"已完成","icon":"✓","meaning":"程式、固定契約與自動驗證均已通過。"},
+    "verify": {"label":"待確認","icon":"?","meaning":"功能已存在，仍需正式資料或指定情境確認。"},
+    "blocked": {"label":"真正阻斷","icon":"!","meaning":"已確認會讓角色無法繼續的流程問題。"},
+    "later": {"label":"稍後開發","icon":"·","meaning":"不在目前正式完成範圍，沒有假裝完成。"},
+    "human_uat": {"label":"待真人驗證","icon":"人","meaning":"只能由真人、真機或第三方正式環境完成。"}
+  },
+  "roles": [
+    {"id":"registrant","name":"一般使用者／報名者","home":"index.html"},
+    {"id":"brand_user","name":"品牌使用者","home":"member-panel.html#brands"},
+    {"id":"operations_applicant","name":"營運申請者","home":"smart-application.html"},
+    {"id":"tenant_admin","name":"租戶擁有者／主辦管理員","home":"workspace.html"},
+    {"id":"onsite_operator","name":"現場工作人員／實際出攤者","home":"onsite.html"},
+    {"id":"platform_admin","name":"平台總管","home":"platform.html"}
+  ],
+  "workspaceRule": {"ownedWorkspacePerMember":1,"collaborationAcrossOtherWorkspaces":true,"browserBusinessDataAllowed":false},
+  "singleSurfaceRule": {"formalApplicationPage":"smart-application.html","legacyAboutPage":"redirect_only","maxPrimaryFramesPerFlow":1},
+  "namingSSOT": {"inventory":"doing-naming-ssot.json","myRegistrations":"我的報名","primaryTable":"registrations","primaryApi":"getMyRegsGlobal","forbiddenUserFacingAliases":["我的紀錄"]},
+  "retentionPolicy": {"transientDays":90,"formalBusinessDataPreserved":true,"cleanupFunction":"doing_cleanup_transient_data","neverPurgeByThisRule":["registrations","payments","refunds","finance","tenants","staff","已登入會員正式資料","有正式關聯的工作紀錄"]},
+  "moduleArchitecture": {"model":"shared_core_with_pluggable_work_modes","noDuplicateRoot":true,"workModules":["預約","課程","活動","市集","專案"],"sharedModules":["商品／票券","QR 報到／核銷","收款／訂金","優惠券／回訪","通知提醒","團隊／排班","進階財務","照片／檔案","電子簽名","Google／Apple 日曆同步"],"rule":"模組是共用核心上的可組合工作模式；停用只關閉入口與新操作，不刪除歷史資料。"},
+  "dataPortability": {"ownerSelfService":true,"platformApprovalRequired":false,"availableWhenTenantLocked":true,"formats":["complete_json","session_xlsx","csv_reports"]},
+  "journeys": [
+    {
+      "id":"public-registration","name":"找到活動到完成報名","roleIds":["registrant"],"status":"human_uat","summary":"同一筆 registrations 從報名、審核、付款、報到一路回到我的報名。","entry":"index.html","completion":"會員在我的報名看見最新正式狀態並可回到活動或首頁。","humanUAT":["LINE OAuth","LINE 內建瀏覽器","真實手機操作","第三方付款","相機"],"blockers":[],
+      "steps":[
+        {"id":"discover","label":"找活動並打開內容","page":"index.html","button":"活動卡／立即查看","permission":"公開","actions":["publicDiscovery","frontBootstrap"],"tables":["events","sessions"],"state":"公開場次 → 已選場次","completion":"顯示正式活動與場次內容","next":"registration","back":"首頁活動列表","status":"done","evidence":["首頁與公開場次路由固定契約"]},
+        {"id":"registration","label":"填寫並送出報名","page":"register.html","button":"送出報名","permission":"公開或會員；依場次規則驗證","actions":["getAvailableStartsPublic","register"],"tables":["members","registrations","registration_items","timeslots"],"state":"草稿 → pending","completion":"建立唯一 registration id","next":"my-registrations","back":"活動內容","status":"done","evidence":["公開報名與預約空檔自動驗證通過"]},
+        {"id":"my-registrations","label":"查看我的報名","page":"member-panel.html#activities","button":"我的報名","permission":"本人會員 token","actions":["getMyRegsGlobal"],"tables":["registrations","payments","refunds"],"state":"pending／approved／paid／checked_in／refunded","completion":"只顯示本人的正式報名狀態","next":"payment-checkin","back":"我的 DOING 總覽","status":"done","evidence":["名稱、API 與 registrations 固定契約"]},
+        {"id":"payment-checkin","label":"完成付款與現場報到","page":"member-panel.html#activities／第三方付款頁／onsite.html","button":"付款／出示報到資料","permission":"本人與授權現場人員","actions":["submitPayment","submitPaymentBatch","onsiteMark"],"tables":["payments","registrations","staff_action_logs"],"state":"approved → paid → checked_in","completion":"我的報名回寫最新狀態","next":"完成紀錄","back":"我的報名","status":"human_uat","evidence":["程式路徑已固定；第三方與真機需真人驗證"]}
+      ]
+    },
+    {
+      "id":"member-brand","name":"建立品牌到成員權限生效","roleIds":["brand_user"],"status":"human_uat","summary":"品牌資料與成員關係都走正式會員身分，不以同名自動合併。","entry":"member-panel.html#brands","completion":"品牌擁有者或已核准成員取得正確權限。","humanUAT":["LINE 本人接受邀請","真實手機品牌編輯"],"blockers":[],
+      "steps":[
+        {"id":"brand-list","label":"進入我的品牌","page":"member-panel.html#brands","button":"我的品牌","permission":"本人會員 token","actions":["getMyBrands"],"tables":["brands","brand_members"],"state":"會員 → 品牌清單","completion":"只讀取本人有關聯的品牌","next":"brand-edit","back":"我的 DOING 總覽","status":"done","evidence":["會員品牌 E2E 通過"]},
+        {"id":"brand-edit","label":"建立或編輯品牌","page":"member-panel.html#brands","button":"儲存品牌","permission":"品牌擁有者／管理者","actions":["saveMemberBrand"],"tables":["brands","brand_members"],"state":"new／existing → saved","completion":"品牌正式資料寫入 Supabase","next":"brand-access","back":"我的品牌","status":"done","evidence":["品牌寫入與權限契約通過"]},
+        {"id":"brand-access","label":"申請加入並由管理者確認","page":"member-panel.html#brands","button":"申請加入／接受／拒絕","permission":"申請者與品牌管理者分權","actions":["getBrandAccessRequests","resolveBrandAccessRequest"],"tables":["brand_access_requests","brand_members"],"state":"pending → approved／rejected","completion":"核准後才建立品牌成員權限","next":"品牌管理","back":"我的品牌","status":"human_uat","evidence":["程式 E2E 通過；本人 LINE 接受仍待真人"]}
+      ]
+    },
+    {
+      "id":"smart-application","name":"智慧申請到唯一工作空間","roleIds":["operations_applicant","platform_admin"],"status":"human_uat","summary":"一般資料正確的申請自動建立工作空間，只有例外才進人工複核。","entry":"smart-application.html","completion":"一般申請者取得唯一工作空間；例外案件留下可追溯的人工複核紀錄。","humanUAT":["LINE OAuth","LINE 內建瀏覽器","重新申請首筆正式工作空間","正式平台總管登入"],"blockers":[],
+      "steps":[
+        {"id":"needs-analysis","label":"由智慧小幫手判斷工作組合","page":"smart-application.html","button":"開始規劃／繼續","permission":"公開","actions":["analyzeDoingApplication"],"tables":["member_helper_traces","doing_helper_knowledge_entries"],"state":"需求 → 建議模組組合","completion":"顯示圖像式系統預覽與必要補問","next":"formal-data","back":"DOING 首頁","status":"done","evidence":["智慧申請 E2E 與單層畫面契約通過"]},
+        {"id":"formal-data","label":"確認正式資料與社群帳號","page":"smart-application.html","button":"確認並進行 LINE 驗證","permission":"申請者","actions":["createOrganizerApplicationDraft"],"tables":["platform_members","tenant_apply_logs"],"state":"preview → pending_line_verification","completion":"FB／IG 至少一個且正式草稿進 Supabase","next":"line-verification","back":"系統預覽","status":"done","evidence":["社群必填與正式資料來源契約通過"]},
+        {"id":"line-verification","label":"完成或沿用 LINE 驗證","page":"smart-application.html／LINE OAuth","button":"使用 LINE 驗證","permission":"本人；Email／電話與既有身分一致才可沿用","actions":["organizer_signup (LINE OAuth mode)","createOrganizerApplicationDraft"],"tables":["platform_member_identities","tenant_apply_logs"],"state":"pending_line_verification → approved／risk_review","completion":"有效身分進自動開通；衝突進風險案件","next":"provisioning","back":"智慧申請","status":"human_uat","evidence":["已綁 LINE 重申請回圈已修正；正式 OAuth 待真人"]},
+        {"id":"provisioning","label":"建立唯一工作空間或轉例外複核","page":"member-panel.html#operations／workspace.html／platform.html#platform-applications","button":"進入工作空間／處理例外","permission":"申請本人；例外僅平台總管","actions":["doing_auto_activate_workspace (database trigger)","getTenantModuleProfile","reviewPlatformRiskCase"],"tables":["tenants","tenant_settings","staff","platform_risk_cases","audit_logs"],"state":"approved → workspace_ready；exception → risk_review","completion":"一般申請自動建立唯一 workspace；失敗有可追溯案件","next":"workspace-modules-calendar","back":"我的營運","status":"human_uat","evidence":["自動開通 migration 與防重 guard 已通過；首筆正式工作空間待真人"]}
+      ]
+    },
+    {
+      "id":"workspace-modules-calendar","name":"核准模組到營運總日曆","roleIds":["tenant_admin"],"status":"human_uat","summary":"工作空間只顯示已核准模組；預約、課程、活動、市集、專案共用同一營運日曆與資料根。","entry":"workspace.html","completion":"租戶從日曆直接打開既有場次或建立對應營運工作。","humanUAT":["真實手機操作","Google／Apple 日曆加入"],"blockers":[],
+      "steps":[
+        {"id":"module-profile","label":"載入已核准工作模組","page":"workspace.html","button":"工作空間","permission":"租戶擁有者或協作者","actions":["getTenantModuleProfile"],"tables":["tenant_settings","staff"],"state":"登入 → approvedFlags","completion":"讀取失敗時停止載入，不誤開模組","next":"calendar","back":"我的營運","status":"done","evidence":["角色模組權限與 fail-closed 契約通過"]},
+        {"id":"calendar","label":"查看月／週／清單營運日曆","page":"workspace.html#calendar","button":"日曆／月／週／清單","permission":"本租戶已授權人員","actions":["getSessionsAdmin","getOperationUnitsAdmin","getBookingCalendarAdmin"],"tables":["sessions","operation_units","booking_calendars","availability_rules","availability_exceptions"],"state":"日期範圍 → 正式工作集合","completion":"五種工作模式在同一日曆呈現","next":"open-work","back":"工作空間總覽","status":"done","evidence":["統一月曆與手機三種視圖固定契約通過"]},
+        {"id":"open-work","label":"從日曆直接操作原有場次","page":"workspace.html／admin.html#calendar／admin.html#sessions","button":"日曆項目／新增工作","permission":"本租戶對應模組權限","actions":["createSession","updateSession","saveOperationUnit","saveBookingCalendar"],"tables":["sessions","operation_units","booking_calendars","timeslots"],"state":"planned → open／updated","completion":"不另建第二套場次或預約資料","next":"tenant-admin-operations","back":"營運總日曆","status":"done","evidence":["插件式模組與預約日曆驗證通過"]},
+        {"id":"external-calendar","label":"加入 Google／Apple 日曆","page":"workspace.html／admin.html","button":"加入 Google 日曆／下載 ICS","permission":"可查看該營運工作的使用者","actions":["bookingCalendarIcs"],"tables":["booking_calendars","sessions"],"state":"DOING 工作 → 外部日曆副本","completion":"外部刪除不會刪除 DOING 正式資料","next":"返回營運日曆","back":"營運總日曆","status":"human_uat","evidence":["連結與 ICS 契約通過；第三方實機待驗證"]}
+      ]
+    },
+    {
+      "id":"tenant-admin-operations","name":"主辦後台完整營運","roleIds":["tenant_admin"],"status":"human_uat","summary":"場次、報名、付款、排位、通知、財務與結案使用同一租戶與正式資料。","entry":"admin.html","completion":"場次完成並保留可追溯的報名、金流、財務與操作紀錄。","humanUAT":["真實場次新增／編輯","第三方付款","真實收退款","真實場次結案"],"blockers":[],
+      "steps":[
+        {"id":"session","label":"建立或編輯營運項目與場次","page":"admin.html#sessions","button":"新增／儲存場次","permission":"租戶擁有者或場次管理權限","actions":["createEvent","createSession","updateSession"],"tables":["events","sessions","operation_units"],"state":"draft → open／updated","completion":"建立可供報名的正式場次","next":"review","back":"工作空間／日曆","status":"human_uat","evidence":["自動路由與 API 契約通過；正式場次待真人"]},
+        {"id":"review","label":"審核報名並管理名單","page":"admin.html","button":"錄取／候補／取消","permission":"本租戶場次管理權限","actions":["getSessionRegistrations","approveReg","adminCancelReg"],"tables":["registrations","registration_members"],"state":"pending → approved／waitlisted／cancelled","completion":"狀態回到報名者的我的報名","next":"money-seat","back":"場次列表","status":"done","evidence":["主辦流程與跨租戶權限驗證通過"]},
+        {"id":"money-seat","label":"確認收退款、設備與排位","page":"admin.html","button":"確認付款／退款／排位","permission":"本租戶財務或場次權限","actions":["confirmPayment","confirmRefund","adminAssignSeat","getSessionEquipmentDetails"],"tables":["payments","refunds","seat_maps","seat_assignments","resources"],"state":"approved → paid／refunded／assigned","completion":"金額與位置以 Supabase 回傳為準","next":"close","back":"報名名單","status":"human_uat","evidence":["API 與資料表契約通過；真實金流待真人"]},
+        {"id":"close","label":"通知、財務與場次結案","page":"admin.html","button":"發送通知／財務報表／結案","permission":"本租戶通知、財務或擁有者權限","actions":["getNotificationsAdmin","financeReport","getSessionCashbook","toggleSessionStatus"],"tables":["notifications","finance_items","finance_ledger","sessions","audit_logs"],"state":"operating → closed","completion":"保留完整財務與結案紀錄並可返回原租戶","next":"完成","back":"工作空間","status":"human_uat","evidence":["程式契約通過；真實結案待真人"]}
+      ]
+    },
+    {
+      "id":"onsite","name":"現場授權到報到完成","roleIds":["onsite_operator"],"status":"human_uat","summary":"現場人員只看被授權場次；實際出攤者用本人身分處理出攤成員與撤場。","entry":"onsite.html","completion":"報到與撤場狀態回到同一筆 registrations 並留下操作紀錄。","humanUAT":["真實手機操作","LINE 內建瀏覽器","相機","現場通行碼"],"blockers":[],
+      "steps":[
+        {"id":"onsite-login","label":"使用現場通行碼或本人身分進入","page":"onsite.html","button":"登入現場","permission":"授權場次人員或實際出攤者","actions":["onsiteShiftList"],"tables":["onsite_passcodes","staff_session_permissions"],"state":"未授權 → 指定場次授權","completion":"只取得必要場次與必要欄位","next":"onsite-list","back":"首頁","status":"human_uat","evidence":["權限契約通過；正式通行碼待真人"]},
+        {"id":"onsite-list","label":"搜尋名單並執行報到","page":"onsite.html","button":"搜尋／報到","permission":"指定場次現場權限","actions":["onsiteRegs","onsiteMark"],"tables":["registrations","registration_members","staff_action_logs"],"state":"paid／approved → checked_in","completion":"報到時間寫入正式報名","next":"teardown","back":"場次選擇","status":"human_uat","evidence":["程式權限與 action 已通過；真機相機待真人"]},
+        {"id":"teardown","label":"管理出攤成員與撤場完成","page":"member-panel.html#activities／onsite.html","button":"申請撤場／完成","permission":"本人出攤者與授權現場人員","actions":["onsiteMark","request_teardown"],"tables":["registrations","registration_members","audit_logs"],"state":"checked_in → teardown_requested／completed","completion":"我的報名顯示最新撤場狀態","next":"完成","back":"我的報名／現場名單","status":"human_uat","evidence":["返回路徑已固定；正式現場待真人"]}
+      ]
+    },
+    {
+      "id":"platform-admin","name":"平台總管例外處理閉環","roleIds":["platform_admin"],"status":"human_uat","summary":"平台總管處理風險、例外、租戶與問題，所有變更留下來源與稽核。","entry":"platform.html","completion":"問題被處理並保留來源、處理者、時間與結果。","humanUAT":["正式平台總管登入","風險例外複核","手機平台頁"],"blockers":[],
+      "steps":[
+        {"id":"platform-login","label":"以正式平台身分登入","page":"platform.html","button":"LINE 登入／Google 備援登入","permission":"platform_super_admin","actions":["adminMe"],"tables":["platform_staff","platform_member_identities"],"state":"未登入 → 平台總管 session","completion":"拒絕非平台總管帳號","next":"risk-center","back":"DOING 首頁","status":"human_uat","evidence":["登入提供者契約通過；正式總管帳號待真人"]},
+        {"id":"risk-center","label":"處理申請例外與風險案件","page":"platform.html#platform-applications／platform-support","button":"查看／處理／留下結果","permission":"平台總管","actions":["applyList","getPlatformRiskCases","reviewPlatformRiskCase"],"tables":["tenant_apply_logs","platform_risk_cases","audit_logs"],"state":"risk_review → resolved／approved／rejected","completion":"一般申請不被誤送人工；例外有完整紀錄","next":"tenant-issues","back":"平台營運總覽","status":"human_uat","evidence":["例外分流契約通過；正式複核待真人"]},
+        {"id":"tenant-issues","label":"從問題中心進入指定租戶處理","page":"platform.html#platform-dashboard／platform-tenants","button":"問題卡／租戶管理","permission":"平台總管","actions":["getPlatformOperationsCenter","getTenantsAdmin","updatePlatformIssueStatus"],"tables":["tenants","platform_issue_records","audit_logs"],"state":"open issue → resolved","completion":"處理後可回平台且平台身分不遺失","next":"完成","back":"平台營運總覽","status":"done","evidence":["平台營運 E2E 與深連結契約通過"]}
+      ]
+    },
+    {
+      "id":"data-authority","name":"正式資料與租戶隔離","roleIds":["registrant","brand_user","operations_applicant","tenant_admin","onsite_operator","platform_admin"],"status":"done","summary":"所有正式操作經 Worker 驗證角色與租戶後讀寫 Supabase。","entry":"所有正式頁面","completion":"跨租戶與未授權請求被拒絕；前端不保存正式營運資料。","humanUAT":[],"blockers":[],
+      "steps":[
+        {"id":"request","label":"送出正式操作","page":"all","button":"對應正式操作按鈕","permission":"依角色、租戶與場次驗證","actions":["tobeloved-api action router"],"tables":["Supabase public schema"],"state":"request → authorized／rejected","completion":"未授權請求在寫入前停止","next":"database","back":"原操作頁","status":"done","evidence":["資料來源、角色模組、管理一致性驗證通過"]},
+        {"id":"database","label":"讀寫 Supabase 並回傳正式狀態","page":"tobeloved-api","button":"無；系統處理","permission":"Worker 服務角色＋應用層隔離","actions":["dbGet","dbInsert","dbUpdate","dbDelete"],"tables":["Supabase public schema"],"state":"authorized → committed／error","completion":"前端只呈現資料庫回傳結果","next":"原角色下一步","back":"原操作頁","status":"done","evidence":["worker.js 與 worker.txt 同步；productionWrites=0 自動驗證"]}
+      ]
+    },
+    {
+      "id":"legacy-retirement","name":"唯一正式入口與舊架構退休","roleIds":["registrant","brand_user","operations_applicant","tenant_admin","onsite_operator","platform_admin"],"status":"human_uat","summary":"舊網址只做相容轉址，不再承載第二套正式畫面或資料。","entry":"about.html#apply／member.html／任一正式入口","completion":"使用者抵達唯一正式頁面並能正常返回，不產生第二份資料。","humanUAT":["舊書籤／快取網址"],"blockers":[],
+      "steps":[
+        {"id":"redirect","label":"由舊網址轉往唯一正式入口","page":"about.html／member.html","button":"相容轉址","permission":"公開","actions":[],"tables":[],"state":"legacy URL → canonical URL","completion":"about 申請到 smart-application；member 到 member-panel 或首頁","next":"對應正式旅程","back":"瀏覽器返回／DOING 首頁","status":"human_uat","evidence":["redirect-only 與 live DOM 清理契約通過；舊快取待真人"]},
+        {"id":"single-surface","label":"只保留一個正式主畫面","page":"smart-application.html／member-panel.html／workspace.html","button":"正式入口","permission":"依正式頁角色","actions":[],"tables":[],"state":"canonical entry → canonical flow","completion":"不出現舊 helper shell、舊申請 frame 或第二套會員 UI","next":"對應角色下一步","back":"DOING 首頁","status":"done","evidence":["全系統 Click-through 回歸通過"]}
+      ]
+    }
+  ],
+  "humanUATOutstanding": ["LINE OAuth","LINE 內建瀏覽器","真實手機操作","相機","第三方付款","真實收退款","真實場次結案","正式平台總管登入","現場通行碼","重新申請首筆正式工作空間"],
+  "safety": {"forbiddenTarget":"2bl-v7","deploymentTarget":"tobeloved-api","billingChangeAllowed":false,"productionWritesDuringAutomatedValidation":0}
+}
