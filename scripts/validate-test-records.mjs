@@ -6,7 +6,9 @@ import {fileURLToPath} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const recordPath=path.join(root,'doing-test-records.json');
-const excluded=new Set(['doing-test-records.json']);
+// 測試紀錄本身與 fingerprint 驗證器本身不納入產品來源 fingerprint，避免更新驗收證據時形成自我參照循環。
+// 其他正式 HTML/CSS/JS/JSON/SQL/MJS/YAML 任一變動仍會讓 fingerprint 失效並要求重跑。
+const excluded=new Set(['doing-test-records.json','scripts/validate-test-records.mjs']);
 const includedExtensions=new Set(['.html','.css','.js','.json','.sql','.mjs','.yml','.yaml']);
 function filesIn(dir){
   return fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{
