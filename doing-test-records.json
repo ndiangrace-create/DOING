@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-21T23:25:00+08:00",
-  "sourceFingerprint": "7cf85cc33c6b1676350d82863decd805ac9b44ca0609d56c099e8eaba3097ac2",
-  "environment": "DOING Web 通用預約正式發布驗證版。PR #125 已合併至最新 main，並保留 2026-08-21 正式 Supabase 智慧申請自動開通、90 天安全清理及既有 Web 修復。booking-center.html 已納入正式 Web 原始碼；完整營運中心已提供預約中心入口。所有正式預約資料仍沿用 operation_units、service_items、resources、booking_calendars、availability_rules、availability_exceptions、timeslots、registrations、service_visits 與既有 Worker actions，不建立第二套預約資料。Web 與 Market App 前端持續分離；2BL 與計費未修改。真人 LINE OAuth、手機、第三方付款、首筆正式租戶預約與到店流程仍依既有 human UAT 契約保留。自動驗收 productionWrites=0。",
+  "recordedAt": "2026-08-22T01:54:00+08:00",
+  "sourceFingerprint": "97f0c88ad771ca41fae8ce676d9dd8cad407897c46ebc2a32f001ef54c499aa3",
+  "environment": "DOING Web 正式申請完成路由修正版。application_status=approved 且 tenant_id 存在時，Web 會以目前正式會員登入建立該租戶管理 session 並直接進 workspace.html 營運後台；不再回到首頁申請區，也不再載入已退休的 about.html／doing-about-refresh.js。首頁申請入口與客服『前往智慧申請』統一進 smart-application.html；未通過、補件或人工複核狀態仍留在現行智慧申請流程。既有通用預約、營運自動開通、Supabase SSOT、Market App Core 契約、2BL 邊界與計費均未修改。自動驗收 productionWrites=0。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
