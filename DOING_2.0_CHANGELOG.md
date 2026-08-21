@@ -19,3 +19,15 @@
 - 建立工作分支 `feature/doing-market-2.0-20260822`。
 - 開始建立 `market-center.html` 作為 DOING Market 專用營運入口。
 - 第一版只重排操作，不修改資料表、不新增正式資料、不破壞既有 admin／onsite／member 功能。
+
+## 2026-08-22｜v2 產品獨立頁與開發排序
+
+- 保留 v1 不修改，新增 `DOING_2.0_WORLD_TREE_V2_PRODUCT_SPLIT_20260822.md`。
+- 新增固定產品開發語法 `DOING_2.0_PRODUCT_ROADMAP_FIXED_20260822.md`；既有語法不改。
+- 建立 `doing-2.html` 作為 DOING 2.0 Hub。
+- `market-center.html` 保持 DOING Market 獨立產品頁，現在主線繼續完成。
+- 建立 `project-center.html` 作為 DOING Project 獨立入口；第二主線為室內設計／工程專案，後續接續既有模擬原型，不重做。
+- 建立 `booking-2-center.html` 作為 DOING Booking 獨立入口；第三主線為美類／一般服務預約。
+- 建立 `guide-center.html` 作為 DOING Guide 獨立入口；第四主線為導覽員／導覽預約。
+- 四個產品共用同一 DOING Core／API／Supabase SSOT；獨立頁面不得衍生第二套同功能資料。
+- 本次只建立產品頁骨架與固定規則，不新增資料表、不修改正式營運資料、不部署。
