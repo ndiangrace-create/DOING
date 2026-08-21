@@ -4,6 +4,7 @@ on:
     paths:
       - 'doing-2.html'
       - 'market-center.html'
+      - 'market-session.html'
       - 'project-center.html'
       - 'booking-2-center.html'
       - 'guide-center.html'
