@@ -84,3 +84,15 @@
 - `2b-love.com` 與 2BL 保持完全不動。
 - 新增 `DOING_2.0_WORLD_TREE_V6_URL_ARCHITECTURE_20260822.md`；v1-v5 不修改。
 - 本階段新增資料表 0、Schema 變更 0、正式資料搬移 0。
+
+## 2026-08-22｜v9 主辦申請 → 登入 → 工作空間 → Market 正常操作鏈
+
+- 使用者要求先停止真人抓錯，先把正常系統操作順序完整閉環後再測。
+- 固定正常順序：未登入 → 正式智慧申請 → LINE 驗證並送出 → Supabase 自動開通／例外人工複核 → 建立 tenant＋organizer_owner → 自動接續會員 session → 我的 DOING → 工作空間 → DOING Market。
+- `member-panel` 未登入時直接進 LINE OAuth，成功後回原分頁；不再繞首頁，也不再顯示第二顆重複登入按鈕。
+- 新增 `doing-application-completion.js` 作 organizer_signup 成功後的 Web 相容接續 Bridge；已有 member token 直接進我的 DOING，沒有 token 時自動完成 member session 交換，不要求使用者另找登入入口。
+- Cloudflare Pages 產物補齊 `smart-application.html`、`workspace.html`、`member.html`、`member-panel.html`、`about.html` 與其必要 JS/CSS，避免新網域因缺檔斷掉申請／登入／工作空間鏈。
+- workspace 的 Market 工作入口正式改走 `/market/` 並保留 tenant／admin_token，不再掉回舊 `admin.html#sessions`。
+- 新增 `DOING_2.0_WORLD_TREE_V9_APPLICATION_LOGIN_WORKSPACE_20260822.md` 與 `scripts/validate-application-login-flow.mjs`。
+- 正式 Supabase read-only 證據確認：approved 申請已有 active tenant、tenant_settings、active organizer_owner、platform_member_id 關聯、sourceApplicationId 對應及 `workspace_auto_activated` timeline。
+- 本次新增資料表 0、Schema 變更 0、Worker 正式邏輯變更 0、2BL 變更 0、正式業務資料搬移 0。
