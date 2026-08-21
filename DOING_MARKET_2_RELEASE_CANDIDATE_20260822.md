@@ -51,14 +51,15 @@ PR：#129
 - Supabase DOING_SaaS 繼續為唯一正式資料來源
 
 ## 最終自動驗證
-最新 head：`3d4b1d4979841b89828632a785a5ee6f2355d879`
-
+功能版 head `3d4b1d4979841b89828632a785a5ee6f2355d879`：
 - DOING Market 2.0 Validation #35：PASS
 - DOING Safe Production #460：PASS
 - Cloudflare audit：PASS
 - deploy：skipped（未授權正式發布）
 - sourceFingerprint：`ff7b56b400b54daf3578c9acd0619be95643029fda6eed7747a7bb159caa2ebb`
 - productionWrites=0
+
+後續 commit 只更新 Release Candidate／ChangeLog 文件，不修改 Market 功能程式或資料契約；仍需以最新 PR head 確認 CI 未回歸。
 
 ## 尚未宣稱 PASS
 以下需要可登入／可公開存取的實際頁面才能完成：
