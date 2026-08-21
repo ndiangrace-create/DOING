@@ -64,3 +64,11 @@
 - localStorage 僅沿用既有 member token 暫存，不保存正式營運資料。
 - 新增 `DOING_2.0_WORLD_TREE_V4_MARKET_OPERATIONS_20260822.md` 與 `DOING_2.0_WORLD_TREE_V5_MARKET_PUBLIC_20260822.md`；v1-v3 不修改。
 - 本階段新增資料表 0、Schema 變更 0、正式資料搬移 0。
+
+## 2026-08-22｜Market 2.0 Automated Release Candidate
+
+- 建立 `DOING_MARKET_2_RELEASE_CANDIDATE_20260822.md`。
+- 最新自動驗證：DOING Market Validation #35 PASS、DOING Safe Production #460 PASS、Cloudflare audit PASS。
+- 正式部署仍未執行；deploy skipped。
+- 退款流程因涉及管理費、轉場費、活動金防誤退等正式判斷，第一版不簡化重寫，維持成熟既有退款面板。
+- 正式 LINE／真實場次／手機與桌機 click-through／付款／QR 真人 UAT 尚未執行，因此狀態固定為 Automated Release Candidate，不宣稱 Release Ready。
