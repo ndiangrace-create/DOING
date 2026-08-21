@@ -10,7 +10,7 @@ const copyFiles=[
   'doing-2.html','market-center.html','market-public.html','market-session.html',
   'project-center.html','booking-2-center.html','guide-center.html',
   'admin.html','onsite.html','member-panel.html','index.html','register.html',
-  'doing-system.css','doing-2-shell.css','doing-2-shell.js','doing-logo.png','doing-attribution.js','doing-home-refresh.js','doing-home-refresh.css',
+  'doing-system.css','doing-2-shell.css','doing-2-shell.js','doing-market-2bl.css','doing-logo.png','doing-attribution.js','doing-home-refresh.js','doing-home-refresh.css',
   'manifest.webmanifest','pwa-icon-192.png'
 ];
 for(const file of copyFiles){
@@ -30,6 +30,15 @@ const injectShell=(file)=>{
   fs.writeFileSync(fp,html);
 };
 shellTargets.forEach(injectShell);
+
+// Market 只套自己的 2BL 緊縮營運外框；不修改 Hub／Project／Booking／Guide。
+for(const file of ['market-center.html','market-session.html']){
+  const fp=path.join(out,file);if(!fs.existsSync(fp))continue;
+  let html=fs.readFileSync(fp,'utf8');
+  if(!html.includes('doing-market-2bl.css'))html=html.replace('</head>','<link rel="stylesheet" href="/doing-market-2bl.css?v=20260822-compact1"></head>');
+  html=html.replace('<body>','<body class="d2-market-compact">');
+  fs.writeFileSync(fp,html);
+}
 
 // doing.2b-love.com 根目錄固定使用 DOING 2.0 Hub；不修改原本 index.html。
 fs.copyFileSync(path.join(out,'doing-2.html'),path.join(out,'index.html'));
@@ -52,4 +61,4 @@ for(const [rel,targetFile] of Object.entries(routeMap)){
 }
 
 fs.writeFileSync(path.join(out,'_headers'),`/*\n  Cache-Control: no-store\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`);
-console.log(JSON.stringify({result:'PASS',output:'.doing-2-site',root:'doing-2.html',routes:Object.keys(routeMap),shell:shellTargets},null,2));
+console.log(JSON.stringify({result:'PASS',output:'.doing-2-site',root:'doing-2.html',routes:Object.keys(routeMap),shell:shellTargets,marketCompact:['market-center.html','market-session.html']},null,2));

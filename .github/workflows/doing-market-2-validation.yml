@@ -5,6 +5,7 @@ on:
       - 'doing-2.html'
       - 'doing-2-shell.css'
       - 'doing-2-shell.js'
+      - 'doing-market-2bl.css'
       - 'market-public.html'
       - 'market-center.html'
       - 'market-session.html'
@@ -17,12 +18,14 @@ on:
       - 'DOING_2.0_WORLD_TREE_V4_MARKET_OPERATIONS_20260822.md'
       - 'DOING_2.0_WORLD_TREE_V5_MARKET_PUBLIC_20260822.md'
       - 'DOING_2.0_WORLD_TREE_V7_2BL_UX_SHELL_20260822.md'
+      - 'DOING_2.0_WORLD_TREE_V8_MARKET_COMPACT_UI_20260822.md'
       - 'DOING_2.0_PRODUCT_ROADMAP_FIXED_20260822.md'
       - 'DOING_2.0_CHANGELOG.md'
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/validate-doing-market-2.mjs'
       - 'scripts/validate-doing-2-product-pages.mjs'
       - 'scripts/validate-doing-2-shell.mjs'
+      - 'scripts/validate-doing-market-compact-ui.mjs'
       - '.github/workflows/doing-market-2-validation.yml'
   workflow_dispatch:
 permissions:
@@ -41,6 +44,8 @@ jobs:
         run: node scripts/validate-doing-2-product-pages.mjs
       - name: Validate elder-friendly 2BL UX shell
         run: node scripts/validate-doing-2-shell.mjs
+      - name: Validate Market compact 2BL UI only
+        run: node scripts/validate-doing-market-compact-ui.mjs
       - name: Build DOING 2.0 site
         run: node scripts/build-doing-2-site.mjs
       - name: Diff quality

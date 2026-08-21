@@ -6,8 +6,10 @@ const path=location.pathname;
 const product=path.includes('market')?'market':path.includes('project')?'project':path.includes('booking')?'booking':path.includes('guide')?'guide':'hub';
 const body=document.body;
 if(!body||document.querySelector('.d2-topbar'))return;
+const marketActions=`<a href="${keep('/member-panel.html#account')}">登入／會員</a>`;
+const defaultActions=`<a class="optional" href="${keep('/market/public/')}">找活動</a><a href="${keep('/member-panel.html#activities')}">我的報名</a><a href="${keep('/')}">首頁</a>`;
 const top=document.createElement('header');top.className='d2-topbar';
-top.innerHTML=`<div class="d2-topbar-in"><a class="d2-brand" href="${keep('/')}"><img src="/doing-logo.png" alt="DOING"><div class="d2-brand-copy"><div class="d2-brand-title">DOING 2.0</div><div class="d2-brand-sub">${product==='market'?'市集營運':product==='project'?'室內設計':product==='booking'?'預約服務':product==='guide'?'導覽預約':'工作入口'}</div></div></a><div class="d2-top-actions"><a class="optional" href="${keep('/market/public/')}">找活動</a><a href="${keep('/member-panel.html#activities')}">我的報名</a><a href="${keep('/')}">首頁</a></div></div><nav class="d2-product-nav"><a class="${product==='market'?'active':''}" href="${keep('/market/')}">Market</a><a class="${product==='project'?'active':''}" href="${keep('/project/')}">Project</a><a class="${product==='booking'?'active':''}" href="${keep('/booking/')}">Booking</a><a class="${product==='guide'?'active':''}" href="${keep('/guide/')}">Guide</a></nav>`;
+top.innerHTML=`<div class="d2-topbar-in"><a class="d2-brand" href="${keep('/')}"><img src="/doing-logo.png" alt="DOING"><div class="d2-brand-copy"><div class="d2-brand-title">${product==='market'?'DOING Market':'DOING 2.0'}</div><div class="d2-brand-sub">${product==='market'?'市集營運':product==='project'?'室內設計':product==='booking'?'預約服務':product==='guide'?'導覽預約':'工作入口'}</div></div></a><div class="d2-top-actions">${product==='market'?marketActions:defaultActions}</div></div><nav class="d2-product-nav"><a class="${product==='market'?'active':''}" href="${keep('/market/')}">Market</a><a class="${product==='project'?'active':''}" href="${keep('/project/')}">Project</a><a class="${product==='booking'?'active':''}" href="${keep('/booking/')}">Booking</a><a class="${product==='guide'?'active':''}" href="${keep('/guide/')}">Guide</a></nav>`;
 body.prepend(top);
 if(product==='hub'){
   const main=document.querySelector('main.shell');
@@ -16,6 +18,12 @@ if(product==='hub'){
   }
 }
 if(product==='market'){
+  const tabs=document.querySelector('.tabs');
+  const topIn=document.querySelector('.d2-topbar-in');
+  if(tabs&&topIn){
+    tabs.classList.add('d2-market-mainnav');
+    topIn.insertBefore(tabs,topIn.querySelector('.d2-top-actions'));
+  }
   const settings=document.querySelector('#settings .settings');
   if(settings){
     const to=keep('/admin.html#settings');
@@ -34,7 +42,6 @@ if(product==='market'){
     ].map(([a,b])=>`<a href="${to}">${a}<small>${b}</small></a>`).join('');
   }
 }
-// 移除工程用說明文字，保留真正操作標籤。
 document.querySelectorAll('.note').forEach(el=>{if(/不重建資料庫|QR 功能保留完整|正式資料仍由/.test(el.textContent||''))el.classList.add('d2-hide-engineering')});
 for(const el of document.querySelectorAll('.hero p,.muted')){
   const t=(el.textContent||'').trim();
