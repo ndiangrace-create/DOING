@@ -1,0 +1,37 @@
+name: Booking Entry Patch
+on:
+  push:
+    branches:
+      - feature/universal-booking-module-20260821
+    paths:
+      - 'scripts/patch-booking-center-entry.mjs'
+      - '.github/workflows/booking-entry-patch.yml'
+permissions:
+  contents: write
+jobs:
+  patch-entry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/universal-booking-module-20260821
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Patch operations center entry
+        run: node scripts/patch-booking-center-entry.mjs
+      - name: Commit exact patch if needed
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- operations-center.html; then
+            echo 'No patch required'
+            exit 0
+          fi
+          git diff --check -- operations-center.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add operations-center.html
+          git commit -m 'feat: connect Web booking center from operations center'
+          git push origin HEAD:feature/universal-booking-module-20260821
