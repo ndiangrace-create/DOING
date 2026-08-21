@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'doing-2.html'
+      - 'market-public.html'
       - 'market-center.html'
       - 'market-session.html'
       - 'project-center.html'
@@ -12,6 +13,7 @@ on:
       - 'DOING_2.0_WORLD_TREE_V2_PRODUCT_SPLIT_20260822.md'
       - 'DOING_2.0_WORLD_TREE_V3_MARKET_EXECUTION_20260822.md'
       - 'DOING_2.0_WORLD_TREE_V4_MARKET_OPERATIONS_20260822.md'
+      - 'DOING_2.0_WORLD_TREE_V5_MARKET_PUBLIC_20260822.md'
       - 'DOING_2.0_PRODUCT_ROADMAP_FIXED_20260822.md'
       - 'DOING_2.0_CHANGELOG.md'
       - 'scripts/validate-doing-market-2.mjs'
