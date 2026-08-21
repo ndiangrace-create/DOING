@@ -11,11 +11,14 @@ on:
       - 'project-center.html'
       - 'booking-2-center.html'
       - 'guide-center.html'
+      - 'member-panel.html'
+      - 'doing-member-return-direct.js'
       - 'market/**'
       - 'project/**'
       - 'booking/**'
       - 'guide/**'
       - 'scripts/build-doing-2-site.mjs'
+      - 'scripts/validate-member-panel-return.mjs'
       - '.github/workflows/doing-2-site.yml'
   push:
     branches: [main]
@@ -27,11 +30,14 @@ on:
       - 'project-center.html'
       - 'booking-2-center.html'
       - 'guide-center.html'
+      - 'member-panel.html'
+      - 'doing-member-return-direct.js'
       - 'market/**'
       - 'project/**'
       - 'booking/**'
       - 'guide/**'
       - 'scripts/build-doing-2-site.mjs'
+      - 'scripts/validate-member-panel-return.mjs'
       - '.github/workflows/doing-2-site.yml'
   workflow_dispatch:
 
@@ -54,6 +60,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Validate member panel LINE return
+        run: node scripts/validate-member-panel-return.mjs
       - name: Build DOING 2.0 site
         run: node scripts/build-doing-2-site.mjs
       - name: Validate root and product routes
@@ -64,6 +72,7 @@ jobs:
           grep -q 'market-center.html' .doing-2-site/market/index.html
           grep -q 'market-public.html' .doing-2-site/market/public/index.html
           grep -q 'market-session.html' .doing-2-site/market/session/index.html
+          grep -q 'doing-member-return-direct.js' .doing-2-site/member-panel.html
           ! grep -R -q '2bl-v7' .doing-2-site
       - uses: actions/upload-artifact@v4
         with:
