@@ -53,3 +53,14 @@
 - 排位設備、退款／保證金、完整財務與通知等成熟能力目前先安全連回既有正式後台，後續再逐項內聚，不複製資料。
 - 新增 `DOING_2.0_WORLD_TREE_V3_MARKET_EXECUTION_20260822.md` 保存本階段執行狀態；v1、v2 不修改。
 - 本階段新增資料表 0、Schema 變更 0、正式資料搬移 0。
+
+## 2026-08-22｜Market 2.0 公開前台獨立入口
+
+- 新增 `market-public.html` 作為 DOING Market 公開入口。
+- 公開活動直接讀既有 `publicDiscovery`，不建立第二套活動資料。
+- 可依市集／活動／體驗／DIY 分類，搜尋活動名稱、主辦與地點。
+- 點活動回到既有正式 `index.html?tenant=...&session=...` 活動詳情與報名流程，不重做報名資料。
+- 「我的報名」沿用既有 LINE member OAuth 與 `member-panel.html#activities`。
+- localStorage 僅沿用既有 member token 暫存，不保存正式營運資料。
+- 新增 `DOING_2.0_WORLD_TREE_V4_MARKET_OPERATIONS_20260822.md` 與 `DOING_2.0_WORLD_TREE_V5_MARKET_PUBLIC_20260822.md`；v1-v3 不修改。
+- 本階段新增資料表 0、Schema 變更 0、正式資料搬移 0。
