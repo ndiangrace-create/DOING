@@ -46,6 +46,10 @@ assert.match(cron,/doing-transient-cleanup-daily/);
 assert.match(cron,/doing_cleanup_transient_data\(1000\)/);
 assert.match(migration,/drop index if exists public\.idx_tenant_apply_logs_status_created_v2/,'重複索引必須合併');
 assert.match(migration,/idx_platform_attribution_events_occurred_anonymous/);
+for(const fn of ['doing_auto_activate_workspace()','doing_cleanup_transient_data(integer)']){
+  assert.ok(migration.includes(`revoke all on function public.${fn} from public, anon, authenticated`));
+  assert.ok(migration.includes(`grant execute on function public.${fn} to service_role`));
+}
 assert.match(migration,/doing_naming_contract/);
 assert.match(migration,/doing_data_retention_policy/);
 assert.match(migration,/doing_workspace_activation_policy/);

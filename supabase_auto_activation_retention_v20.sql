@@ -135,6 +135,10 @@ create trigger doing_auto_activate_workspace_after_verification
 after update of status on public.tenant_apply_logs
 for each row execute function public.doing_auto_activate_workspace();
 
+-- 這兩個 SECURITY DEFINER 函式只供資料庫 trigger／排程使用，禁止前端直接 RPC 呼叫。
+revoke all on function public.doing_auto_activate_workspace() from public, anon, authenticated;
+grant execute on function public.doing_auto_activate_workspace() to service_role;
+
 -- 90 天暫存清理：只清除尚未連到 tenant 的未驗證／被替代草稿；正式業務資料完全不碰。
 create or replace function public.doing_cleanup_transient_data(p_batch integer default 500)
 returns jsonb
@@ -176,6 +180,9 @@ begin
   );
 end;
 $$;
+
+revoke all on function public.doing_cleanup_transient_data(integer) from public, anon, authenticated;
+grant execute on function public.doing_cleanup_transient_data(integer) to service_role;
 
 -- 刪除完全重複的索引，避免每次寫入多做一份無效索引維護。
 drop index if exists public.idx_tenant_apply_logs_status_created_v2;

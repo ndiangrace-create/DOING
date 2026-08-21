@@ -477,7 +477,7 @@
         {
           "label": "正式曝光到完成報名歸因 E2E",
           "status": "verify",
-          "note": "需先執行 supabase_platform_attribution.sql，再以正式活動測試"
+          "note": "正式歸因表與 RLS 已部署；待第一個正式活動完成曝光到報名真人 E2E"
         },
         {
           "label": "正式購買到首頁顯示E2E",
