@@ -72,3 +72,15 @@
 - 正式部署仍未執行；deploy skipped。
 - 退款流程因涉及管理費、轉場費、活動金防誤退等正式判斷，第一版不簡化重寫，維持成熟既有退款面板。
 - 正式 LINE／真實場次／手機與桌機 click-through／付款／QR 真人 UAT 尚未執行，因此狀態固定為 Automated Release Candidate，不宣稱 Release Ready。
+
+## 2026-08-22｜v6 doing.2b-love.com 獨立網址與部署架構
+
+- 使用者定案 `doing.2b-love.com` 作為 DOING 2.0 正式首頁／Hub 網域。
+- 產品路徑固定：`/market/`、`/market/public/`、`/market/session/`、`/project/`、`/booking/`、`/guide/`。
+- 新增各產品資料夾型路徑入口，保留 query/hash，不重做產品資料。
+- 新增 `scripts/build-doing-2-site.mjs`，建立獨立 `.doing-2-site` 部署產物；部署產物根 `index.html` 由 `doing-2.html` 生成，不修改舊 DOING `index.html`。
+- 新增 `.github/workflows/doing-2-site.yml`；PR 階段只建置／驗證，push main 才允許建立 Cloudflare Pages `doing-2`、部署並綁定 `doing.2b-love.com`。
+- 原先暫建的 Repo 根 `CNAME` 已移除，避免影響既有 GitHub Pages。
+- `2b-love.com` 與 2BL 保持完全不動。
+- 新增 `DOING_2.0_WORLD_TREE_V6_URL_ARCHITECTURE_20260822.md`；v1-v5 不修改。
+- 本階段新增資料表 0、Schema 變更 0、正式資料搬移 0。
