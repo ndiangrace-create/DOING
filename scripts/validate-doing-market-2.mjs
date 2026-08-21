@@ -9,8 +9,8 @@ for(const label of ['當日名單','該場次全名單','搜尋名字／品牌',
 for(const label of ['報名','審核','錄取','繳費','排位設備','行前通知','現場','結案'])assert.ok(html.includes(label),`缺少 Market 主流程：${label}`);
 assert.ok(html.includes('QR 報到／核銷'),'缺少 QR 完整能力入口');
 assert.ok(html.includes('體驗活動'),'缺少體驗活動');
-assert.ok(html.includes("new URL('admin.html'"),'必須沿用既有正式 admin 功能');
-assert.ok(html.includes("new URL('onsite.html'"),'必須沿用既有正式 onsite 功能');
+assert.ok(html.includes('admin.html')&&html.includes('data-admin='),'必須沿用既有正式 admin 功能');
+assert.ok(html.includes('onsite.html')&&html.includes('data-onsite='),'必須沿用既有正式 onsite 功能');
 for(const bad of ['2bl-v7','DOING-Market-App','doingmarket://','localStorage.setItem'])assert.ok(!html.includes(bad),`Market 2.0 Web 不得耦合：${bad}`);
 const ids=[...html.matchAll(/\sid="([^"]+)"/g)].map(x=>x[1]);assert.equal(new Set(ids).size,ids.length,'HTML 存在重複 id');
 for(const m of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){if(m[1].trim())new vm.Script(m[1],{filename:'market-center.html#inline'});}
