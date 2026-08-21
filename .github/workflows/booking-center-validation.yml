@@ -1,0 +1,30 @@
+name: Booking Center Validation
+on:
+  pull_request:
+    paths:
+      - 'booking-center.html'
+      - 'scripts/validate-booking-center.mjs'
+      - '.github/workflows/booking-center-validation.yml'
+      - 'DOING_BOOKING_MODULE_RELEASE_READY_20260821.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-booking-center:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate booking center
+        run: node scripts/validate-booking-center.mjs
+      - name: Repository safety checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check ${{ github.event.pull_request.base.sha || 'HEAD^' }}...HEAD
+          ! grep -R "DOING-Market-App\|doingmarket://\|2bl-v7" booking-center.html scripts/validate-booking-center.mjs
+          test -s booking-center.html
