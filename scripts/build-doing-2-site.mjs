@@ -10,7 +10,7 @@ const copyFiles=[
   'doing-2.html','market-center.html','market-public.html','market-session.html',
   'project-center.html','booking-2-center.html','guide-center.html',
   'admin.html','onsite.html','member-panel.html','index.html','register.html',
-  'doing-system.css','doing-logo.png','doing-attribution.js','doing-home-refresh.js','doing-home-refresh.css',
+  'doing-system.css','doing-2-shell.css','doing-2-shell.js','doing-logo.png','doing-attribution.js','doing-home-refresh.js','doing-home-refresh.css',
   'manifest.webmanifest','pwa-icon-192.png'
 ];
 for(const file of copyFiles){
@@ -18,8 +18,21 @@ for(const file of copyFiles){
   if(fs.existsSync(src))fs.copyFileSync(src,path.join(out,file));
 }
 
+const shellTargets=[
+  'doing-2.html','market-center.html','market-session.html',
+  'project-center.html','booking-2-center.html','guide-center.html'
+];
+const injectShell=(file)=>{
+  const fp=path.join(out,file);if(!fs.existsSync(fp))return;
+  let html=fs.readFileSync(fp,'utf8');
+  if(!html.includes('doing-2-shell.css'))html=html.replace('</head>','<link rel="stylesheet" href="/doing-2-shell.css?v=20260822-2blux"></head>');
+  if(!html.includes('doing-2-shell.js'))html=html.replace('</body>','<script src="/doing-2-shell.js?v=20260822-2blux"></script></body>');
+  fs.writeFileSync(fp,html);
+};
+shellTargets.forEach(injectShell);
+
 // doing.2b-love.com 根目錄固定使用 DOING 2.0 Hub；不修改原本 index.html。
-fs.copyFileSync(path.join(root,'doing-2.html'),path.join(out,'index.html'));
+fs.copyFileSync(path.join(out,'doing-2.html'),path.join(out,'index.html'));
 
 const routeMap={
   'market/index.html':'market-center.html',
@@ -39,4 +52,4 @@ for(const [rel,targetFile] of Object.entries(routeMap)){
 }
 
 fs.writeFileSync(path.join(out,'_headers'),`/*\n  Cache-Control: no-store\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`);
-console.log(JSON.stringify({result:'PASS',output:'.doing-2-site',root:'doing-2.html',routes:Object.keys(routeMap)},null,2));
+console.log(JSON.stringify({result:'PASS',output:'.doing-2-site',root:'doing-2.html',routes:Object.keys(routeMap),shell:shellTargets},null,2));
