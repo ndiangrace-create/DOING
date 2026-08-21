@@ -15,6 +15,25 @@ if(product==='hub'){
     main.innerHTML=`<section class="d2-hub-hero"><div class="d2-hub-main"><div style="font-weight:950;color:#5f8c80;margin-bottom:6px">DOING 2.0</div><h1>今天要做什麼？</h1><p>從同一個 DOING 入口，進入你現在要工作的系統。每個系統各自獨立操作，但會員、權限、資料與 Core 都共用同一套正式來源。</p></div><div class="d2-hub-side"><b>目前先完成 Market</b><span>市集／活動／體驗先做到可直接營運；其他系統入口已保留。</span></div></section><section class="d2-hub-grid"><a class="d2-product-card active-product" href="${keep('/market/')}"><h2>DOING Market</h2><p>市集、活動、體驗。場次、待辦、現場、會員、設定。</p><div class="d2-cta">進入 Market →</div></a><a class="d2-product-card" href="${keep('/project/')}"><h2>DOING Project</h2><p>室內設計與工程專案管理。</p><div class="d2-cta">進入 Project →</div></a><a class="d2-product-card" href="${keep('/booking/')}"><h2>DOING Booking</h2><p>美類與一般服務預約。</p><div class="d2-cta">進入 Booking →</div></a><a class="d2-product-card" href="${keep('/guide/')}"><h2>DOING Guide</h2><p>導覽員與導覽預約。</p><div class="d2-cta">進入 Guide →</div></a></section>`;
   }
 }
+if(product==='market'){
+  const settings=document.querySelector('#settings .settings');
+  if(settings){
+    const to=keep('/admin.html#settings');
+    settings.innerHTML=[
+      ['付款資訊','銀行／既有付款方式／收款設定'],
+      ['合約管理','報名前同意條款與版本'],
+      ['信件／通知模板','錄取／補件／付款／行前通知'],
+      ['工作人員／權限','主辦／財務／現場與場次權限'],
+      ['公司／品牌資料','營運名稱、聯絡與品牌資訊'],
+      ['首頁顯示','公告、封面、LINE 與前台顯示'],
+      ['主題活動','系列／活動主題與首頁精選'],
+      ['常用場地圖','保存、重用場地圖與攤位'],
+      ['活動拍照框','活動框、行銷與名單'],
+      ['現場通行碼','現場人員快速操作入口'],
+      ['系統異常／稽核','錯誤紀錄與查修依據']
+    ].map(([a,b])=>`<a href="${to}">${a}<small>${b}</small></a>`).join('');
+  }
+}
 // 移除工程用說明文字，保留真正操作標籤。
 document.querySelectorAll('.note').forEach(el=>{if(/不重建資料庫|QR 功能保留完整|正式資料仍由/.test(el.textContent||''))el.classList.add('d2-hide-engineering')});
 for(const el of document.querySelectorAll('.hero p,.muted')){
