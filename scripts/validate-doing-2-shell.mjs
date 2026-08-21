@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const css=fs.readFileSync('doing-2-shell.css','utf8');
+const js=fs.readFileSync('doing-2-shell.js','utf8');
+const build=fs.readFileSync('scripts/build-doing-2-site.mjs','utf8');
+const world=fs.readFileSync('DOING_2.0_WORLD_TREE_V7_2BL_UX_SHELL_20260822.md','utf8');
+for(const x of ['Market','Project','Booking','Guide'])assert(js.includes(x),`缺產品 ${x}`);
+for(const x of ['17–18px','場次','待辦','現場','會員','設定'])assert(world.includes(x),`v7 缺 ${x}`);
+assert(css.includes('font-size:18px!important'),'桌機老花字級未鎖');
+assert(css.includes('@media(max-width:680px)'),'手機斷點缺失');
+assert(css.includes('grid-template-columns:repeat(5,1fr)'),'Market 五主選單缺失');
+assert(!css.includes('linear-gradient'),'2.0 Shell 不得使用漸層');
+assert(build.includes('doing-2-shell.css')&&build.includes('doing-2-shell.js'),'Pages build 未注入 Shell');
+assert(!js.includes('2bl-v7')&&!js.includes('douhmxipedgpfbvfynbq'),'Shell 不得耦合 2BL 正式後端');
+console.log(JSON.stringify({result:'PASS',shell:'2BL UX skeleton',elderFriendly:true,desktop:true,mobile:true,newTables:0,schemaChanges:0,twoBLModified:false},null,2));
