@@ -30,6 +30,24 @@
 8. 正式資料與租戶隔離
 9. 唯一正式入口與舊架構退休
 
+## 通用預約工作模組
+
+預約不是夜貓美甲專案，也不是美類專用分支；它是五個工作模組之一，任何服務型租戶都使用同一組正式資料根。
+
+Web 正式操作面：`booking-center.html`。本頁只組合既有 Core 能力，不建立第二套會員、預約、付款、日曆或通知資料。
+
+店家路徑固定為：
+
+> 工作空間／主辦後台 → 預約中心 → 選擇或建立預約工作 → 建立預約日曆 → 建立服務 → 建立服務人員／空間／設備 → 設定每週開放 → 設定臨時加開／休息 → 預覽可預約空檔 → 顧客建立正式預約 → 到店 → 開始服務 → 完成服務。
+
+主要 API：`getOperationUnitsAdmin`、`saveOperationUnit`、`getBookingCalendarAdmin`、`saveBookingCalendar`、`getAvailabilityAdmin`、`saveAvailabilityRule`、`saveAvailabilityException`、`getAvailableStartsPublic`、`updateServiceVisit`。
+
+正式資料根：`operation_units`、`service_items`、`resources`、`booking_calendars`、`availability_rules`、`availability_exceptions`、`timeslots`、`registrations`、`service_visits`。
+
+預約中心使用通用名稱「服務人員／空間／設備」，不得寫死「美甲師」。服務時間、訂金、前後緩衝、可選起始間隔與同顧客間隔均由正式資料計算。夜貓美甲只能作為驗證租戶，不能成為資料模型或 UI 邏輯來源。
+
+Web 與 Market App 前端保持分離；此分支只開發 DOING Web，不修改 `DOING-Market-App`。兩端若使用相同 Core，也不得因此互相引用前端程式。
+
 ## 狀態規則
 
 - 已完成：程式、固定契約與自動驗證均已通過。
@@ -39,6 +57,8 @@
 - 待真人驗證：只能由真人、真機或第三方正式環境完成。
 
 真人項目不得因程式測試通過而改成已完成。目前固定包含 LINE OAuth、LINE 內建瀏覽器、真實手機、相機、第三方付款、真實收退款、真實場次結案、正式平台總管登入、現場通行碼及重新申請首筆正式工作空間。
+
+通用預約另外保留真人 UAT：正式租戶登入 Web 預約中心、建立第一個預約工作／服務／日曆、設定空檔、顧客真實預約、重新整理讀回、到店／開始／完成與必要收款。自動驗收不得冒充這些真人操作。
 
 Market App 使用同一棵營運世界樹與同一份 Core：原生 LINE 登入只以一次性交換碼回跳、攤商個人 QR 回寫同一筆 `registrations`、行動推播沿用 `notifications`。原生 deep link、真機相機與 APNs／FCM 實際收訊仍列為待真人驗證。
 
