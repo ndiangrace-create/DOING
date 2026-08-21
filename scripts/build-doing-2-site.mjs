@@ -14,7 +14,7 @@ const copyFiles=[
   'doing-system.css','doing-design-tokens.css','doing-pastel-pages.css',
   'doing-2-shell.css','doing-2-shell.js','doing-market-2bl.css',
   'doing-member-return-direct.js','doing-application-completion.js','doing-workspace-product-router.js',
-  'doing-smart-activation.js','doing-smart-result-visual.js','doing-auto-activation-status.js','doing-global-entry.js',
+  'doing-smart-activation-v5.js','doing-auto-activation-status.js','doing-global-entry.js',
   'doing-logo.png','doing-attribution.js','doing-home-refresh.js','doing-home-refresh.css',
   'manifest.webmanifest','pwa-icon-192.png'
 ];
@@ -36,7 +36,6 @@ const injectShell=(file)=>{
 };
 shellTargets.forEach(injectShell);
 
-// Market 只套自己的 2BL 緊縮營運外框；不修改 Hub／Project／Booking／Guide。
 for(const file of ['market-center.html','market-session.html']){
   const fp=path.join(out,file);if(!fs.existsSync(fp))continue;
   let html=fs.readFileSync(fp,'utf8');
@@ -45,7 +44,6 @@ for(const file of ['market-center.html','market-session.html']){
   fs.writeFileSync(fp,html);
 }
 
-// 會員中心單一登入：未登入直接 LINE OAuth，成功後回原 member-panel 分頁，不繞首頁。
 {
   const fp=path.join(out,'member-panel.html');
   if(fs.existsSync(fp)){
@@ -55,7 +53,6 @@ for(const file of ['market-center.html','market-session.html']){
   }
 }
 
-// 正式營運申請：LINE 驗證 → DB 自動開通 → 自動完成會員 session → 回我的 DOING。
 {
   const fp=path.join(out,'smart-application.html');
   if(fs.existsSync(fp)){
@@ -65,7 +62,6 @@ for(const file of ['market-center.html','market-session.html']){
   }
 }
 
-// 工作空間進入市集時使用 DOING Market 2.0，不再掉回舊 admin#sessions。
 {
   const fp=path.join(out,'workspace.html');
   if(fs.existsSync(fp)){
@@ -75,7 +71,6 @@ for(const file of ['market-center.html','market-session.html']){
   }
 }
 
-// doing.2b-love.com 根目錄固定使用 DOING 2.0 Hub；不修改 Repo 原本 index.html。
 fs.copyFileSync(path.join(out,'doing-2.html'),path.join(out,'index.html'));
 
 const routeMap={
@@ -88,16 +83,10 @@ const routeMap={
 };
 const redirect=(target)=>`<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script>const u=new URL('${target}',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.toString());<\/script></head><body></body></html>`;
 for(const [rel,targetFile] of Object.entries(routeMap)){
-  const dir=path.dirname(path.join(out,rel));
-  fs.mkdirSync(dir,{recursive:true});
-  const depth=rel.split('/').length-1;
-  const prefix='../'.repeat(depth);
+  const dir=path.dirname(path.join(out,rel));fs.mkdirSync(dir,{recursive:true});
+  const depth=rel.split('/').length-1,prefix='../'.repeat(depth);
   fs.writeFileSync(path.join(out,rel),redirect(prefix+targetFile));
 }
 
 fs.writeFileSync(path.join(out,'_headers'),`/*\n  Cache-Control: no-store\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`);
-console.log(JSON.stringify({
-  result:'PASS',output:'.doing-2-site',root:'doing-2.html',routes:Object.keys(routeMap),shell:shellTargets,
-  marketCompact:['market-center.html','market-session.html'],memberDirectReturn:true,
-  applicationFlow:true,workspaceMarketRouter:true
-},null,2));
+console.log(JSON.stringify({result:'PASS',output:'.doing-2-site',root:'doing-2.html',routes:Object.keys(routeMap),shell:shellTargets,marketCompact:['market-center.html','market-session.html'],memberDirectReturn:true,applicationFlow:true,applicationFixedProducts:'v5',workspaceMarketRouter:true},null,2));
