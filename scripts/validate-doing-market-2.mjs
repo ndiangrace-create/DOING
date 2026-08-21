@@ -21,8 +21,10 @@ for(const [name,source] of [['market-center.html',html],['market-session.html',s
 }
 const base=fs.readFileSync('DOING_2.0_WORLD_TREE_V1_BASELINE_20260822.md','utf8');
 const v3=fs.readFileSync('DOING_2.0_WORLD_TREE_V3_MARKET_EXECUTION_20260822.md','utf8');
+const v4=fs.readFileSync('DOING_2.0_WORLD_TREE_V4_MARKET_OPERATIONS_20260822.md','utf8');
 assert.ok(base.includes('不可覆蓋基準'),'缺少 2.0 v1 不可覆蓋世界樹基準');
 assert.ok(base.includes('同功能資料必須沿用現有正式資料表名稱'),'缺少 SSOT 防重建規則');
 assert.ok(v3.includes('單場工作台')&&v3.includes('本次新增資料表：0'),'v3 Market 執行世界樹未同步');
+assert.ok(v4.includes('getTodos')&&v4.includes('getMembers')&&v4.includes('新資料表：0'),'v4 Market 日常營運世界樹未同步');
 const log=fs.readFileSync('DOING_2.0_CHANGELOG.md','utf8');assert.ok(log.includes('只追加'),'ChangeLog 必須只追加');
-console.log(JSON.stringify({result:'PASS',product:'DOING Market',tabs:5,sessionWorkbench:7,sessionApi:'getSessionsAdmin',todoRead:'getTodos',memberRead:'getMembers',registrationRead:'getSessionRegistrations',reviewWrite:'approveReg',paymentWrite:'confirmPayment',onsiteWrite:'checkin',worldTreeBaseline:'LOCKED',worldTreeExecution:'v3',databaseChanges:0,newTables:0},null,2));
+console.log(JSON.stringify({result:'PASS',product:'DOING Market',tabs:5,sessionWorkbench:7,sessionApi:'getSessionsAdmin',todoRead:'getTodos',memberRead:'getMembers',registrationRead:'getSessionRegistrations',reviewWrite:'approveReg',paymentWrite:'confirmPayment',onsiteWrite:'checkin',worldTreeBaseline:'LOCKED',worldTreeExecution:'v4',databaseChanges:0,newTables:0},null,2));
