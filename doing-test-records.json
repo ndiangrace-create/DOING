@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-21T07:25:00+08:00",
-  "sourceFingerprint": "14b8cff913830c554ceee1e5ec2897eb151e0d34f6fb0794a57324ac3fcc20f7",
-  "environment": "DOING 正式營運功能完成候選版。21 模組／194 項功能維持 167 項完成、27 項待真人確認、0 項阻斷、0 項尚未開發；營運世界樹為 6 角色、9 條主幹、30 個完整步驟。DOING Core 新增 Market App 所需三組接口：LINE 原生 App 以 PKCE 與五分鐘一次性交換碼安全取得 member_token、攤商兩分鐘個人 QR 與工作人員雙重權限報到、iOS／Android 裝置 Token 登錄撤銷與通知投遞佇列。正式資料仍共用 platform_members、registrations、notifications；新建 mobile_auth_exchanges、mobile_push_devices、mobile_push_deliveries 三表均已啟用 RLS、封鎖瀏覽器直連並只授權 Worker service role。既有 Web 登入、申請、會員、品牌、預約、付款、報到與通知回歸均通過。LINE 原生 deep link、iOS／Android 真機登入、相機掃碼、APNs／FCM 正式收訊及原真人 UAT 項目仍維持待驗證。自動驗收 productionWrites=0；2BL 未修改；計費未修改。",
+  "recordedAt": "2026-08-21T17:00:00+08:00",
+  "sourceFingerprint": "4317e14b7cc5b1aa1b1f92b47ade6ea35631fe0104ecbcf35b8ca096b58b7ffb",
+  "environment": "DOING Web 通用預約模組 Release Candidate。新增 booking-center.html，僅組合既有 operation_units、service_items、resources、booking_calendars、availability_rules、availability_exceptions、timeslots、registrations、service_visits 與既有 Worker actions；不建立第二套預約資料。Web 與 DOING-Market-App 前端維持分離；未修改 Market App、2BL 或計費。原有全系統、通用預約、營運收尾與 Market App Core 回歸均需維持 PASS；真人租戶登入、建立第一個服務／日曆、真實顧客預約、到店／開始／完成與真實付款仍列真人 UAT。自動驗收 productionWrites=0。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
@@ -10,6 +10,7 @@
   "authorizedSchemaChanges": 1,
   "tests": [
     {"id":"syntax","command":"node -e \"import('./worker.js')\" && node --check doing-attribution.js && node --check doing-home-refresh.js && node --check doing-smart-activation.js && node --check doing-global-entry.js && node --check doing-auto-activation-status.js","result":"PASS","scope":"正式 ES module Worker、首頁路由、智慧啟用、自動開通狀態與全域入口 JavaScript 語法；已退休 doing-about-refresh.js/css 不得存在"},
+    {"id":"booking-center","command":"node scripts/validate-booking-center.mjs","result":"PASS","scope":"Web 通用預約中心 inline JavaScript、必要預約 API、手機 breakpoint、44px 點擊尺寸、DOM id、通用服務／資源文案與禁止 Market App／2BL 耦合"},
     {"id":"operational-world-tree","command":"node scripts/validate-operational-world-tree.mjs","result":"PASS","scope":"DOING 營運世界樹固定 4 層、6 角色、9 條主幹與 30 個步驟；每一步含頁面、按鈕、權限、真實 action、Supabase、狀態、完成判準、下一步／返回及驗證依據；功能盤點分離保留"},
     {"id":"role-journey-uat","command":"node scripts/validate-role-journey-uat.mjs","result":"PASS","scope":"6 種角色逐條驗證入口、按鈕、頁面、權限、API、Supabase、完成狀態與下一步／返回；真人瀏覽器項目維持 pending_by_contract"},
     {"id":"settings-ssot","command":"node scripts/validate-data-sources.mjs","result":"PASS","scope":"18 類正式設定必須有 Supabase 資料根；可調設定使用 Worker 讀寫 API，治理型設定使用受版本控制 migration 寫入 platform_settings；瀏覽器不得保存正式設定或營運資料"},
