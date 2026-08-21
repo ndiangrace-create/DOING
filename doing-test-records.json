@@ -1,12 +1,13 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-22T05:44:00+08:00",
-  "sourceFingerprint": "e16638b50fee402294fee48c02f6aa393015baee66a8720cf44ef66f4856f97f",
-  "environment": "DOING 2.0 v7 共用 Shell 驗證版。依 2BL 成熟操作骨架統一 Hub／Market／Project／Booking／Guide 的頁面框架、操作路徑與設定分區；一般文字採老花友善尺寸，桌機使用寬工作區，手機重新排版並保留 Market 五主選單。正式業務資料仍只使用 DOING Core／tobeloved-api／DOING_SaaS Supabase；2BL、Worker、Schema、正式業務資料均未修改。",
+  "recordedAt": "2026-08-22T05:52:00+08:00",
+  "sourceFingerprint": "4faf7ea4e399fec06af275ef25ee7f97bbb7ed96e98143f8d73f56bc44eb3d55",
+  "environment": "DOING Market v8 緊縮營運介面驗證版。Hub 本輪不修改；只對 market-center.html 與 market-session.html 的部署成品套用 2BL 現行後台式介面：桌機左側五主選單、手機底部五主選單、小卡片、緊縮 KPI、淡藍／薄荷綠／奶油黃／冰藍配色、17px 基礎字級。正式業務資料仍只使用 DOING Core／tobeloved-api／DOING_SaaS Supabase；2BL、Worker、Schema、正式業務資料均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
   "tests": [
+    {"id":"doing-market-compact-ui","command":"node scripts/validate-doing-market-compact-ui.mjs","result":"PASS","scope":"Market 專用 2BL 緊縮介面；Hub 不套用；桌機左側導覽、手機底部導覽、17px 基礎字級、小卡片、無漸層"},
     {"id":"doing-2-shell","command":"node scripts/validate-doing-2-shell.mjs","result":"PASS","scope":"共用 Shell、老花友善字級、44px 以上操作區、桌機與手機斷點、2BL 操作骨架"},
     {"id":"doing-market-2","command":"node scripts/validate-doing-market-2.mjs","result":"PASS","scope":"Market 場次／待辦／現場／會員／設定與單場七分頁既有功能契約"},
     {"id":"doing-2-product-pages","command":"node scripts/validate-doing-2-product-pages.mjs","result":"PASS","scope":"Hub／Market／Project／Booking／Guide 獨立頁與路由"},
@@ -20,10 +21,10 @@
     {"id":"role-module-access","command":"node scripts/validate-role-module-access.mjs","result":"PASS","scope":"多角色與模組權限回歸"},
     {"id":"full-system","command":"node scripts/validate-full-system.mjs","result":"PASS","scope":"正式功能頁、API 動作與後台按鈕回歸"},
     {"id":"navigation-actions","command":"node scripts/validate-navigation-actions.mjs","result":"PASS","scope":"平台、租戶、首頁與工作入口導航回歸"},
-    {"id":"universal-booking","command":"node scripts/validate-universal-booking.mjs","result":"PASS","scope":"預約核心能力未受 2.0 Shell 影響"},
+    {"id":"universal-booking","command":"node scripts/validate-universal-booking.mjs","result":"PASS","scope":"預約核心能力未受 Market UI 修改影響"},
     {"id":"operational-closeout","command":"node scripts/validate-operational-closeout.mjs","result":"PASS","scope":"財務、押金、寄賣、POS、結案等成熟能力回歸"},
     {"id":"operational-readiness","command":"node scripts/validate-operational-readiness.mjs","result":"PASS","scope":"插件核心、資料可攜權、版面與我的報名契約"},
-    {"id":"market-app-core-contracts","command":"node scripts/validate-market-app-core-contracts.mjs","result":"PASS","scope":"Market App Core 契約未受 Web Shell 修改影響"},
+    {"id":"market-app-core-contracts","command":"node scripts/validate-market-app-core-contracts.mjs","result":"PASS","scope":"Market App Core 契約未受 Web Market UI 修改影響"},
     {"id":"admin-consistency","command":"node scripts/validate-admin-consistency.mjs","result":"PASS","scope":"淺色極簡、無漸層、按鈕不溢位與後台一致性"},
     {"id":"worker-sync","command":"cmp -s worker.js worker.txt","result":"PASS","scope":"正式 Worker 雙檔未變更且同步"}
   ]
