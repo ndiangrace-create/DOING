@@ -1,14 +1,15 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-22T01:54:00+08:00",
-  "sourceFingerprint": "97f0c88ad771ca41fae8ce676d9dd8cad407897c46ebc2a32f001ef54c499aa3",
-  "environment": "DOING Web 正式申請完成路由修正版。application_status=approved 且 tenant_id 存在時，Web 會以目前正式會員登入建立該租戶管理 session 並直接進 workspace.html 營運後台；不再回到首頁申請區，也不再載入已退休的 about.html／doing-about-refresh.js。首頁申請入口與客服『前往智慧申請』統一進 smart-application.html；未通過、補件或人工複核狀態仍留在現行智慧申請流程。既有通用預約、營運自動開通、Supabase SSOT、Market App Core 契約、2BL 邊界與計費均未修改。自動驗收 productionWrites=0。",
+  "recordedAt": "2026-08-22T03:28:00+08:00",
+  "sourceFingerprint": "0b2d123c5496d1e4233dca742f6c5d8d0f1d5d006616f8a808fd71d0fb817a7a",
+  "environment": "DOING 2.0 Market 操作層工作分支驗證版。舊 DOING 已開發功能、插件、API、資料表與舊世界樹全部保留；DOING_SaaS Supabase 仍為唯一正式資料來源。新增 DOING 2.0 v1 不可覆蓋世界樹基準、只追加 ChangeLog、market-center.html 與 Market 專用驗證。Market 主辦操作骨架沿用 2BL 熟悉順序：場次→待辦→現場→會員→設定；現場保留當日名單／該場次全名單→搜尋姓名／品牌→一鍵報到，QR 完整能力保留但第一階段不強迫使用。付款第一階段沿用 2BL 操作。未新增資料表、未修改正式資料、未部署、productionWrites=0。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
   "authorizedSetupWrites": 3,
   "authorizedSchemaChanges": 2,
   "tests": [
+    {"id":"doing-market-2","command":"node scripts/validate-doing-market-2.mjs","result":"PASS","scope":"DOING Market 2.0 五大操作入口、2BL 操作順序、現場姓名搜尋過渡流程、QR 完整能力位置、體驗活動定位、既有 admin／onsite 正式功能接線、世界樹 v1 不可覆蓋基準與 SSOT 防重建規則；newTables=0，productionWrites=0"},
     {"id":"syntax","command":"node -e \"import('./worker.js')\" && node --check doing-attribution.js && node --check doing-home-refresh.js && node --check doing-smart-activation.js && node --check doing-global-entry.js && node --check doing-auto-activation-status.js","result":"PASS","scope":"正式 ES module Worker、首頁路由、智慧啟用、自動開通狀態與全域入口 JavaScript 語法；已退休 doing-about-refresh.js/css 不得存在"},
     {"id":"operational-world-tree","command":"node scripts/validate-operational-world-tree.mjs","result":"PASS","scope":"DOING 營運世界樹固定 4 層、6 角色、9 條主幹與 30 個步驟；每一步含頁面、按鈕、權限、真實 action、Supabase、狀態、完成判準、下一步／返回及驗證依據；功能盤點分離保留"},
     {"id":"role-journey-uat","command":"node scripts/validate-role-journey-uat.mjs","result":"PASS","scope":"6 種角色逐條驗證入口、按鈕、頁面、權限、API、Supabase、完成狀態與下一步／返回；真人瀏覽器項目維持 pending_by_contract"},
