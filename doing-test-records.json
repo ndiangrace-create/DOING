@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-22T05:43:00+08:00",
-  "sourceFingerprint": "26d0bec12c174d53db2b508a108f7b8000ebe2c83deb38ee2083d07f976b3249",
+  "recordedAt": "2026-08-22T05:44:00+08:00",
+  "sourceFingerprint": "e16638b50fee402294fee48c02f6aa393015baee66a8720cf44ef66f4856f97f",
   "environment": "DOING 2.0 v7 共用 Shell 驗證版。依 2BL 成熟操作骨架統一 Hub／Market／Project／Booking／Guide 的頁面框架、操作路徑與設定分區；一般文字採老花友善尺寸，桌機使用寬工作區，手機重新排版並保留 Market 五主選單。正式業務資料仍只使用 DOING Core／tobeloved-api／DOING_SaaS Supabase；2BL、Worker、Schema、正式業務資料均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
