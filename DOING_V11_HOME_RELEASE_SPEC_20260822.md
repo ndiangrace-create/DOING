@@ -1,7 +1,7 @@
 # DOING v11｜首頁改版固定規格＋部署執行單
 
 日期：2026-08-22
-狀態：Implementation → E2E → Release Ready → Authorized Deploy
+狀態：Automated E2E PASS → Authorized Deploy
 
 ## 一、首頁使用者定位
 
@@ -57,25 +57,27 @@ DOING 2.0 根首頁是一般民眾入口，不是工程／後台說明頁。
 
 ## 五、端對端驗收矩陣
 
-1. 根首頁可載入。
-2. 搜尋可攜帶 query 到公開活動頁。
-3. 報名活動入口正確。
-4. 我的紀錄入口正確。
-5. 未登入會員中心仍走單一 LINE OAuth 並回原分頁。
-6. 線上客服可開／關、快捷問題、Enter 送出、AI 問答 API 路徑存在。
-7. 我要申請不再受智慧小幫手 gate 阻擋。
-8. 申請 LINE → 自動開通 → 我的 DOING → workspace → Market 契約回歸。
-9. Market 桌機／手機操作骨架不受首頁 CSS 汙染。
-10. 所有正式資料來源維持 Supabase SSOT。
-11. Safe Production／Cloudflare audit／DOING 2.0 Site 全綠。
-12. 合併 main 後由 Cloudflare Pages 發布 `doing.2b-love.com`。
+1. 根首頁可載入：PASS。
+2. 搜尋可攜帶 query 到公開活動頁：PASS。
+3. 報名活動入口：PASS。
+4. 我的紀錄入口：PASS。
+5. 未登入會員中心單一 LINE OAuth 回原分頁：PASS。
+6. 線上客服開／關、快捷問題、Enter 送出、AI 問答 API 路徑：PASS。
+7. 我要申請不再受智慧小幫手 gate 阻擋：PASS。
+8. 申請 LINE → 自動開通 → 我的 DOING → workspace → Market 契約回歸：PASS。
+9. Market 桌機／手機操作骨架不受首頁 CSS 汙染：PASS。
+10. 正式資料來源維持 Supabase SSOT：PASS。
+11. DOING 2.0 Site #54：PASS。
+12. DOING Market 2.0 Validation #90：PASS。
+13. DOING Safe Production #528：PASS。
+14. Cloudflare audit：PASS。
 
 ## 六、DoD
 
-- 前台無工程語言。
-- 首頁三個主按鈕可操作。
-- 立體按鈕按壓回饋存在。
-- 手機／桌機不破框、不裁字。
-- 申請不再被客服／小幫手阻擋。
-- 全自動回歸 PASS。
-- 正式發布後再做真人瀏覽器 UAT；自動測試不可冒充真人瀏覽器證據。
+- 前台無工程語言：PASS。
+- 首頁三個主按鈕操作契約：PASS。
+- 立體按鈕按壓回饋：PASS。
+- 手機／桌機防破框與防裁字契約：PASS。
+- 申請不再被客服／小幫手阻擋：PASS。
+- 全自動回歸：PASS。
+- 正式發布後仍需真人瀏覽器視覺／點擊 UAT；自動測試不可冒充真人瀏覽器證據。
