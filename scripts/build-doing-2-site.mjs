@@ -10,7 +10,7 @@ const copyFiles=[
   'doing-2.html','market-center.html','market-public.html','market-session.html',
   'project-center.html','booking-2-center.html','guide-center.html',
   'admin.html','onsite.html','member-panel.html','index.html','register.html',
-  'doing-system.css','doing-2-shell.css','doing-2-shell.js','doing-market-2bl.css','doing-logo.png','doing-attribution.js','doing-home-refresh.js','doing-home-refresh.css',
+  'doing-system.css','doing-2-shell.css','doing-2-shell.js','doing-market-2bl.css','doing-member-single-login.js','doing-logo.png','doing-attribution.js','doing-home-refresh.js','doing-home-refresh.css',
   'manifest.webmanifest','pwa-icon-192.png'
 ];
 for(const file of copyFiles){
@@ -40,6 +40,16 @@ for(const file of ['market-center.html','market-session.html']){
   fs.writeFileSync(fp,html);
 }
 
+// 會員中心只保留單一登入入口：正常未登入狀態回首頁處理，不再顯示第二顆 LINE 登入。
+{
+  const fp=path.join(out,'member-panel.html');
+  if(fs.existsSync(fp)){
+    let html=fs.readFileSync(fp,'utf8');
+    if(!html.includes('doing-member-single-login.js'))html=html.replace('</body>','<script src="/doing-member-single-login.js?v=20260822-single-login"></script></body>');
+    fs.writeFileSync(fp,html);
+  }
+}
+
 // doing.2b-love.com 根目錄固定使用 DOING 2.0 Hub；不修改原本 index.html。
 fs.copyFileSync(path.join(out,'doing-2.html'),path.join(out,'index.html'));
 
@@ -61,4 +71,4 @@ for(const [rel,targetFile] of Object.entries(routeMap)){
 }
 
 fs.writeFileSync(path.join(out,'_headers'),`/*\n  Cache-Control: no-store\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`);
-console.log(JSON.stringify({result:'PASS',output:'.doing-2-site',root:'doing-2.html',routes:Object.keys(routeMap),shell:shellTargets,marketCompact:['market-center.html','market-session.html']},null,2));
+console.log(JSON.stringify({result:'PASS',output:'.doing-2-site',root:'doing-2.html',routes:Object.keys(routeMap),shell:shellTargets,marketCompact:['market-center.html','market-session.html'],memberSingleLogin:true},null,2));
