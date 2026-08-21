@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const js=fs.readFileSync('doing-smart-activation-v5.js','utf8');
+const shell=fs.readFileSync('doing-2-shell.js','utf8');
+const page=fs.readFileSync('smart-application.html','utf8');
+const build=fs.readFileSync('scripts/build-doing-2-site.mjs','utf8');
+for(const t of ['DOING Market','DOING Project','DOING Booking','DOING Guide','市集／活動／體驗主辦營運','室內設計／工程專案','美類／一般服務預約','導覽員／導覽預約']) assert.ok(js.includes(t),'missing fixed product '+t);
+assert.ok(!js.includes('我是攤商／參與者'),'Market 不得再詢問攤商參與者角色');
+assert.ok(!js.includes('兩種都有'),'Market 不得再走主辦／攤商舊角色分流');
+for(const t of ['市集','一般活動','體驗活動／DIY']) assert.ok(js.includes(t),'Market subtype missing '+t);
+for(const t of ['客戶','案件','現勘','報價','設計','圖面','選材','工程','工班','進度','追加減','驗收','收款','結案']) assert.ok(js.includes(t),'Project flow missing '+t);
+assert.ok(js.includes("architecture:'doing_2_fixed_products'"),'申請資料必須記錄固定產品架構版本');
+assert.ok(js.includes("mode','organizer_signup'"),'正式申請最後必須走 LINE organizer_signup');
+assert.ok(page.includes('/doing-smart-activation-v5.js'),'智慧申請頁必須使用 v5 固定產品流程');
+assert.ok(shell.includes('/smart-application.html')&&shell.includes('我要申請'),'我要申請必須固定開正式智慧申請頁');
+assert.ok(build.includes('doing-smart-activation-v5.js'),'Pages 必須包含固定產品申請 JS');
+console.log(JSON.stringify({result:'PASS',products:['Market','Project','Booking','Guide'],marketRoleQuestion:false,applyEntry:'/smart-application.html',dbTablesAdded:0},null,2));
