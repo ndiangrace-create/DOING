@@ -6,9 +6,12 @@ on:
       - 'doing-2-shell.css'
       - 'doing-2-shell.js'
       - 'doing-market-2bl.css'
+      - 'doing-market-completion-v16.css'
+      - 'doing-market-completion-v16.js'
       - 'market-public.html'
       - 'market-center.html'
       - 'market-session.html'
+      - 'member-panel.html'
       - 'project-center.html'
       - 'booking-2-center.html'
       - 'guide-center.html'
@@ -26,6 +29,7 @@ on:
       - 'scripts/validate-doing-2-product-pages.mjs'
       - 'scripts/validate-doing-2-shell.mjs'
       - 'scripts/validate-doing-market-compact-ui.mjs'
+      - 'scripts/validate-market-green-closure.mjs'
       - '.github/workflows/doing-market-2-validation.yml'
   workflow_dispatch:
 permissions:
@@ -46,6 +50,8 @@ jobs:
         run: node scripts/validate-doing-2-shell.mjs
       - name: Validate Market compact 2BL UI only
         run: node scripts/validate-doing-market-compact-ui.mjs
+      - name: Validate Market end-to-end closure
+        run: node scripts/validate-market-green-closure.mjs
       - name: Build DOING 2.0 site
         run: node scripts/build-doing-2-site.mjs
       - name: Diff quality
