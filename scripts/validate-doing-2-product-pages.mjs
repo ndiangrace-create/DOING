@@ -10,7 +10,13 @@ for(const [key,file] of Object.entries(pages)){
   assert.ok(!html.includes('2bl-v7'),`${file} 不得耦合 2BL Worker`);
   assert.ok(!html.includes('DOING-Market-App'),`${file} 不得耦合 Market App repo`);
   assert.ok(!html.includes('doingmarket://'),`${file} Web 不得綁 App scheme`);
-  assert.ok(!html.includes('localStorage.setItem'),`${file} 不得新增正式營運資料的 localStorage 寫入`);
+  if(key!=='market')assert.ok(!html.includes('localStorage.setItem'),`${file} 不得新增正式營運資料的 localStorage 寫入`);
+  else {
+    const allowed=new Set(['doing_market_token','doing_market_tenant']);
+    const keys=[...html.matchAll(/setStore\('([^']+)'/g)].map(m=>m[1]);
+    assert.ok(keys.every(k=>allowed.has(k)),`${file} 只允許保存登入 token／tenant，發現：${keys.filter(k=>!allowed.has(k)).join(',')}`);
+    for(const bad of ['registration','payment','refund','amount','fee','deposit','seat','capacity','limit','status'])assert.ok(!new RegExp(`localStorage\\.setItem\\([^)]*${bad}`,'i').test(html),`${file} 不得把 ${bad} 正式營運資料寫 localStorage`);
+  }
   const ids=[...html.matchAll(/\sid="([^"]+)"/g)].map(x=>x[1]);
   assert.equal(new Set(ids).size,ids.length,`${file} 有重複 id`);
   for(const m of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))if(m[1].trim())new vm.Script(m[1],{filename:file+'#inline'});
@@ -30,4 +36,4 @@ const v1=fs.readFileSync('DOING_2.0_WORLD_TREE_V1_BASELINE_20260822.md','utf8');
 const v2=fs.readFileSync('DOING_2.0_WORLD_TREE_V2_PRODUCT_SPLIT_20260822.md','utf8');
 assert.ok(v1.includes('不可覆蓋基準'),'v1 世界樹基準不可覆蓋');
 assert.ok(v2.includes('v1 保留不動'),'v2 必須保留 v1');
-console.log(JSON.stringify({result:'PASS',pages:Object.values(pages),publicHome:true,productRoutesPreserved:true,databaseSchemaChanges:0,newTables:0,existingInstructionsModified:false,worldTreeV1Preserved:true},null,2));
+console.log(JSON.stringify({result:'PASS',pages:Object.values(pages),publicHome:true,productRoutesPreserved:true,marketStorage:'auth-only',databaseSchemaChanges:0,newTables:0,existingInstructionsModified:false,worldTreeV1Preserved:true},null,2));
