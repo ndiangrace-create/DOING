@@ -12,10 +12,25 @@ if(isPublicHome){
     top.className='d2-topbar d2-home-desktop-topbar';
     top.innerHTML=`<div class="d2-topbar-in"><a class="d2-brand" href="${keep('/')}"><div class="d2-brand-copy"><div class="d2-brand-title">DOING</div><div class="d2-brand-sub">協槓人生小幫手</div></div></a><div class="d2-top-actions"><a href="${keep('/')}">首頁</a><a href="${keep('/market/public/')}">報名活動</a><a href="${keep('/member-panel.html#activities')}">我的紀錄</a><a href="${keep('/smart-application.html')}">我要申請</a></div></div>`;
     body.prepend(top);
-    const sync=()=>top.style.setProperty('display',matchMedia('(min-width:621px)').matches?'block':'none','important');
+    const sync=()=>{
+      const desktop=matchMedia('(min-width:621px)').matches;
+      top.style.setProperty('display',desktop?'block':'none','important');
+      top.style.setProperty('position',desktop?'fixed':'','important');
+      top.style.setProperty('top',desktop?'0':'','important');
+      top.style.setProperty('left',desktop?'0':'','important');
+      top.style.setProperty('right',desktop?'0':'','important');
+      top.style.setProperty('width',desktop?'100%':'','important');
+      top.style.setProperty('z-index',desktop?'1000':'','important');
+      if(desktop){
+        requestAnimationFrame(()=>body.style.setProperty('padding-top',`${top.offsetHeight}px`,'important'));
+      }else{
+        body.style.removeProperty('padding-top');
+      }
+    };
     sync();
     const mq=matchMedia('(min-width:621px)');
     if(mq.addEventListener)mq.addEventListener('change',sync);else if(mq.addListener)mq.addListener(sync);
+    addEventListener('resize',sync,{passive:true});
   }
   return;
 }
