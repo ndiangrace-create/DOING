@@ -6,9 +6,9 @@ const js=read('doing-market-role-ui-v17.js');
 const loader=read('doing-visual-system-20260822.js');
 const build=read('scripts/build-doing-2-site.mjs');
 const worker=read('worker.js');
-for(const token of ['repeat(5,minmax(0,1fr))','repeat(6,minmax(0,1fr))','repeat(2,minmax(0,1fr))','aspect-ratio:1/1','dm17-mobile-nav','dm17-desktop-support'])assert.ok(css.includes(token),'視覺規則缺少 '+token);
+for(const token of ['repeat(5,minmax(0,1fr))','repeat(6,minmax(0,1fr))','repeat(2,minmax(0,1fr))','aspect-ratio:1/1','dm17-mobile-nav','dm17-desktop-support','先做就對了 ✦'])assert.ok(css.includes(token),'視覺規則缺少 '+token);
 assert.ok(!css.includes('border-radius:999px'),'v17 不得新增膠囊元件');
-for(const token of ['找今天想參加的活動','先做就對了 ✦','firstDate','publicDiscovery','getSiteConfig','saveSiteConfig','logoUrl','heroImg','data-dm17-focus','pending','unpaid','paid','pageshow'])assert.ok(js.includes(token),'角色介面缺少 '+token);
+for(const token of ['找今天想參加的活動','firstDate','publicDiscovery','getSiteConfig','saveSiteConfig','logoUrl','heroImg','data-dm17-focus','pending','unpaid','paid','pageshow'])assert.ok(js.includes(token),'角色介面缺少 '+token);
 for(const token of ['doing-market-role-ui-v17.css','doing-market-role-ui-v17.js']){assert.ok(loader.includes(token),'視覺載入器未載入 '+token);assert.ok(build.includes(token),'正式建置未包含 '+token)}
 for(const token of ["case 'getSiteConfig'","case 'saveSiteConfig'",'TENANT_ROLE_ACTIONS','getSessionRegistrations','confirmPayment','confirmRefund'])assert.ok(worker.includes(token),'Core 契約缺少 '+token);
 assert.ok(js.includes("u.pathname='/market/session/'"),'數字入口必須進單場工作台');
