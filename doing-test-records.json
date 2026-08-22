@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "recordedAt": "2026-08-22T20:36:00+08:00",
-  "sourceFingerprint": "PENDING",
+  "sourceFingerprint": "654eecb574581622c769f19fba701cc99277dcf30cce62de13e3068ed1db6180",
   "environment": "DOING 2.0 v15.4 Market 市集操作路徑完成版。前台維持 7 步；後台依 2BL 使用者操作骨架補齊後台入口與場次總覽，形成 9 步主線；DOING 的 LINE、Workspace、Core／API、Supabase、角色與權限維持正式機制。Market 業務功能、Worker、Supabase Schema、正式資料與 2BL 均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
