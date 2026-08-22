@@ -1,13 +1,14 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-22T21:36:00+08:00",
-  "sourceFingerprint": "9bcba4741ce3e8601f0365bf6a3d6c8d10dcc476e4653b03480e783d46cb0e1c",
-  "environment": "DOING Market v16 閉環補齊版。沿用已發布操作介面，新增公開活動卡直接進 /register/、會員端報名歷史／退款紀錄與退款申請、主辦單場退款建議→確認退款→正式資料重讀。手機／桌機視覺沿用使用者核定的 Market 介面；DOING LINE、Workspace、Core／API、Supabase、角色與權限維持正式機制；Worker、Supabase Schema、正式資料與 2BL 均未修改。正式網域真人瀏覽器 UAT 仍依發布後實測契約保留待驗證。",
+  "recordedAt": "2026-08-22T22:42:00+08:00",
+  "sourceFingerprint": "0b30818e20d400dfdb491806a67d21ca8c3582326c72c802d58e97e748261e57",
+  "environment": "DOING Market 發布後紅燈修正版。正式主線已先發布 PR #150（2b4d8e89）；本修正只處理驗收方式與測試紀錄，不改 Market 功能本體、不改 2BL、不改 Worker／Supabase Schema。Market 閉環驗證已通過；Chromium 已直接驗證正式建置輸出的手機公開活動頁、桌機 Market 營運頁、手機會員紀錄頁與桌機單場工作台，並實際點擊可見靜態控制；登入後會員動作及 API／資料閉環仍由專用 Market 閉環檢查驗證。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
   "tests": [
     {"id":"market-green-closure","command":"node scripts/validate-market-green-closure.mjs","result":"PASS","scope":"公開探索→報名、會員歷史→退款申請→重讀、主辦退款建議→確認→重讀、現場與 Core 正式能力保留"},
+    {"id":"market-chromium-built-ui","command":"node scripts/e2e-market-ui.mjs","result":"PASS","scope":"Chromium 驗證正式建置輸出：手機公開活動、桌機 Market 營運、手機會員紀錄、桌機單場工作台；可見控制實際點擊與橫向溢位檢查"},
     {"id":"market-ui","command":"node scripts/validate-doing-market-compact-ui.mjs","result":"PASS","scope":"Market 公開活動頁／營運中心／單場工作台；手機參考色系、糖果感按鈕、桌機自動框架、後台 9 步操作導航、禁止漸層"},
     {"id":"responsive-layout","command":"node scripts/validate-responsive-layout.mjs","result":"PASS","scope":"手機／桌機響應式、Market 手機兩欄活動卡、桌機多欄工作框架與文字不裁切"},
     {"id":"world-tree-mindmap","command":"node scripts/validate-world-tree-mindmap.mjs","result":"PASS","scope":"前台 7 步、後台 9 步、系統閉環 5 步、深層操作節點、紅黃綠燈"},
