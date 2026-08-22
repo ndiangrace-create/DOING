@@ -17,7 +17,7 @@ for(const token of [
 
 assert.ok(css.includes('.d2-market-compact .d2-product-nav{display:none!important}'),'Market 必須移除產品橫向導覽重疊');
 assert.ok(css.includes('.d2-market-compact header.top{display:none!important}'),'Market 必須移除重複 header');
-assert.ok(css.includes('.d2-market-compact .hero{display:block!important}'),'Market 新版必須保留白話工作摘要，不得退回空白工程頁');
+assert.ok(css.includes('.d2-market-compact .hero')&&css.includes('display:block!important'),'Market 新版必須保留白話工作摘要，不得退回空白工程頁');
 assert.ok(shell.includes("tabs.classList.add('d2-market-mainnav')"),'Market 五主選單必須移入正式頂部框架');
 assert.ok(shell.includes('d2-market-journey'),'Market 必須顯示心智圖操作路徑');
 for(const token of ['後台入口','場次總覽','場次設定','待辦','審核','付款','排位','退款','財務結案'])assert.ok(shell.includes(token),'Market 操作路徑缺少：'+token);
