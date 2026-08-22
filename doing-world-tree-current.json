@@ -1,24 +1,64 @@
 {
-  "version": "v15.0",
-  "updatedAt": "2026-08-22 18:40",
+  "version": "v15.1",
+  "updatedAt": "2026-08-22 18:58",
   "current": {
-    "title": "DOING Market 主工作頁＋單場工作頁精修",
-    "summary": "目前主線是 Market。這份世界樹已把本次對話中已完成、已定案但待驗證、正在進行、尚未做與阻擋項目統一收進同一份 SSOT。"
+    "title": "Market｜2BL 完整操作路徑接入世界樹",
+    "summary": "已把 2BL 前台攤商路徑、後台主辦路徑與系統閉環完整接到 Market 分支；之後依這棵樹逐節點對齊 DOING Market，完成一節就更新狀態。"
   },
   "branches": [
     {
       "id": "market",
       "side": "left",
       "title": "Market",
-      "summary": "市集／活動／體驗工作系統；操作流程以 2BL 營運世界樹作 UX 骨架，但資料仍走 DOING Core／Supabase。",
+      "summary": "市集／活動／體驗工作系統；操作順序依 2BL 營運世界樹，資料仍使用 DOING Core／Supabase。",
       "status": "progress",
       "children": [
-        {"id":"market-2bl-flow","title":"2BL 操作骨架","summary":"前台探索→會員→報名→付款→排位→現場→歷史；後台場次設定→待辦→審核→付款→排位→退款→財務結案，已鎖定作為 Market 操作順序基準。","status":"done"},
+        {
+          "id":"market-front-path",
+          "title":"前台攤商路徑",
+          "summary":"2BL 固定前台路徑：活動探索 → 會員 → 報名 → 付款 → 排位 → 現場 → 歷史紀錄。",
+          "status":"progress",
+          "children":[
+            {"id":"front-discovery","title":"活動探索","summary":"從公開活動／搜尋找到可報名場次。","status":"verify"},
+            {"id":"front-member","title":"會員／登入","summary":"使用同一會員身分進入報名與後續紀錄。","status":"done"},
+            {"id":"front-registration","title":"報名","summary":"填寫報名資料、日期／攤位／設備／加購與必要同意。","status":"verify"},
+            {"id":"front-payment","title":"付款","summary":"錄取後顯示應繳，攤商付款／回報，主辦確認後成為已繳費。","status":"done"},
+            {"id":"front-seat","title":"排位／設備","summary":"已繳費後依場次規則進入編號、選位／排位與設備資訊。","status":"verify"},
+            {"id":"front-onsite","title":"現場","summary":"活動日查看行前資訊、QR／報到、現場狀態與撤場相關操作。","status":"verify"},
+            {"id":"front-history","title":"歷史紀錄","summary":"活動完成後仍可在我的紀錄查看報名、付款、退款、場次與歷史結果。","status":"todo"}
+          ]
+        },
+        {
+          "id":"market-admin-path",
+          "title":"後台主辦路徑",
+          "summary":"2BL 固定後台路徑：場次設定 → 待辦 → 審核 → 付款 → 排位 → 退款 → 財務結案。",
+          "status":"progress",
+          "children":[
+            {"id":"admin-session","title":"場次設定","summary":"建立／設定活動場次、日期、報名條件、費用、設備與現場規則。","status":"verify"},
+            {"id":"admin-todo","title":"待辦","summary":"集中顯示需要主辦處理的審核、付款、補件、現場與結案事項。","status":"progress"},
+            {"id":"admin-review","title":"審核","summary":"主辦審核報名並處理錄取、候補、未錄取等狀態。","status":"done"},
+            {"id":"admin-payment","title":"付款確認","summary":"查看應繳／回報並確認付款，確認後同步會員端狀態。","status":"done"},
+            {"id":"admin-seat","title":"排位／設備","summary":"依正式場次資料管理排位、設備與現場配置，不由前端自行推算。","status":"verify"},
+            {"id":"admin-refund","title":"退款","summary":"取消／退款走正式交易與紀錄，並同步會員紀錄與財務。","status":"verify"},
+            {"id":"admin-finance","title":"財務結案","summary":"場次完成後彙整收入、退款、設備／支出與結案資料。","status":"verify"}
+          ]
+        },
+        {
+          "id":"market-close-loop",
+          "title":"系統閉環",
+          "summary":"2BL 固定閉環：按鈕 → Worker／API → Supabase → 重讀 → 畫面；任何金額、名額、排位、付款、退款與權限不得只在前端假算。",
+          "status":"done",
+          "children":[
+            {"id":"loop-action","title":"按鈕／操作","summary":"使用者或主辦在前台、後台、現場執行操作。","status":"done"},
+            {"id":"loop-core","title":"Core／API","summary":"由正式 Core 驗證身分、權限、規則與資料契約。","status":"done"},
+            {"id":"loop-db","title":"Supabase SSOT","summary":"正式資料寫入唯一資料來源；多表異動需交易或安全補償。","status":"done"},
+            {"id":"loop-reread","title":"重讀正式資料","summary":"異動完成後重新取得正式結果，不能只改前端畫面。","status":"done"},
+            {"id":"loop-screen","title":"畫面同步","summary":"會員端、場次統計、名額、排位、財務與歷史紀錄同步顯示正式結果。","status":"verify"}
+          ]
+        },
         {"id":"market-main-tabs","title":"Market 主工作頁","summary":"場次／待辦／現場／會員／設定維持同一工作區，正在依新視覺逐區精修。","status":"progress"},
         {"id":"market-session","title":"單場工作頁","summary":"總覽／報名／付款／排位設備／通知／現場／結案已定案，正在依新視覺精修。","status":"progress"},
         {"id":"market-public","title":"公開活動頁","summary":"/market/public/ 搜尋與公開活動入口存在；正式畫面仍需逐頁驗收。","status":"verify"},
-        {"id":"market-payment","title":"錄取／付款流程","summary":"錄取→顯示應繳→付款／回報→主辦確認→已繳費→行前通知的流程契約已保留並通過自動驗證。","status":"done"},
-        {"id":"market-onsite","title":"現場／QR","summary":"現場報到、QR／掃碼與權限契約已存在；正式真人情境仍需實際點擊驗收。","status":"verify"},
         {"id":"market-settings","title":"設定與現場層級","summary":"設定、現場已回到 Market 主工作區，不再拆成獨立後台頁。","status":"done"},
         {"id":"market-visual","title":"Market 全頁面成熟視覺","summary":"基礎 Design System 已套用，但每個分頁仍需完成正式商業產品級細節精修。","status":"progress"},
         {"id":"market-browser-uat","title":"正式桌機／手機真人 UAT","summary":"尚未完成所有角色、所有按鈕的正式網域真人瀏覽器 click-through。","status":"todo"}
@@ -143,10 +183,10 @@
     }
   ],
   "changes": [
+    {"time":"2026-08-22 18:58","title":"Market 接上完整 2BL 操作路徑","summary":"世界樹新增前台攤商路徑、後台主辦路徑與系統閉環，並把每一步標成已完成／進行中／待驗證／尚未做。"},
     {"time":"2026-08-22 18:40","title":"世界樹整併所有已做／已說／未做","summary":"新增『尚未做』灰色狀態，將 Market、Project、Booking、Guide、會員、申請、工作空間、DOING 公開平台與共用核心的已完成／已定案／進行中／未做統一收進同一棵樹。"},
     {"time":"2026-08-22 18:30","title":"世界樹改為心智圖","summary":"中央主幹＋左右分支＋子節點＋狀態顏色，一眼看整體關係。"},
     {"time":"2026-08-22 18:16","title":"建立世界樹進度 SSOT","summary":"之後實際更新只同步 doing-world-tree-current.json。"},
-    {"time":"2026-08-22 17:29","title":"DOING 2.0 v14 視覺系統","summary":"全站 Design System、固定頂部列、Flat IA 與響應式框架完成自動驗證並合併。"},
-    {"time":"2026-08-22 17:02","title":"DOING 2.0 短網址整理","summary":"Market、Project、Booking、Guide、Workspace、我的紀錄、申請與報名改為正式短網址層級。"}
+    {"time":"2026-08-22 17:29","title":"DOING 2.0 v14 視覺系統","summary":"全站 Design System、固定頂部列、Flat IA 與響應式框架完成自動驗證並合併。"}
   ]
 }
