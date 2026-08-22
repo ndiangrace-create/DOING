@@ -5,8 +5,8 @@ const pub=fs.readFileSync('market-public.html','utf8');
 const center=fs.readFileSync('market-center.html','utf8');
 const session=fs.readFileSync('market-session.html','utf8');
 const build=fs.readFileSync('scripts/build-doing-2-site.mjs','utf8');
-for(const token of ['--c1:#DDEAD1','--c2:#FAEEC7','--c3:#D9E5EE','--c4:#FAE1DD','--c5:#DCD7ED','--admin-bg:#F8F6F0','--main:#82ABA3','width:150px','border-radius:999px','session-card','reg-card','settings-tile','onsite-reg-grid'])assert.ok(css.includes(token),'2BL parity CSS 缺少 '+token);
-for(const token of ['bottom-nav','cat-grid','event-card-h','event-cover','publicDiscovery','getSiteConfig','/register/','/me/','auth/line/start'])assert.ok(pub.includes(token),'前台 2BL 契約缺少 '+token);
+for(const token of ['--c1:#DDEAD1','--c2:#FAEEC7','--c3:#D9E5EE','--c4:#FAE1DD','--c5:#DCD7ED','--admin-bg:#F8F6F0','--main:#82ABA3','session-card','reg-card','settings-tile','onsite-reg-grid'])assert.ok(css.includes(token),'2BL parity CSS 缺少 '+token);
+for(const token of ['bottom-nav','cat-grid','event-card-h','event-cover','publicDiscovery','getSiteConfig','/register/','memberDialog','eventDialog','supportDialog','getPlatformMemberProfile','getMyRegsGlobal','savePlatformMemberProfile','auth/line/start'])assert.ok(pub.includes(token),'前台 2BL 契約缺少 '+token);
 for(const label of ['場次','待辦','現場','會員','活動','財務','寄賣','設定'])assert.ok(center.includes(`>${label}<`),'後台主導覽缺少 '+label);
 for(const token of ['getSessionsAdmin','getTodos','getMembers','getSessionRegistrations','checkin','saveSiteConfig','/market/session/','/workspace/','/market/public/','pageshow'])assert.ok(center.includes(token),'後台契約缺少 '+token);
 for(const token of ['getSessionDashboard','getSessionRegistrations','approveReg','confirmPayment','checkin','getRefundSuggestion','confirmRefund','updateSession','/market/'])assert.ok(session.includes(token),'單場工作台契約缺少 '+token);
@@ -14,4 +14,4 @@ for(const token of ["['pending'","['unpaid'","['paid'",'data-focus="${f}"','func
 for(const bad of ['2bl-v7','douhmxipedgpfbvfynbq'])for(const [name,src] of [['public',pub],['center',center],['session',session]])assert.ok(!src.includes(bad),`${name} 不得耦合 2BL 正式後端：${bad}`);
 assert.ok(pub.includes('tobeloved-api.ndiangrace.workers.dev')&&center.includes('tobeloved-api.ndiangrace.workers.dev')&&session.includes('tobeloved-api.ndiangrace.workers.dev'),'登入／資料必須保留 DOING Core');
 assert.ok(build.includes("marketVisual:'v18-rebuilt'")&&build.includes('doing-market-v18.css'),'正式建置未包含 Market parity CSS');
-console.log(JSON.stringify({result:'PASS',visual:'2BL UI parity on DOING Market',login:'DOING',backend:'DOING Core/Supabase',public:'2BL mobile-first cards/buttons',admin:'2BL 8-item nav + desktop 150px sidebar + mobile bottom nav',onsite:'2BL onsite card/action density',metricButtons:true,bidirectionalReread:true,dbChanges:0,workerChanges:0},null,2));
+console.log(JSON.stringify({result:'PASS',visual:'2BL UI parity on DOING Market',login:'DOING',backend:'DOING Core/Supabase',public:'category→card→single panel→register + inline member/support panels',admin:'2BL 8-item nav; desktop top fixed by latest Market layout contract, mobile bottom nav',onsite:'2BL onsite card/action density',metricButtons:true,bidirectionalReread:true,dbChanges:0,workerChanges:0},null,2));
