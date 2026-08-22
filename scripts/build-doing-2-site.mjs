@@ -17,7 +17,8 @@ const routes={
   '/workspace/':'workspace.html',
   '/me/':'member-panel.html',
   '/apply/':'smart-application.html',
-  '/register/':'register.html'
+  '/register/':'register.html',
+  '/world-tree/':'world-tree.html'
 };
 
 const legacyToShort={
@@ -79,23 +80,23 @@ function preparePage(source,route){
   html=rewriteLegacyRefs(html);
   html=ensureBase(html);
   html=addBodyClass(html,'d2-candy-theme');
-  html=inject(html,'doing-candy-theme.css','<link rel="stylesheet" href="/doing-candy-theme.css?v=20260822-short4">');
+  html=inject(html,'doing-candy-theme.css','<link rel="stylesheet" href="/doing-candy-theme.css?v=20260822-short5">');
 
   if(['market-center.html','market-session.html'].includes(source)){
     html=addBodyClass(html,'d2-market-compact');
-    html=inject(html,'doing-market-2bl.css','<link rel="stylesheet" href="/doing-market-2bl.css?v=20260822-short4">');
+    html=inject(html,'doing-market-2bl.css','<link rel="stylesheet" href="/doing-market-2bl.css?v=20260822-short5">');
   }
   if(['market-center.html','market-session.html','project-center.html','booking-2-center.html','guide-center.html'].includes(source)){
-    html=inject(html,'doing-2-shell.css','<link rel="stylesheet" href="/doing-2-shell.css?v=20260822-short4">');
-    html=inject(html,'doing-2-shell.js','<script src="/doing-2-shell.js?v=20260822-short4"></script>','body');
+    html=inject(html,'doing-2-shell.css','<link rel="stylesheet" href="/doing-2-shell.css?v=20260822-short5">');
+    html=inject(html,'doing-2-shell.js','<script src="/doing-2-shell.js?v=20260822-short5"></script>','body');
   }
-  if(source==='market-public.html')html=inject(html,'doing-market-public-query.js','<script src="/doing-market-public-query.js?v=20260822-short4"></script>','body');
-  if(source==='member-panel.html')html=inject(html,'doing-member-return-direct.js','<script src="/doing-member-return-direct.js?v=20260822-short4"></script>','body');
+  if(source==='market-public.html')html=inject(html,'doing-market-public-query.js','<script src="/doing-market-public-query.js?v=20260822-short5"></script>','body');
+  if(source==='member-panel.html')html=inject(html,'doing-member-return-direct.js','<script src="/doing-member-return-direct.js?v=20260822-short5"></script>','body');
   if(source==='smart-application.html'){
-    html=inject(html,'doing-application-contract-v12.js','<script src="/doing-application-contract-v12.js?v=20260822-short4"></script>','body');
-    html=inject(html,'doing-application-completion.js','<script src="/doing-application-completion.js?v=20260822-short4"></script>','body');
+    html=inject(html,'doing-application-contract-v12.js','<script src="/doing-application-contract-v12.js?v=20260822-short5"></script>','body');
+    html=inject(html,'doing-application-completion.js','<script src="/doing-application-completion.js?v=20260822-short5"></script>','body');
   }
-  if(source==='workspace.html')html=inject(html,'doing-workspace-product-router.js','<script src="/doing-workspace-product-router.js?v=20260822-short4"></script>','body');
+  if(source==='workspace.html')html=inject(html,'doing-workspace-product-router.js','<script src="/doing-workspace-product-router.js?v=20260822-short5"></script>','body');
 
   // The user-approved SaaS visual system applies to DOING 2.0 routes only; the DOING public root stays untouched.
   html=inject(html,'doing-visual-system-20260822.css','<link rel="stylesheet" href="/doing-visual-system-20260822.css?v=20260822-v1">');
@@ -111,13 +112,13 @@ function preparePage(source,route){
 let home=fs.readFileSync(path.join(root,'doing-2.html'),'utf8');
 home=rewriteLegacyRefs(ensureBase(home));
 home=addBodyClass(home,'d2-candy-theme');
-home=inject(home,'doing-candy-theme.css','<link rel="stylesheet" href="/doing-candy-theme.css?v=20260822-short4">');
-home=inject(home,'doing-2-shell.css','<link rel="stylesheet" href="/doing-2-shell.css?v=20260822-short4">');
-home=inject(home,'doing-2-home-v11.css','<link rel="stylesheet" href="/doing-2-home-v11.css?v=20260822-short4">');
-home=inject(home,'doing-home-logo-slot-v12.css','<link rel="stylesheet" href="/doing-home-logo-slot-v12.css?v=20260822-short4">');
-home=inject(home,'doing-2-shell.js','<script src="/doing-2-shell.js?v=20260822-short4"></script>','body');
-home=inject(home,'doing-2-home-v11.js','<script src="/doing-2-home-v11.js?v=20260822-short4"></script>','body');
-home=inject(home,'doing-home-logo-slot-v12.js','<script src="/doing-home-logo-slot-v12.js?v=20260822-short4"></script>','body');
+home=inject(home,'doing-candy-theme.css','<link rel="stylesheet" href="/doing-candy-theme.css?v=20260822-short5">');
+home=inject(home,'doing-2-shell.css','<link rel="stylesheet" href="/doing-2-shell.css?v=20260822-short5">');
+home=inject(home,'doing-2-home-v11.css','<link rel="stylesheet" href="/doing-2-home-v11.css?v=20260822-short5">');
+home=inject(home,'doing-home-logo-slot-v12.css','<link rel="stylesheet" href="/doing-home-logo-slot-v12.css?v=20260822-short5">');
+home=inject(home,'doing-2-shell.js','<script src="/doing-2-shell.js?v=20260822-short5"></script>','body');
+home=inject(home,'doing-2-home-v11.js','<script src="/doing-2-home-v11.js?v=20260822-short5"></script>','body');
+home=inject(home,'doing-home-logo-slot-v12.js','<script src="/doing-home-logo-slot-v12.js?v=20260822-short5"></script>','body');
 fs.writeFileSync(path.join(out,'index.html'),home);
 
 for(const [route,source] of Object.entries(routes))preparePage(source,route);
@@ -127,7 +128,7 @@ const assetFiles=[
   'doing-2-shell.css','doing-2-shell.js','doing-2-home-v11.css','doing-2-home-v11.js','doing-home-logo-slot-v12.css','doing-home-logo-slot-v12.js',
   'doing-market-public-query.js','doing-market-2bl.css','doing-member-return-direct.js','doing-application-completion.js','doing-application-contract-v12.js','doing-workspace-product-router.js',
   'doing-smart-activation-v5.js','doing-auto-activation-status.js','doing-global-entry.js','doing-attribution.js','doing-home-refresh.js','doing-home-refresh.css',
-  'doing-visual-system-20260822.css','doing-visual-system-20260822.js',
+  'doing-visual-system-20260822.css','doing-visual-system-20260822.js','doing-world-tree-current.json',
   'doing-logo.png','manifest.webmanifest','pwa-icon-192.png'
 ];
 for(const file of assetFiles){
@@ -137,6 +138,10 @@ for(const file of assetFiles){
   else if(/\.css$/i.test(file))fs.writeFileSync(dest,rewriteLegacyRefs(fs.readFileSync(src,'utf8')));
   else fs.copyFileSync(src,dest);
 }
+
+// World-tree progress data is a single current-state source and must always be valid JSON.
+const worldTree=JSON.parse(fs.readFileSync(path.join(root,'doing-world-tree-current.json'),'utf8'));
+if(!worldTree.version||!worldTree.updatedAt||!Array.isArray(worldTree.branches)||!Array.isArray(worldTree.changes))throw new Error('invalid world tree progress data');
 
 fs.writeFileSync(path.join(out,'_headers'),`/*\n  Cache-Control: no-store\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`);
 
@@ -161,6 +166,7 @@ for(const route of Object.keys(routes)){
   const html=fs.readFileSync(fp,'utf8');
   if(!html.includes('doing-visual-system-20260822.css')||!html.includes('doing-visual-system-20260822.js'))throw new Error(`visual system missing: ${route}`);
 }
+if(!fs.existsSync(path.join(out,'world-tree/index.html'))||!fs.existsSync(path.join(out,'doing-world-tree-current.json')))throw new Error('world tree progress page missing');
 if(fs.readFileSync(path.join(out,'index.html'),'utf8').includes('doing-visual-system-20260822.css'))throw new Error('DOING public root must stay untouched in this batch');
 
 console.log(JSON.stringify({
@@ -169,6 +175,8 @@ console.log(JSON.stringify({
   visualSystem:'doing-visual-system-20260822',
   visualRoutes:Object.keys(routes),
   shortRoutes:Object.keys(routes),
+  worldTreeRoute:'/world-tree/',
+  worldTreeVersion:worldTree.version,
   marketInternalTabs:['sessions','tasks','onsite','members','settings'],
   nestedOnly:['/market/session/'],
   retiredIndependentRoutes:forbiddenShortDirs.map(x=>`/${x}/`),
