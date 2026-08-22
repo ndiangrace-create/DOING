@@ -18,7 +18,7 @@ try{
   await checkBuiltPage({file:'.doing-2-site/market/public/index.html',width:390,height:844,required:['id="list"','id="q"','id="myRegs"'],clicks:['#searchBtn','[data-type="market"]','#reload'],label:'mobile public discovery shell'});
   await checkBuiltPage({file:'.doing-2-site/market/index.html',width:1440,height:1000,required:['id="sessionList"','data-tab="sessions"','data-tab="tasks"'],clicks:['[data-tab="sessions"]','[data-tab="tasks"]'],label:'desktop market operations shell'});
   await checkBuiltPage({file:'.doing-2-site/me/index.html',width:390,height:844,required:['id="activities"','我的報名'],label:'mobile member records shell'});
-  await checkBuiltPage({file:'.doing-2-site/market/session/index.html',width:1440,height:1000,required:['id="closeout"','data-tab="registrations"','data-tab="payment"'],clicks:['[data-tab="registrations"]','[data-tab="payment"]'],label:'desktop session workbench shell'});
+  await checkBuiltPage({file:'.doing-2-site/market/session/index.html',width:1440,height:1000,required:['id="closeout"','data-tab="registrations"','data-tab="payments"'],clicks:['[data-tab="registrations"]','[data-tab="payments"]'],label:'desktop session workbench shell'});
 
   const completion=fs.readFileSync('doing-market-completion-v16.js','utf8');
   for(const token of ['publicDiscovery','/register/','getMyRegsGlobal','applyRefund','getRefundSuggestion','confirmRefund','getSessionRegistrations'])assert.ok(completion.includes(token),`Market 閉環腳本缺少 ${token}`);
