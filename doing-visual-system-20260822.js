@@ -19,5 +19,5 @@ function addCss(href,key){if(document.querySelector(`link[data-${key}]`))return;
 function addJs(src,key){if(document.querySelector(`script[data-${key}]`))return;const s=document.createElement('script');s.src=src;s.async=false;s.setAttribute(`data-${key}`,'1');document.body.appendChild(s)}
 if(['market','market-public','market-session','me','register'].includes(cls)){addCss('/doing-market-completion-v16.css?v=20260822-v16','market-completion');addJs('/doing-market-completion-v16.js?v=20260822-v16','market-completion')}
 if(['market','market-session'].includes(cls)){addCss('/doing-market-session-settings-v16.css?v=20260822-v16','market-session-settings');addJs('/doing-market-session-settings-v16.js?v=20260822-v16','market-session-settings')}
-if(['market','market-public','market-session'].includes(cls)){addCss('/doing-market-role-ui-v17.css?v=20260822-v17','market-role-ui');import('/doing-market-role-ui-v17.js?v=20260822-v17').catch(()=>addJs('/doing-market-role-ui-v17.js?v=20260822-v17','market-role-ui'))}
+if(['market','market-public','market-session'].includes(cls)){body.style.setProperty('background-image','none','important');addCss('/doing-market-role-ui-v17.css?v=20260822-v17','market-role-ui');import('/doing-market-role-ui-v17.js?v=20260822-v17').catch(()=>addJs('/doing-market-role-ui-v17.js?v=20260822-v17','market-role-ui'))}
 })();
