@@ -1,0 +1,19 @@
+/* DOING CANDY THEME V1 — shared visual tokens only; no business logic */
+:root{
+  --doing-candy-sky:#cfeeff;--doing-candy-blue:#b9dcf5;--doing-candy-lavender:#d7d9ff;--doing-candy-purple:#b7afe8;
+  --doing-candy-mint:#d8f1c6;--doing-candy-green:#b8dc80;--doing-candy-yellow:#ffe39a;--doing-candy-gold:#e4bd55;
+  --doing-candy-pink:#efb1d7;--doing-candy-pink-edge:#cb80b0;--doing-candy-paper:#fffefd;--doing-candy-ink:#303546;--doing-candy-line:#d9e3ef;
+  --doing-candy-shadow:0 7px 0 rgba(111,124,154,.18),0 12px 22px rgba(74,78,105,.10)
+}
+html,body{color:var(--doing-candy-ink)}
+.d2-candy-theme .btn,.d2-candy-theme .b,.d2-candy-theme .sa-btn,.d2-candy-theme .tab,.d2-candy-theme .scope button,.d2-candy-theme .chip,.d2-candy-theme .d2-top-actions a,.d2-candy-theme .settings a,.d2-candy-theme button:not(.plain):not(.icon-only){border-radius:14px!important;transition:transform .12s ease,box-shadow .12s ease!important}
+.d2-candy-theme .btn,.d2-candy-theme .b,.d2-candy-theme .sa-btn,.d2-candy-theme .scope button,.d2-candy-theme .chip,.d2-candy-theme .d2-top-actions a{box-shadow:inset 0 3px 5px rgba(255,255,255,.68),0 4px 0 rgba(135,145,174,.20)!important}
+.d2-candy-theme .btn:active,.d2-candy-theme .b:active,.d2-candy-theme .sa-btn:active,.d2-candy-theme .scope button:active,.d2-candy-theme .chip:active,.d2-candy-theme .d2-top-actions a:active{transform:translateY(2px)!important;box-shadow:inset 0 2px 4px rgba(255,255,255,.58),0 1px 0 rgba(135,145,174,.18)!important}
+.d2-candy-theme .btn.primary,.d2-candy-theme .b.pri,.d2-candy-theme .sa-primary{background:var(--doing-candy-lavender)!important;border-color:#b8bde7!important;color:#34385c!important;box-shadow:inset 0 3px 5px rgba(255,255,255,.72),0 4px 0 #aeb3dd!important}
+.d2-candy-theme .tab.on,.d2-candy-theme .tab.active,.d2-candy-theme .chip.on{background:var(--doing-candy-sky)!important;border-color:#a7d5ec!important;color:#2f4a5c!important;box-shadow:inset 0 3px 5px rgba(255,255,255,.72),0 4px 0 #9fcde3!important}
+.d2-candy-theme .hero,.d2-candy-theme .card,.d2-candy-theme .report-card,.d2-candy-theme .session-card,.d2-candy-theme .reg,.d2-candy-theme .row,.d2-candy-theme .settings a,.d2-candy-theme .settings-tile{border-color:var(--doing-candy-line)!important;box-shadow:0 8px 0 rgba(151,163,190,.08),0 13px 24px rgba(74,78,105,.07)!important}
+.d2-candy-theme input,.d2-candy-theme select,.d2-candy-theme textarea{border-color:#d6e2ed!important;border-radius:12px!important;background:#fff!important}
+.d2-candy-theme .d2-topbar{border-bottom-color:#dce7f2!important;background:rgba(255,255,255,.96)!important}
+.d2-candy-theme .d2-product-nav a{border-radius:14px!important;border-color:#d9e4ef!important;box-shadow:0 3px 0 #d5dfea!important}
+.d2-candy-theme .d2-product-nav a.active{background:var(--doing-candy-lavender)!important;color:#35395c!important;border-color:#b7bde4!important;box-shadow:0 4px 0 #aeb4dd!important}
+@media(max-width:680px){.d2-candy-theme .btn,.d2-candy-theme .b,.d2-candy-theme .sa-btn,.d2-candy-theme .tab,.d2-candy-theme .chip{border-radius:12px!important}}
