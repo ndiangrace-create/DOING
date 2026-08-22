@@ -144,7 +144,7 @@ for(const [route,source] of Object.entries(routes))preparePage(source,route);
 const assetFiles=[
   'doing-system.css','doing-design-tokens.css','doing-pastel-pages.css','doing-candy-theme.css',
   'doing-2-shell.css','doing-2-shell.js','doing-2-home-v11.css','doing-2-home-v11.js','doing-home-logo-slot-v12.css','doing-home-logo-slot-v12.js',
-  'doing-market-public-query.js','doing-market-2bl.css','doing-member-return-direct.js','doing-application-completion.js','doing-application-contract-v12.js','doing-workspace-product-router.js',
+  'doing-market-public-query.js','doing-market-2bl.css','doing-market-completion-v16.css','doing-market-completion-v16.js','doing-member-return-direct.js','doing-application-completion.js','doing-application-contract-v12.js','doing-workspace-product-router.js',
   'doing-smart-activation-v5.js','doing-auto-activation-status.js','doing-global-entry.js','doing-attribution.js','doing-home-refresh.js','doing-home-refresh.css',
   'doing-visual-system-20260822.css','doing-visual-system-20260822.js','doing-world-tree-current.json',
   'doing-logo.png','manifest.webmanifest','pwa-icon-192.png'
