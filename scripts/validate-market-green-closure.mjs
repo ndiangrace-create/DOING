@@ -12,7 +12,7 @@ for(const t of ['d2-market-history-card','d2-market-refund-card','d2-market-comp
 for(const t of ['doing-market-completion-v16.css','doing-market-completion-v16.js'])assert.ok(build.includes(t),'正式建置缺少 Market 完成版資產：'+t);
 for(const t of ['getMyRegsGlobal','refreshActivities'])assert.ok(member.includes(t),'會員紀錄既有能力缺少：'+t);
 for(const t of ['getSessionRegistrations','confirmPayment','checkin'])assert.ok(session.includes(t),'單場工作台既有閉環缺少：'+t);
-assert.ok(pub.includes("action','publicDiscovery")||pub.includes("action','publicDiscovery'"),'公開活動頁必須讀正式探索資料');
+assert.ok(pub.includes("api('publicDiscovery')")||pub.includes('publicDiscovery'),'公開活動頁必須讀正式探索資料');
 for(const t of ["'applyRefund'","'confirmRefund'","'getRefundSuggestion'","'cancelReg'","'adminCancelReg'","'refundDeposit'","'checkin'","'markClear'"])assert.ok(worker.includes(t),'Core 缺少正式能力：'+t);
 assert.ok(!css.includes('linear-gradient'),'Market 完成版禁止漸層');
 console.log(JSON.stringify({result:'PASS',public:'discovery→register',member:'history→refund request→reread',admin:'refund suggestion→confirm→reread',onsite:'checkin/clear preserved',responsive:'desktop+mobile',dbChanges:0},null,2));
