@@ -8,7 +8,10 @@ on:
       - 'doing-2-shell.js'
       - 'doing-2-home-v11.css'
       - 'doing-2-home-v11.js'
+      - 'doing-home-logo-slot-v12.css'
+      - 'doing-home-logo-slot-v12.js'
       - 'doing-candy-theme.css'
+      - 'doing-application-contract-v12.js'
       - 'doing-market-public-query.js'
       - 'market-center.html'
       - 'market-public.html'
@@ -37,6 +40,7 @@ on:
       - 'scripts/validate-fixed-product-application.mjs'
       - 'scripts/validate-doing-v11-home-e2e.mjs'
       - 'scripts/validate-home-real-ui-v11.mjs'
+      - 'scripts/validate-v12-closure.mjs'
       - '.github/workflows/doing-2-site.yml'
   push:
     branches: [main]
@@ -45,7 +49,10 @@ on:
       - 'doing-2-shell.js'
       - 'doing-2-home-v11.css'
       - 'doing-2-home-v11.js'
+      - 'doing-home-logo-slot-v12.css'
+      - 'doing-home-logo-slot-v12.js'
       - 'doing-candy-theme.css'
+      - 'doing-application-contract-v12.js'
       - 'doing-market-public-query.js'
       - 'market-center.html'
       - 'market-public.html'
@@ -74,6 +81,7 @@ on:
       - 'scripts/validate-fixed-product-application.mjs'
       - 'scripts/validate-doing-v11-home-e2e.mjs'
       - 'scripts/validate-home-real-ui-v11.mjs'
+      - 'scripts/validate-v12-closure.mjs'
       - '.github/workflows/doing-2-site.yml'
   workflow_dispatch:
 
@@ -106,6 +114,8 @@ jobs:
         run: node scripts/validate-doing-v11-home-e2e.mjs
       - name: Validate real homepage visual and live cards
         run: node scripts/validate-home-real-ui-v11.mjs
+      - name: Validate v12 application/theme/topbar closure
+        run: node scripts/validate-v12-closure.mjs
       - name: Build DOING 2.0 site
         run: node scripts/build-doing-2-site.mjs
       - name: Validate root and product routes
@@ -114,19 +124,21 @@ jobs:
           grep -q 'DOING｜協槓人生小幫手' .doing-2-site/index.html
           grep -q 'doing-2-home-v11.css' .doing-2-site/index.html
           grep -q 'doing-2-home-v11.js' .doing-2-site/index.html
+          grep -q 'doing-home-logo-slot-v12.css' .doing-2-site/index.html
+          grep -q 'doing-home-logo-slot-v12.js' .doing-2-site/index.html
           grep -q 'doing-candy-theme.css' .doing-2-site/index.html
           for f in market/index.html market/public/index.html market/session/index.html project/index.html booking/index.html guide/index.html; do test -f ".doing-2-site/$f"; done
-          for f in smart-application.html workspace.html member.html member-panel.html about.html doing-smart-activation-v5.js doing-auto-activation-status.js doing-global-entry.js doing-application-completion.js doing-workspace-product-router.js doing-2-home-v11.css doing-2-home-v11.js doing-candy-theme.css doing-market-public-query.js; do test -f ".doing-2-site/$f"; done
+          for f in smart-application.html workspace.html member.html member-panel.html about.html admin.html onsite.html platform.html operations-center.html photo.html consignment.html doing-smart-activation-v5.js doing-auto-activation-status.js doing-global-entry.js doing-application-completion.js doing-application-contract-v12.js doing-workspace-product-router.js doing-2-home-v11.css doing-2-home-v11.js doing-home-logo-slot-v12.css doing-home-logo-slot-v12.js doing-candy-theme.css doing-market-public-query.js; do test -f ".doing-2-site/$f"; done
           grep -q 'market-center.html' .doing-2-site/market/index.html
           grep -q 'market-public.html' .doing-2-site/market/public/index.html
           grep -q 'market-session.html' .doing-2-site/market/session/index.html
           grep -q 'doing-market-public-query.js' .doing-2-site/market-public.html
           grep -q 'doing-member-return-direct.js' .doing-2-site/member-panel.html
           grep -q 'doing-smart-activation-v5.js' .doing-2-site/smart-application.html
+          grep -q 'doing-application-contract-v12.js' .doing-2-site/smart-application.html
           grep -q 'doing-application-completion.js' .doing-2-site/smart-application.html
           grep -q 'doing-workspace-product-router.js' .doing-2-site/workspace.html
-          grep -q 'd2-candy-theme' .doing-2-site/market-center.html
-          grep -q 'd2-candy-theme' .doing-2-site/smart-application.html
+          for f in market-center.html smart-application.html member-panel.html workspace.html admin.html onsite.html platform.html operations-center.html photo.html consignment.html; do grep -q 'd2-candy-theme' ".doing-2-site/$f"; done
           ! grep -R -q '2bl-v7' .doing-2-site
       - uses: actions/upload-artifact@v4
         with:
