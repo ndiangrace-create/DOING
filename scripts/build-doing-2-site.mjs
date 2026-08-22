@@ -75,9 +75,27 @@ function inject(html,needle,markup,where='head'){
   if(html.includes(needle))return html;
   return where==='head'?html.replace('</head>',markup+'</head>'):html.replace('</body>',markup+'</body>');
 }
+function applyWorldTreeTrafficLight(html){
+  let s=String(html);
+  s=s.replace(
+    '<div class="legend"><span><i class="dot done"></i>已完成</span><span><i class="dot progress"></i>進行中</span><span><i class="dot verify"></i>待驗證</span><span><i class="dot todo"></i>尚未做</span><span><i class="dot blocked"></i>阻擋</span></div>',
+    '<div class="legend traffic-light-legend"><span><i class="dot done"></i>綠燈｜已完成</span><span><i class="dot progress"></i>黃燈｜進行中／待確認</span><span><i class="dot blocked"></i>紅燈｜阻擋／有問題</span></div>'
+  );
+  s=s.replace(
+    "const labels={done:'已完成',progress:'進行中',verify:'待驗證',todo:'尚未做',blocked:'阻擋'};",
+    "const labels={done:'綠燈｜已完成',progress:'黃燈｜進行中',verify:'黃燈｜待驗證',todo:'黃燈｜尚未做',blocked:'紅燈｜阻擋'};"
+  );
+  s=s.replace(
+    '主分支下會直接展開所有已記錄子節點；狀態只反映既有驗證，不因心智圖整理而自動升級。',
+    '紅綠燈顯示：綠＝已完成；黃＝進行中、待驗證或尚未做；紅＝阻擋或有問題。原本細分狀態仍完整保留。'
+  );
+  s=inject(s,'world-tree-traffic-light','<style id="world-tree-traffic-light">:root{--done:#e7f7eb;--done-b:#2f9e44;--progress:#fff3bf;--progress-b:#f59f00;--verify:#fff3bf;--verify-b:#f59f00;--todo:#fff3bf;--todo-b:#f59f00;--blocked:#ffe3e3;--blocked-b:#d9485f}.traffic-light-legend .dot{width:11px;height:11px;box-shadow:0 0 0 2px rgba(0,0,0,.05)}.pill.verify,.pill.todo{background:var(--progress);color:#7b651f}.branch[data-status=verify],.branch[data-status=todo]{border-left-color:var(--progress-b)}.child-node[data-status=verify],.child-node[data-status=todo]{border-left-color:var(--progress-b)}.path-node[data-status=verify],.path-node[data-status=todo]{border-top-color:var(--progress-b)}</style>');
+  return s;
+}
 function preparePage(source,route){
   let html=fs.readFileSync(path.join(root,source),'utf8');
   html=rewriteLegacyRefs(html);
+  if(source==='world-tree.html')html=applyWorldTreeTrafficLight(html);
   html=ensureBase(html);
   html=addBodyClass(html,'d2-candy-theme');
   html=inject(html,'doing-candy-theme.css','<link rel="stylesheet" href="/doing-candy-theme.css?v=20260822-short5">');
@@ -166,6 +184,10 @@ for(const route of Object.keys(routes)){
   const html=fs.readFileSync(fp,'utf8');
   if(!html.includes('doing-visual-system-20260822.css')||!html.includes('doing-visual-system-20260822.js'))throw new Error(`visual system missing: ${route}`);
 }
+const builtWorldTree=fs.readFileSync(path.join(out,'world-tree/index.html'),'utf8');
+for(const token of ['world-tree-traffic-light','綠燈｜已完成','黃燈｜進行中／待確認','紅燈｜阻擋／有問題']){
+  if(!builtWorldTree.includes(token))throw new Error(`world tree traffic light missing: ${token}`);
+}
 if(!fs.existsSync(path.join(out,'world-tree/index.html'))||!fs.existsSync(path.join(out,'doing-world-tree-current.json')))throw new Error('world tree progress page missing');
 if(fs.readFileSync(path.join(out,'index.html'),'utf8').includes('doing-visual-system-20260822.css'))throw new Error('DOING public root must stay untouched in this batch');
 
@@ -177,6 +199,7 @@ console.log(JSON.stringify({
   shortRoutes:Object.keys(routes),
   worldTreeRoute:'/world-tree/',
   worldTreeVersion:worldTree.version,
+  worldTreeStatusDisplay:'traffic-light-green-yellow-red',
   marketInternalTabs:['sessions','tasks','onsite','members','settings'],
   nestedOnly:['/market/session/'],
   retiredIndependentRoutes:forbiddenShortDirs.map(x=>`/${x}/`),
