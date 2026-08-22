@@ -1,4 +1,6 @@
 /* DOING Market v19 layout correction: desktop top fixed navigation + compact public first screen. Functional data/auth remain DOING. */
+html.doing-market-auth-bridging body.mk-admin,html.doing-market-auth-bridging body.mk-session{visibility:hidden!important}
+html.doing-market-auth-ready body.mk-admin,html.doing-market-auth-ready body.mk-session{visibility:visible!important}
 @media (min-width:901px){
   body.mk-admin{padding-top:0!important}
   body.mk-admin .topbar{position:sticky!important;top:0!important;z-index:90!important;min-height:60px!important}
