@@ -37,6 +37,7 @@ on:
       - 'scripts/validate-market-green-closure.mjs'
       - 'scripts/validate-market-role-ui-v17.mjs'
       - 'scripts/e2e-market-ui.mjs'
+      - 'scripts/e2e-market-role-ui-v17.mjs'
       - '.github/workflows/doing-market-2-validation.yml'
   workflow_dispatch:
 permissions:
@@ -74,5 +75,6 @@ jobs:
           trap 'kill $SERVER_PID || true' EXIT
           for i in {1..30}; do curl -fsS http://127.0.0.1:4173/market/public/ >/dev/null && break; sleep 1; done
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-ui.mjs
+          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-role-ui-v17.mjs
       - name: Diff quality
         run: git diff --check HEAD^ HEAD || true
