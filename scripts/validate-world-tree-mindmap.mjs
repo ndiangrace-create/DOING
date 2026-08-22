@@ -12,7 +12,7 @@ assert.ok(html.includes('尚未做'),'世界樹必須明確顯示尚未做狀態
 assert.ok(!html.includes('substepsHtml')&&!html.includes('detailSubsteps'),'不得再把 2BL 路徑塞成文字子清單');
 assert.ok(!html.includes('wt-summary')&&!html.includes('wt-stat'),'不得回到卡片式進度儀表板');
 
-const expected=['Market','Project','Booking','Guide','會員／我的紀錄','申請','共用核心'];
+const expected=['Market','Project','Booking','Guide','會員／我的紀錄','申請','我的 DOING／工作空間','DOING 公開平台','角色／權限','共用模組','共用核心'];
 for(const title of expected) assert.ok(data.branches.some(x=>x.title===title),'第一層世界樹缺少：'+title);
 function validateNode(node,path){
   assert.ok(allowed.has(node.status),'節點狀態不合法：'+path+' / '+node.title);
@@ -26,12 +26,17 @@ for(const b of data.branches){
   validateNode(b,'root');
 }
 const market=data.branches.find(x=>x.title==='Market');
-for(const id of ['market-front-path','market-admin-path','market-close-loop']) assert.ok(market.children.some(x=>x.id===id),'Market 世界樹缺少圖形路徑：'+id);
+for(const id of ['market-front-path','market-admin-path','market-close-loop','market-main-tabs','market-session','market-public','market-settings']) assert.ok(market.children.some(x=>x.id===id),'Market 世界樹缺少：'+id);
 const front=market.children.find(x=>x.id==='market-front-path');
 for(const title of ['活動探索','會員／登入','報名','付款','排位／設備','現場','歷史紀錄']) assert.ok(front.children.some(x=>x.title===title),'2BL 前台攤商路徑缺少：'+title);
 const admin=market.children.find(x=>x.id==='market-admin-path');
 for(const title of ['場次設定','待辦','審核','付款確認','排位／設備','退款','財務結案']) assert.ok(admin.children.some(x=>x.title===title),'2BL 後台主辦路徑缺少：'+title);
 const loop=market.children.find(x=>x.id==='market-close-loop');
 for(const title of ['按鈕／操作','Core／API','Supabase SSOT','重讀正式資料','畫面同步']) assert.ok(loop.children.some(x=>x.title===title),'2BL 系統閉環缺少：'+title);
+assert.ok(data.branches.some(x=>x.status==='todo')||data.branches.some(x=>x.children?.some(c=>c.status==='todo')),'世界樹必須保留尚未做項目，不得把未驗證工作冒充完成');
+const roles=data.branches.find(x=>x.id==='roles');
+assert.equal(roles.children.length,5,'角色／權限必須保留 5 類角色');
+const shared=data.branches.find(x=>x.id==='shared-modules');
+assert.equal(shared.children.length,10,'共用模組必須保留 10 項固定模組');
 
-console.log(JSON.stringify({result:'PASS',layout:'graphical-mindmap-with-connected-nodes',version:data.version,twoBL:{frontNodes:7,adminNodes:7,closeLoopNodes:5},textListFallback:false,mobile:'horizontal-pan'},null,2));
+console.log(JSON.stringify({result:'PASS',layout:'graphical-mindmap-with-connected-nodes',version:data.version,criticalMarketNodes:7,twoBL:{frontNodes:7,adminNodes:7,closeLoopNodes:5},roles:5,sharedModules:10,todoProtected:true,textListFallback:false,mobile:'horizontal-pan'},null,2));
