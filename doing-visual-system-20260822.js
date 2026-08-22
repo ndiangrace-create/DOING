@@ -17,6 +17,6 @@ document.querySelectorAll('.empty').forEach(el=>{if(!el.dataset.state)el.dataset
 const forbidden=/tenant_id|tenant id|Supabase|資料表|API\/?|Worker\b|productionWrites|debug|工程代碼|內部路徑/i;document.querySelectorAll('.note,.muted,.sub,.help').forEach(el=>{const t=(el.textContent||'').trim();if(t&&forbidden.test(t))el.classList.add('d2-hide-engineering')});
 function addCss(href,key){if(document.querySelector(`link[data-${key}]`))return;const l=document.createElement('link');l.rel='stylesheet';l.href=href;l.setAttribute(`data-${key}`,'1');document.head.appendChild(l)}
 function addJs(src,key){if(document.querySelector(`script[data-${key}]`))return;const s=document.createElement('script');s.src=src;s.defer=true;s.setAttribute(`data-${key}`,'1');document.body.appendChild(s)}
-if(['market','market-session','me','register'].includes(cls)){addCss('/doing-market-completion-v16.css?v=20260822-v16','market-completion');addJs('/doing-market-completion-v16.js?v=20260822-v16','market-completion')}
-if(['market','market-session'].includes(cls)){addCss('/doing-market-session-settings-v16.css?v=20260822-v16','market-session-settings');addJs('/doing-market-session-settings-v16.js?v=20260822-v16','market-session-settings')}
+/* Market v18 is now self-contained. Legacy Market completion/settings overlays are intentionally not injected into /market* routes. */
+if(['me','register'].includes(cls)){addCss('/doing-market-completion-v16.css?v=20260822-v16','market-completion');addJs('/doing-market-completion-v16.js?v=20260822-v16','market-completion')}
 })();

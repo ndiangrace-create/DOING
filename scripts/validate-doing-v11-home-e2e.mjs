@@ -6,12 +6,12 @@ const css=fs.readFileSync('doing-2-home-v11.css','utf8');
 const build=fs.readFileSync('scripts/build-doing-2-site.mjs','utf8');
 const application=fs.readFileSync('doing-smart-activation-v5.js','utf8');
 const member=fs.readFileSync('doing-member-return-direct.js','utf8');
-const marketPublic=fs.readFileSync('doing-market-public-query.js','utf8');
+const marketPublic=fs.readFileSync('market-public.html','utf8');
 
 for(const text of ['報名活動','我的紀錄','線上客服','我要申請 DOING','近期場次','立即報名'])assert.ok(home.includes(text),'首頁缺少一般民眾入口：'+text);
 assert.ok(home.includes("new URL('/market/public/',location.origin)"),'首頁搜尋沒有前往公開活動頁');
 assert.ok(home.includes("u.searchParams.set('q',q)"),'首頁搜尋沒有帶 query');
-assert.ok(marketPublic.includes("searchParams.get('q')")&&marketPublic.includes("dispatchEvent(new Event('input'"),'公開活動頁沒有接收首頁 query');
+assert.ok(marketPublic.includes("P.get('q')")&&marketPublic.includes("if(INITIAL_Q)$('q').value=INITIAL_Q"),'新版公開活動頁本體沒有接收首頁 query');
 assert.ok(build.includes("'member-panel.html':'/me/'"),'我的紀錄沒有被正式建置映射到 /me/');
 assert.ok(member.includes("new URL('/me/',location.origin)"),'會員登入沒有回 /me/');
 assert.ok(home.includes("action:'analyzeDoingApplication'")&&home.includes("topic:'question'"),'線上客服沒有走既有 DOING 問答 API');
@@ -30,7 +30,7 @@ for(const token of ['box-shadow','transform:translateY(-4px)','transform:transla
 assert.ok(css.includes('@media(max-width:620px)')&&css.includes('@media(max-width:390px)'),'首頁缺少手機響應斷點');
 assert.ok(css.includes('font-size:clamp(21px,2.3vw,29px)'),'主按鈕沒有老花友善字級');
 assert.ok(css.indexOf('.d2-home-search{')<css.indexOf('.d2-home-logo-wrap{'),'搜尋視覺規則必須先於 LOGO 區塊');
-assert.ok(build.includes("'doing-2-home-v11.css'")&&build.includes("'doing-2-home-v11.js'")&&build.includes("'doing-market-public-query.js'"),'Pages build 未包含 v11 首頁資產');
+assert.ok(build.includes("'doing-2-home-v11.css'")&&build.includes("'doing-2-home-v11.js'")&&build.includes("'doing-market-v18.css'"),'Pages build 未包含首頁或 Market v18 資產');
 assert.ok(build.includes("'doing-candy-theme.css'"),'Pages build 未包含全系統共用色系');
 
-console.log(JSON.stringify({result:'PASS',simulatedJourneys:['首頁 → 搜尋 → /market/public/','首頁 → 近期場次 → /register/','首頁 → 我的紀錄 → /me/ → LINE 回跳','首頁 → 線上客服 → 快捷問題／自由輸入','首頁 → 我要申請 → /apply/'],responsive:['desktop','tablet','mobile'],buttonStyle:'3d-rounded-rectangle-text-only',liveCards:true,productionWrites:0},null,2));
+console.log(JSON.stringify({result:'PASS',simulatedJourneys:['首頁 → 搜尋 → /market/public/?q= → v18 本體承接','首頁 → 近期場次 → /register/','首頁 → 我的紀錄 → /me/ → LINE 回跳','首頁 → 線上客服 → 快捷問題／自由輸入','首頁 → 我要申請 → /apply/'],responsive:['desktop','tablet','mobile'],buttonStyle:'3d-rounded-rectangle-text-only',liveCards:true,productionWrites:0},null,2));

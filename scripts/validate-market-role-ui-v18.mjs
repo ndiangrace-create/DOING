@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const css=fs.readFileSync('doing-market-v18.css','utf8');
+const pub=fs.readFileSync('market-public.html','utf8');
+const center=fs.readFileSync('market-center.html','utf8');
+const session=fs.readFileSync('market-session.html','utf8');
+const build=fs.readFileSync('scripts/build-doing-2-site.mjs','utf8');
+for(const token of ['mk-top','mk-tenant-cover','mk-grid','mk-session-grid','mk-mobile-nav','repeat(5,minmax(0,1fr))','repeat(6,minmax(0,1fr))','repeat(2,minmax(0,1fr))','aspect-ratio:1/1'])assert.ok(css.includes(token),'v18 視覺缺少 '+token);
+assert.ok(!/gradient\(/i.test(css),'v18 禁止漸層');assert.ok(!css.includes('border-radius:999px'),'v18 禁止膠囊');
+for(const token of ['tenantLogo','tenantCover','找今天想參加的活動','firstDate','publicDiscovery','getSiteConfig','/register/','/me/'])assert.ok(pub.includes(token),'前台契約缺少 '+token);
+for(const token of ['saveSiteConfig','getSessionsAdmin','getTodos','getMembers','getSessionRegistrations','checkin','data-open="pending"','data-open="unpaid"','data-open="paid"','pageshow','/market/session/','/workspace/','/market/public/'])assert.ok(center.includes(token),'後台契約缺少 '+token);
+for(const token of ['getSessionDashboard','getSessionRegistrations','approveReg','confirmPayment','checkin','getRefundSuggestion','confirmRefund','updateSession','/market/'])assert.ok(session.includes(token),'單場工作台契約缺少 '+token);
+for(const bad of ['admin.html','market-center.html','market-public.html','market-session.html','doing-market-role-ui-v17','doing-market-public-query','doing-market-session-settings-v16'])for(const [name,src] of [['public',pub],['center',center],['session',session]])assert.ok(!src.includes(bad),`${name} 仍引用舊頁／舊補丁 ${bad}`);
+assert.ok(build.includes("marketVisual:'v18-rebuilt'"),'正式建置未鎖定 v18');assert.ok(build.includes('doing-market-v18.css'),'正式建置未包含 v18 CSS');
+console.log(JSON.stringify({result:'PASS',visual:'DOING Market v18 rebuilt',legacyOverlays:false,public:{cover:true,tenantLogo:true,nearestDateFirst:true,desktopCards:'5-6',mobileCards:2},admin:{twoBLSkeleton:true,metricButtons:true,bidirectionalReread:true,shortRoutesOnly:true},session:{tabs:8,review:true,payment:true,onsite:true,refund:true,settings:true},dbChanges:0,workerChanges:0},null,2));

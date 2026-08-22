@@ -14,7 +14,6 @@ assert(css.includes('grid-template-columns:repeat(5,1fr)'),'Market 五主選單�
 assert(!css.includes('linear-gradient'),'2.0 Shell 不得使用漸層');
 assert(build.includes('doing-2-shell.css')&&build.includes('doing-2-shell.js'),'Pages build 未注入 Shell');
 assert(!js.includes('2bl-v7')&&!js.includes('douhmxipedgpfbvfynbq'),'Shell 不得耦合 2BL 正式後端');
-
 for(const token of ['--dv-bg:#fbfaf7','--dv-blue:#dcecf6','--dv-mint:#e2f1e8','--dv-yellow:#f7efcf','--dv-radius-sm:10px','--dv-radius-lg:18px'])assert(visual.includes(token),'新版 Design System 缺少：'+token);
 for(const token of ['position:fixed!important','top:0!important','--dv-header-h:68px','body.d2-visual-system{padding-top:calc(var(--dv-header-h) + 12px)'])assert(visual.includes(token),'頂部固定列契約缺少：'+token);
 assert(!visual.includes('linear-gradient'),'新版 SaaS 視覺禁止漸層');
@@ -22,7 +21,6 @@ assert(visual.includes('.settings{display:grid')&&visual.includes('.tabs{positio
 assert(visual.includes('@media(max-width:768px)'),'新版 Design System 缺手機完整斷點');
 assert(visualJs.includes("sessionStorage.setItem(stateKey")&&visualJs.includes('scrollY'),'頁內切換必須保留工作狀態與捲動位置');
 assert(visualJs.includes('d2-hide-engineering'),'使用者畫面必須阻擋工程文字');
-assert(build.includes('doing-visual-system-20260822.css')&&build.includes('doing-visual-system-20260822.js'),'所有 DOING 2.0 短網址必須載入新版 Design System');
-assert(build.includes('DOING root is intentionally not redesigned'),'本批不得改 DOING 公開首頁');
-
+assert(build.includes('doing-visual-system-20260822.css')&&build.includes('doing-visual-system-20260822.js'),'非 Market DOING 2.0 短網址必須載入新版 Design System');
+assert(build.includes("let home=fs.readFileSync(path.join(root,'doing-2.html'),'utf8')"),'本批仍必須直接沿用 DOING 公開首頁來源，不得重做首頁');
 console.log(JSON.stringify({result:'PASS',shell:'2BL UX skeleton',visualSystem:'reference-driven SaaS redesign',fixedHeader:true,flatIA:true,statePreserved:true,desktop:true,mobile:true,newTables:0,schemaChanges:0,twoBLModified:false,doingRootModified:false},null,2));
