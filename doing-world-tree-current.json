@@ -1,22 +1,27 @@
 {
-  "version": "v14.2",
-  "updatedAt": "2026-08-22 18:30",
+  "version": "v15.0",
+  "updatedAt": "2026-08-22 18:40",
   "current": {
-    "title": "DOING Market 視覺與工作區精修",
-    "summary": "目前主線仍是 Market 主工作頁與單場工作頁精修；世界樹頁已改為真正心智圖，用同一份 current JSON 同步實際進度。"
+    "title": "DOING Market 主工作頁＋單場工作頁精修",
+    "summary": "目前主線是 Market。這份世界樹已把本次對話中已完成、已定案但待驗證、正在進行、尚未做與阻擋項目統一收進同一份 SSOT。"
   },
   "branches": [
     {
       "id": "market",
       "side": "left",
       "title": "Market",
-      "summary": "市集／活動／體驗工作系統。",
+      "summary": "市集／活動／體驗工作系統；操作流程以 2BL 營運世界樹作 UX 骨架，但資料仍走 DOING Core／Supabase。",
       "status": "progress",
       "children": [
-        {"id":"market-main","title":"主工作頁","summary":"場次／待辦／現場／會員／設定同一工作區，正在逐區精修。","status":"progress"},
-        {"id":"market-session","title":"單場工作頁","summary":"總覽／報名／付款／排位設備／通知／現場／結案，正在精修。","status":"progress"},
-        {"id":"market-public","title":"公開活動","summary":"搜尋與公開活動入口保留，等待正式畫面逐頁驗收。","status":"verify"},
-        {"id":"market-settings","title":"設定／現場","summary":"已回到 Market 主工作區，不再拆獨立後台頁。","status":"done"}
+        {"id":"market-2bl-flow","title":"2BL 操作骨架","summary":"前台探索→會員→報名→付款→排位→現場→歷史；後台場次設定→待辦→審核→付款→排位→退款→財務結案，已鎖定作為 Market 操作順序基準。","status":"done"},
+        {"id":"market-main-tabs","title":"Market 主工作頁","summary":"場次／待辦／現場／會員／設定維持同一工作區，正在依新視覺逐區精修。","status":"progress"},
+        {"id":"market-session","title":"單場工作頁","summary":"總覽／報名／付款／排位設備／通知／現場／結案已定案，正在依新視覺精修。","status":"progress"},
+        {"id":"market-public","title":"公開活動頁","summary":"/market/public/ 搜尋與公開活動入口存在；正式畫面仍需逐頁驗收。","status":"verify"},
+        {"id":"market-payment","title":"錄取／付款流程","summary":"錄取→顯示應繳→付款／回報→主辦確認→已繳費→行前通知的流程契約已保留並通過自動驗證。","status":"done"},
+        {"id":"market-onsite","title":"現場／QR","summary":"現場報到、QR／掃碼與權限契約已存在；正式真人情境仍需實際點擊驗收。","status":"verify"},
+        {"id":"market-settings","title":"設定與現場層級","summary":"設定、現場已回到 Market 主工作區，不再拆成獨立後台頁。","status":"done"},
+        {"id":"market-visual","title":"Market 全頁面成熟視覺","summary":"基礎 Design System 已套用，但每個分頁仍需完成正式商業產品級細節精修。","status":"progress"},
+        {"id":"market-browser-uat","title":"正式桌機／手機真人 UAT","summary":"尚未完成所有角色、所有按鈕的正式網域真人瀏覽器 click-through。","status":"todo"}
       ]
     },
     {
@@ -24,10 +29,13 @@
       "side": "left",
       "title": "Project",
       "summary": "室內設計／工程專案工作系統。",
-      "status": "verify",
+      "status": "todo",
       "children": [
-        {"id":"project-route","title":"正式入口","summary":"短網址 /project/ 已保留並套用共用視覺。","status":"done"},
-        {"id":"project-visual","title":"正式畫面","summary":"既有能力未移除，待後續依同一 Design System 深度精修。","status":"verify"}
+        {"id":"project-route","title":"正式入口","summary":"/project/ 已保留並套用 DOING 2.0 共用視覺。","status":"done"},
+        {"id":"project-existing","title":"既有能力保留","summary":"既有專案能力沒有在本輪刪除或重建，需再逐項盤點正式工作流程。","status":"verify"},
+        {"id":"project-flat","title":"Flat IA 重整","summary":"專案主要工作、設定、成員、檔案等需依『入口→實際操作』最多兩層重新整理。","status":"todo"},
+        {"id":"project-visual","title":"完整正式畫面精修","summary":"尚未依唯一視覺基準完成所有專案工作頁。","status":"todo"},
+        {"id":"project-uat","title":"真人 E2E／UAT","summary":"尚未完成角色、權限、按鈕、API、資料讀寫的正式瀏覽器逐項驗收。","status":"todo"}
       ]
     },
     {
@@ -37,31 +45,39 @@
       "summary": "美類／一般服務預約工作系統。",
       "status": "verify",
       "children": [
-        {"id":"booking-core","title":"預約核心能力","summary":"既有預約核心回歸測試通過。","status":"done"},
-        {"id":"booking-route","title":"正式入口","summary":"短網址 /booking/ 已保留並套用共用視覺。","status":"done"},
-        {"id":"booking-visual","title":"正式畫面","summary":"待後續逐區做正式畫面驗收與精修。","status":"verify"}
+        {"id":"booking-route","title":"正式入口","summary":"/booking/ 已保留並套用 DOING 2.0 共用視覺。","status":"done"},
+        {"id":"booking-core","title":"預約核心能力","summary":"通用預約核心、自動擋單、週期空檔與租戶隔離等自動回歸已通過。","status":"done"},
+        {"id":"booking-requirements","title":"已定案預約需求","summary":"店家行事曆、60/90/120 分鐘、30 分緩衝、跨下班擋單、臨時開關、最多 10 人員、團體課、VIP／黑名單、生日提醒、問卷／同意書、中日英、協作者／排班、空檔圖卡等已定案；需逐項對照正式畫面。","status":"verify"},
+        {"id":"booking-visual","title":"完整正式畫面精修","summary":"尚未依唯一視覺基準把所有預約頁逐區完成。","status":"todo"},
+        {"id":"booking-uat","title":"真人 E2E／UAT","summary":"尚未完成正式網域手機／桌機全流程實際預約與後台操作驗收。","status":"todo"}
       ]
     },
     {
       "id": "guide",
-      "side": "right",
+      "side": "left",
       "title": "Guide",
       "summary": "導覽員／導覽預約工作系統。",
-      "status": "verify",
+      "status": "todo",
       "children": [
-        {"id":"guide-route","title":"正式入口","summary":"短網址 /guide/ 已保留並套用共用視覺。","status":"done"},
-        {"id":"guide-visual","title":"正式畫面","summary":"待後續逐區做正式畫面驗收與精修。","status":"verify"}
+        {"id":"guide-route","title":"正式入口","summary":"/guide/ 已保留並套用 DOING 2.0 共用視覺。","status":"done"},
+        {"id":"guide-definition","title":"產品定位","summary":"Guide＝導覽員／導覽預約，已定案為 DOING 2.0 四大工作系統之一。","status":"verify"},
+        {"id":"guide-workflow","title":"完整導覽工作流","summary":"導覽場次、可預約時段、人員／名額、報名／付款／通知等正式操作流程尚未完整重整。","status":"todo"},
+        {"id":"guide-visual","title":"完整正式畫面精修","summary":"尚未依唯一視覺基準完成逐頁精修。","status":"todo"},
+        {"id":"guide-uat","title":"真人 E2E／UAT","summary":"尚未完成正式網域角色、按鈕與資料讀寫驗收。","status":"todo"}
       ]
     },
     {
       "id": "member",
       "side": "right",
       "title": "會員／我的紀錄",
-      "summary": "單一會員身分、報名紀錄與工作入口。",
-      "status": "done",
+      "summary": "一般會員查看自己的報名、付款、活動與品牌等紀錄。",
+      "status": "progress",
       "children": [
-        {"id":"member-route","title":"我的紀錄","summary":"固定 /me/，LINE 登入後直接回原紀錄頁。","status":"done"},
-        {"id":"member-workspace","title":"我的 DOING","summary":"/workspace/ 承接各產品工作入口。","status":"done"}
+        {"id":"member-route","title":"我的紀錄短網址","summary":"固定使用 /me/，不再用 member-panel.html。","status":"done"},
+        {"id":"member-login-return","title":"登入回原工作狀態","summary":"LINE 登入後回 /me/ 原紀錄分頁，不再繞回首頁。","status":"done"},
+        {"id":"member-scope","title":"會員層與工作空間分離","summary":"我的紀錄不是 DOING 首頁，也不是四大工作系統首頁，層級已定案。","status":"done"},
+        {"id":"member-visual","title":"會員頁成熟視覺精修","summary":"共用 Design System 已套用，但仍需依唯一視覺基準逐區精修。","status":"todo"},
+        {"id":"member-uat","title":"真人紀錄流程 UAT","summary":"需在正式網域驗證登入、報名、付款、取消／退款、返回與狀態保存。","status":"todo"}
       ]
     },
     {
@@ -69,28 +85,65 @@
       "side": "right",
       "title": "申請",
       "summary": "申請 DOING 2.0 工作系統。",
+      "status": "progress",
+      "children": [
+        {"id":"apply-route","title":"正式短網址","summary":"固定使用 /apply/。","status":"done"},
+        {"id":"apply-flow","title":"申請主流程","summary":"選產品→選使用類型→填資料→LINE 驗證→建立工作空間，已定案並通過自動流程驗證。","status":"done"},
+        {"id":"apply-helper","title":"智慧小幫手不阻擋申請","summary":"智慧小幫手只作客服／導引，不再作申請 gate。","status":"done"},
+        {"id":"apply-auto","title":"LINE 驗證後自動開通","summary":"申請完成後可接續 /me/ → /workspace/ → 對應產品。","status":"done"},
+        {"id":"apply-visual","title":"申請頁成熟視覺精修","summary":"基礎共用視覺已套用，正式商業產品級版面仍需逐區驗收。","status":"todo"},
+        {"id":"apply-uat","title":"正式申請真人 UAT","summary":"仍需在正式網域以真實瀏覽器驗證完整申請與回跳。","status":"todo"}
+      ]
+    },
+    {
+      "id": "workspace",
+      "side": "right",
+      "title": "我的 DOING／工作空間",
+      "summary": "登入後承接 Market／Project／Booking／Guide 的工作入口，不再當公開首頁。",
+      "status": "progress",
+      "children": [
+        {"id":"workspace-route","title":"正式入口","summary":"固定使用 /workspace/。","status":"done"},
+        {"id":"workspace-products","title":"四大工作系統入口","summary":"Market／Project／Booking／Guide 由工作空間承接，不再和 DOING 公開首頁混在一起。","status":"done"},
+        {"id":"workspace-role","title":"依角色顯示工作入口","summary":"既有角色與權限契約保留；正式畫面仍需真人逐角色驗證。","status":"verify"},
+        {"id":"workspace-visual","title":"工作空間正式視覺精修","summary":"四大格不再當公開首頁，但工作空間本身仍需完成成熟 SaaS 視覺與操作整理。","status":"todo"}
+      ]
+    },
+    {
+      "id": "public-doing",
+      "side": "right",
+      "title": "DOING 公開平台",
+      "summary": "目前已鎖定先不動，與 DOING 2.0 工作系統分開。",
       "status": "done",
       "children": [
-        {"id":"apply-route","title":"正式申請","summary":"固定 /apply/。","status":"done"},
-        {"id":"apply-flow","title":"LINE 驗證與開通","summary":"申請 → LINE → 自動開通 → /me/ → /workspace/。","status":"done"}
+        {"id":"public-home","title":"唯一公開首頁","summary":"保留使用者指定的 DOING／協槓人生小幫手首頁，不再讓四大格 2.0 取代它。","status":"done"},
+        {"id":"public-boundary","title":"DOING 與 DOING 2.0 分層","summary":"DOING＝公開平台；DOING 2.0＝登入後工作系統，邊界已重新鎖定。","status":"done"},
+        {"id":"public-freeze","title":"本輪先不修改 DOING","summary":"現階段視覺與工作流重整只處理 DOING 2.0，公開 DOING 暫不動。","status":"done"}
       ]
     },
     {
       "id": "core",
       "side": "right",
-      "title": "共用核心",
-      "summary": "全站共用視覺、短網址、權限與資料閉環。",
-      "status": "done",
+      "title": "共用核心／系統規則",
+      "summary": "DOING 2.0 共用視覺、網址、資料閉環、發布規則與進度 SSOT。",
+      "status": "progress",
       "children": [
-        {"id":"core-design","title":"Design System","summary":"色彩、字級、按鈕、表單、卡片、狀態與響應式已統一。","status":"done"},
-        {"id":"core-topbar","title":"固定頂部列","summary":"桌機滑動時固定顯示；手機依工作區響應式呈現。","status":"done"},
-        {"id":"core-flat","title":"Flat IA","summary":"頁內分頁與同工作區操作優先，避免小功能一直跳新頁。","status":"done"},
-        {"id":"core-routes","title":"短網址整理","summary":"舊長網址與多餘獨立頁已退出正式 Pages。","status":"done"},
-        {"id":"core-e2e","title":"正式畫面 UAT","summary":"自動回歸通過；真人桌機／手機正式畫面仍需逐頁確認。","status":"verify"}
+        {"id":"core-design","title":"Design System 基礎","summary":"米白／淺色底、粉藍／淡綠／低飽和色、深灰字、細邊框、輕陰影、小圓角；禁止粉紅主色、漸層、灰霧、深色 AI 後台感。","status":"done"},
+        {"id":"core-topbar","title":"固定頂部列","summary":"桌機滑動時必須固定顯示，已列為永久規則並完成共用樣式。","status":"done"},
+        {"id":"core-flat","title":"Flat IA／淺層導覽","summary":"一般操作最多兩層、小功能優先頁內分頁／抽屜／彈窗；Market 已落地，其他工作系統仍需完整套用。","status":"progress"},
+        {"id":"core-routes","title":"短網址整理","summary":"/market/、/project/、/booking/、/guide/、/workspace/、/me/、/apply/、/register/、/world-tree/ 為正式短網址；舊長網址與多餘獨立頁已退出正式 Pages。","status":"done"},
+        {"id":"core-legacy","title":"舊框架清理","summary":"admin／onsite／platform／operations／photo／consignment／about／member 等不再作獨立公開頁。","status":"done"},
+        {"id":"core-engineering-copy","title":"隱藏工程文字","summary":"一般使用者畫面不得顯示 tenant_id、API、Worker、資料表名稱、內部路徑、工程代碼與除錯文字。","status":"done"},
+        {"id":"core-ssot","title":"資料 SSOT","summary":"Supabase 仍是唯一正式資料來源；金額、付款、退款、押金、名額、排位與權限不可由前端假算。","status":"done"},
+        {"id":"core-loop","title":"功能閉環","summary":"按鈕→Worker／API→Supabase→重讀→畫面是固定驗收鏈；多表異動需交易或安全補償。","status":"done"},
+        {"id":"core-release","title":"驗證全綠後自動發布","summary":"使用者說執行後，完成整批需求並全綠即合併 main、部署正式環境，不再等第二次確認；除非使用者明確說不要部署或有阻斷。","status":"done"},
+        {"id":"core-world-tree","title":"世界樹進度 SSOT","summary":"/world-tree/ 使用 doing-world-tree-current.json；之後實際更新只同步同一份 current 資料。","status":"done"},
+        {"id":"core-browser-uat","title":"全角色正式瀏覽器 Click-through","summary":"平台總管、租戶負責人、主辦管理員、場次、財務、現場等角色的正式網域真人逐按鈕驗收仍未完整完成。","status":"todo"},
+        {"id":"core-prod-verify","title":"正式網域 Production Verification","summary":"CI／自動驗證已多次通過，但因目前執行環境無法解析正式網域，仍需實際正式畫面證據。","status":"verify"}
       ]
     }
   ],
   "changes": [
+    {"time":"2026-08-22 18:40","title":"世界樹整併所有已做／已說／未做","summary":"新增『尚未做』灰色狀態，將 Market、Project、Booking、Guide、會員、申請、工作空間、DOING 公開平台與共用核心的已完成／已定案／進行中／未做統一收進同一棵樹。"},
     {"time":"2026-08-22 18:30","title":"世界樹改為心智圖","summary":"中央主幹＋左右分支＋子節點＋狀態顏色，一眼看整體關係。"},
     {"time":"2026-08-22 18:16","title":"建立世界樹進度 SSOT","summary":"之後實際更新只同步 doing-world-tree-current.json。"},
     {"time":"2026-08-22 17:29","title":"DOING 2.0 v14 視覺系統","summary":"全站 Design System、固定頂部列、Flat IA 與響應式框架完成自動驗證並合併。"},
