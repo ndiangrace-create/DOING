@@ -24,8 +24,9 @@ const shellTargets=['doing-2.html','market-center.html','market-session.html','p
 const injectShell=(file)=>{const fp=path.join(out,file);if(!fs.existsSync(fp))return;let html=fs.readFileSync(fp,'utf8');if(!html.includes('doing-2-shell.css'))html=html.replace('</head>','<link rel="stylesheet" href="/doing-2-shell.css?v=20260822-2blux"></head>');if(!html.includes('doing-2-shell.js'))html=html.replace('</body>','<script src="/doing-2-shell.js?v=20260822-2blux"></script></body>');fs.writeFileSync(fp,html);};
 shellTargets.forEach(injectShell);
 
+function addBodyClass(html,name){return html.replace(/<body([^>]*)>/i,(m,attrs)=>{const hit=attrs.match(/class=(['"])(.*?)\1/i);if(hit){if(hit[2].split(/\s+/).includes(name))return m;const merged=`class=${hit[1]}${hit[2]} ${name}${hit[1]}`;return `<body${attrs.replace(hit[0],merged)}>`;}return `<body class="${name}"${attrs}>`;});}
 const candyTargets=['doing-2.html','market-center.html','market-public.html','market-session.html','project-center.html','booking-2-center.html','guide-center.html','smart-application.html','workspace.html','member-panel.html','register.html'];
-for(const file of candyTargets){const fp=path.join(out,file);if(!fs.existsSync(fp))continue;let html=fs.readFileSync(fp,'utf8');if(!html.includes('doing-candy-theme.css'))html=html.replace('</head>','<link rel="stylesheet" href="/doing-candy-theme.css?v=20260822-candy1"></head>');html=html.replace(/<body(?![^>]*d2-candy-theme)([^>]*)>/i,(m,a)=>`<body class="d2-candy-theme"${a}>`);fs.writeFileSync(fp,html);}
+for(const file of candyTargets){const fp=path.join(out,file);if(!fs.existsSync(fp))continue;let html=fs.readFileSync(fp,'utf8');if(!html.includes('doing-candy-theme.css'))html=html.replace('</head>','<link rel="stylesheet" href="/doing-candy-theme.css?v=20260822-candy1"></head>');html=addBodyClass(html,'d2-candy-theme');fs.writeFileSync(fp,html);}
 
 {
   const fp=path.join(out,'doing-2.html');let html=fs.readFileSync(fp,'utf8');if(!html.includes('doing-2-home-v11.css'))html=html.replace('</head>','<link rel="stylesheet" href="/doing-2-home-v11.css?v=20260822-v11home2"></head>');if(!html.includes('doing-2-home-v11.js'))html=html.replace('</body>','<script src="/doing-2-home-v11.js?v=20260822-v11home2"></script></body>');fs.writeFileSync(fp,html);
@@ -33,7 +34,7 @@ for(const file of candyTargets){const fp=path.join(out,file);if(!fs.existsSync(f
 {
   const fp=path.join(out,'market-public.html');if(fs.existsSync(fp)){let html=fs.readFileSync(fp,'utf8');if(!html.includes('doing-market-public-query.js'))html=html.replace('</body>','<script src="/doing-market-public-query.js?v=20260822-home-search"></script></body>');fs.writeFileSync(fp,html);}
 }
-for(const file of ['market-center.html','market-session.html']){const fp=path.join(out,file);if(!fs.existsSync(fp))continue;let html=fs.readFileSync(fp,'utf8');if(!html.includes('doing-market-2bl.css'))html=html.replace('</head>','<link rel="stylesheet" href="/doing-market-2bl.css?v=20260822-compact1"></head>');html=html.replace('<body class="d2-candy-theme">','<body class="d2-candy-theme d2-market-compact">').replace('<body>','<body class="d2-market-compact">');fs.writeFileSync(fp,html);}
+for(const file of ['market-center.html','market-session.html']){const fp=path.join(out,file);if(!fs.existsSync(fp))continue;let html=fs.readFileSync(fp,'utf8');html=addBodyClass(html,'d2-market-compact');if(!html.includes('doing-market-2bl.css'))html=html.replace('</head>','<link rel="stylesheet" href="/doing-market-2bl.css?v=20260822-compact1"></head>');fs.writeFileSync(fp,html);}
 {
   const fp=path.join(out,'member-panel.html');if(fs.existsSync(fp)){let html=fs.readFileSync(fp,'utf8');if(!html.includes('doing-member-return-direct.js'))html=html.replace('</body>','<script src="/doing-member-return-direct.js?v=20260822-direct-return2"></script></body>');fs.writeFileSync(fp,html);}
 }
