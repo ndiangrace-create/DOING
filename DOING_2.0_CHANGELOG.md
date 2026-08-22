@@ -37,7 +37,7 @@
 - `market-center.html` 不再只是靜態入口，開始直接讀取正式 `getSessionsAdmin` 場次資料。
 - 場次卡直接提供單場工作台、報名名單、付款與現場入口；正式操作仍回既有 `admin.html` 能力，不複製業務資料。
 - 現場頁固定依定案流程：選場次 → 當日名單／該場次全名單 → 搜尋姓名／品牌／電話 → 一鍵報到。
-- 現場名單直接讀 `getSessionRegistrations`，一鍵報到直接寫既有 `checkin` API，成功後重新讀正式名單，不在前端自建報到狀態。
+- 現場名單直接讀 `getSessionRegistrations`，一鍵報到直接寫既有 `checkin` API，成功後重新讀取正式名單，不在前端自建報到狀態。
 - QR 能力仍完整保留，但第一階段不強迫夥伴改變現有姓名搜尋習慣。
 - 本次沒有新增資料表、沒有修改 2BL、沒有修改 Market App、沒有部署正式環境。
 
@@ -96,3 +96,17 @@
 - 新增 `DOING_2.0_WORLD_TREE_V9_APPLICATION_LOGIN_WORKSPACE_20260822.md` 與 `scripts/validate-application-login-flow.mjs`。
 - 正式 Supabase read-only 證據確認：approved 申請已有 active tenant、tenant_settings、active organizer_owner、platform_member_id 關聯、sourceApplicationId 對應及 `workspace_auto_activated` timeline。
 - 本次新增資料表 0、Schema 變更 0、Worker 正式邏輯變更 0、2BL 變更 0、正式業務資料搬移 0。
+
+## 2026-08-22｜v11 前台申請簡化＋首頁視覺與客服
+
+- 智慧小幫手保留為一般民眾客服／導引，不再作為申請必填或阻擋條件。
+- 正式申請縮短為：選產品 → 選使用類型 → 填資料 → LINE 驗證。
+- 移除前台固定模組確認、二次系統確認與 AI／架構／主辦系統等內部工程語言。
+- 根首頁改為一般民眾視角：搜尋活動、報名活動、我的紀錄、線上客服；「我要申請 DOING」降為次要入口。
+- 首頁視覺依使用者提供參考圖改為柔和水彩糖果色、粉藍／粉紫／嫩綠／奶油黃、方形大圓角、立體按鈕與按壓下沉回饋。
+- 新增 `doing-2-home-v11.css`、`doing-2-home-v11.js`、`doing-market-public-query.js`。
+- 首頁搜尋可帶 query 進 `/market/public/` 並自動套入公開活動搜尋。
+- 線上客服沿用既有 `analyzeDoingApplication` question 模式，不新增客服資料表、不改 Worker。
+- 新增 `DOING_V11_HOME_RELEASE_SPEC_20260822.md` 與 `scripts/validate-doing-v11-home-e2e.mjs`。
+- 首頁 public layer 僅注入根首頁，不套用 Market／Project／Booking／Guide，避免樣式污染後台。
+- 本次新增資料表 0、Schema 變更 0、Worker 正式邏輯變更 0、2BL 變更 0。

@@ -6,6 +6,9 @@ on:
     paths:
       - 'doing-2.html'
       - 'doing-2-shell.js'
+      - 'doing-2-home-v11.css'
+      - 'doing-2-home-v11.js'
+      - 'doing-market-public-query.js'
       - 'market-center.html'
       - 'market-public.html'
       - 'market-session.html'
@@ -31,12 +34,16 @@ on:
       - 'scripts/validate-member-panel-return.mjs'
       - 'scripts/validate-application-login-flow.mjs'
       - 'scripts/validate-fixed-product-application.mjs'
+      - 'scripts/validate-doing-v11-home-e2e.mjs'
       - '.github/workflows/doing-2-site.yml'
   push:
     branches: [main]
     paths:
       - 'doing-2.html'
       - 'doing-2-shell.js'
+      - 'doing-2-home-v11.css'
+      - 'doing-2-home-v11.js'
+      - 'doing-market-public-query.js'
       - 'market-center.html'
       - 'market-public.html'
       - 'market-session.html'
@@ -62,6 +69,7 @@ on:
       - 'scripts/validate-member-panel-return.mjs'
       - 'scripts/validate-application-login-flow.mjs'
       - 'scripts/validate-fixed-product-application.mjs'
+      - 'scripts/validate-doing-v11-home-e2e.mjs'
       - '.github/workflows/doing-2-site.yml'
   workflow_dispatch:
 
@@ -90,17 +98,22 @@ jobs:
         run: node scripts/validate-application-login-flow.mjs
       - name: Validate fixed product application
         run: node scripts/validate-fixed-product-application.mjs
+      - name: Validate v11 public home end-to-end contracts
+        run: node scripts/validate-doing-v11-home-e2e.mjs
       - name: Build DOING 2.0 site
         run: node scripts/build-doing-2-site.mjs
       - name: Validate root and product routes
         run: |
           test -f .doing-2-site/index.html
           grep -q 'DOING 2.0 Hub' .doing-2-site/index.html
+          grep -q 'doing-2-home-v11.css' .doing-2-site/index.html
+          grep -q 'doing-2-home-v11.js' .doing-2-site/index.html
           for f in market/index.html market/public/index.html market/session/index.html project/index.html booking/index.html guide/index.html; do test -f ".doing-2-site/$f"; done
-          for f in smart-application.html workspace.html member.html member-panel.html about.html doing-smart-activation-v5.js doing-auto-activation-status.js doing-global-entry.js doing-application-completion.js doing-workspace-product-router.js; do test -f ".doing-2-site/$f"; done
+          for f in smart-application.html workspace.html member.html member-panel.html about.html doing-smart-activation-v5.js doing-auto-activation-status.js doing-global-entry.js doing-application-completion.js doing-workspace-product-router.js doing-2-home-v11.css doing-2-home-v11.js doing-market-public-query.js; do test -f ".doing-2-site/$f"; done
           grep -q 'market-center.html' .doing-2-site/market/index.html
           grep -q 'market-public.html' .doing-2-site/market/public/index.html
           grep -q 'market-session.html' .doing-2-site/market/session/index.html
+          grep -q 'doing-market-public-query.js' .doing-2-site/market-public.html
           grep -q 'doing-member-return-direct.js' .doing-2-site/member-panel.html
           grep -q 'doing-smart-activation-v5.js' .doing-2-site/smart-application.html
           grep -q 'doing-application-completion.js' .doing-2-site/smart-application.html

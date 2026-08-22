@@ -12,7 +12,7 @@ const copyFiles=[
   'smart-application.html','workspace.html','member.html','member-panel.html','about.html',
   'admin.html','onsite.html','index.html','register.html',
   'doing-system.css','doing-design-tokens.css','doing-pastel-pages.css',
-  'doing-2-shell.css','doing-2-shell.js','doing-market-2bl.css',
+  'doing-2-shell.css','doing-2-shell.js','doing-2-home-v11.css','doing-2-home-v11.js','doing-market-public-query.js','doing-market-2bl.css',
   'doing-member-return-direct.js','doing-application-completion.js','doing-workspace-product-router.js',
   'doing-smart-activation-v5.js','doing-auto-activation-status.js','doing-global-entry.js',
   'doing-logo.png','doing-attribution.js','doing-home-refresh.js','doing-home-refresh.css',
@@ -35,6 +35,25 @@ const injectShell=(file)=>{
   fs.writeFileSync(fp,html);
 };
 shellTargets.forEach(injectShell);
+
+// DOING v11 公開首頁：只影響 doing-2.html／根首頁，不套到 Market 或其他營運頁。
+{
+  const fp=path.join(out,'doing-2.html');
+  let html=fs.readFileSync(fp,'utf8');
+  if(!html.includes('doing-2-home-v11.css'))html=html.replace('</head>','<link rel="stylesheet" href="/doing-2-home-v11.css?v=20260822-v11home"></head>');
+  if(!html.includes('doing-2-home-v11.js'))html=html.replace('</body>','<script src="/doing-2-home-v11.js?v=20260822-v11home"></script></body>');
+  fs.writeFileSync(fp,html);
+}
+
+// 首頁搜尋關鍵字直接帶入公開活動頁。
+{
+  const fp=path.join(out,'market-public.html');
+  if(fs.existsSync(fp)){
+    let html=fs.readFileSync(fp,'utf8');
+    if(!html.includes('doing-market-public-query.js'))html=html.replace('</body>','<script src="/doing-market-public-query.js?v=20260822-home-search"></script></body>');
+    fs.writeFileSync(fp,html);
+  }
+}
 
 for(const file of ['market-center.html','market-session.html']){
   const fp=path.join(out,file);if(!fs.existsSync(fp))continue;
@@ -89,4 +108,4 @@ for(const [rel,targetFile] of Object.entries(routeMap)){
 }
 
 fs.writeFileSync(path.join(out,'_headers'),`/*\n  Cache-Control: no-store\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`);
-console.log(JSON.stringify({result:'PASS',output:'.doing-2-site',root:'doing-2.html',routes:Object.keys(routeMap),shell:shellTargets,marketCompact:['market-center.html','market-session.html'],memberDirectReturn:true,applicationFlow:true,applicationFixedProducts:'v5',workspaceMarketRouter:true},null,2));
+console.log(JSON.stringify({result:'PASS',output:'.doing-2-site',root:'doing-2.html',routes:Object.keys(routeMap),shell:shellTargets,homeV11:true,homeSearchToMarket:true,marketCompact:['market-center.html','market-session.html'],memberDirectReturn:true,applicationFlow:true,applicationFixedProducts:'v5',workspaceMarketRouter:true},null,2));
