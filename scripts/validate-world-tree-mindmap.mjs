@@ -7,16 +7,19 @@ const data=JSON.parse(fs.readFileSync('doing-world-tree-current.json','utf8'));
 for(const token of ['tree-grid','side left','side right','trunk','connectors','branch status-','detail-list']) assert.ok(html.includes(token),'世界樹缺少真正心智圖結構：'+token);
 assert.ok(html.includes('DOING 2.0 世界樹'),'缺中央主幹標題');
 assert.ok(html.includes('可左右滑動查看整棵樹'),'手機版必須可橫向查看整棵樹');
+assert.ok(html.includes('尚未做'),'世界樹必須明確顯示尚未做狀態');
 assert.ok(!html.includes('wt-summary')&&!html.includes('wt-stat'),'不得回到卡片式進度儀表板');
 
 const expected=['Market','Project','Booking','Guide','會員／我的紀錄','申請','共用核心'];
 for(const title of expected) assert.ok(data.branches.some(x=>x.title===title),'第一層世界樹缺少：'+title);
 for(const b of data.branches){
   assert.ok(['left','right'].includes(b.side),'分支必須指定左右位置：'+b.title);
-  assert.ok(['done','progress','verify','blocked'].includes(b.status),'分支狀態不合法：'+b.title);
+  assert.ok(['done','progress','verify','todo','blocked'].includes(b.status),'分支狀態不合法：'+b.title);
   assert.ok(Array.isArray(b.children),'分支缺少 children：'+b.title);
+  for(const c of b.children) assert.ok(['done','progress','verify','todo','blocked'].includes(c.status),'子節點狀態不合法：'+b.title+' / '+c.title);
 }
 const market=data.branches.find(x=>x.title==='Market');
-for(const title of ['主工作頁','單場工作頁','公開活動','設定／現場']) assert.ok(market.children.some(x=>x.title===title),'Market 世界樹缺少：'+title);
+for(const id of ['market-main-tabs','market-session','market-public','market-settings']) assert.ok(market.children.some(x=>x.id===id),'Market 世界樹缺少：'+id);
+assert.ok(data.branches.some(x=>x.status==='todo')||data.branches.some(x=>x.children.some(c=>c.status==='todo')),'世界樹必須包含尚未做項目');
 
-console.log(JSON.stringify({result:'PASS',layout:'central-trunk-left-right-mindmap',version:data.version,branches:data.branches.length,mobile:'horizontal-pan',dashboardCards:false},null,2));
+console.log(JSON.stringify({result:'PASS',layout:'central-trunk-left-right-mindmap',version:data.version,branches:data.branches.length,mobile:'horizontal-pan',dashboardCards:false,todoState:true},null,2));
