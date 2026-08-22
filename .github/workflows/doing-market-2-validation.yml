@@ -10,6 +10,9 @@ on:
       - 'doing-market-completion-v16.js'
       - 'doing-market-session-settings-v16.css'
       - 'doing-market-session-settings-v16.js'
+      - 'doing-market-role-ui-v17.css'
+      - 'doing-market-role-ui-v17.js'
+      - 'doing-visual-system-20260822.js'
       - 'market-public.html'
       - 'market-center.html'
       - 'market-session.html'
@@ -32,7 +35,9 @@ on:
       - 'scripts/validate-doing-2-shell.mjs'
       - 'scripts/validate-doing-market-compact-ui.mjs'
       - 'scripts/validate-market-green-closure.mjs'
+      - 'scripts/validate-market-role-ui-v17.mjs'
       - 'scripts/e2e-market-ui.mjs'
+      - 'scripts/e2e-market-role-ui-v17.mjs'
       - '.github/workflows/doing-market-2-validation.yml'
   workflow_dispatch:
 permissions:
@@ -55,6 +60,8 @@ jobs:
         run: node scripts/validate-doing-market-compact-ui.mjs
       - name: Validate Market end-to-end closure
         run: node scripts/validate-market-green-closure.mjs
+      - name: Validate Market role UI v17
+        run: node scripts/validate-market-role-ui-v17.mjs
       - name: Build DOING 2.0 site
         run: node scripts/build-doing-2-site.mjs
       - name: Install Chromium E2E
@@ -68,5 +75,6 @@ jobs:
           trap 'kill $SERVER_PID || true' EXIT
           for i in {1..30}; do curl -fsS http://127.0.0.1:4173/market/public/ >/dev/null && break; sleep 1; done
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-ui.mjs
+          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-role-ui-v17.mjs
       - name: Diff quality
         run: git diff --check HEAD^ HEAD || true

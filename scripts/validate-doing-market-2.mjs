@@ -7,8 +7,8 @@ const html=fs.readFileSync('market-center.html','utf8');
 const session=fs.readFileSync('market-session.html','utf8');
 assert.match(publicPage,/DOING Market/,'公開前台缺少正式產品名稱');
 assert.ok(publicPage.includes("api('publicDiscovery')"),'公開前台必須讀既有 publicDiscovery');
-assert.ok(publicPage.includes("new URL('index.html'"),'公開活動必須回既有正式 tenant/session 報名頁');
-assert.ok(publicPage.includes('member-panel.html'),'我的報名必須沿用既有會員中心');
+assert.ok(publicPage.includes("new URL('/register/'"),'公開活動必須進正式 tenant/session 報名短網址');
+assert.ok(publicPage.includes("new URL('/me/'"),'我的報名必須沿用正式會員中心短網址');
 for(const label of ['市集','活動','體驗','DIY','我的報名'])assert.ok(publicPage.includes(label),`公開前台缺少：${label}`);
 assert.match(html,/DOING Market/,'缺少正式產品名稱');
 for(const label of ['場次','待辦','現場','會員','設定'])assert.ok(html.includes(label),`缺少主入口：${label}`);
@@ -36,4 +36,4 @@ assert.ok(v3.includes('單場工作台')&&v3.includes('本次新增資料表：0
 assert.ok(v4.includes('getTodos')&&v4.includes('getMembers')&&v4.includes('新資料表：0'),'v4 Market 日常營運世界樹未同步');
 assert.ok(v5.includes('publicDiscovery')&&v5.includes('新資料表：0'),'v5 Market 公開前台世界樹未同步');
 const log=fs.readFileSync('DOING_2.0_CHANGELOG.md','utf8');assert.ok(log.includes('只追加'),'ChangeLog 必須只追加');
-console.log(JSON.stringify({result:'PASS',product:'DOING Market',publicPortal:'publicDiscovery',tabs:5,sessionWorkbench:7,sessionApi:'getSessionsAdmin',todoRead:'getTodos',memberRead:'getMembers',registrationRead:'getSessionRegistrations',reviewWrite:'approveReg',paymentWrite:'confirmPayment',onsiteWrite:'checkin',worldTreeBaseline:'LOCKED',worldTreeExecution:'v5',databaseChanges:0,newTables:0},null,2));
+console.log(JSON.stringify({result:'PASS',product:'DOING Market',publicPortal:'publicDiscovery',publicRegistration:'/register/',member:'/me/',tabs:5,sessionWorkbench:7,sessionApi:'getSessionsAdmin',todoRead:'getTodos',memberRead:'getMembers',registrationRead:'getSessionRegistrations',reviewWrite:'approveReg',paymentWrite:'confirmPayment',onsiteWrite:'checkin',worldTreeBaseline:'LOCKED',worldTreeExecution:'v5',databaseChanges:0,newTables:0},null,2));
