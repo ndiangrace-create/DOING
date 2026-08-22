@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const html=fs.readFileSync('world-tree.html','utf8');
+const build=fs.readFileSync('scripts/build-doing-2-site.mjs','utf8');
 const data=JSON.parse(fs.readFileSync('doing-world-tree-current.json','utf8'));
 const allowed=new Set(['done','progress','verify','todo','blocked']);
 
@@ -11,6 +12,7 @@ assert.ok(html.includes('手機可左右滑動查看完整心智圖'),'手機版
 assert.ok(html.includes('尚未做'),'世界樹必須明確顯示尚未做狀態');
 assert.ok(!html.includes('substepsHtml')&&!html.includes('detailSubsteps'),'不得再把 2BL 路徑塞成文字子清單');
 assert.ok(!html.includes('wt-summary')&&!html.includes('wt-stat'),'不得回到卡片式進度儀表板');
+for(const token of ['applyWorldTreeTrafficLight','world-tree-traffic-light','綠燈｜已完成','黃燈｜進行中／待確認','紅燈｜阻擋／有問題']) assert.ok(build.includes(token),'正式世界樹缺少紅黃綠燈顯示：'+token);
 
 const expected=['Market','Project','Booking','Guide','會員／我的紀錄','申請','我的 DOING／工作空間','DOING 公開平台','角色／權限','共用模組','共用核心'];
 for(const title of expected) assert.ok(data.branches.some(x=>x.title===title),'第一層世界樹缺少：'+title);
@@ -39,4 +41,4 @@ assert.equal(roles.children.length,5,'角色／權限必須保留 5 類角色');
 const shared=data.branches.find(x=>x.id==='shared-modules');
 assert.equal(shared.children.length,10,'共用模組必須保留 10 項固定模組');
 
-console.log(JSON.stringify({result:'PASS',layout:'graphical-mindmap-with-connected-nodes',version:data.version,criticalMarketNodes:7,twoBL:{frontNodes:7,adminNodes:7,closeLoopNodes:5},roles:5,sharedModules:10,todoProtected:true,textListFallback:false,mobile:'horizontal-pan'},null,2));
+console.log(JSON.stringify({result:'PASS',layout:'graphical-mindmap-with-connected-nodes',statusDisplay:'traffic-light-green-yellow-red',version:data.version,criticalMarketNodes:7,twoBL:{frontNodes:7,adminNodes:7,closeLoopNodes:5},roles:5,sharedModules:10,todoProtected:true,textListFallback:false,mobile:'horizontal-pan'},null,2));
