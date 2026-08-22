@@ -158,7 +158,8 @@ jobs:
           grep -q 'doing-workspace-product-router.js' .doing-2-site/workspace/index.html
           grep -q 'data-tab="settings"' .doing-2-site/market/index.html
           grep -q 'data-tab="onsite"' .doing-2-site/market/index.html
-          grep -q 'tree-grid' .doing-2-site/world-tree/index.html
+          grep -q 'overall-grid' .doing-2-site/world-tree/index.html
+          grep -q 'market-map' .doing-2-site/world-tree/index.html
           grep -q 'DOING 2.0 世界樹' .doing-2-site/world-tree/index.html
           ! grep -R -E -q '(admin|onsite|platform|operations-center|photo|consignment|member-panel|smart-application)\.html' .doing-2-site
           ! grep -R -q '2bl-v7' .doing-2-site
