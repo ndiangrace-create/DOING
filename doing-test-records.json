@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-22T18:49:00+08:00",
-  "sourceFingerprint": "3fc67fc795ea59bb396e9b32f783c512903a276c73f76456c30e8d78f1cccf88",
-  "environment": "DOING 2.0 v15.0 世界樹總整。/world-tree/ 新增灰色『尚未做』狀態，並把本次對話已完成、已定案待驗證、進行中、尚未做、阻擋項目統一收進同一棵中央主幹＋左右分支心智圖。涵蓋 Market、Project、Booking、Guide、會員／我的紀錄、申請、Workspace、DOING 公開平台與共用核心。DOING 公開 root 本輪仍鎖定不動；Worker、Schema、Supabase 正式業務資料與 2BL 均未修改。",
+  "recordedAt": "2026-08-22T19:03:00+08:00",
+  "sourceFingerprint": "b323cf646f9542de687b802d8aa36400890a1663c1692a69dbfd088b257f09cd",
+  "environment": "DOING 2.0 v15.1 世界樹。Market 分支已接上 2BL 完整前台攤商路徑、後台主辦路徑與系統閉環；世界樹頁支援第三層子節點。前台路徑固定為活動探索→會員→報名→付款→排位→現場→歷史紀錄；後台路徑固定為場次設定→待辦→審核→付款→排位→退款→財務結案；閉環固定為按鈕／操作→Core／API→Supabase SSOT→重讀正式資料→畫面同步。每個節點保留 done/progress/verify/todo/blocked 狀態，不把未做真人 E2E 的項目寫成 PASS。Worker、Schema、Supabase 正式業務資料與 2BL 均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
   "tests": [
-    {"id":"world-tree-mindmap","command":"node scripts/validate-world-tree-mindmap.mjs","result":"PASS","scope":"中央主幹、左右分支、既有第一層分支、Market 子節點、done/progress/verify/todo/blocked 五種狀態、手機橫向查看；禁止卡片儀表板"},
+    {"id":"world-tree-mindmap","command":"node scripts/validate-world-tree-mindmap.mjs","result":"PASS","scope":"中央主幹、左右分支、多層子節點、2BL 前台 7 節點、後台 7 節點、閉環 5 節點、五種狀態、手機橫向查看；禁止卡片儀表板"},
     {"id":"doing2-short-route-cleanup","command":"node scripts/validate-doing2-short-route-cleanup.mjs","result":"PASS","scope":"DOING 2.0 正式短網址與層級保持；多餘獨立頁不回歸"},
     {"id":"member-panel-line-return","command":"node scripts/validate-member-panel-return.mjs","result":"PASS","scope":"/me/ → LINE → 原 /me/ 狀態；不繞首頁"},
     {"id":"application-login-flow","command":"node scripts/validate-application-login-flow.mjs","result":"PASS","scope":"/apply/ → LINE → 自動開通 → /me/ → /workspace/ → /market/"},
@@ -24,9 +24,9 @@
     {"id":"role-module-access","command":"node scripts/validate-role-module-access.mjs","result":"PASS","scope":"多角色與模組權限回歸"},
     {"id":"full-system","command":"node scripts/validate-full-system.mjs","result":"PASS","scope":"正式功能頁、前端 API 動作與後台按鈕函式回歸"},
     {"id":"navigation-actions","command":"node scripts/validate-navigation-actions.mjs","result":"PASS","scope":"平台、租戶、申請、會員與工作入口導航回歸"},
-    {"id":"universal-booking","command":"node scripts/validate-universal-booking.mjs","result":"PASS","scope":"預約核心能力未受世界樹總整影響"},
+    {"id":"universal-booking","command":"node scripts/validate-universal-booking.mjs","result":"PASS","scope":"預約核心能力未受世界樹 2BL 路徑擴充影響"},
     {"id":"operational-closeout","command":"node scripts/validate-operational-closeout.mjs","result":"PASS","scope":"財務、押金、寄賣、POS、結案等成熟能力回歸"},
-    {"id":"market-app-core-contracts","command":"node scripts/validate-market-app-core-contracts.mjs","result":"PASS","scope":"Market App Core 契約未受世界樹總整影響"},
+    {"id":"market-app-core-contracts","command":"node scripts/validate-market-app-core-contracts.mjs","result":"PASS","scope":"Market App Core 契約未受世界樹 2BL 路徑擴充影響"},
     {"id":"admin-consistency","command":"node scripts/validate-admin-consistency.mjs","result":"PASS","scope":"後台一致性、按鈕不溢位與結算邏輯回歸"},
     {"id":"worker-sync","command":"cmp -s worker.js worker.txt","result":"PASS","scope":"正式 Worker 雙檔未變更且同步"}
   ]
