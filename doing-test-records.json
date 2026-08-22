@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-22T20:08:00+08:00",
-  "sourceFingerprint": "16ae3616d408f9df6a364439987cdc2736dc8c164c9f407d596265dc2d41a24b",
-  "environment": "DOING 2.0 世界樹紅黃綠燈顯示。正式 /world-tree/ 改為綠燈＝已完成、黃燈＝進行中／待驗證／尚未做、紅燈＝阻擋／有問題；底層 done／progress／verify／todo／blocked 五種細分狀態仍完整保留。Market 2BL 路徑、登入、LINE、申請、自動開通、Workspace、Worker、Supabase 正式資料與 2BL 均未修改。",
+  "recordedAt": "2026-08-22T20:29:00+08:00",
+  "sourceFingerprint": "fd9a84851cb138a570b1770e6c4e9d3724fc656c2d332ddfc9c8b6f92e7a1ab7",
+  "environment": "DOING 2.0 Market 心智操作路徑下鑽。依 2BL 營運世界樹保留前台 7 步、後台 7 步與系統閉環 5 步，並在每個主節點下補上實際操作分支；正式 /world-tree/ 繼續使用紅黃綠燈顯示。Market 業務功能、登入、LINE、申請、自動開通、Workspace、Worker、Supabase 正式資料與 2BL 均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
   "tests": [
-    {"id":"world-tree-mindmap","command":"node scripts/validate-world-tree-mindmap.mjs","result":"PASS","scope":"紅黃綠燈顯示、新版全系統心智圖、Market 重要節點、2BL 前台 7 步／後台 7 步／閉環 5 步、5 類角色、10 共用模組、todo 保護、手機橫向查看"},
+    {"id":"world-tree-mindmap","command":"node scripts/validate-world-tree-mindmap.mjs","result":"PASS","scope":"Market 前台 7 步、後台 7 步、閉環 5 步及其下層操作節點；紅黃綠燈、5 類角色、10 共用模組、尚未做保護、手機橫向查看"},
     {"id":"doing2-short-route-cleanup","command":"node scripts/validate-doing2-short-route-cleanup.mjs","result":"PASS","scope":"DOING 2.0 正式短網址與層級保持；多餘獨立頁不回歸"},
     {"id":"member-panel-line-return","command":"node scripts/validate-member-panel-return.mjs","result":"PASS","scope":"/me/ → LINE → 原 /me/ 狀態；不繞首頁"},
     {"id":"application-login-flow","command":"node scripts/validate-application-login-flow.mjs","result":"PASS","scope":"/apply/ → LINE → 自動開通 → /me/ → /workspace/ → /market/"},
@@ -24,9 +24,9 @@
     {"id":"role-module-access","command":"node scripts/validate-role-module-access.mjs","result":"PASS","scope":"多角色與模組權限回歸"},
     {"id":"full-system","command":"node scripts/validate-full-system.mjs","result":"PASS","scope":"正式功能頁、前端 API 動作與後台按鈕函式回歸"},
     {"id":"navigation-actions","command":"node scripts/validate-navigation-actions.mjs","result":"PASS","scope":"平台、租戶、申請、會員與工作入口導航回歸"},
-    {"id":"universal-booking","command":"node scripts/validate-universal-booking.mjs","result":"PASS","scope":"預約核心能力未受本輪紅綠燈顯示調整影響"},
+    {"id":"universal-booking","command":"node scripts/validate-universal-booking.mjs","result":"PASS","scope":"預約核心能力未受 Market 心智圖下鑽影響"},
     {"id":"operational-closeout","command":"node scripts/validate-operational-closeout.mjs","result":"PASS","scope":"財務、押金、寄賣、POS、結案等成熟能力回歸"},
-    {"id":"market-app-core-contracts","command":"node scripts/validate-market-app-core-contracts.mjs","result":"PASS","scope":"Market App Core 契約未受本輪紅綠燈顯示調整影響"},
+    {"id":"market-app-core-contracts","command":"node scripts/validate-market-app-core-contracts.mjs","result":"PASS","scope":"Market App Core 契約未受 Market 心智圖下鑽影響"},
     {"id":"admin-consistency","command":"node scripts/validate-admin-consistency.mjs","result":"PASS","scope":"後台一致性、按鈕不溢位與結算邏輯回歸"},
     {"id":"worker-sync","command":"cmp -s worker.js worker.txt","result":"PASS","scope":"正式 Worker 雙檔未變更且同步"}
   ]
