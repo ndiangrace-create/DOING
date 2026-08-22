@@ -26,4 +26,10 @@ document.querySelectorAll('.loading').forEach(el=>el.dataset.state='loading');
 // Prevent engineering-only copy from leaking into user-facing pages.
 const forbidden=/tenant_id|tenant id|Supabase|資料表|API\/?|Worker\b|productionWrites|debug|工程代碼|內部路徑/i;
 document.querySelectorAll('.note,.muted,.sub,.help').forEach(el=>{const t=(el.textContent||'').trim();if(t&&forbidden.test(t))el.classList.add('d2-hide-engineering')});
+
+// Market completion layer: same UI language across discovery, registration, member history and organizer session work.
+if(['market','market-public','market-session','me','register'].includes(cls)){
+  if(!document.querySelector('link[data-market-completion]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/doing-market-completion-v16.css?v=20260822-v16';l.dataset.marketCompletion='1';document.head.appendChild(l)}
+  if(!document.querySelector('script[data-market-completion]')){const s=document.createElement('script');s.src='/doing-market-completion-v16.js?v=20260822-v16';s.defer=true;s.dataset.marketCompletion='1';document.body.appendChild(s)}
+}
 })();
