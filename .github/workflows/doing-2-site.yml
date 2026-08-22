@@ -13,6 +13,8 @@ on:
       - 'doing-candy-theme.css'
       - 'doing-application-contract-v12.js'
       - 'doing-market-v18.css'
+      - 'doing-market-v19-layout.css'
+      - 'doing-market-auth-bridge-v19.js'
       - 'market-center.html'
       - 'market-public.html'
       - 'market-session.html'
@@ -32,6 +34,7 @@ on:
       - 'doing-auto-activation-status.js'
       - 'doing-global-entry.js'
       - 'scripts/build-doing-2-site.mjs'
+      - 'scripts/postprocess-market-v19.mjs'
       - 'scripts/validate-member-panel-return.mjs'
       - 'scripts/validate-application-login-flow.mjs'
       - 'scripts/validate-fixed-product-application.mjs'
@@ -54,6 +57,8 @@ on:
       - 'doing-candy-theme.css'
       - 'doing-application-contract-v12.js'
       - 'doing-market-v18.css'
+      - 'doing-market-v19-layout.css'
+      - 'doing-market-auth-bridge-v19.js'
       - 'market-center.html'
       - 'market-public.html'
       - 'market-session.html'
@@ -73,6 +78,7 @@ on:
       - 'doing-auto-activation-status.js'
       - 'doing-global-entry.js'
       - 'scripts/build-doing-2-site.mjs'
+      - 'scripts/postprocess-market-v19.mjs'
       - 'scripts/validate-member-panel-return.mjs'
       - 'scripts/validate-application-login-flow.mjs'
       - 'scripts/validate-fixed-product-application.mjs'
@@ -121,7 +127,9 @@ jobs:
       - name: Validate true world tree mind map
         run: node scripts/validate-world-tree-mindmap.mjs
       - name: Build DOING 2.0 site
-        run: node scripts/build-doing-2-site.mjs
+        run: |
+          node scripts/build-doing-2-site.mjs
+          node scripts/postprocess-market-v19.mjs
       - name: Validate only short hierarchy is published
         run: |
           test -f .doing-2-site/index.html
@@ -140,6 +148,8 @@ jobs:
             test -f ".doing-2-site/$f"
           done
           test -f .doing-2-site/doing-world-tree-current.json
+          test -f .doing-2-site/doing-market-v19-layout.css
+          test -f .doing-2-site/doing-market-auth-bridge-v19.js
 
           for f in \
             doing-2.html market-center.html market-public.html market-session.html \
@@ -158,10 +168,13 @@ jobs:
           grep -q 'doing-application-contract-v12.js' .doing-2-site/apply/index.html
           grep -q 'doing-application-completion.js' .doing-2-site/apply/index.html
           grep -q 'doing-workspace-product-router.js' .doing-2-site/workspace/index.html
+          grep -q 'doing-market-v19-layout.css' .doing-2-site/market/index.html
+          grep -q 'doing-market-auth-bridge-v19.js' .doing-2-site/market/index.html
+          grep -q 'doing-market-auth-bridge-v19.js' .doing-2-site/market/session/index.html
+          grep -q 'doing-market-v19-layout.css' .doing-2-site/market/public/index.html
           for page in sessions todos onsite members leads finance consignment settings; do
             grep -q "data-page=\"$page\"" .doing-2-site/market/index.html
           done
-          grep -q 'doing-market-v18.css' .doing-2-site/market/index.html
           grep -q 'overall-grid' .doing-2-site/world-tree/index.html
           grep -q 'market-map' .doing-2-site/world-tree/index.html
           grep -q 'DOING 2.0 世界樹' .doing-2-site/world-tree/index.html
@@ -191,7 +204,9 @@ jobs:
           test -n "$CF_TOKEN"
           test -n "$CF_ACCOUNT"
       - name: Build site
-        run: node scripts/build-doing-2-site.mjs
+        run: |
+          node scripts/build-doing-2-site.mjs
+          node scripts/postprocess-market-v19.mjs
       - name: Ensure Cloudflare Pages project
         env:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
