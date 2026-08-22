@@ -6,8 +6,8 @@ const out=path.join(root,'.doing-2-site');
 fs.rmSync(out,{recursive:true,force:true});
 fs.mkdirSync(out,{recursive:true});
 
-// Public contract: DOING 2.0 exposes directory-style short URLs only.
-// Legacy *.html source files remain internal build inputs and are never copied to public output.
+// DOING 2.0 public contract: only hierarchy-based short URLs are published.
+// Legacy root-level *.html files are internal build inputs only and are never public pages.
 const routes={
   '/market/':'market-center.html',
   '/market/public/':'market-public.html',
@@ -17,17 +17,11 @@ const routes={
   '/guide/':'guide-center.html',
   '/workspace/':'workspace.html',
   '/me/':'member-panel.html',
-  '/member/':'member.html',
   '/apply/':'smart-application.html',
-  '/register/':'register.html',
-  '/admin/':'admin.html',
-  '/onsite/':'onsite.html',
-  '/platform/':'platform.html',
-  '/operations/':'operations-center.html',
-  '/photo/':'photo.html',
-  '/consignment/':'consignment.html',
-  '/about/':'about.html'
+  '/register/':'register.html'
 };
+
+// Retired page routing is flattened into the owning system instead of creating more URLs.
 const legacyToShort={
   'doing-2.html':'/',
   'index.html':'/',
@@ -39,22 +33,26 @@ const legacyToShort={
   'guide-center.html':'/guide/',
   'workspace.html':'/workspace/',
   'member-panel.html':'/me/',
-  'member.html':'/member/',
+  'member.html':'/me/',
   'smart-application.html':'/apply/',
   'register.html':'/register/',
-  'admin.html':'/admin/',
-  'onsite.html':'/onsite/',
-  'platform.html':'/platform/',
-  'operations-center.html':'/operations/',
-  'photo.html':'/photo/',
-  'consignment.html':'/consignment/',
-  'about.html':'/about/'
+  'admin.html':'/market/',
+  'onsite.html':'/market/#onsite',
+  'platform.html':'/workspace/#platform',
+  'operations-center.html':'/workspace/#operations',
+  'photo.html':'/market/#settings',
+  'consignment.html':'/market/#settings',
+  'about.html':'/'
 };
+
 const rewriteLegacyRefs=(source)=>{
   let s=String(source);
+  // Replace absolute legacy references first so `/foo.html` never becomes `//short/`.
+  for(const [oldPath,newPath] of Object.entries(legacyToShort))s=s.split('/'+oldPath).join(newPath);
   for(const [oldPath,newPath] of Object.entries(legacyToShort))s=s.split(oldPath).join(newPath);
   return s;
 };
+
 function addBodyClass(html,name){
   return html.replace(/<body([^>]*)>/i,(m,attrs)=>{
     const hit=attrs.match(/class=(['"])(.*?)\1/i);
@@ -76,40 +74,41 @@ function preparePage(source,route){
   html=rewriteLegacyRefs(html);
   html=ensureBase(html);
   html=addBodyClass(html,'d2-candy-theme');
-  html=inject(html,'doing-candy-theme.css','<link rel="stylesheet" href="/doing-candy-theme.css?v=20260822-short1">');
+  html=inject(html,'doing-candy-theme.css','<link rel="stylesheet" href="/doing-candy-theme.css?v=20260822-short2">');
 
   if(['market-center.html','market-session.html'].includes(source)){
     html=addBodyClass(html,'d2-market-compact');
-    html=inject(html,'doing-market-2bl.css','<link rel="stylesheet" href="/doing-market-2bl.css?v=20260822-short1">');
+    html=inject(html,'doing-market-2bl.css','<link rel="stylesheet" href="/doing-market-2bl.css?v=20260822-short2">');
   }
   if(['market-center.html','market-session.html','project-center.html','booking-2-center.html','guide-center.html'].includes(source)){
-    html=inject(html,'doing-2-shell.css','<link rel="stylesheet" href="/doing-2-shell.css?v=20260822-short1">');
-    html=inject(html,'doing-2-shell.js','<script src="/doing-2-shell.js?v=20260822-short1"></script>','body');
+    html=inject(html,'doing-2-shell.css','<link rel="stylesheet" href="/doing-2-shell.css?v=20260822-short2">');
+    html=inject(html,'doing-2-shell.js','<script src="/doing-2-shell.js?v=20260822-short2"></script>','body');
   }
-  if(source==='market-public.html')html=inject(html,'doing-market-public-query.js','<script src="/doing-market-public-query.js?v=20260822-short1"></script>','body');
-  if(source==='member-panel.html')html=inject(html,'doing-member-return-direct.js','<script src="/doing-member-return-direct.js?v=20260822-short1"></script>','body');
+  if(source==='market-public.html')html=inject(html,'doing-market-public-query.js','<script src="/doing-market-public-query.js?v=20260822-short2"></script>','body');
+  if(source==='member-panel.html')html=inject(html,'doing-member-return-direct.js','<script src="/doing-member-return-direct.js?v=20260822-short2"></script>','body');
   if(source==='smart-application.html'){
-    html=inject(html,'doing-application-contract-v12.js','<script src="/doing-application-contract-v12.js?v=20260822-short1"></script>','body');
-    html=inject(html,'doing-application-completion.js','<script src="/doing-application-completion.js?v=20260822-short1"></script>','body');
+    html=inject(html,'doing-application-contract-v12.js','<script src="/doing-application-contract-v12.js?v=20260822-short2"></script>','body');
+    html=inject(html,'doing-application-completion.js','<script src="/doing-application-completion.js?v=20260822-short2"></script>','body');
   }
-  if(source==='workspace.html')html=inject(html,'doing-workspace-product-router.js','<script src="/doing-workspace-product-router.js?v=20260822-short1"></script>','body');
+  if(source==='workspace.html')html=inject(html,'doing-workspace-product-router.js','<script src="/doing-workspace-product-router.js?v=20260822-short2"></script>','body');
+
   const rel=route==='/'?'index.html':route.replace(/^\//,'')+'index.html';
   const fp=path.join(out,rel);
   fs.mkdirSync(path.dirname(fp),{recursive:true});
   fs.writeFileSync(fp,html);
 }
 
-// Preserve current DOING root exactly in behavior; only remove its legacy /doing-2.html alias.
+// DOING root is not redesigned in this cleanup. Preserve the current root behavior.
 let home=fs.readFileSync(path.join(root,'doing-2.html'),'utf8');
 home=rewriteLegacyRefs(ensureBase(home));
 home=addBodyClass(home,'d2-candy-theme');
-home=inject(home,'doing-candy-theme.css','<link rel="stylesheet" href="/doing-candy-theme.css?v=20260822-short1">');
-home=inject(home,'doing-2-shell.css','<link rel="stylesheet" href="/doing-2-shell.css?v=20260822-short1">');
-home=inject(home,'doing-2-home-v11.css','<link rel="stylesheet" href="/doing-2-home-v11.css?v=20260822-short1">');
-home=inject(home,'doing-home-logo-slot-v12.css','<link rel="stylesheet" href="/doing-home-logo-slot-v12.css?v=20260822-short1">');
-home=inject(home,'doing-2-shell.js','<script src="/doing-2-shell.js?v=20260822-short1"></script>','body');
-home=inject(home,'doing-2-home-v11.js','<script src="/doing-2-home-v11.js?v=20260822-short1"></script>','body');
-home=inject(home,'doing-home-logo-slot-v12.js','<script src="/doing-home-logo-slot-v12.js?v=20260822-short1"></script>','body');
+home=inject(home,'doing-candy-theme.css','<link rel="stylesheet" href="/doing-candy-theme.css?v=20260822-short2">');
+home=inject(home,'doing-2-shell.css','<link rel="stylesheet" href="/doing-2-shell.css?v=20260822-short2">');
+home=inject(home,'doing-2-home-v11.css','<link rel="stylesheet" href="/doing-2-home-v11.css?v=20260822-short2">');
+home=inject(home,'doing-home-logo-slot-v12.css','<link rel="stylesheet" href="/doing-home-logo-slot-v12.css?v=20260822-short2">');
+home=inject(home,'doing-2-shell.js','<script src="/doing-2-shell.js?v=20260822-short2"></script>','body');
+home=inject(home,'doing-2-home-v11.js','<script src="/doing-2-home-v11.js?v=20260822-short2"></script>','body');
+home=inject(home,'doing-home-logo-slot-v12.js','<script src="/doing-home-logo-slot-v12.js?v=20260822-short2"></script>','body');
 fs.writeFileSync(path.join(out,'index.html'),home);
 
 for(const [route,source] of Object.entries(routes))preparePage(source,route);
@@ -130,12 +129,26 @@ for(const file of assetFiles){
 
 fs.writeFileSync(path.join(out,'_headers'),`/*\n  Cache-Control: no-store\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`);
 
-// Hard fail if any retired long page leaks into public output.
-const retired=Object.keys(legacyToShort).filter(x=>x!=='index.html');
-for(const old of retired){if(fs.existsSync(path.join(out,old)))throw new Error(`legacy public page leaked: ${old}`);}
+// Hard fail if a retired independent page is ever published again.
+const retiredPublicRoutes=['doing-2.html','market-center.html','market-public.html','market-session.html','project-center.html','booking-2-center.html','guide-center.html','workspace.html','member.html','member-panel.html','smart-application.html','register.html','admin.html','onsite.html','platform.html','operations-center.html','photo.html','consignment.html','about.html'];
+for(const old of retiredPublicRoutes){if(fs.existsSync(path.join(out,old)))throw new Error(`retired public page leaked: ${old}`);}
+const forbiddenShortDirs=['admin','onsite','platform','operations','photo','consignment','about','member'];
+for(const dir of forbiddenShortDirs){if(fs.existsSync(path.join(out,dir)))throw new Error(`extra independent route leaked: /${dir}/`);}
+
 const publicHtml=[];
 function walk(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const fp=path.join(dir,e.name);if(e.isDirectory())walk(fp);else if(e.name.endsWith('.html'))publicHtml.push(path.relative(out,fp).replaceAll(path.sep,'/'));}}
 walk(out);
 for(const f of publicHtml){if(path.basename(f)!=='index.html')throw new Error(`non-short html published: ${f}`);}
 
-console.log(JSON.stringify({result:'PASS',rootPreserved:true,shortRoutes:Object.keys(routes),retiredLongUrls:retired,publicHtml,legacyRedirects:0,productionWrites:0},null,2));
+console.log(JSON.stringify({
+  result:'PASS',
+  doingRootChanged:false,
+  shortRoutes:Object.keys(routes),
+  marketInternalTabs:['sessions','tasks','onsite','members','settings'],
+  nestedOnly:['/market/session/'],
+  retiredIndependentRoutes:forbiddenShortDirs.map(x=>`/${x}/`),
+  retiredLongUrls:retiredPublicRoutes,
+  publicHtml,
+  legacyRedirects:0,
+  productionWrites:0
+},null,2));
