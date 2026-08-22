@@ -8,10 +8,10 @@ const member=fs.readFileSync('member-panel.html','utf8');
 assert.match(publicPage,/DOING Market/,'公開前台缺少正式產品名稱');
 assert.ok(publicPage.includes("api('publicDiscovery')"),'公開前台必須讀既有 publicDiscovery');
 assert.ok(publicPage.includes("new URL('/register/'"),'公開活動必須進正式 tenant/session 報名短網址');
-assert.ok(publicPage.includes("new URL('/me/'"),'會員入口必須沿用 DOING 正式會員中心短網址');
+for(const token of ['memberDialog',"api('getPlatformMemberProfile'","api('getMyRegsGlobal'","api('savePlatformMemberProfile'",'/auth/line/start'])assert.ok(publicPage.includes(token),`會員原頁互動缺少 DOING 正式能力：${token}`);
+for(const token of ['eventDialog','supportDialog','openEvent(','openMember(','openSupport('])assert.ok(publicPage.includes(token),`2BL 前台單一 Panel 互動缺少：${token}`);
 for(const label of ['市集','活動','體驗','DIY','會員'])assert.ok(publicPage.includes(label),`公開前台缺少 2BL UI 操作項目：${label}`);
 assert.ok(member.includes('我的報名'),'DOING 會員中心必須保留正式名稱「我的報名」');
-assert.ok(publicPage.includes('/auth/line/start'),'Market 前台未保留 DOING LINE 登入');
 assert.match(html,/DOING Market/,'缺少正式產品名稱');
 for(const label of ['場次','待辦','現場','會員','活動','財務','寄賣','設定'])assert.ok(html.includes(`>${label}<`),`缺少 2BL 後台主入口：${label}`);
 for(const label of ['當日名單','全部名單','搜尋','一鍵報到'])assert.ok(html.includes(label),`缺少現場操作流程：${label}`);
@@ -29,4 +29,4 @@ const v5=fs.readFileSync('DOING_2.0_WORLD_TREE_V5_MARKET_PUBLIC_20260822.md','ut
 assert.ok(base.includes('不可覆蓋基準'),'缺少 2.0 v1 不可覆蓋世界樹基準');assert.ok(base.includes('同功能資料必須沿用現有正式資料表名稱'),'缺少 SSOT 防重建規則');assert.ok(v3.includes('單場工作台')&&v3.includes('本次新增資料表：0'),'v3 Market 執行世界樹未同步');assert.ok(v4.includes('getTodos')&&v4.includes('getMembers')&&v4.includes('新資料表：0'),'v4 Market 日常營運世界樹未同步');assert.ok(v5.includes('publicDiscovery')&&v5.includes('新資料表：0'),'v5 Market 公開前台世界樹未同步');
 const parity=fs.readFileSync('DOING_2.0_MARKET_2BL_UI_PARITY_20260823.md','utf8');assert.ok(parity.includes('2BL UI Parity')&&parity.includes('DOING LINE／會員登入'),'本輪 2BL UI parity checkpoint 未同步');
 const log=fs.readFileSync('DOING_2.0_CHANGELOG.md','utf8');assert.ok(log.includes('只追加'),'ChangeLog 必須只追加');
-console.log(JSON.stringify({result:'PASS',product:'DOING Market',publicPortal:'publicDiscovery',publicRegistration:'/register/',member:'/me/',publicMemberLabel:'會員',canonicalMemberRegistration:'我的報名',adminNav:8,sessionWorkbench:8,sessionApi:'getSessionsAdmin',todoRead:'getTodos',memberRead:'getMembers',registrationRead:'getSessionRegistrations',reviewWrite:'approveReg',paymentWrite:'confirmPayment',onsiteWrite:'checkin',refundWrite:'confirmRefund',auth:'DOING LINE',navigation:'2BL UI order + DOING short routes',worldTreeBaseline:'LOCKED',databaseChanges:0,newTables:0},null,2));
+console.log(JSON.stringify({result:'PASS',product:'DOING Market',publicPortal:'publicDiscovery',publicRegistration:'/register/',member:'inline panel + DOING member API',publicMemberLabel:'會員',canonicalMemberRegistration:'我的報名',publicInteraction:'category→card→single panel→register; member/support stay same page',adminNav:8,sessionWorkbench:8,sessionApi:'getSessionsAdmin',todoRead:'getTodos',memberRead:'getMembers',registrationRead:'getSessionRegistrations',reviewWrite:'approveReg',paymentWrite:'confirmPayment',onsiteWrite:'checkin',refundWrite:'confirmRefund',auth:'DOING LINE',navigation:'2BL interaction framework + DOING short routes',worldTreeBaseline:'LOCKED',databaseChanges:0,newTables:0},null,2));

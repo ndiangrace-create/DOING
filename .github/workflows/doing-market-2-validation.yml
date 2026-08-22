@@ -4,6 +4,7 @@ on:
     paths:
       - 'doing-2.html'
       - 'doing-market-v18.css'
+      - 'doing-market-completion-v16.css'
       - 'doing-visual-system-20260822.js'
       - 'market-public.html'
       - 'market-center.html'
@@ -27,6 +28,7 @@ on:
       - 'scripts/validate-market-role-ui-v18.mjs'
       - 'scripts/e2e-market-ui.mjs'
       - 'scripts/e2e-market-role-ui-v18.mjs'
+      - 'scripts/e2e-market-public-interaction-v20.mjs'
       - '.github/workflows/doing-market-2-validation.yml'
   workflow_dispatch:
 permissions:
@@ -65,6 +67,7 @@ jobs:
           for i in {1..30}; do curl -fsS http://127.0.0.1:4173/market/public/ >/dev/null && break; sleep 1; done
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-ui.mjs
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-role-ui-v18.mjs
+          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-public-interaction-v20.mjs
       - name: Upload Market v18 visual evidence
         uses: actions/upload-artifact@v4
         with:

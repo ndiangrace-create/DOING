@@ -11,7 +11,7 @@ const pub=fs.readFileSync('market-public.html','utf8');
 const worker=fs.readFileSync('worker.js','utf8');
 for(const t of ['getMyRegsGlobal','applyRefund','loadMemberHistory'])assert.ok(completion.includes(t),'會員 Market 閉環缺少：'+t);
 for(const t of ['d2-market-history-card','d2-market-completion-btn','@media(max-width:620px)'])assert.ok(completionCss.includes(t),'會員歷史／退款響應式能力缺少：'+t);
-for(const t of ["api('publicDiscovery')","new URL('/register/'","new URL('/me/'"])assert.ok(pub.includes(t),'公開探索→報名／會員閉環缺少：'+t);
+for(const t of ["api('publicDiscovery')","new URL('/register/'",'memberDialog',"api('getPlatformMemberProfile'","api('getMyRegsGlobal'","api('savePlatformMemberProfile'",'supportDialog'])assert.ok(pub.includes(t),'公開探索→報名／會員／客服閉環缺少：'+t);
 for(const t of ["api('getSessionsAdmin')","api('getTodos')","api('getMembers')","api('getSessionRegistrations'","api('checkin'","api('saveSiteConfig'","api('createSession'","pageshow"])assert.ok(center.includes(t),'主辦 Market 閉環缺少：'+t);
 for(const t of ["api('getSessionDashboard'","api('getSessionRegistrations'","api('approveReg'","api('confirmPayment'","api('checkin'","api('getRefundSuggestion'","api('confirmRefund'","api('updateSession'"])assert.ok(session.includes(t),'單場工作台閉環缺少：'+t);
 for(const t of ['doing-market-v18.css','doing-market-completion-v16.css','doing-market-completion-v16.js'])assert.ok(build.includes(t),'正式建置缺少必要 Market 資產：'+t);
@@ -19,4 +19,4 @@ for(const old of ['doing-market-2bl.css','doing-market-role-ui-v17.css','doing-m
 for(const t of ['getMyRegsGlobal','refreshActivities'])assert.ok(member.includes(t),'會員紀錄既有能力缺少：'+t);
 for(const t of ["'createSession'","'updateSession'","'applyRefund'","'confirmRefund'","'getRefundSuggestion'","'cancelReg'","'adminCancelReg'","'refundDeposit'","'checkin'","'markClear'"])assert.ok(worker.includes(t),'Core 缺少正式能力：'+t);
 assert.ok(!/gradient\(/i.test(marketCss),'Market v18 禁止漸層');
-console.log(JSON.stringify({result:'PASS',public:'discovery→register',member:'history→refund request→reread',admin:'session create/update + metric→list→write→reread + refund suggestion→confirm→reread',onsite:'checkin→reread',responsive:'desktop+mobile',legacyMarketFilesDeleted:true,dbChanges:0},null,2));
+console.log(JSON.stringify({result:'PASS',public:'discovery→card→single panel→register',member:'inline profile + my registrations + save + reread',support:'inline panel',admin:'session create/update + metric→list→write→reread + refund suggestion→confirm→reread',onsite:'checkin→reread',responsive:'desktop+mobile',legacyMarketFilesDeleted:true,dbChanges:0},null,2));
