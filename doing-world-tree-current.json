@@ -1,54 +1,98 @@
 {
-  "version": "v14.1",
-  "updatedAt": "2026-08-22 18:16",
+  "version": "v14.2",
+  "updatedAt": "2026-08-22 18:30",
   "current": {
     "title": "DOING Market 視覺與工作區精修",
-    "summary": "全站視覺系統已完成並通過自動驗證；目前重點轉入 Market 主工作頁與單場工作頁的逐區精修，操作流程仍依 2BL 世界樹骨架驗證。"
+    "summary": "目前主線仍是 Market 主工作頁與單場工作頁精修；世界樹頁已改為真正心智圖，用同一份 current JSON 同步實際進度。"
   },
   "branches": [
     {
-      "title": "DOING 2.0 視覺系統",
-      "summary": "全站共用色彩、字級、按鈕、表單、卡片、狀態與響應式框架。",
-      "status": "done",
-      "children": [
-        {"title":"全站 Design System","summary":"DOING 2.0 正式短網址已共用同一套視覺規則。","status":"done"},
-        {"title":"固定頂部列","summary":"桌機滑動時固定顯示；手機依各工作區響應式規則呈現。","status":"done"},
-        {"title":"Flat IA","summary":"頁內分頁與同工作區操作優先，避免小功能一直跳新頁。","status":"done"}
-      ]
-    },
-    {
-      "title": "DOING Market",
-      "summary": "場次／待辦／現場／會員／設定維持同一工作區；目前進行視覺與細節精修。",
+      "id": "market",
+      "side": "left",
+      "title": "Market",
+      "summary": "市集／活動／體驗工作系統。",
       "status": "progress",
       "children": [
-        {"title":"Market 主工作頁","summary":"保留五大主分頁與既有資料串接，正在依新視覺逐區精修。","status":"progress"},
-        {"title":"單場工作頁","summary":"總覽／報名／付款／排位設備／通知／現場／結案維持既有流程，正在精修介面。","status":"progress"},
-        {"title":"公開活動頁","summary":"既有搜尋與公開活動入口保留，等待正式畫面逐頁驗收。","status":"verify"},
-        {"title":"設定與現場","summary":"已回到 Market 主工作區內，不再拆成獨立後台頁。","status":"done"}
+        {"id":"market-main","title":"主工作頁","summary":"場次／待辦／現場／會員／設定同一工作區，正在逐區精修。","status":"progress"},
+        {"id":"market-session","title":"單場工作頁","summary":"總覽／報名／付款／排位設備／通知／現場／結案，正在精修。","status":"progress"},
+        {"id":"market-public","title":"公開活動","summary":"搜尋與公開活動入口保留，等待正式畫面逐頁驗收。","status":"verify"},
+        {"id":"market-settings","title":"設定／現場","summary":"已回到 Market 主工作區，不再拆獨立後台頁。","status":"done"}
       ]
     },
     {
-      "title": "短網址與層級整理",
-      "summary": "只保留正式短網址，舊長網址與多餘獨立頁已退出正式 Pages。",
-      "status": "done",
-      "children": [
-        {"title":"我的紀錄","summary":"固定使用 /me/，LINE 登入後直接回原紀錄頁。","status":"done"},
-        {"title":"申請","summary":"固定使用 /apply/，完成後接續我的 DOING／工作空間。","status":"done"},
-        {"title":"工作空間","summary":"固定使用 /workspace/，承接各產品工作入口。","status":"done"}
-      ]
-    },
-    {
-      "title": "正式畫面驗收",
-      "summary": "自動回歸已通過，但正式網域的真人桌機／手機畫面仍需逐頁確認。",
+      "id": "project",
+      "side": "left",
+      "title": "Project",
+      "summary": "室內設計／工程專案工作系統。",
       "status": "verify",
       "children": [
-        {"title":"桌機視覺驗收","summary":"需確認固定列、留白、卡片密度、文字與按鈕沒有跑版。","status":"verify"},
-        {"title":"手機視覺驗收","summary":"需確認不爆版、不遮字、不裁切、操作不形成多層返回。","status":"verify"}
+        {"id":"project-route","title":"正式入口","summary":"短網址 /project/ 已保留並套用共用視覺。","status":"done"},
+        {"id":"project-visual","title":"正式畫面","summary":"既有能力未移除，待後續依同一 Design System 深度精修。","status":"verify"}
+      ]
+    },
+    {
+      "id": "booking",
+      "side": "left",
+      "title": "Booking",
+      "summary": "美類／一般服務預約工作系統。",
+      "status": "verify",
+      "children": [
+        {"id":"booking-core","title":"預約核心能力","summary":"既有預約核心回歸測試通過。","status":"done"},
+        {"id":"booking-route","title":"正式入口","summary":"短網址 /booking/ 已保留並套用共用視覺。","status":"done"},
+        {"id":"booking-visual","title":"正式畫面","summary":"待後續逐區做正式畫面驗收與精修。","status":"verify"}
+      ]
+    },
+    {
+      "id": "guide",
+      "side": "right",
+      "title": "Guide",
+      "summary": "導覽員／導覽預約工作系統。",
+      "status": "verify",
+      "children": [
+        {"id":"guide-route","title":"正式入口","summary":"短網址 /guide/ 已保留並套用共用視覺。","status":"done"},
+        {"id":"guide-visual","title":"正式畫面","summary":"待後續逐區做正式畫面驗收與精修。","status":"verify"}
+      ]
+    },
+    {
+      "id": "member",
+      "side": "right",
+      "title": "會員／我的紀錄",
+      "summary": "單一會員身分、報名紀錄與工作入口。",
+      "status": "done",
+      "children": [
+        {"id":"member-route","title":"我的紀錄","summary":"固定 /me/，LINE 登入後直接回原紀錄頁。","status":"done"},
+        {"id":"member-workspace","title":"我的 DOING","summary":"/workspace/ 承接各產品工作入口。","status":"done"}
+      ]
+    },
+    {
+      "id": "apply",
+      "side": "right",
+      "title": "申請",
+      "summary": "申請 DOING 2.0 工作系統。",
+      "status": "done",
+      "children": [
+        {"id":"apply-route","title":"正式申請","summary":"固定 /apply/。","status":"done"},
+        {"id":"apply-flow","title":"LINE 驗證與開通","summary":"申請 → LINE → 自動開通 → /me/ → /workspace/。","status":"done"}
+      ]
+    },
+    {
+      "id": "core",
+      "side": "right",
+      "title": "共用核心",
+      "summary": "全站共用視覺、短網址、權限與資料閉環。",
+      "status": "done",
+      "children": [
+        {"id":"core-design","title":"Design System","summary":"色彩、字級、按鈕、表單、卡片、狀態與響應式已統一。","status":"done"},
+        {"id":"core-topbar","title":"固定頂部列","summary":"桌機滑動時固定顯示；手機依工作區響應式呈現。","status":"done"},
+        {"id":"core-flat","title":"Flat IA","summary":"頁內分頁與同工作區操作優先，避免小功能一直跳新頁。","status":"done"},
+        {"id":"core-routes","title":"短網址整理","summary":"舊長網址與多餘獨立頁已退出正式 Pages。","status":"done"},
+        {"id":"core-e2e","title":"正式畫面 UAT","summary":"自動回歸通過；真人桌機／手機正式畫面仍需逐頁確認。","status":"verify"}
       ]
     }
   ],
   "changes": [
-    {"time":"2026-08-22 18:16","title":"建立世界樹進度頁","summary":"之後實際更新只同步這份進度資料與頁面，不再散落多份進度說明。"},
+    {"time":"2026-08-22 18:30","title":"世界樹改為心智圖","summary":"中央主幹＋左右分支＋子節點＋狀態顏色，一眼看整體關係。"},
+    {"time":"2026-08-22 18:16","title":"建立世界樹進度 SSOT","summary":"之後實際更新只同步 doing-world-tree-current.json。"},
     {"time":"2026-08-22 17:29","title":"DOING 2.0 v14 視覺系統","summary":"全站 Design System、固定頂部列、Flat IA 與響應式框架完成自動驗證並合併。"},
     {"time":"2026-08-22 17:02","title":"DOING 2.0 短網址整理","summary":"Market、Project、Booking、Guide、Workspace、我的紀錄、申請與報名改為正式短網址層級。"}
   ]

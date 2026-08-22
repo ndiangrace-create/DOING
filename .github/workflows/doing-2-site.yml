@@ -23,6 +23,8 @@ on:
       - 'workspace.html'
       - 'member-panel.html'
       - 'register.html'
+      - 'world-tree.html'
+      - 'doing-world-tree-current.json'
       - 'doing-member-return-direct.js'
       - 'doing-application-completion.js'
       - 'doing-workspace-product-router.js'
@@ -37,6 +39,7 @@ on:
       - 'scripts/validate-home-real-ui-v11.mjs'
       - 'scripts/validate-v12-closure.mjs'
       - 'scripts/validate-doing2-short-route-cleanup.mjs'
+      - 'scripts/validate-world-tree-mindmap.mjs'
       - '.github/workflows/doing-2-site.yml'
   push:
     branches: [main]
@@ -60,6 +63,8 @@ on:
       - 'workspace.html'
       - 'member-panel.html'
       - 'register.html'
+      - 'world-tree.html'
+      - 'doing-world-tree-current.json'
       - 'doing-member-return-direct.js'
       - 'doing-application-completion.js'
       - 'doing-workspace-product-router.js'
@@ -74,6 +79,7 @@ on:
       - 'scripts/validate-home-real-ui-v11.mjs'
       - 'scripts/validate-v12-closure.mjs'
       - 'scripts/validate-doing2-short-route-cleanup.mjs'
+      - 'scripts/validate-world-tree-mindmap.mjs'
       - '.github/workflows/doing-2-site.yml'
   workflow_dispatch:
 
@@ -110,6 +116,8 @@ jobs:
         run: node scripts/validate-v12-closure.mjs
       - name: Validate DOING 2.0 short hierarchy cleanup
         run: node scripts/validate-doing2-short-route-cleanup.mjs
+      - name: Validate true world tree mind map
+        run: node scripts/validate-world-tree-mindmap.mjs
       - name: Build DOING 2.0 site
         run: node scripts/build-doing-2-site.mjs
       - name: Validate only short hierarchy is published
@@ -125,9 +133,11 @@ jobs:
             workspace/index.html \
             me/index.html \
             apply/index.html \
-            register/index.html; do
+            register/index.html \
+            world-tree/index.html; do
             test -f ".doing-2-site/$f"
           done
+          test -f .doing-2-site/doing-world-tree-current.json
 
           for f in \
             doing-2.html market-center.html market-public.html market-session.html \
@@ -148,6 +158,8 @@ jobs:
           grep -q 'doing-workspace-product-router.js' .doing-2-site/workspace/index.html
           grep -q 'data-tab="settings"' .doing-2-site/market/index.html
           grep -q 'data-tab="onsite"' .doing-2-site/market/index.html
+          grep -q 'tree-grid' .doing-2-site/world-tree/index.html
+          grep -q 'DOING 2.0 世界樹' .doing-2-site/world-tree/index.html
           ! grep -R -E -q '(admin|onsite|platform|operations-center|photo|consignment|member-panel|smart-application)\.html' .doing-2-site
           ! grep -R -q '2bl-v7' .doing-2-site
       - uses: actions/upload-artifact@v4
