@@ -1,0 +1,60 @@
+/* DOING Market v19 layout correction: desktop top fixed navigation + compact public first screen. Functional data/auth remain DOING. */
+@media (min-width:901px){
+  body.mk-admin{padding-top:0!important}
+  body.mk-admin .topbar{position:sticky!important;top:0!important;z-index:90!important;min-height:60px!important}
+  body.mk-admin .topbar-in{max-width:1180px!important;margin:0 auto!important;min-height:60px!important;padding:7px 12px!important;gap:8px!important}
+  body.mk-admin .brand img{width:40px!important;height:40px!important;border-radius:10px!important}
+  body.mk-admin .brand-title{font-size:18px!important}
+  body.mk-admin .brand-sub{font-size:12px!important}
+  body.mk-admin .admin-nav{position:fixed!important;top:8px!important;left:50%!important;bottom:auto!important;transform:translateX(-50%)!important;width:auto!important;max-width:58vw!important;display:flex!important;grid-template-columns:none!important;gap:5px!important;padding:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;overflow-x:auto!important;scrollbar-width:none!important;z-index:110!important}
+  body.mk-admin .admin-nav::-webkit-scrollbar{display:none!important}
+  body.mk-admin .admin-nav button{flex:0 0 auto!important;min-height:42px!important;padding:8px 13px!important;border-radius:999px!important;white-space:nowrap!important;font-size:15px!important}
+  body.mk-admin .top-actions{margin-left:auto!important;max-width:290px!important;flex-wrap:nowrap!important;gap:5px!important}
+  body.mk-admin .top-actions .btn{min-height:40px!important;padding:8px 12px!important;font-size:14px!important;white-space:nowrap!important}
+  body.mk-admin .app{max-width:1180px!important;width:100%!important;margin:0 auto!important;padding:12px 14px 38px!important}
+}
+@media (min-width:901px) and (max-width:1240px){
+  body.mk-admin .admin-nav{position:sticky!important;top:60px!important;left:auto!important;transform:none!important;max-width:none!important;width:100%!important;justify-content:center!important;padding:6px 10px!important;background:rgba(248,246,240,.97)!important;border-bottom:1px solid var(--admin-line)!important}
+  body.mk-admin .top-actions{max-width:none!important}
+}
+@media (max-width:900px){
+  body.mk-admin .admin-nav{position:fixed!important;left:8px!important;right:8px!important;bottom:calc(8px + var(--safe-bottom))!important;top:auto!important;transform:none!important;width:auto!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;padding:6px!important}
+  body.mk-admin .app{padding-bottom:126px!important}
+}
+
+@media (min-width:900px){
+  body.mk-public{padding-bottom:0!important}
+  body.mk-public .public-top-in,
+  body.mk-public .public-shell{max-width:1180px!important}
+  body.mk-public .public-top-in{min-height:60px!important;padding:7px 14px!important}
+  body.mk-public .public-brand img{width:40px!important;height:40px!important;border-radius:9px!important}
+  body.mk-public .public-brand b{font-size:18px!important}
+  body.mk-public .public-brand small{font-size:12px!important}
+  body.mk-public .public-actions .btn{min-height:40px!important;padding:8px 13px!important;font-size:14px!important}
+  body.mk-public .public-shell{padding:10px 14px 28px!important}
+  body.mk-public .hero-cover{aspect-ratio:16/3.1!important;min-height:118px!important;max-height:190px!important;margin:8px 0!important;border-radius:12px!important}
+  body.mk-public .hero-copy{padding:2px 0 5px!important}
+  body.mk-public .hero-copy h1{font-size:21px!important;margin-bottom:2px!important}
+  body.mk-public .hero-copy p{font-size:14px!important}
+  body.mk-public .search-row{width:min(760px,100%)!important;grid-template-columns:minmax(0,1fr) 84px!important;gap:7px!important;margin:7px 0 8px!important}
+  body.mk-public .search-row input{min-height:44px!important;height:44px!important;padding:8px 12px!important;font-size:15px!important}
+  body.mk-public .search-row .btn{width:84px!important;min-height:44px!important;height:44px!important;padding:7px 8px!important}
+  body.mk-public .section-head{margin:7px 0 6px!important}
+  body.mk-public .section-head h2{font-size:18px!important}
+  body.mk-public .section-head .muted{font-size:12px!important}
+  body.mk-public .cat-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important;margin:6px 0 10px!important}
+  body.mk-public .cat-card{height:94px!important;min-height:84px!important;max-height:105px!important;padding:12px 14px!important;border-radius:12px!important;font-size:16px!important}
+  body.mk-public .cat-icon{font-size:25px!important;margin-bottom:4px!important}
+  body.mk-public .events-scroll{gap:10px!important;padding-bottom:5px!important}
+  body.mk-public .event-card-h{min-width:184px!important;max-width:204px!important;border-radius:12px!important}
+  body.mk-public .event-card-h .ec-thumb{height:122px!important}
+  body.mk-public .event-card-h .ec-body{padding:9px!important}
+  body.mk-public .event-card-h h3{font-size:15px!important;margin-bottom:3px!important}
+  body.mk-public .event-card-h p{font-size:13px!important}
+  body.mk-public .event-list{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
+  body.mk-public .event-cover{height:auto!important;aspect-ratio:1/1!important}
+  body.mk-public .event-info{padding:10px!important}
+}
+@media (min-width:900px) and (max-width:1120px){
+  body.mk-public .event-list{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
