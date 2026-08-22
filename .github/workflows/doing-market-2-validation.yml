@@ -3,15 +3,7 @@ on:
   pull_request:
     paths:
       - 'doing-2.html'
-      - 'doing-2-shell.css'
-      - 'doing-2-shell.js'
-      - 'doing-market-2bl.css'
-      - 'doing-market-completion-v16.css'
-      - 'doing-market-completion-v16.js'
-      - 'doing-market-session-settings-v16.css'
-      - 'doing-market-session-settings-v16.js'
-      - 'doing-market-role-ui-v17.css'
-      - 'doing-market-role-ui-v17.js'
+      - 'doing-market-v18.css'
       - 'doing-visual-system-20260822.js'
       - 'market-public.html'
       - 'market-center.html'
@@ -20,14 +12,11 @@ on:
       - 'project-center.html'
       - 'booking-2-center.html'
       - 'guide-center.html'
+      - 'doing-world-tree-current.json'
       - 'DOING_2.0_WORLD_TREE_V1_BASELINE_20260822.md'
-      - 'DOING_2.0_WORLD_TREE_V2_PRODUCT_SPLIT_20260822.md'
       - 'DOING_2.0_WORLD_TREE_V3_MARKET_EXECUTION_20260822.md'
       - 'DOING_2.0_WORLD_TREE_V4_MARKET_OPERATIONS_20260822.md'
       - 'DOING_2.0_WORLD_TREE_V5_MARKET_PUBLIC_20260822.md'
-      - 'DOING_2.0_WORLD_TREE_V7_2BL_UX_SHELL_20260822.md'
-      - 'DOING_2.0_WORLD_TREE_V8_MARKET_COMPACT_UI_20260822.md'
-      - 'DOING_2.0_PRODUCT_ROADMAP_FIXED_20260822.md'
       - 'DOING_2.0_CHANGELOG.md'
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/validate-doing-market-2.mjs'
@@ -35,9 +24,9 @@ on:
       - 'scripts/validate-doing-2-shell.mjs'
       - 'scripts/validate-doing-market-compact-ui.mjs'
       - 'scripts/validate-market-green-closure.mjs'
-      - 'scripts/validate-market-role-ui-v17.mjs'
+      - 'scripts/validate-market-role-ui-v18.mjs'
       - 'scripts/e2e-market-ui.mjs'
-      - 'scripts/e2e-market-role-ui-v17.mjs'
+      - 'scripts/e2e-market-role-ui-v18.mjs'
       - '.github/workflows/doing-market-2-validation.yml'
   workflow_dispatch:
 permissions:
@@ -56,12 +45,12 @@ jobs:
         run: node scripts/validate-doing-2-product-pages.mjs
       - name: Validate elder-friendly 2BL UX shell
         run: node scripts/validate-doing-2-shell.mjs
-      - name: Validate Market compact 2BL UI only
+      - name: Validate Market rebuilt compact UI
         run: node scripts/validate-doing-market-compact-ui.mjs
       - name: Validate Market end-to-end closure
         run: node scripts/validate-market-green-closure.mjs
-      - name: Validate Market role UI v17
-        run: node scripts/validate-market-role-ui-v17.mjs
+      - name: Validate Market role UI v18
+        run: node scripts/validate-market-role-ui-v18.mjs
       - name: Build DOING 2.0 site
         run: node scripts/build-doing-2-site.mjs
       - name: Install Chromium E2E
@@ -75,6 +64,12 @@ jobs:
           trap 'kill $SERVER_PID || true' EXIT
           for i in {1..30}; do curl -fsS http://127.0.0.1:4173/market/public/ >/dev/null && break; sleep 1; done
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-ui.mjs
-          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-role-ui-v17.mjs
+          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-role-ui-v18.mjs
+      - name: Upload Market v18 visual evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-v18-visual-evidence
+          path: artifacts/*.png
+          if-no-files-found: error
       - name: Diff quality
         run: git diff --check HEAD^ HEAD || true
