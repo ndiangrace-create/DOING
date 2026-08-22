@@ -12,7 +12,7 @@ const incoming=String(u.searchParams.get('member_token')||'').trim();
 if(incoming) localStorage.setItem(TOKEN_KEY,incoming);
 const memberToken=incoming||localStorage.getItem(TOKEN_KEY)||'';
 
-const target=new URL('/member-panel.html',location.origin);
+const target=new URL('/me/',location.origin);
 if(applicationId) target.searchParams.set('application_id',applicationId);
 if(tenantId) target.searchParams.set('tenant_id',tenantId);
 target.searchParams.set('post_application','1');
@@ -33,8 +33,6 @@ if(memberToken){
   return;
 }
 
-// organizer_signup 的 LINE 驗證已完成工作空間建立，但舊 callback 沒把 member_token 帶回 Web。
-// 這裡自動補一次會員 session 交換；LINE 已完成授權時通常不需再人工操作。
 const onceKey='doing_post_application_member_login:'+applicationId;
 if(sessionStorage.getItem(onceKey)==='1'){
   showProgress('工作空間已建立。若登入沒有自動完成，請點「進入我的 DOING」繼續。');

@@ -6,48 +6,162 @@ const out=path.join(root,'.doing-2-site');
 fs.rmSync(out,{recursive:true,force:true});
 fs.mkdirSync(out,{recursive:true});
 
-const copyFiles=[
-  'doing-2.html','market-center.html','market-public.html','market-session.html',
-  'project-center.html','booking-2-center.html','guide-center.html',
-  'smart-application.html','workspace.html','member.html','member-panel.html','about.html',
-  'admin.html','onsite.html','platform.html','operations-center.html','photo.html','consignment.html','index.html','register.html',
+// DOING 2.0 public contract: only hierarchy-based short URLs are published.
+// Legacy root-level *.html files are internal build inputs only and are never public pages.
+const routes={
+  '/market/':'market-center.html',
+  '/market/public/':'market-public.html',
+  '/market/session/':'market-session.html',
+  '/project/':'project-center.html',
+  '/booking/':'booking-2-center.html',
+  '/guide/':'guide-center.html',
+  '/workspace/':'workspace.html',
+  '/me/':'member-panel.html',
+  '/apply/':'smart-application.html',
+  '/register/':'register.html'
+};
+
+// Retired page routing is flattened into the owning system instead of creating more URLs.
+const legacyToShort={
+  'doing-2.html':'/',
+  'index.html':'/',
+  'market-center.html':'/market/',
+  'market-public.html':'/market/public/',
+  'market-session.html':'/market/session/',
+  'project-center.html':'/project/',
+  'booking-2-center.html':'/booking/',
+  'guide-center.html':'/guide/',
+  'workspace.html':'/workspace/',
+  'member-panel.html':'/me/',
+  'member.html':'/me/',
+  'smart-application.html':'/apply/',
+  'register.html':'/register/',
+  'admin.html':'/market/',
+  'onsite.html':'/market/#onsite',
+  'platform.html':'/workspace/#platform',
+  'operations-center.html':'/workspace/#operations',
+  'photo.html':'/market/#settings',
+  'consignment.html':'/market/#settings',
+  'about.html':'/'
+};
+
+const rewriteLegacyRefs=(source)=>{
+  let s=String(source);
+  for(const [oldPath,newPath] of Object.entries(legacyToShort))s=s.split('/'+oldPath).join(newPath);
+  for(const [oldPath,newPath] of Object.entries(legacyToShort))s=s.split(oldPath).join(newPath);
+  return s;
+};
+const rewriteRouteAwareJs=(file,source)=>{
+  let s=rewriteLegacyRefs(source);
+  if(file==='doing-global-entry.js'){
+    s=s.replace("const path=location.pathname.split('/').pop().toLowerCase();","const path=location.pathname.endsWith('/')?location.pathname:(location.pathname+'/');");
+    s=s.replace("location.pathname.split('/').pop().replace('.html','')||'page'","location.pathname.replace(/^\\/|\\/$/g,'').split('/').pop()||'page'");
+  }
+  return s;
+};
+
+function addBodyClass(html,name){
+  return html.replace(/<body([^>]*)>/i,(m,attrs)=>{
+    const hit=attrs.match(/class=(['"])(.*?)\1/i);
+    if(hit){
+      if(hit[2].split(/\s+/).includes(name))return m;
+      const merged=`class=${hit[1]}${hit[2]} ${name}${hit[1]}`;
+      return `<body${attrs.replace(hit[0],merged)}>`;
+    }
+    return `<body class="${name}"${attrs}>`;
+  });
+}
+function ensureBase(html){return html.includes('<base ') ? html : html.replace(/<head>/i,'<head><base href="/">');}
+function inject(html,needle,markup,where='head'){
+  if(html.includes(needle))return html;
+  return where==='head'?html.replace('</head>',markup+'</head>'):html.replace('</body>',markup+'</body>');
+}
+function preparePage(source,route){
+  let html=fs.readFileSync(path.join(root,source),'utf8');
+  html=rewriteLegacyRefs(html);
+  html=ensureBase(html);
+  html=addBodyClass(html,'d2-candy-theme');
+  html=inject(html,'doing-candy-theme.css','<link rel="stylesheet" href="/doing-candy-theme.css?v=20260822-short3">');
+
+  if(['market-center.html','market-session.html'].includes(source)){
+    html=addBodyClass(html,'d2-market-compact');
+    html=inject(html,'doing-market-2bl.css','<link rel="stylesheet" href="/doing-market-2bl.css?v=20260822-short3">');
+  }
+  if(['market-center.html','market-session.html','project-center.html','booking-2-center.html','guide-center.html'].includes(source)){
+    html=inject(html,'doing-2-shell.css','<link rel="stylesheet" href="/doing-2-shell.css?v=20260822-short3">');
+    html=inject(html,'doing-2-shell.js','<script src="/doing-2-shell.js?v=20260822-short3"></script>','body');
+  }
+  if(source==='market-public.html')html=inject(html,'doing-market-public-query.js','<script src="/doing-market-public-query.js?v=20260822-short3"></script>','body');
+  if(source==='member-panel.html')html=inject(html,'doing-member-return-direct.js','<script src="/doing-member-return-direct.js?v=20260822-short3"></script>','body');
+  if(source==='smart-application.html'){
+    html=inject(html,'doing-application-contract-v12.js','<script src="/doing-application-contract-v12.js?v=20260822-short3"></script>','body');
+    html=inject(html,'doing-application-completion.js','<script src="/doing-application-completion.js?v=20260822-short3"></script>','body');
+  }
+  if(source==='workspace.html')html=inject(html,'doing-workspace-product-router.js','<script src="/doing-workspace-product-router.js?v=20260822-short3"></script>','body');
+
+  const rel=route==='/'?'index.html':route.replace(/^\//,'')+'index.html';
+  const fp=path.join(out,rel);
+  fs.mkdirSync(path.dirname(fp),{recursive:true});
+  fs.writeFileSync(fp,html);
+}
+
+// DOING root is not redesigned in this cleanup. Preserve the current root behavior.
+let home=fs.readFileSync(path.join(root,'doing-2.html'),'utf8');
+home=rewriteLegacyRefs(ensureBase(home));
+home=addBodyClass(home,'d2-candy-theme');
+home=inject(home,'doing-candy-theme.css','<link rel="stylesheet" href="/doing-candy-theme.css?v=20260822-short3">');
+home=inject(home,'doing-2-shell.css','<link rel="stylesheet" href="/doing-2-shell.css?v=20260822-short3">');
+home=inject(home,'doing-2-home-v11.css','<link rel="stylesheet" href="/doing-2-home-v11.css?v=20260822-short3">');
+home=inject(home,'doing-home-logo-slot-v12.css','<link rel="stylesheet" href="/doing-home-logo-slot-v12.css?v=20260822-short3">');
+home=inject(home,'doing-2-shell.js','<script src="/doing-2-shell.js?v=20260822-short3"></script>','body');
+home=inject(home,'doing-2-home-v11.js','<script src="/doing-2-home-v11.js?v=20260822-short3"></script>','body');
+home=inject(home,'doing-home-logo-slot-v12.js','<script src="/doing-home-logo-slot-v12.js?v=20260822-short3"></script>','body');
+fs.writeFileSync(path.join(out,'index.html'),home);
+
+for(const [route,source] of Object.entries(routes))preparePage(source,route);
+
+const assetFiles=[
   'doing-system.css','doing-design-tokens.css','doing-pastel-pages.css','doing-candy-theme.css',
-  'doing-2-shell.css','doing-2-shell.js','doing-2-home-v11.css','doing-2-home-v11.js','doing-home-logo-slot-v12.css','doing-home-logo-slot-v12.js','doing-market-public-query.js','doing-market-2bl.css',
-  'doing-member-return-direct.js','doing-application-completion.js','doing-application-contract-v12.js','doing-workspace-product-router.js',
-  'doing-smart-activation-v5.js','doing-auto-activation-status.js','doing-global-entry.js',
-  'doing-logo.png','doing-attribution.js','doing-home-refresh.js','doing-home-refresh.css',
-  'manifest.webmanifest','pwa-icon-192.png'
+  'doing-2-shell.css','doing-2-shell.js','doing-2-home-v11.css','doing-2-home-v11.js','doing-home-logo-slot-v12.css','doing-home-logo-slot-v12.js',
+  'doing-market-public-query.js','doing-market-2bl.css','doing-member-return-direct.js','doing-application-completion.js','doing-application-contract-v12.js','doing-workspace-product-router.js',
+  'doing-smart-activation-v5.js','doing-auto-activation-status.js','doing-global-entry.js','doing-attribution.js','doing-home-refresh.js','doing-home-refresh.css',
+  'doing-logo.png','manifest.webmanifest','pwa-icon-192.png'
 ];
-for(const file of copyFiles){const src=path.join(root,file);if(fs.existsSync(src))fs.copyFileSync(src,path.join(out,file));}
-
-const shellTargets=['doing-2.html','market-center.html','market-session.html','project-center.html','booking-2-center.html','guide-center.html'];
-const injectShell=(file)=>{const fp=path.join(out,file);if(!fs.existsSync(fp))return;let html=fs.readFileSync(fp,'utf8');if(!html.includes('doing-2-shell.css'))html=html.replace('</head>','<link rel="stylesheet" href="/doing-2-shell.css?v=20260822-2blux"></head>');if(!html.includes('doing-2-shell.js'))html=html.replace('</body>','<script src="/doing-2-shell.js?v=20260822-2blux"></script></body>');fs.writeFileSync(fp,html);};
-shellTargets.forEach(injectShell);
-
-function addBodyClass(html,name){return html.replace(/<body([^>]*)>/i,(m,attrs)=>{const hit=attrs.match(/class=(['"])(.*?)\1/i);if(hit){if(hit[2].split(/\s+/).includes(name))return m;const merged=`class=${hit[1]}${hit[2]} ${name}${hit[1]}`;return `<body${attrs.replace(hit[0],merged)}>`;}return `<body class="${name}"${attrs}>`;});}
-const candyTargets=['doing-2.html','market-center.html','market-public.html','market-session.html','project-center.html','booking-2-center.html','guide-center.html','smart-application.html','workspace.html','member-panel.html','register.html','admin.html','onsite.html','platform.html','operations-center.html','photo.html','consignment.html'];
-for(const file of candyTargets){const fp=path.join(out,file);if(!fs.existsSync(fp))continue;let html=fs.readFileSync(fp,'utf8');if(!html.includes('doing-candy-theme.css'))html=html.replace('</head>','<link rel="stylesheet" href="/doing-candy-theme.css?v=20260822-candy2"></head>');html=addBodyClass(html,'d2-candy-theme');fs.writeFileSync(fp,html);}
-
-{
-  const fp=path.join(out,'doing-2.html');let html=fs.readFileSync(fp,'utf8');if(!html.includes('doing-2-home-v11.css'))html=html.replace('</head>','<link rel="stylesheet" href="/doing-2-home-v11.css?v=20260822-v11home3"></head>');if(!html.includes('doing-home-logo-slot-v12.css'))html=html.replace('</head>','<link rel="stylesheet" href="/doing-home-logo-slot-v12.css?v=20260822-v12"></head>');if(!html.includes('doing-2-home-v11.js'))html=html.replace('</body>','<script src="/doing-2-home-v11.js?v=20260822-v11home3"></script></body>');if(!html.includes('doing-home-logo-slot-v12.js'))html=html.replace('</body>','<script src="/doing-home-logo-slot-v12.js?v=20260822-v12"></script></body>');fs.writeFileSync(fp,html);
-}
-{
-  const fp=path.join(out,'market-public.html');if(fs.existsSync(fp)){let html=fs.readFileSync(fp,'utf8');if(!html.includes('doing-market-public-query.js'))html=html.replace('</body>','<script src="/doing-market-public-query.js?v=20260822-home-search"></script></body>');fs.writeFileSync(fp,html);}
-}
-for(const file of ['market-center.html','market-session.html']){const fp=path.join(out,file);if(!fs.existsSync(fp))continue;let html=fs.readFileSync(fp,'utf8');html=addBodyClass(html,'d2-market-compact');if(!html.includes('doing-market-2bl.css'))html=html.replace('</head>','<link rel="stylesheet" href="/doing-market-2bl.css?v=20260822-compact1"></head>');fs.writeFileSync(fp,html);}
-{
-  const fp=path.join(out,'member-panel.html');if(fs.existsSync(fp)){let html=fs.readFileSync(fp,'utf8');if(!html.includes('doing-member-return-direct.js'))html=html.replace('</body>','<script src="/doing-member-return-direct.js?v=20260822-direct-return2"></script></body>');fs.writeFileSync(fp,html);}
-}
-{
-  const fp=path.join(out,'smart-application.html');if(fs.existsSync(fp)){let html=fs.readFileSync(fp,'utf8');if(!html.includes('doing-application-contract-v12.js'))html=html.replace('</body>','<script src="/doing-application-contract-v12.js?v=20260822-v12"></script></body>');if(!html.includes('doing-application-completion.js'))html=html.replace('</body>','<script src="/doing-application-completion.js?v=20260822-application-flow1"></script></body>');fs.writeFileSync(fp,html);}
-}
-{
-  const fp=path.join(out,'workspace.html');if(fs.existsSync(fp)){let html=fs.readFileSync(fp,'utf8');if(!html.includes('doing-workspace-product-router.js'))html=html.replace('</body>','<script src="/doing-workspace-product-router.js?v=20260822-product-router1"></script></body>');fs.writeFileSync(fp,html);}
+for(const file of assetFiles){
+  const src=path.join(root,file);if(!fs.existsSync(src))continue;
+  const dest=path.join(out,file);
+  if(/\.js$/i.test(file))fs.writeFileSync(dest,rewriteRouteAwareJs(file,fs.readFileSync(src,'utf8')));
+  else if(/\.css$/i.test(file))fs.writeFileSync(dest,rewriteLegacyRefs(fs.readFileSync(src,'utf8')));
+  else fs.copyFileSync(src,dest);
 }
 
-fs.copyFileSync(path.join(out,'doing-2.html'),path.join(out,'index.html'));
-const routeMap={'market/index.html':'market-center.html','market/public/index.html':'market-public.html','market/session/index.html':'market-session.html','project/index.html':'project-center.html','booking/index.html':'booking-2-center.html','guide/index.html':'guide-center.html'};
-const redirect=(target)=>`<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script>const u=new URL('${target}',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.toString());<\/script></head><body></body></html>`;
-for(const [rel,targetFile] of Object.entries(routeMap)){const dir=path.dirname(path.join(out,rel));fs.mkdirSync(dir,{recursive:true});const depth=rel.split('/').length-1,prefix='../'.repeat(depth);fs.writeFileSync(path.join(out,rel),redirect(prefix+targetFile));}
 fs.writeFileSync(path.join(out,'_headers'),`/*\n  Cache-Control: no-store\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`);
-console.log(JSON.stringify({result:'PASS',output:'.doing-2-site',root:'doing-2.html',routes:Object.keys(routeMap),shell:shellTargets,candyTheme:candyTargets,homeV11:true,homeLiveCards:true,homeLogoSlot:'manual',homeSearchToMarket:true,marketCompact:['market-center.html','market-session.html'],memberDirectReturn:true,applicationFlow:true,applicationContract:'v12',applicationFixedProducts:'v5',workspaceMarketRouter:true},null,2));
+
+const retiredPublicRoutes=['doing-2.html','market-center.html','market-public.html','market-session.html','project-center.html','booking-2-center.html','guide-center.html','workspace.html','member.html','member-panel.html','smart-application.html','register.html','admin.html','onsite.html','platform.html','operations-center.html','photo.html','consignment.html','about.html'];
+for(const old of retiredPublicRoutes){if(fs.existsSync(path.join(out,old)))throw new Error(`retired public page leaked: ${old}`);}
+const forbiddenShortDirs=['admin','onsite','platform','operations','photo','consignment','about','member'];
+for(const dir of forbiddenShortDirs){if(fs.existsSync(path.join(out,dir)))throw new Error(`extra independent route leaked: /${dir}/`);}
+
+const publicHtml=[];
+function walk(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const fp=path.join(dir,e.name);if(e.isDirectory())walk(fp);else if(e.name.endsWith('.html'))publicHtml.push(path.relative(out,fp).replaceAll(path.sep,'/'));}}
+walk(out);
+for(const f of publicHtml){if(path.basename(f)!=='index.html')throw new Error(`non-short html published: ${f}`);}
+
+const jsFiles=fs.readdirSync(out).filter(x=>x.endsWith('.js'));
+for(const file of jsFiles){
+  const text=fs.readFileSync(path.join(out,file),'utf8');
+  for(const retired of retiredPublicRoutes){if(text.includes(retired))throw new Error(`legacy page reference leaked in ${file}: ${retired}`);}
+}
+
+console.log(JSON.stringify({
+  result:'PASS',
+  doingRootChanged:false,
+  shortRoutes:Object.keys(routes),
+  marketInternalTabs:['sessions','tasks','onsite','members','settings'],
+  nestedOnly:['/market/session/'],
+  retiredIndependentRoutes:forbiddenShortDirs.map(x=>`/${x}/`),
+  retiredLongUrls:retiredPublicRoutes,
+  publicHtml,
+  legacyRedirects:0,
+  productionWrites:0
+},null,2));

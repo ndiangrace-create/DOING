@@ -12,13 +12,13 @@ for(const text of ['報名活動','我的紀錄','線上客服','我要申請 DO
 assert.ok(home.includes("new URL('/market/public/',location.origin)"),'首頁搜尋沒有前往公開活動頁');
 assert.ok(home.includes("u.searchParams.set('q',q)"),'首頁搜尋沒有帶 query');
 assert.ok(marketPublic.includes("searchParams.get('q')")&&marketPublic.includes("dispatchEvent(new Event('input'"),'公開活動頁沒有接收首頁 query');
-assert.ok(home.includes("/member-panel.html#activities"),'我的紀錄沒有前往會員紀錄');
-assert.ok(member.includes("new URL('/member-panel.html',location.origin)"),'會員登入沒有回原會員中心');
+assert.ok(build.includes("'member-panel.html':'/me/'"),'我的紀錄沒有被正式建置映射到 /me/');
+assert.ok(member.includes("new URL('/me/',location.origin)"),'會員登入沒有回 /me/');
 assert.ok(home.includes("action:'analyzeDoingApplication'")&&home.includes("topic:'question'"),'線上客服沒有走既有 DOING 問答 API');
 assert.ok(home.includes("e.key==='Enter'&&!e.shiftKey"),'客服未支援 Enter 送出');
 assert.ok(home.includes('data-close-support')&&home.includes("e.key==='Escape'"),'客服缺少關閉操作');
 assert.ok(home.includes("set('action','publicDiscovery')"),'近期場次沒有讀正式 publicDiscovery');
-assert.ok(home.includes("new URL('/register.html',location.origin)"),'立即報名沒有前往正式報名頁');
+assert.ok(build.includes("'register.html':'/register/'"),'立即報名沒有被正式建置映射到 /register/');
 assert.ok(!home.includes('class="ico"'),'底部三個主按鈕必須只有文字');
 
 for(const forbidden of ['Core／Supabase','固定模組','AI 規則','主辦營運系統','不再詢問'])assert.ok(!home.includes(forbidden),'首頁出現內部語言：'+forbidden);
@@ -31,6 +31,6 @@ assert.ok(css.includes('@media(max-width:620px)')&&css.includes('@media(max-widt
 assert.ok(css.includes('font-size:clamp(21px,2.3vw,29px)'),'主按鈕沒有老花友善字級');
 assert.ok(css.indexOf('.d2-home-search{')<css.indexOf('.d2-home-logo-wrap{'),'搜尋視覺規則必須先於 LOGO 區塊');
 assert.ok(build.includes("'doing-2-home-v11.css'")&&build.includes("'doing-2-home-v11.js'")&&build.includes("'doing-market-public-query.js'"),'Pages build 未包含 v11 首頁資產');
-assert.ok(build.includes("'doing-candy-theme.css'")&&build.includes('candyTargets'),'Pages build 未包含全系統共用色系');
+assert.ok(build.includes("'doing-candy-theme.css'"),'Pages build 未包含全系統共用色系');
 
-console.log(JSON.stringify({result:'PASS',simulatedJourneys:['首頁 → 搜尋 → 公開活動','首頁 → 近期場次 → 立即報名','首頁 → 我的紀錄 → 單一 LINE 登入回跳','首頁 → 線上客服 → 快捷問題／自由輸入','首頁 → 我要申請 → 申請流程無客服 gate'],responsive:['desktop','tablet','mobile'],buttonStyle:'3d-rounded-rectangle-text-only',liveCards:true,productionWrites:0},null,2));
+console.log(JSON.stringify({result:'PASS',simulatedJourneys:['首頁 → 搜尋 → /market/public/','首頁 → 近期場次 → /register/','首頁 → 我的紀錄 → /me/ → LINE 回跳','首頁 → 線上客服 → 快捷問題／自由輸入','首頁 → 我要申請 → /apply/'],responsive:['desktop','tablet','mobile'],buttonStyle:'3d-rounded-rectangle-text-only',liveCards:true,productionWrites:0},null,2));

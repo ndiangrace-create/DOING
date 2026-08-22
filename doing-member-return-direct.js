@@ -9,7 +9,7 @@ try{hasStored=!!localStorage.getItem(TOKEN_KEY)}catch(_){}
 const inlineLogin=document.getElementById('lineLogin');
 if(inlineLogin) inlineLogin.remove();
 if(!hasIncoming&&!hasStored){
-  const returnUrl=new URL('/member-panel.html',location.origin);
+  const returnUrl=new URL('/me/',location.origin);
   for(const key of ['staff_invite','registration_invite']){
     const value=u.searchParams.get(key);
     if(value)returnUrl.searchParams.set(key,value);

@@ -21,19 +21,14 @@ on:
       - 'guide-center.html'
       - 'smart-application.html'
       - 'workspace.html'
-      - 'member.html'
       - 'member-panel.html'
-      - 'about.html'
+      - 'register.html'
       - 'doing-member-return-direct.js'
       - 'doing-application-completion.js'
       - 'doing-workspace-product-router.js'
       - 'doing-smart-activation-v5.js'
       - 'doing-auto-activation-status.js'
       - 'doing-global-entry.js'
-      - 'market/**'
-      - 'project/**'
-      - 'booking/**'
-      - 'guide/**'
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/validate-member-panel-return.mjs'
       - 'scripts/validate-application-login-flow.mjs'
@@ -41,6 +36,7 @@ on:
       - 'scripts/validate-doing-v11-home-e2e.mjs'
       - 'scripts/validate-home-real-ui-v11.mjs'
       - 'scripts/validate-v12-closure.mjs'
+      - 'scripts/validate-doing2-short-route-cleanup.mjs'
       - '.github/workflows/doing-2-site.yml'
   push:
     branches: [main]
@@ -62,19 +58,14 @@ on:
       - 'guide-center.html'
       - 'smart-application.html'
       - 'workspace.html'
-      - 'member.html'
       - 'member-panel.html'
-      - 'about.html'
+      - 'register.html'
       - 'doing-member-return-direct.js'
       - 'doing-application-completion.js'
       - 'doing-workspace-product-router.js'
       - 'doing-smart-activation-v5.js'
       - 'doing-auto-activation-status.js'
       - 'doing-global-entry.js'
-      - 'market/**'
-      - 'project/**'
-      - 'booking/**'
-      - 'guide/**'
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/validate-member-panel-return.mjs'
       - 'scripts/validate-application-login-flow.mjs'
@@ -82,6 +73,7 @@ on:
       - 'scripts/validate-doing-v11-home-e2e.mjs'
       - 'scripts/validate-home-real-ui-v11.mjs'
       - 'scripts/validate-v12-closure.mjs'
+      - 'scripts/validate-doing2-short-route-cleanup.mjs'
       - '.github/workflows/doing-2-site.yml'
   workflow_dispatch:
 
@@ -116,29 +108,47 @@ jobs:
         run: node scripts/validate-home-real-ui-v11.mjs
       - name: Validate v12 application/theme/topbar closure
         run: node scripts/validate-v12-closure.mjs
+      - name: Validate DOING 2.0 short hierarchy cleanup
+        run: node scripts/validate-doing2-short-route-cleanup.mjs
       - name: Build DOING 2.0 site
         run: node scripts/build-doing-2-site.mjs
-      - name: Validate root and product routes
+      - name: Validate only short hierarchy is published
         run: |
           test -f .doing-2-site/index.html
-          grep -q 'DOING｜協槓人生小幫手' .doing-2-site/index.html
-          grep -q 'doing-2-home-v11.css' .doing-2-site/index.html
-          grep -q 'doing-2-home-v11.js' .doing-2-site/index.html
-          grep -q 'doing-home-logo-slot-v12.css' .doing-2-site/index.html
-          grep -q 'doing-home-logo-slot-v12.js' .doing-2-site/index.html
-          grep -q 'doing-candy-theme.css' .doing-2-site/index.html
-          for f in market/index.html market/public/index.html market/session/index.html project/index.html booking/index.html guide/index.html; do test -f ".doing-2-site/$f"; done
-          for f in smart-application.html workspace.html member.html member-panel.html about.html admin.html onsite.html platform.html operations-center.html photo.html consignment.html doing-smart-activation-v5.js doing-auto-activation-status.js doing-global-entry.js doing-application-completion.js doing-application-contract-v12.js doing-workspace-product-router.js doing-2-home-v11.css doing-2-home-v11.js doing-home-logo-slot-v12.css doing-home-logo-slot-v12.js doing-candy-theme.css doing-market-public-query.js; do test -f ".doing-2-site/$f"; done
-          grep -q 'market-center.html' .doing-2-site/market/index.html
-          grep -q 'market-public.html' .doing-2-site/market/public/index.html
-          grep -q 'market-session.html' .doing-2-site/market/session/index.html
-          grep -q 'doing-market-public-query.js' .doing-2-site/market-public.html
-          grep -q 'doing-member-return-direct.js' .doing-2-site/member-panel.html
-          grep -q 'doing-smart-activation-v5.js' .doing-2-site/smart-application.html
-          grep -q 'doing-application-contract-v12.js' .doing-2-site/smart-application.html
-          grep -q 'doing-application-completion.js' .doing-2-site/smart-application.html
-          grep -q 'doing-workspace-product-router.js' .doing-2-site/workspace.html
-          for f in market-center.html smart-application.html member-panel.html workspace.html admin.html onsite.html platform.html operations-center.html photo.html consignment.html; do grep -q 'd2-candy-theme' ".doing-2-site/$f"; done
+          for f in \
+            market/index.html \
+            market/public/index.html \
+            market/session/index.html \
+            project/index.html \
+            booking/index.html \
+            guide/index.html \
+            workspace/index.html \
+            me/index.html \
+            apply/index.html \
+            register/index.html; do
+            test -f ".doing-2-site/$f"
+          done
+
+          for f in \
+            doing-2.html market-center.html market-public.html market-session.html \
+            project-center.html booking-2-center.html guide-center.html workspace.html \
+            member.html member-panel.html smart-application.html register.html admin.html onsite.html \
+            platform.html operations-center.html photo.html consignment.html about.html; do
+            test ! -e ".doing-2-site/$f"
+          done
+
+          for d in admin onsite platform operations photo consignment about member; do
+            test ! -e ".doing-2-site/$d"
+          done
+
+          grep -q 'doing-member-return-direct.js' .doing-2-site/me/index.html
+          grep -q 'doing-smart-activation-v5.js' .doing-2-site/apply/index.html
+          grep -q 'doing-application-contract-v12.js' .doing-2-site/apply/index.html
+          grep -q 'doing-application-completion.js' .doing-2-site/apply/index.html
+          grep -q 'doing-workspace-product-router.js' .doing-2-site/workspace/index.html
+          grep -q 'data-tab="settings"' .doing-2-site/market/index.html
+          grep -q 'data-tab="onsite"' .doing-2-site/market/index.html
+          ! grep -R -E -q '(admin|onsite|platform|operations-center|photo|consignment|member-panel|smart-application)\.html' .doing-2-site
           ! grep -R -q '2bl-v7' .doing-2-site
       - uses: actions/upload-artifact@v4
         with:

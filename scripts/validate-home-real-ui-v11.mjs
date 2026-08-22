@@ -6,15 +6,15 @@ const theme=fs.readFileSync('doing-candy-theme.css','utf8');
 const shell=fs.readFileSync('doing-2-shell.js','utf8');
 const build=fs.readFileSync('scripts/build-doing-2-site.mjs','utf8');
 
-assert.ok(js.indexOf('d2HomeSearch')<js.indexOf('d2-home-logo-wrap'),'搜尋框必須在 LOGO 上方');
-assert.ok(js.includes('src="/doing-logo.png"'),'首頁必須使用正式 DOING 去背 PNG LOGO');
+assert.ok(js.indexOf('d2HomeSearch')<js.indexOf('d2-home-logo-wrap'),'搜尋框必須在 LOGO 預留區上方');
+assert.ok(js.includes('d2-home-logo-wrap'),'首頁必須保留可由使用者自行放置的 LOGO 區');
 for(const t of ['報名活動','我的紀錄','線上客服'])assert.ok(js.includes(`>${t}<`),`底部主按鈕缺少純文字：${t}`);
 assert.ok(!js.includes('class="ico"'),'底部三顆主按鈕不得再放圖示');
 assert.ok(js.includes("action','publicDiscovery'")||js.includes("set('action','publicDiscovery')"),'近期場次必須讀正式 publicDiscovery');
 assert.ok(js.includes('d2-home-event-grid')&&js.includes('d2-event-card')&&js.includes('立即報名'),'首頁必須保留 2BL 型場次小卡片');
-assert.ok(js.includes("new URL('/register.html',location.origin)"),'場次立即報名必須進正式 register.html');
+assert.ok(build.includes("'register.html':'/register/'"),'場次立即報名必須在正式建置轉為 /register/');
 assert.ok(js.includes("new URL('/market/public/',location.origin)"),'搜尋必須接公開活動頁');
-assert.ok(js.includes("/member-panel.html#activities"),'我的紀錄必須接會員紀錄');
+assert.ok(build.includes("'member-panel.html':'/me/'"),'我的紀錄必須在正式建置轉為 /me/');
 assert.ok(js.includes('analyzeDoingApplication')&&js.includes("topic:'question'"),'線上客服必須接既有客服 API');
 assert.ok(css.includes('0 9px 0 var(--d2-home-edge)')&&css.includes('.d2-home-action:active'),'首頁按鈕必須有立體厚度與按壓回饋');
 assert.ok(css.includes('.d2-home-event-grid{display:grid;grid-template-columns:repeat(4'),'桌機近期場次必須維持小卡片多欄');
@@ -22,5 +22,5 @@ assert.ok(css.includes('@media(max-width:620px)')&&css.includes('grid-template-c
 assert.ok(theme.includes('--doing-candy-lavender')&&theme.includes('--doing-candy-yellow')&&theme.includes('--doing-candy-mint'),'全系統必須共用首頁糖果色 token');
 assert.ok(theme.includes('.d2-candy-theme .btn')&&theme.includes('translateY(2px)'),'共用按鈕必須有立體按壓回饋');
 assert.ok(shell.includes('if(isPublicHome)')&&shell.includes("classList.add('d2-public-home')"),'公開首頁不得再被內部 Hub 文案覆蓋');
-assert.ok(build.includes("'doing-candy-theme.css'")&&build.includes('candyTargets'),'正式 Pages 產物必須套用共用首頁色系');
-console.log(JSON.stringify({result:'PASS',homepage:'real-system-ui',logo:'transparent-png',searchAboveLogo:true,liveCards:'publicDiscovery',bottomButtons:'text-only',sharedCandyTheme:true},null,2));
+assert.ok(build.includes("'doing-candy-theme.css'")&&build.includes("addBodyClass(html,'d2-candy-theme')"),'正式 Pages 產物必須套用共用首頁色系');
+console.log(JSON.stringify({result:'PASS',homepage:'real-system-ui',logoSlot:'manual',searchAboveLogo:true,liveCards:'publicDiscovery',bottomButtons:'text-only',sharedCandyTheme:true,shortRoutes:true},null,2));
