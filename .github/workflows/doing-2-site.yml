@@ -12,7 +12,7 @@ on:
       - 'doing-home-logo-slot-v12.js'
       - 'doing-candy-theme.css'
       - 'doing-application-contract-v12.js'
-      - 'doing-market-public-query.js'
+      - 'doing-market-v18.css'
       - 'market-center.html'
       - 'market-public.html'
       - 'market-session.html'
@@ -40,6 +40,7 @@ on:
       - 'scripts/validate-v12-closure.mjs'
       - 'scripts/validate-doing2-short-route-cleanup.mjs'
       - 'scripts/validate-world-tree-mindmap.mjs'
+      - 'DOING_2.0_MARKET_2BL_UI_PARITY_20260823.md'
       - '.github/workflows/doing-2-site.yml'
   push:
     branches: [main]
@@ -52,7 +53,7 @@ on:
       - 'doing-home-logo-slot-v12.js'
       - 'doing-candy-theme.css'
       - 'doing-application-contract-v12.js'
-      - 'doing-market-public-query.js'
+      - 'doing-market-v18.css'
       - 'market-center.html'
       - 'market-public.html'
       - 'market-session.html'
@@ -80,6 +81,7 @@ on:
       - 'scripts/validate-v12-closure.mjs'
       - 'scripts/validate-doing2-short-route-cleanup.mjs'
       - 'scripts/validate-world-tree-mindmap.mjs'
+      - 'DOING_2.0_MARKET_2BL_UI_PARITY_20260823.md'
       - '.github/workflows/doing-2-site.yml'
   workflow_dispatch:
 
@@ -156,8 +158,10 @@ jobs:
           grep -q 'doing-application-contract-v12.js' .doing-2-site/apply/index.html
           grep -q 'doing-application-completion.js' .doing-2-site/apply/index.html
           grep -q 'doing-workspace-product-router.js' .doing-2-site/workspace/index.html
-          grep -q 'data-tab="settings"' .doing-2-site/market/index.html
-          grep -q 'data-tab="onsite"' .doing-2-site/market/index.html
+          for page in sessions todos onsite members leads finance consignment settings; do
+            grep -q "data-page=\"$page\"" .doing-2-site/market/index.html
+          done
+          grep -q 'doing-market-v18.css' .doing-2-site/market/index.html
           grep -q 'overall-grid' .doing-2-site/world-tree/index.html
           grep -q 'market-map' .doing-2-site/world-tree/index.html
           grep -q 'DOING 2.0 世界樹' .doing-2-site/world-tree/index.html
