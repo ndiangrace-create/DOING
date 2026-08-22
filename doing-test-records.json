@@ -1,12 +1,13 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-22T21:22:00+08:00",
-  "sourceFingerprint": "969d9812eafccc08f0b2acb8c9aba60feb84af7501a41806966483bfc673f46a",
-  "environment": "DOING Market v16 操作介面重做。手機版依使用者提供的參考圖採粉紅／薰衣草紫／粉藍／奶油／淺黃綠色系、兩欄活動卡、圓角糖果感按鈕與底部主要操作；桌機版使用自動多欄工作框架，不把手機畫面直接放大。Market 後台依 v15.4 世界樹顯示後台入口→場次總覽→場次設定→待辦→審核→付款→排位→退款→財務結案操作導航。DOING 的 LINE、Workspace、Core／API、Supabase、角色與權限維持正式機制；Market 業務邏輯、Worker、Supabase Schema、正式資料與 2BL 均未修改。正式網域真人瀏覽器 UAT 仍依契約保持待驗證。",
+  "recordedAt": "2026-08-22T21:36:00+08:00",
+  "sourceFingerprint": "9bcba4741ce3e8601f0365bf6a3d6c8d10dcc476e4653b03480e783d46cb0e1c",
+  "environment": "DOING Market v16 閉環補齊版。沿用已發布操作介面，新增公開活動卡直接進 /register/、會員端報名歷史／退款紀錄與退款申請、主辦單場退款建議→確認退款→正式資料重讀。手機／桌機視覺沿用使用者核定的 Market 介面；DOING LINE、Workspace、Core／API、Supabase、角色與權限維持正式機制；Worker、Supabase Schema、正式資料與 2BL 均未修改。正式網域真人瀏覽器 UAT 仍依發布後實測契約保留待驗證。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
   "tests": [
+    {"id":"market-green-closure","command":"node scripts/validate-market-green-closure.mjs","result":"PASS","scope":"公開探索→報名、會員歷史→退款申請→重讀、主辦退款建議→確認→重讀、現場與 Core 正式能力保留"},
     {"id":"market-ui","command":"node scripts/validate-doing-market-compact-ui.mjs","result":"PASS","scope":"Market 公開活動頁／營運中心／單場工作台；手機參考色系、糖果感按鈕、桌機自動框架、後台 9 步操作導航、禁止漸層"},
     {"id":"responsive-layout","command":"node scripts/validate-responsive-layout.mjs","result":"PASS","scope":"手機／桌機響應式、Market 手機兩欄活動卡、桌機多欄工作框架與文字不裁切"},
     {"id":"world-tree-mindmap","command":"node scripts/validate-world-tree-mindmap.mjs","result":"PASS","scope":"前台 7 步、後台 9 步、系統閉環 5 步、深層操作節點、紅黃綠燈"},
