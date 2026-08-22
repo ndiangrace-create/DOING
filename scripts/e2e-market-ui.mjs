@@ -15,9 +15,9 @@ async function checkBuiltPage({file,width,height,required,clicks=[],label}){
   results.push(label);await ctx.close();
 }
 try{
-  await checkBuiltPage({file:'.doing-2-site/market/public/index.html',width:390,height:844,required:['id="list"','id="q"','id="myRegs"','class="bottom-nav"'],clicks:['#searchBtn','[data-type="market"]','#reload'],label:'mobile public discovery shell'});
+  await checkBuiltPage({file:'.doing-2-site/market/public/index.html',width:390,height:844,required:['id="list"','id="q"','id="myRegs"','class="bottom-nav"'],clicks:['#q','[data-type="market"]','#reload'],label:'mobile public discovery shell'});
   await checkBuiltPage({file:'.doing-2-site/market/index.html',width:1440,height:1000,required:['id="sessionList"','data-page="sessions"','data-page="todos"','data-page="onsite"','data-page="members"','data-page="leads"','data-page="finance"','data-page="consignment"','data-page="settings"'],clicks:['[data-page="sessions"]','[data-page="todos"]','[data-page="onsite"]','[data-page="members"]','[data-page="leads"]','[data-page="finance"]','[data-page="consignment"]','[data-page="settings"]'],label:'desktop market 2BL operations shell'});
   await checkBuiltPage({file:'.doing-2-site/me/index.html',width:390,height:844,required:['id="activities"','我的報名'],label:'mobile member records shell'});
   await checkBuiltPage({file:'.doing-2-site/market/session/index.html',width:1440,height:1000,required:['id="closeout"','data-tab="registrations"','data-tab="payments"','data-tab="onsite"','data-tab="settings"'],clicks:['[data-tab="registrations"]','[data-tab="payments"]','[data-tab="onsite"]','[data-tab="settings"]'],label:'desktop session workbench shell'});
 }finally{await browser.close()}
-console.log(JSON.stringify({result:'PASS',browser:'Chromium',builtOutput:true,scope:'built mobile/desktop pages + 2BL Market navigation click-through; business/API/data closure validated separately',checks:results},null,2));
+console.log(JSON.stringify({result:'PASS',browser:'Chromium',builtOutput:true,scope:'built mobile/desktop pages + 2BL Market navigation click-through; mobile public search is input-driven per 2BL framework; business/API/data closure validated separately',checks:results},null,2));
