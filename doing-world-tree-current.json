@@ -1,9 +1,9 @@
 {
-  "version": "v15.1",
-  "updatedAt": "2026-08-22 18:58",
+  "version": "v15.2",
+  "updatedAt": "2026-08-22 19:42",
   "current": {
-    "title": "Market｜2BL 完整操作路徑接入世界樹",
-    "summary": "已把 2BL 前台攤商路徑、後台主辦路徑與系統閉環完整接到 Market 分支；之後依這棵樹逐節點對齊 DOING Market，完成一節就更新狀態。"
+    "title": "全系統心智圖展開完成｜Market 主線不變",
+    "summary": "全系統總樹已改為真正展開各主分支與全部既有子節點，補上共用模組與角色層；功能驗證狀態沿用原紀錄，不因心智圖整理而自動升級。Market 仍依 2BL 完整操作路徑逐節點補齊。"
   },
   "branches": [
     {
@@ -161,6 +161,39 @@
       ]
     },
     {
+      "id": "roles",
+      "side": "right",
+      "title": "角色／權限",
+      "summary": "同一正式資料根依角色、租戶、場次與工作範圍裁決可見與可操作內容。",
+      "status": "verify",
+      "children": [
+        {"id":"role-member","title":"一般會員／參加者","summary":"探索、報名、付款、查看自己的紀錄與個人狀態。","status":"verify"},
+        {"id":"role-brand","title":"攤商／品牌使用者","summary":"管理品牌資料、報名場次、付款、排位設備與現場資訊。","status":"verify"},
+        {"id":"role-tenant","title":"租戶負責人／主辦管理員","summary":"管理工作空間、場次、審核、付款、排位、通知、退款與結案。","status":"verify"},
+        {"id":"role-onsite","title":"現場工作人員","summary":"只處理被授權場次的搜尋、QR／報到與必要現場操作。","status":"verify"},
+        {"id":"role-platform","title":"平台總管","summary":"處理平台層例外、風險、租戶與平台營運；不得混入公開一般使用者入口。","status":"verify"}
+      ]
+    },
+    {
+      "id": "shared-modules",
+      "side": "right",
+      "title": "共用模組",
+      "summary": "四大工作系統共用能力；可掛在工作上，不另外建立第二套會員、交易或狀態資料根。",
+      "status": "verify",
+      "children": [
+        {"id":"shared-product-ticket","title":"商品／票券","summary":"可掛在 Market、Project、Booking、Guide 的工作或場次上。","status":"verify"},
+        {"id":"shared-qr","title":"QR 報到／核銷","summary":"共用活動日身分與工作人員權限契約。","status":"verify"},
+        {"id":"shared-payment","title":"收款／訂金","summary":"金額與付款狀態由正式 Core／Supabase 裁決，不由前端假算。","status":"verify"},
+        {"id":"shared-coupon","title":"優惠券／回訪","summary":"共用顧客回訪與優惠能力，正式情境仍需逐產品驗證。","status":"verify"},
+        {"id":"shared-notification","title":"通知提醒","summary":"報名、付款、預約、現場與營運提醒共用通知能力。","status":"verify"},
+        {"id":"shared-team","title":"團隊／排班","summary":"工作空間角色、協作者與人員排班共用。","status":"verify"},
+        {"id":"shared-finance","title":"進階財務","summary":"正式收入、退款、支出與結案資料需保留可追溯紀錄。","status":"verify"},
+        {"id":"shared-files","title":"照片／檔案","summary":"各工作系統共用檔案與照片能力，不另建孤立資料流程。","status":"verify"},
+        {"id":"shared-sign","title":"電子簽名","summary":"可掛在需要同意、合約或確認的工作流程；正式畫面待逐系統驗證。","status":"verify"},
+        {"id":"shared-calendar","title":"Google／Apple 日曆同步","summary":"外部日曆是副本與入口，DOING 正式資料仍以 Supabase 為準。","status":"verify"}
+      ]
+    },
+    {
       "id": "core",
       "side": "right",
       "title": "共用核心",
@@ -175,14 +208,15 @@
         {"id":"core-engineering-copy","title":"隱藏工程文字","summary":"一般使用者畫面不得顯示 tenant_id、API、Worker、資料表名稱、內部路徑、工程代碼與除錯文字。","status":"done"},
         {"id":"core-ssot","title":"資料 SSOT","summary":"Supabase 仍是唯一正式資料來源；金額、付款、退款、押金、名額、排位與權限不可由前端假算。","status":"done"},
         {"id":"core-loop","title":"功能閉環","summary":"按鈕→Worker／API→Supabase→重讀→畫面是固定驗收鏈；多表異動需交易或安全補償。","status":"done"},
-        {"id":"core-release","title":"驗證全綠後自動發布","summary":"使用者說執行後，完成整批需求並全綠即合併 main、部署正式環境，不再等第二次確認；除非使用者明確說不要部署或有阻斷。","status":"done"},
+        {"id":"core-release","title":"發布規則","summary":"依本次專案安全規則，完成功能、檢查點、驗證與回歸後停在 Release Ready；正式發布需依當次明確授權。","status":"done"},
         {"id":"core-world-tree","title":"世界樹進度 SSOT","summary":"/world-tree/ 使用 doing-world-tree-current.json；之後實際更新只同步同一份 current 資料。","status":"done"},
         {"id":"core-browser-uat","title":"全角色正式瀏覽器 Click-through","summary":"平台總管、租戶負責人、主辦管理員、場次、財務、現場等角色的正式網域真人逐按鈕驗收仍未完整完成。","status":"todo"},
-        {"id":"core-prod-verify","title":"正式網域 Production Verification","summary":"CI／自動驗證已多次通過，但因目前執行環境無法解析正式網域，仍需實際正式畫面證據。","status":"verify"}
+        {"id":"core-prod-verify","title":"正式網域 Production Verification","summary":"CI／自動驗證已多次通過，但未完成本輪正式網域真人瀏覽器全角色驗證，不能冒充 PASS。","status":"verify"}
       ]
     }
   ],
   "changes": [
+    {"time":"2026-08-22 19:42","title":"全系統心智圖完整展開","summary":"全系統總樹不再只顯示頂層卡片；直接展開所有既有子節點，並補上角色／權限與 10 個共用模組。功能狀態維持原驗證結果。"},
     {"time":"2026-08-22 18:58","title":"Market 接上完整 2BL 操作路徑","summary":"世界樹新增前台攤商路徑、後台主辦路徑與系統閉環，並把每一步標成已完成／進行中／待驗證／尚未做。"},
     {"time":"2026-08-22 18:40","title":"世界樹整併所有已做／已說／未做","summary":"新增『尚未做』灰色狀態，將 Market、Project、Booking、Guide、會員、申請、工作空間、DOING 公開平台與共用核心的已完成／已定案／進行中／未做統一收進同一棵樹。"},
     {"time":"2026-08-22 18:30","title":"世界樹改為心智圖","summary":"中央主幹＋左右分支＋子節點＋狀態顏色，一眼看整體關係。"},
