@@ -1,9 +1,9 @@
 {
-  "version": "v15.3",
-  "updatedAt": "2026-08-22 20:24",
+  "version": "v15.4",
+  "updatedAt": "2026-08-22 20:36",
   "current": {
-    "title": "Market｜操作路徑往下一層展開",
-    "summary": "依 2BL 營運世界樹把 Market 的前台、後台與系統閉環往下一層展開；保留既有七步主線，不把未驗證功能冒充完成。"
+    "title": "Market｜市集操作路徑完成版",
+    "summary": "依 2BL 的使用者操作骨架補齊 Market 前後台路徑；DOING 會員登入、Core／API、Supabase 與權限仍維持 DOING 正式機制。"
   },
   "branches": [
     {
@@ -100,9 +100,29 @@
         {
           "id": "market-admin-path",
           "title": "後台主辦路徑",
-          "summary": "2BL 固定後台路徑：場次設定 → 待辦 → 審核 → 付款 → 排位 → 退款 → 財務結案。",
+          "summary": "2BL 操作骨架：後台入口 → 場次總覽 → 場次設定 → 待辦 → 審核 → 付款 → 排位 → 退款 → 財務結案。",
           "status": "progress",
           "children": [
+            {
+              "id": "admin-entry",
+              "title": "後台入口",
+              "summary": "主辦由 DOING 工作空間進入 Market；沿用 DOING 正式登入與權限，不搬 2BL 的登入技術。",
+              "status": "done",
+              "children": [
+                {"id": "admin-entry-workspace", "title": "從工作空間進入 Market", "summary": "主辦登入 DOING 後，從工作空間進入 Market。", "status": "done"},
+                {"id": "admin-entry-role", "title": "確認主辦權限", "summary": "依 DOING 正式角色與租戶權限決定可操作範圍。", "status": "done"}
+              ]
+            },
+            {
+              "id": "admin-overview",
+              "title": "場次總覽",
+              "summary": "先看全部市集場次、日期與目前狀態，再進入指定場次工作。",
+              "status": "verify",
+              "children": [
+                {"id": "admin-overview-list", "title": "全部場次", "summary": "查看進行中、即將開始與已結束場次。", "status": "verify"},
+                {"id": "admin-overview-open", "title": "進入單場工作", "summary": "選定場次後進入該場設定、待辦、名單與後續處理。", "status": "verify"}
+              ]
+            },
             {
               "id": "admin-session",
               "title": "場次設定",
@@ -334,6 +354,7 @@
     ]}
   ],
   "changes": [
+    {"time": "2026-08-22 20:36", "title": "Market 市集操作路徑補齊", "summary": "依 2BL 操作骨架補上後台入口與場次總覽，形成後台入口→場次總覽→場次設定→待辦→審核→付款→排位→退款→財務結案；DOING 的 LINE／權限／Core／Supabase 不變。"},
     {"time": "2026-08-22 20:24", "title": "Market 操作路徑往下一層展開", "summary": "依 2BL 營運世界樹，把前台 7 步、後台 7 步與系統閉環往下補成實際操作節點；保留原主線與既有驗證狀態。"},
     {"time": "2026-08-22 19:42", "title": "全系統心智圖完整展開", "summary": "全系統總樹不再只顯示頂層卡片；直接展開所有既有子節點，並補上角色／權限與 10 個共用模組。功能狀態維持原驗證結果。"},
     {"time": "2026-08-22 18:58", "title": "Market 接上完整 2BL 操作路徑", "summary": "世界樹新增前台攤商路徑、後台主辦路徑與系統閉環，並把每一步標成已完成／進行中／待驗證／尚未做。"},
