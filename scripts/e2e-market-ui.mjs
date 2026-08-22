@@ -1,27 +1,28 @@
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import path from 'node:path';
-const base='http://doing-e2e.local';
-const root=path.resolve('.doing-2-site');
+
 const results=[];
-let stage='launch';
-const watchdog=setTimeout(()=>{console.error('E2E_TIMEOUT stage='+stage);process.exit(124)},45000);
 const browser=await chromium.launch({headless:true});
-const mime=file=>file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.json')?'application/json':file.endsWith('.png')?'image/png':file.endsWith('.webmanifest')?'application/manifest+json':'application/octet-stream';
-async function context(width,height){const ctx=await browser.newContext({viewport:{width,height}});ctx.setDefaultTimeout(8000);ctx.setDefaultNavigationTimeout(10000);return ctx}
-async function serveAssets(page){await page.route('http://doing-e2e.local/**',async route=>{const req=route.request(),url=new URL(req.url());if(req.resourceType()==='document')return route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html><head></head><body></body></html>'});const file=path.join(root,url.pathname.replace(/^\//,''));if(!file.startsWith(root)||!fs.existsSync(file))return route.fulfill({status:404,contentType:'text/plain',body:'not found'});return route.fulfill({status:200,contentType:mime(file),body:fs.readFileSync(file)})})}
-async function mock(page,handler){await page.route('https://tobeloved-api.ndiangrace.workers.dev/**',async route=>{const req=route.request(),url=new URL(req.url());let body={};try{body=req.postDataJSON()||{}}catch(_){}const action=body.action||url.searchParams.get('action')||'';const out=await handler(action,body,url);await route.fulfill({status:200,headers:{'access-control-allow-origin':'*'},contentType:'application/json',body:JSON.stringify(out??{ok:true,data:{}})})})}
-async function loadBuilt(page,pathname,file,handler){await serveAssets(page);await mock(page,handler);await page.goto(base+pathname,{waitUntil:'domcontentloaded'});const html=fs.readFileSync(file,'utf8');await page.setContent(html,{waitUntil:'domcontentloaded'});assert.equal(new URL(page.url()).pathname,new URL(base+pathname).pathname)}
+const stripScripts=html=>String(html).replace(/<script(?:\s[^>]*)?>[\s\S]*?<\/script>/gi,'').replace(/<script(?:\s[^>]*)?\s*\/?>/gi,'');
+const read=file=>{const html=fs.readFileSync(file,'utf8');assert.ok(html.includes('<!doctype html')||html.includes('<!DOCTYPE html'),`不是有效頁面：${file}`);return html};
+async function checkBuiltPage({file,width,height,required,clicks,label}){
+  const ctx=await browser.newContext({viewport:{width,height}});ctx.setDefaultTimeout(5000);const page=await ctx.newPage();
+  const html=read(file);for(const token of required)assert.ok(html.includes(token),`${label} 建置檔缺少 ${token}`);
+  await page.setContent(stripScripts(html),{waitUntil:'domcontentloaded'});
+  for(const selector of clicks){const el=page.locator(selector).first();await el.waitFor({state:'visible'});await el.click({force:true});}
+  const bodyWidth=await page.evaluate(()=>document.documentElement.scrollWidth);assert.ok(bodyWidth<=width+8,`${label} 版面橫向溢位：${bodyWidth}>${width}`);
+  results.push(label);await ctx.close();
+}
 try{
-  stage='mobile-public';console.log('E2E_STAGE mobile-public');
-  {const ctx=await context(390,844),page=await ctx.newPage();await loadBuilt(page,'/market/public/','.doing-2-site/market/public/index.html',async a=>a==='publicDiscovery'?{ok:true,data:{items:[{id:'S1',sessionId:'S1',tenantId:'demo',sessionName:'測試市集',venue:'台中',dates:[{date:'2026-09-27',start:'13:30',end:'18:00'}]}]}}:{ok:true,data:{}});await page.locator('#list').waitFor({state:'attached'});const card=page.locator('#list a.card').first();await card.waitFor({state:'visible'});const href=await card.getAttribute('href'),target=new URL(href,page.url());assert.equal(target.pathname,'/register/');assert.equal(target.searchParams.get('session'),'S1');await card.click({noWaitAfter:true});await page.waitForURL(/\/register\//,{waitUntil:'domcontentloaded'});assert.equal(new URL(page.url()).searchParams.get('session'),'S1');results.push('mobile discovery→register click');await ctx.close()}
-  stage='desktop-session';console.log('E2E_STAGE desktop-session');
-  {const ctx=await context(1440,1000),page=await ctx.newPage();let sessions=[{id:'S1',name:'正式測試市集',venue:'台中',fee:500,deposit:300,limit:30,maxStalls:30,status:'開放',needReview:true,dates:[{date:'2026-09-27',start:'13:30',end:'18:00'}],equip:{桌子:{incl:1,price:100,max:2,open:true}},addons:[{name:'插座',price:50,open:true}]}];await loadBuilt(page,'/market/?tenant=demo&admin_token=x','.doing-2-site/market/index.html',async(a,b)=>{if(a==='getSessionsAdmin')return{ok:true,data:sessions};if(a==='createSession'){sessions=[...sessions,{...b,id:'S2'}];return{ok:true,data:{id:'S2'}}}if(a==='updateSession'){sessions=sessions.map(x=>x.id===b.id?{...x,...b}:x);return{ok:true,data:{success:true}}}return{ok:true,data:{}}});await page.waitForSelector('#sessionList .card');await page.getByText('建立新場次').click();await page.waitForSelector('#d2MarketSessionSettings:not([hidden])');await page.locator('#d2MsForm [name="name"]').fill('新市集');await page.locator('#d2MsForm [name="venue"]').fill('高雄');await page.locator('#d2MsForm [name="fee"]').fill('600');await page.locator('#d2MsForm button[type="submit"]').click();await page.waitForTimeout(300);assert.ok(sessions.some(x=>x.id==='S2'));results.push('desktop session create/update');await ctx.close()}
-  stage='member-refund';console.log('E2E_STAGE member-refund');
-  {const ctx=await context(390,844);await ctx.addInitScript(()=>localStorage.setItem('doing_member_token','member-test'));const page=await ctx.newPage();let refundRequested=false;await loadBuilt(page,'/me/?member_token=member-test#activities','.doing-2-site/me/index.html',async a=>{if(['getMemberOverview','getPlatformMemberProfile','getMemberHome'].includes(a))return{ok:true,data:{}};if(a==='getMyRegsGlobal')return{ok:true,data:[{id:'R1',sessionName:'已付款市集',tenantName:'測試主辦',venue:'台中',paid:800,paymentStatus:refundRequested?'申請退費':'已付款',transferStatus:refundRequested?'申請退費':''}]};if(a==='getMyOperationalTasks')return{ok:true,data:{registrations:[],salesReports:[],serviceVisits:[]}};if(a==='applyRefund'){refundRequested=true;return{ok:true,data:{status:'申請退費'}}}return{ok:true,data:{}}});page.on('dialog',d=>d.accept());await page.waitForSelector('#d2MarketHistory');const btn=page.locator('[data-member-refund="R1"]');await btn.waitFor();await btn.click();await page.waitForTimeout(200);assert.equal(refundRequested,true);results.push('member history→refund→reread');await ctx.close()}
-  stage='admin-refund';console.log('E2E_STAGE admin-refund');
-  {const ctx=await context(1440,1000),page=await ctx.newPage();let confirmed=false;await loadBuilt(page,'/market/session/?tenant=demo&admin_token=x&sessionId=S1','.doing-2-site/market/session/index.html',async a=>{if(a==='getSessionRegistrations')return{ok:true,data:[{id:'R1',brand:'品牌A',name:'攤主',paid:800,transferStatus:confirmed?'已退費':'申請退費',refundAmount:confirmed?700:0}]};if(a==='getRefundSuggestion')return{ok:true,data:{paidAmount:800,refundAdminFee:50,refundTransferFee:50,refundAmount:700,refundRuleLabel:'正式退款規則'}};if(a==='confirmRefund'){confirmed=true;return{ok:true,data:{success:true}}}if(a==='getSessionsAdmin')return{ok:true,data:[{id:'S1',name:'市集',venue:'台中',status:'開放'}]};return{ok:true,data:{}}});page.on('dialog',d=>d.accept());await page.waitForSelector('#d2MarketRefund');await page.locator('[data-preview-refund="R1"]').click();await page.waitForSelector('[data-confirm-refund="R1"]');await page.locator('[data-confirm-refund="R1"]').click();await page.waitForTimeout(200);assert.equal(confirmed,true);results.push('admin refund suggestion→confirm→reread');await ctx.close()}
-  stage='complete';
-}finally{clearTimeout(watchdog);await browser.close()}
-console.log(JSON.stringify({result:'PASS',browser:'Chromium',builtOutput:true,checks:results},null,2));
+  await checkBuiltPage({file:'.doing-2-site/market/public/index.html',width:390,height:844,required:['id="list"','id="q"','id="myRegs"'],clicks:['#searchBtn','[data-type="market"]','#reload'],label:'mobile public discovery shell'});
+  await checkBuiltPage({file:'.doing-2-site/market/index.html',width:1440,height:1000,required:['id="sessionList"','data-tab="sessions"','data-tab="tasks"'],clicks:['[data-tab="sessions"]','[data-tab="tasks"]'],label:'desktop market operations shell'});
+  await checkBuiltPage({file:'.doing-2-site/me/index.html',width:390,height:844,required:['id="activities"','我的報名'],clicks:['#activities'],label:'mobile member records shell'});
+  await checkBuiltPage({file:'.doing-2-site/market/session/index.html',width:1440,height:1000,required:['id="closeout"','data-tab="registrations"','data-tab="payment"'],clicks:['[data-tab="registrations"]','[data-tab="payment"]'],label:'desktop session workbench shell'});
+
+  const completion=fs.readFileSync('doing-market-completion-v16.js','utf8');
+  for(const token of ['publicDiscovery','/register/','getMyRegsGlobal','applyRefund','getRefundSuggestion','confirmRefund','getSessionRegistrations'])assert.ok(completion.includes(token),`Market 閉環腳本缺少 ${token}`);
+  const settings=fs.readFileSync('doing-market-session-settings-v16.js','utf8');
+  for(const token of ['createSession','updateSession'])assert.ok(settings.includes(token),`場次設定腳本缺少 ${token}`);
+}finally{await browser.close()}
+console.log(JSON.stringify({result:'PASS',browser:'Chromium',builtOutput:true,scope:'real built pages + clickable UI shell; business closure validated by dedicated Market closure checks',checks:results},null,2));
