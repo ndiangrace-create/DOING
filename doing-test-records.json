@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-22T09:08:00+08:00",
-  "sourceFingerprint": "d3e387105d3400b47677089ba452d7401ec837f2056f4e4009ab8a334f71318e",
+  "recordedAt": "2026-08-22T09:10:00+08:00",
+  "sourceFingerprint": "17dadffc7613d2b6cb55fac103edfb9ae692aca3ba0685f8e72fc272fb18321e",
   "environment": "DOING 2.0 v12 closure。修正正式申請前後端契約：Worker 要求 assistantAnalysis.scope=doing_only，Web 由 doing-application-contract-v12.js 在送出前固定對齊；智慧小幫手只作客服且 applicationGate=false。桌機申請頁恢復固定頂部。doing-candy-theme.css 統一套用申請、會員、Workspace、Market、Project、Booking、Guide、admin、onsite、platform、operations、photo、consignment。首頁 LOGO 改為空白預留位置，搜尋、近期場次與底部純文字按鈕保留。2BL、Worker、Schema、正式業務資料均未修改。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
