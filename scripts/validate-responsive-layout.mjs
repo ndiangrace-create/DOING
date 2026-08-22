@@ -48,14 +48,17 @@ for(const token of ['body.doing-app.doing-admin :where(.tabs .tab,.etc-sub,.equi
 for(const token of ['DOING_NO_BROKEN_VIEWPORT_CONTRACT_V1','html,body{max-width:100%!important;overflow-x:auto!important}','flex-wrap:wrap!important;overflow:visible!important','flex-wrap:nowrap!important;overflow-x:auto!important','body.doing-app table:not(.seat-map){display:block!important']){
   if(!css.includes(token))fail('全站防橫向裁切契約缺少：'+token);
 }
-const marketCss=fs.readFileSync(root+'/doing-market-2bl.css','utf8');
-for(const token of ['--dm-pink:#f3afd0','--dm-lav:#d7c8fb','grid-template-columns:repeat(3,minmax(0,1fr))','@media(max-width:768px)','grid-template-columns:repeat(2,minmax(0,1fr))','position:fixed!important','border-radius:20px']){
-  if(!marketCss.includes(token))fail('Market 新操作介面缺少手機／桌機契約：'+token);
+const marketCss=fs.readFileSync(root+'/doing-market-role-ui-v17.css','utf8');
+for(const token of ['--dm17-sky:#9ecdf7','--dm17-lav:#d9ccff','grid-template-columns:repeat(5,minmax(0,1fr))','grid-template-columns:repeat(6,minmax(0,1fr))','grid-template-columns:repeat(2,minmax(0,1fr))','aspect-ratio:1/1','dm17-mobile-nav','dm17-desktop-support']){
+  if(!marketCss.includes(token))fail('Market v17 響應式契約缺少：'+token);
 }
-if(/gradient\(/i.test(marketCss))fail('Market 新操作介面不得用漸層');
-const publicUi=fs.readFileSync(root+'/doing-market-public-query.js','utf8');
-for(const token of ['mk-public-ui','mk-public-bottom','grid-template-columns:repeat(2,minmax(0,1fr))','報名活動','我的紀錄','線上客服'])if(!publicUi.includes(token))fail('Market 公開活動頁缺少參考圖操作元素：'+token);
-if(/gradient\(/i.test(publicUi))fail('Market 公開活動頁不得用漸層');
+if(/gradient\(/i.test(marketCss))fail('Market v17 不得用漸層');
+if(marketCss.includes('border-radius:999px'))fail('Market v17 不得使用膠囊元件');
+const publicUi=fs.readFileSync(root+'/doing-market-role-ui-v17.js','utf8');
+for(const token of ['找今天想參加的活動','報名活動','我的紀錄','線上客服','firstDate','getSiteConfig','saveSiteConfig'])if(!publicUi.includes(token))fail('Market v17 公開活動頁缺少操作元素：'+token);
+const build=fs.readFileSync(root+'/scripts/build-doing-2-site.mjs','utf8');
+if(!build.includes('marketVisual:\'v17-only\'')||!build.includes('legacyMarketVisual:false'))fail('正式建置尚未鎖定 Market v17 唯一視覺');
+if(build.includes("inject(html,'doing-market-2bl.css'"))fail('舊 Market CSS 不得再載入正式頁');
 const shell=fs.readFileSync(root+'/doing-2-shell.js','utf8');
 for(const token of ['d2-market-journey','後台入口','場次總覽','場次設定','待辦','審核','付款','排位','退款','財務結案'])if(!shell.includes(token))fail('Market 心智圖操作導航缺少：'+token);
-console.log('響應式框架驗證完成：'+pages.length+' 個正式功能頁＋member/about 相容轉址＋Market 手機參考視覺／桌機自動框架／操作路徑均有效。');
+console.log('響應式框架驗證完成：'+pages.length+' 個正式功能頁＋member/about 相容轉址＋Market v17 手機／桌機唯一視覺／2BL 操作路徑均有效。');
