@@ -4,9 +4,23 @@ const p=new URL(location.href).searchParams;
 const keep=(path)=>{const u=new URL(path,location.origin);for(const k of ['tenant','admin_token','token']){const v=p.get(k);if(v)u.searchParams.set(k,v)}return u.toString()};
 const path=location.pathname;
 const isPublicHome=path==='/'||/\/doing-2\.html$/.test(path);
-if(isPublicHome){document.body?.classList.add('d2-public-home');return;}
+const body=document.body;if(!body)return;
+if(isPublicHome){
+  body.classList.add('d2-public-home');
+  if(!document.querySelector('.d2-topbar')){
+    const top=document.createElement('header');
+    top.className='d2-topbar d2-home-desktop-topbar';
+    top.innerHTML=`<div class="d2-topbar-in"><a class="d2-brand" href="${keep('/')}"><div class="d2-brand-copy"><div class="d2-brand-title">DOING</div><div class="d2-brand-sub">協槓人生小幫手</div></div></a><div class="d2-top-actions"><a href="${keep('/')}">首頁</a><a href="${keep('/market/public/')}">報名活動</a><a href="${keep('/member-panel.html#activities')}">我的紀錄</a><a href="${keep('/smart-application.html')}">我要申請</a></div></div>`;
+    body.prepend(top);
+    const sync=()=>top.style.setProperty('display',matchMedia('(min-width:621px)').matches?'block':'none','important');
+    sync();
+    const mq=matchMedia('(min-width:621px)');
+    if(mq.addEventListener)mq.addEventListener('change',sync);else if(mq.addListener)mq.addListener(sync);
+  }
+  return;
+}
 const product=path.includes('market')?'market':path.includes('project')?'project':path.includes('booking')?'booking':path.includes('guide')?'guide':'hub';
-const body=document.body;if(!body||document.querySelector('.d2-topbar'))return;
+if(document.querySelector('.d2-topbar'))return;
 const applyLink=`<a href="${keep('/smart-application.html')}">我要申請</a>`;
 const marketActions=`${applyLink}<a href="${keep('/member-panel.html#account')}">登入／會員</a>`;
 const defaultActions=`${applyLink}<a class="optional" href="${keep('/market/public/')}">找活動</a><a href="${keep('/member-panel.html#activities')}">我的報名</a><a href="${keep('/')}">首頁</a>`;
