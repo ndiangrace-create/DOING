@@ -1,114 +1,245 @@
 name: DOING 2.0 Site
 
 on:
-  push:
-    branches: [fix/market-logo-upload-20260823]
   pull_request:
     branches: [main]
+    paths:
+      - 'doing-2.html'
+      - 'doing-2-shell.js'
+      - 'doing-2-home-v11.css'
+      - 'doing-2-home-v11.js'
+      - 'doing-home-logo-slot-v12.css'
+      - 'doing-home-logo-slot-v12.js'
+      - 'doing-candy-theme.css'
+      - 'doing-application-contract-v12.js'
+      - 'doing-market-v18.css'
+      - 'doing-market-v19-layout.css'
+      - 'doing-market-auth-bridge-v19.js'
+      - 'market-center.html'
+      - 'market-public.html'
+      - 'market-session.html'
+      - 'project-center.html'
+      - 'booking-2-center.html'
+      - 'guide-center.html'
+      - 'smart-application.html'
+      - 'workspace.html'
+      - 'member-panel.html'
+      - 'register.html'
+      - 'world-tree.html'
+      - 'doing-world-tree-current.json'
+      - 'doing-member-return-direct.js'
+      - 'doing-application-completion.js'
+      - 'doing-workspace-product-router.js'
+      - 'doing-smart-activation-v5.js'
+      - 'doing-auto-activation-status.js'
+      - 'doing-global-entry.js'
+      - 'scripts/build-doing-2-site.mjs'
+      - 'scripts/postprocess-market-v19.mjs'
+      - 'scripts/validate-member-panel-return.mjs'
+      - 'scripts/validate-application-login-flow.mjs'
+      - 'scripts/validate-fixed-product-application.mjs'
+      - 'scripts/validate-doing-v11-home-e2e.mjs'
+      - 'scripts/validate-home-real-ui-v11.mjs'
+      - 'scripts/validate-v12-closure.mjs'
+      - 'scripts/validate-doing2-short-route-cleanup.mjs'
+      - 'scripts/validate-world-tree-mindmap.mjs'
+      - 'DOING_2.0_MARKET_2BL_UI_PARITY_20260823.md'
+      - '.github/workflows/doing-2-site.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'doing-2.html'
+      - 'doing-2-shell.js'
+      - 'doing-2-home-v11.css'
+      - 'doing-2-home-v11.js'
+      - 'doing-home-logo-slot-v12.css'
+      - 'doing-home-logo-slot-v12.js'
+      - 'doing-candy-theme.css'
+      - 'doing-application-contract-v12.js'
+      - 'doing-market-v18.css'
+      - 'doing-market-v19-layout.css'
+      - 'doing-market-auth-bridge-v19.js'
+      - 'market-center.html'
+      - 'market-public.html'
+      - 'market-session.html'
+      - 'project-center.html'
+      - 'booking-2-center.html'
+      - 'guide-center.html'
+      - 'smart-application.html'
+      - 'workspace.html'
+      - 'member-panel.html'
+      - 'register.html'
+      - 'world-tree.html'
+      - 'doing-world-tree-current.json'
+      - 'doing-member-return-direct.js'
+      - 'doing-application-completion.js'
+      - 'doing-workspace-product-router.js'
+      - 'doing-smart-activation-v5.js'
+      - 'doing-auto-activation-status.js'
+      - 'doing-global-entry.js'
+      - 'scripts/build-doing-2-site.mjs'
+      - 'scripts/postprocess-market-v19.mjs'
+      - 'scripts/validate-member-panel-return.mjs'
+      - 'scripts/validate-application-login-flow.mjs'
+      - 'scripts/validate-fixed-product-application.mjs'
+      - 'scripts/validate-doing-v11-home-e2e.mjs'
+      - 'scripts/validate-home-real-ui-v11.mjs'
+      - 'scripts/validate-v12-closure.mjs'
+      - 'scripts/validate-doing2-short-route-cleanup.mjs'
+      - 'scripts/validate-world-tree-mindmap.mjs'
+      - 'DOING_2.0_MARKET_2BL_UI_PARITY_20260823.md'
+      - '.github/workflows/doing-2-site.yml'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: doing-2-site
+  cancel-in-progress: false
+
+env:
+  CF_PAGES_PROJECT: doing-2
+  CF_CUSTOM_DOMAIN: doing.2b-love.com
 
 jobs:
-  patch-formal-application-closure-once:
-    if: github.event_name == 'push' && github.ref_name == 'fix/market-logo-upload-20260823'
+  build-validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: fix/market-logo-upload-20260823
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Patch formal application closure
-        shell: python
+      - name: Validate member panel LINE return
+        run: node scripts/validate-member-panel-return.mjs
+      - name: Validate application login workspace Market journey
+        run: node scripts/validate-application-login-flow.mjs
+      - name: Validate fixed product application
+        run: node scripts/validate-fixed-product-application.mjs
+      - name: Validate v11 public home end-to-end contracts
+        run: node scripts/validate-doing-v11-home-e2e.mjs
+      - name: Validate real homepage visual and live cards
+        run: node scripts/validate-home-real-ui-v11.mjs
+      - name: Validate v12 application/theme/topbar closure
+        run: node scripts/validate-v12-closure.mjs
+      - name: Validate DOING 2.0 short hierarchy cleanup
+        run: node scripts/validate-doing2-short-route-cleanup.mjs
+      - name: Validate true world tree mind map
+        run: node scripts/validate-world-tree-mindmap.mjs
+      - name: Build DOING 2.0 site
         run: |
-          from pathlib import Path
-
-          def once(text, old, new, label):
-              if new in text:
-                  return text
-              n=text.count(old)
-              if n != 1:
-                  raise SystemExit(f'{label}: unsafe match count={n}')
-              return text.replace(old,new,1)
-
-          for name in ('worker.js','worker.txt'):
-              p=Path(name); text=p.read_text(encoding='utf-8')
-              text=once(text,
-                "const fallback=mode==='platform'?platformSiteUrl(env):mode==='organizer_signup'?doingSiteUrl(env)+'#apply':doingSiteUrl(env);",
-                "const fallback=mode==='platform'?platformSiteUrl(env):mode==='organizer_signup'?new URL('apply/',doingSiteUrl(env)).toString():doingSiteUrl(env);",
-                name+' LINE organizer fallback')
-              text=once(text,
-                "const memberTarget=safeDoingReturnUrl(env,statePayload&&statePayload.return_url),applicationTarget=new URL(doingSiteUrl(env)),adminTarget=new URL(adminLoginSiteUrl(env)),platformTarget=new URL(platformSiteUrl(env));applicationTarget.hash='apply';",
-                "const memberTarget=safeDoingReturnUrl(env,statePayload&&statePayload.return_url),applicationTarget=new URL('apply/',doingSiteUrl(env)),adminTarget=new URL(adminLoginSiteUrl(env)),platformTarget=new URL(platformSiteUrl(env));",
-                name+' LINE organizer callback target')
-              old="const activationRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&select=status,tenant_id,note`).catch(()=>[]),activation=activationRows[0]||{},activationStatus=String(activation.status||'pending');\n      if(activationStatus==='approved'){"
-              new="const activationRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&select=status,tenant_id,note`).catch(()=>[]),activation=activationRows[0]||{},activationStatus=String(activation.status||'pending');\n      const applicationMemberToken=await issueMemberToken({email:member.email,provider:'line',provider_subject:lineSubject,display_name:lineName,avatar_url:lineAvatar},env);\n      applicationTarget.searchParams.set('member_token',applicationMemberToken);applicationTarget.searchParams.set('member_status',platformMemberComplete(member)?'ready':'profile_required');\n      if(activationStatus==='approved'){"
-              text=once(text,old,new,name+' LINE same-session member handoff')
-              for old_cond,new_cond in (
-                ("if(mode==='platform'||tenant==='platform')","if(mode==='platform')"),
-                ("if(mode==='admin'||tenant){","if(mode==='admin'){"),
-                ("if(statePayload.mode==='platform'||tenant==='platform')","if(statePayload.mode==='platform')"),
-                ("if(statePayload.mode==='admin'||tenant){","if(statePayload.mode==='admin'){"),
-              ):
-                  text=text.replace(old_cond,new_cond)
-              text=text.replace("doingSiteUrl(env)+'#apply'","new URL('apply/',doingSiteUrl(env)).toString()")
-              text=text.replace("const u=new URL(doingSiteUrl(env));u.hash='apply';","const u=new URL('apply/',doingSiteUrl(env));")
-              p.write_text(text,encoding='utf-8')
-
-          if Path('worker.js').read_bytes()!=Path('worker.txt').read_bytes():
-              raise SystemExit('worker.js and worker.txt diverged')
-
-          p=Path('doing-smart-activation-v5.js'); text=p.read_text(encoding='utf-8')
-          old="}catch(e){err(e.message||'申請資料保存失敗');b.disabled=false;b.textContent='我要申請｜使用 LINE 驗證 →'}}"
-          new="}catch(e){const message=e.message||'申請資料保存失敗';if(/此會員已是正式營運方|已有自己的 DOING 工作空間/.test(message)){const target=new URL('/me/',location.origin);target.hash='operations';const token=localStorage.getItem('doing_member_token')||'';if(token){location.href=target.toString();return}const a=new URL(API+'/auth/line/start');a.searchParams.set('mode','member');a.searchParams.set('return_url',target.toString());location.href=a.toString();return}if(/此會員已有進行中的營運申請|已有進行中的工作空間申請/.test(message)){const target=new URL('/me/',location.origin);target.searchParams.set('post_application','1');target.hash='operations';const token=localStorage.getItem('doing_member_token')||'';if(token){location.href=target.toString();return}const a=new URL(API+'/auth/line/start');a.searchParams.set('mode','member');a.searchParams.set('return_url',target.toString());location.href=a.toString();return}err(message);b.disabled=false;b.textContent='我要申請｜使用 LINE 驗證 →'}}"
-          text=once(text,old,new,'application duplicate recovery')
-          old_end="render();\n})();"
-          new_end="""render();
-(async function recoverExistingWorkspace(){
-  const q=new URL(location.href).searchParams;
-  if(['application_status','application_id','member_token','member_login_error','login_error'].some(k=>q.has(k))) return;
-  const token=localStorage.getItem('doing_member_token')||'';if(!token)return;
-  try{
-    const r=await fetch(API+'?action=getPlatformMemberProfile&member_token='+encodeURIComponent(token),{cache:'no-store'}),d=await r.json().catch(()=>({}));
-    if(!r.ok||d.ok===false||d.error)return;
-    const data=d.data??d.result??d,spaces=Array.isArray(data.workspaces)?data.workspaces:[];
-    if(!spaces.length)return;
-    const target=new URL('/me/',location.origin);target.hash='operations';
-    form.innerHTML='<div id="d2a"><section class="h"><small>DOING 營運帳號</small><h2>你的工作空間已經開通</h2><p>這個會員已經有自己的 DOING 工作空間，不需要重新申請。</p></section><section class="c"><button class="b pri" id="existingWorkspaceBtn" type="button">進入我的 DOING</button></section></div>';
-    document.getElementById('existingWorkspaceBtn').onclick=()=>location.href=target.toString();
-  }catch(_){}
-})();
-})();"""
-          text=once(text,old_end,new_end,'existing workspace preflight')
-          p.write_text(text,encoding='utf-8')
-
-          p=Path('doing-application-completion.js'); text=p.read_text(encoding='utf-8')
-          text=once(text,"if(!['approved','auto_activated'].includes(status)) return;","if(!['approved','auto_activated','existing_workspace'].includes(status)) return;",'completion existing workspace')
-          p.write_text(text,encoding='utf-8')
-      - name: Verify patch locally
+          node scripts/build-doing-2-site.mjs
+          node scripts/postprocess-market-v19.mjs
+      - name: Validate only short hierarchy is published
         run: |
-          cmp worker.js worker.txt
-          node --check worker.js
-          node --check doing-smart-activation-v5.js
-          node --check doing-application-completion.js
-          ! grep -F "mode==='platform'||tenant==='platform'" worker.js
-          ! grep -F "mode==='admin'||tenant" worker.js
-          grep -F "new URL('apply/',doingSiteUrl(env))" worker.js >/dev/null
-          grep -F "applicationMemberToken" worker.js >/dev/null
-          grep -F "你的工作空間已經開通" doing-smart-activation-v5.js >/dev/null
-          grep -F "existing_workspace" doing-application-completion.js >/dev/null
-      - name: Commit product patch once
+          test -f .doing-2-site/index.html
+          for f in \
+            market/index.html \
+            market/public/index.html \
+            market/session/index.html \
+            project/index.html \
+            booking/index.html \
+            guide/index.html \
+            workspace/index.html \
+            me/index.html \
+            apply/index.html \
+            register/index.html \
+            world-tree/index.html; do
+            test -f ".doing-2-site/$f"
+          done
+          test -f .doing-2-site/doing-world-tree-current.json
+          test -f .doing-2-site/doing-market-v19-layout.css
+          test -f .doing-2-site/doing-market-auth-bridge-v19.js
+
+          for f in \
+            doing-2.html market-center.html market-public.html market-session.html \
+            project-center.html booking-2-center.html guide-center.html workspace.html \
+            member.html member-panel.html smart-application.html register.html admin.html onsite.html \
+            platform.html operations-center.html photo.html consignment.html about.html; do
+            test ! -e ".doing-2-site/$f"
+          done
+
+          for d in admin onsite platform operations photo consignment about member; do
+            test ! -e ".doing-2-site/$d"
+          done
+
+          grep -q 'doing-member-return-direct.js' .doing-2-site/me/index.html
+          grep -q 'doing-smart-activation-v5.js' .doing-2-site/apply/index.html
+          grep -q 'doing-application-contract-v12.js' .doing-2-site/apply/index.html
+          grep -q 'doing-application-completion.js' .doing-2-site/apply/index.html
+          grep -q 'doing-workspace-product-router.js' .doing-2-site/workspace/index.html
+          grep -q 'doing-market-v19-layout.css' .doing-2-site/market/index.html
+          grep -q 'doing-market-auth-bridge-v19.js' .doing-2-site/market/index.html
+          grep -q 'doing-market-auth-bridge-v19.js' .doing-2-site/market/session/index.html
+          grep -q 'doing-market-v19-layout.css' .doing-2-site/market/public/index.html
+          for page in sessions todos onsite members leads finance consignment settings; do
+            grep -q "data-page=\"$page\"" .doing-2-site/market/index.html
+          done
+          grep -q 'overall-grid' .doing-2-site/world-tree/index.html
+          grep -q 'market-map' .doing-2-site/world-tree/index.html
+          grep -q 'DOING 2.0 世界樹' .doing-2-site/world-tree/index.html
+          ! grep -R -E -q '(admin|onsite|platform|operations-center|photo|consignment|member-panel|smart-application)\.html' .doing-2-site
+          ! grep -R -q '2bl-v7' .doing-2-site
+      - uses: actions/upload-artifact@v4
+        with:
+          name: doing-2-site
+          path: .doing-2-site
+          retention-days: 14
+
+  deploy-pages:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build-validate
+    runs-on: ubuntu-latest
+    environment: doing-production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify Cloudflare credentials
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          if git diff --quiet -- worker.js worker.txt doing-smart-activation-v5.js doing-application-completion.js; then
-            echo 'Patch already applied.'
-            exit 0
+          test -n "$CF_TOKEN"
+          test -n "$CF_ACCOUNT"
+      - name: Build site
+        run: |
+          node scripts/build-doing-2-site.mjs
+          node scripts/postprocess-market-v19.mjs
+      - name: Ensure Cloudflare Pages project
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          base="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/pages/projects"
+          status="$(curl -sS -o project.json -w '%{http_code}' -H "Authorization: Bearer ${CF_TOKEN}" "${base}/${CF_PAGES_PROJECT}")"
+          if [ "$status" = "404" ]; then
+            curl --fail-with-body -sS -X POST -H "Authorization: Bearer ${CF_TOKEN}" -H 'Content-Type: application/json' --data "{\"name\":\"${CF_PAGES_PROJECT}\",\"production_branch\":\"main\"}" "${base}" > project-create.json
+          elif [ "$status" != "200" ]; then
+            cat project.json; exit 1
           fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add worker.js worker.txt doing-smart-activation-v5.js doing-application-completion.js
-          git commit -m 'fix: close formal organizer application flow'
-          git push origin HEAD:fix/market-logo-upload-20260823
+      - name: Deploy DOING 2.0 site
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy .doing-2-site --project-name doing-2 --branch main --commit-dirty=true
+      - name: Attach doing.2b-love.com
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          url="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/pages/projects/${CF_PAGES_PROJECT}/domains"
+          code="$(curl -sS -o domain.json -w '%{http_code}' -X POST -H "Authorization: Bearer ${CF_TOKEN}" -H 'Content-Type: application/json' --data "{\"name\":\"${CF_CUSTOM_DOMAIN}\"}" "$url")"
+          if [ "$code" != "200" ] && [ "$code" != "201" ] && [ "$code" != "409" ]; then cat domain.json; exit 1; fi
+      - name: Record deployment evidence
+        run: |
+          jq -n --arg domain "$CF_CUSTOM_DOMAIN" --arg project "$CF_PAGES_PROJECT" --arg commit "$GITHUB_SHA" '{domain:$domain,project:$project,commit:$commit,status:"deployed"}' > doing-2-site-deployment.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: doing-2-site-deployment
+          path: doing-2-site-deployment.json
+          retention-days: 90
