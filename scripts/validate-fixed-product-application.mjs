@@ -25,7 +25,7 @@ assert.ok(page.includes('符合規則就直接開通'),'申請頁必須說明自
 assert.ok(!page.includes('固定產品申請'),'前台不得顯示內部固定產品術語');
 assert.ok(!page.includes('確認既有模組'),'前台不得顯示內部模組術語');
 assert.ok(page.includes('/doing-smart-activation-v5.js'),'申請頁必須使用固定產品流程');
-assert.ok(shell.includes("keep('/apply/')")&&shell.includes('我要申請'),'我要申請必須固定開 /apply/');
+assert.ok(shell.includes('href="/apply/"')&&shell.includes('申請 DOING'),'首頁／頂部唯一申請入口必須固定開 /apply/');
 assert.ok(build.includes("'/apply/':'smart-application.html'"),'Pages 必須以 /apply/ 承接正式申請頁');
 assert.ok(build.includes('doing-smart-activation-v5.js'),'Pages 必須包含申請 JS');
 console.log(JSON.stringify({result:'PASS',publicJourney:['同一頁選產品＋使用方式＋填資料','LINE 驗證','自動開通'],helperRole:'customer_service_only',applicationGate:false,moduleConfirmation:false,singlePage:true,compactSubmit:true,applyEntry:'/apply/',dbTablesAdded:0},null,2));

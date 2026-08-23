@@ -11,16 +11,18 @@ on:
       - 'doing-home-logo-slot-v12.css'
       - 'doing-home-logo-slot-v12.js'
       - 'doing-candy-theme.css'
+      - 'doing-member-return-direct.js'
+      - 'doing-global-entry.js'
+      - 'doing-workspace-product-router.js'
       - 'doing-application-contract-v12.js'
       - 'doing-formal-application-bridge.js'
-      - 'doing-market-v18.css'
-      - 'doing-market-v19-layout.css'
-      - 'doing-market-auth-bridge-v19.js'
+      - 'doing-smart-activation-v5.js'
       - 'market-center.html'
       - 'market-public.html'
       - 'market-session.html'
       - 'project-center.html'
       - 'booking-2-center.html'
+      - 'legacy-pages/booking-center.html'
       - 'guide-center.html'
       - 'smart-application.html'
       - 'workspace.html'
@@ -28,70 +30,54 @@ on:
       - 'register.html'
       - 'world-tree.html'
       - 'doing-world-tree-current.json'
-      - 'doing-member-return-direct.js'
-      - 'doing-application-completion.js'
-      - 'doing-workspace-product-router.js'
-      - 'doing-smart-activation-v5.js'
-      - 'doing-auto-activation-status.js'
-      - 'doing-global-entry.js'
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/postprocess-market-v19.mjs'
       - 'scripts/validate-member-panel-return.mjs'
       - 'scripts/validate-application-login-flow.mjs'
       - 'scripts/validate-fixed-product-application.mjs'
       - 'scripts/validate-formal-application-closure.mjs'
+      - 'scripts/validate-unified-entry.mjs'
+      - 'scripts/validate-booking-center.mjs'
       - 'scripts/validate-doing-v11-home-e2e.mjs'
       - 'scripts/validate-home-real-ui-v11.mjs'
       - 'scripts/validate-v12-closure.mjs'
       - 'scripts/validate-doing2-short-route-cleanup.mjs'
       - 'scripts/validate-world-tree-mindmap.mjs'
-      - 'DOING_2.0_MARKET_2BL_UI_PARITY_20260823.md'
+      - 'index.html'
+      - 'member.html'
+      - 'admin.html'
+      - 'onsite.html'
+      - 'platform.html'
+      - 'operations-center.html'
+      - 'photo.html'
+      - 'consignment.html'
+      - 'about.html'
+      - 'booking-center.html'
       - '.github/workflows/doing-2-site.yml'
   push:
     branches: [main]
     paths:
       - 'doing-2.html'
       - 'doing-2-shell.js'
-      - 'doing-2-home-v11.css'
       - 'doing-2-home-v11.js'
-      - 'doing-home-logo-slot-v12.css'
-      - 'doing-home-logo-slot-v12.js'
-      - 'doing-candy-theme.css'
-      - 'doing-application-contract-v12.js'
-      - 'doing-formal-application-bridge.js'
-      - 'doing-market-v18.css'
-      - 'doing-market-v19-layout.css'
-      - 'doing-market-auth-bridge-v19.js'
+      - 'doing-member-return-direct.js'
+      - 'doing-global-entry.js'
+      - 'doing-workspace-product-router.js'
       - 'market-center.html'
       - 'market-public.html'
       - 'market-session.html'
       - 'project-center.html'
-      - 'booking-2-center.html'
+      - 'legacy-pages/booking-center.html'
       - 'guide-center.html'
       - 'smart-application.html'
       - 'workspace.html'
       - 'member-panel.html'
       - 'register.html'
-      - 'world-tree.html'
       - 'doing-world-tree-current.json'
-      - 'doing-member-return-direct.js'
-      - 'doing-application-completion.js'
-      - 'doing-workspace-product-router.js'
-      - 'doing-smart-activation-v5.js'
-      - 'doing-auto-activation-status.js'
-      - 'doing-global-entry.js'
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/postprocess-market-v19.mjs'
-      - 'scripts/validate-member-panel-return.mjs'
-      - 'scripts/validate-application-login-flow.mjs'
-      - 'scripts/validate-fixed-product-application.mjs'
-      - 'scripts/validate-formal-application-closure.mjs'
-      - 'scripts/validate-doing-v11-home-e2e.mjs'
-      - 'scripts/validate-home-real-ui-v11.mjs'
-      - 'scripts/validate-v12-closure.mjs'
-      - 'scripts/validate-doing2-short-route-cleanup.mjs'
-      - 'scripts/validate-world-tree-mindmap.mjs'
-      - 'DOING_2.0_MARKET_2BL_UI_PARITY_20260823.md'
+      - 'scripts/validate-unified-entry.mjs'
+      - 'scripts/validate-booking-center.mjs'
       - '.github/workflows/doing-2-site.yml'
   workflow_dispatch:
 
@@ -116,78 +102,47 @@ jobs:
           node-version: '24'
       - name: Validate member panel LINE return
         run: node scripts/validate-member-panel-return.mjs
-      - name: Validate application login workspace Market journey
+      - name: Validate application login workspace journey
         run: node scripts/validate-application-login-flow.mjs
-      - name: Validate fixed product application
-        run: node scripts/validate-fixed-product-application.mjs
-      - name: Validate formal application closure
-        run: node scripts/validate-formal-application-closure.mjs
-      - name: Validate v11 public home end-to-end contracts
-        run: node scripts/validate-doing-v11-home-e2e.mjs
-      - name: Validate real homepage visual and live cards
-        run: node scripts/validate-home-real-ui-v11.mjs
-      - name: Validate v12 application/theme/topbar closure
-        run: node scripts/validate-v12-closure.mjs
-      - name: Validate DOING 2.0 short hierarchy cleanup
-        run: node scripts/validate-doing2-short-route-cleanup.mjs
-      - name: Validate true world tree mind map
-        run: node scripts/validate-world-tree-mindmap.mjs
-      - name: Build DOING 2.0 site
+      - name: Validate single-page application
+        run: |
+          node scripts/validate-fixed-product-application.mjs
+          node scripts/validate-formal-application-closure.mjs
+      - name: Validate homepage contracts
+        run: |
+          node scripts/validate-doing-v11-home-e2e.mjs
+          node scripts/validate-home-real-ui-v11.mjs
+          node scripts/validate-v12-closure.mjs
+      - name: Validate short hierarchy and world tree
+        run: |
+          node scripts/validate-doing2-short-route-cleanup.mjs
+          node scripts/validate-world-tree-mindmap.mjs
+      - name: Build canonical site
         run: |
           node scripts/build-doing-2-site.mjs
           node scripts/postprocess-market-v19.mjs
-      - name: Validate only short hierarchy is published
+      - name: Validate unified entry and preserved booking capability
         run: |
-          test -f .doing-2-site/index.html
-          for f in \
-            market/index.html \
-            market/public/index.html \
-            market/session/index.html \
-            project/index.html \
-            booking/index.html \
-            guide/index.html \
-            workspace/index.html \
-            me/index.html \
-            apply/index.html \
-            register/index.html \
-            world-tree/index.html; do
+          node scripts/validate-unified-entry.mjs
+          node scripts/validate-booking-center.mjs
+      - name: Validate only canonical short routes are published
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in index.html market/index.html market/public/index.html market/session/index.html project/index.html booking/index.html guide/index.html workspace/index.html me/index.html apply/index.html register/index.html world-tree/index.html; do
             test -f ".doing-2-site/$f"
           done
+          test -f .doing-2-site/_redirects
           test -f .doing-2-site/doing-world-tree-current.json
           test -f .doing-2-site/doing-formal-application-bridge.js
-          test -f .doing-2-site/doing-market-v19-layout.css
-          test -f .doing-2-site/doing-market-auth-bridge-v19.js
-
-          for f in \
-            doing-2.html market-center.html market-public.html market-session.html \
-            project-center.html booking-2-center.html guide-center.html workspace.html \
-            member.html member-panel.html smart-application.html register.html admin.html onsite.html \
-            platform.html operations-center.html photo.html consignment.html about.html; do
+          test -f .doing-2-site/doing-global-entry.js
+          test -f .doing-2-site/doing-member-return-direct.js
+          for f in doing-2.html market-center.html market-public.html market-session.html project-center.html booking-2-center.html guide-center.html workspace.html member.html member-panel.html smart-application.html register.html admin.html onsite.html platform.html operations-center.html photo.html consignment.html about.html booking-center.html; do
             test ! -e ".doing-2-site/$f"
           done
-
-          for d in admin onsite platform operations photo consignment about member; do
-            test ! -e ".doing-2-site/$d"
-          done
-
-          grep -q 'doing-member-return-direct.js' .doing-2-site/me/index.html
-          grep -q 'doing-formal-application-bridge.js' .doing-2-site/apply/index.html
-          grep -q 'doing-smart-activation-v5.js' .doing-2-site/apply/index.html
-          grep -q 'doing-application-contract-v12.js' .doing-2-site/apply/index.html
-          grep -q 'doing-application-completion.js' .doing-2-site/apply/index.html
-          grep -q 'doing-workspace-product-router.js' .doing-2-site/workspace/index.html
-          grep -q 'doing-market-v19-layout.css' .doing-2-site/market/index.html
-          grep -q 'doing-market-auth-bridge-v19.js' .doing-2-site/market/index.html
-          grep -q 'doing-market-auth-bridge-v19.js' .doing-2-site/market/session/index.html
-          grep -q 'doing-market-v19-layout.css' .doing-2-site/market/public/index.html
-          for page in sessions todos onsite members leads finance consignment settings; do
-            grep -q "data-page=\"$page\"" .doing-2-site/market/index.html
-          done
-          grep -q 'overall-grid' .doing-2-site/world-tree/index.html
-          grep -q 'market-map' .doing-2-site/world-tree/index.html
-          grep -q 'DOING 2.0 世界樹' .doing-2-site/world-tree/index.html
-          ! grep -R -E -q '(admin|onsite|platform|operations-center|photo|consignment|member-panel|smart-application)\.html' .doing-2-site
+          for d in admin onsite platform operations photo consignment about member; do test ! -e ".doing-2-site/$d"; done
           ! grep -R -q '2bl-v7' .doing-2-site
+          ! find . -maxdepth 1 -type f -name 'uat-application-*.html' | grep -q .
       - uses: actions/upload-artifact@v4
         with:
           name: doing-2-site

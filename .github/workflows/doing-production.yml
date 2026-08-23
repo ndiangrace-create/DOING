@@ -32,107 +32,57 @@ jobs:
           test -f worker.js
           test -f worker.txt
           cmp worker.js worker.txt
-      - name: Parse JavaScript and HTML scripts
+      - name: Parse canonical source files
         run: |
           node -e "import('./worker.js')"
-          node --check doing-attribution.js
-          node --check doing-home-refresh.js
-          test ! -f doing-home-refresh-core.js || node --check doing-home-refresh-core.js
-          test ! -f doing-about-refresh.js
-          test ! -f doing-about-refresh.css
-          node --check doing-smart-activation.js
-          node --check doing-formal-application-bridge.js
-          node --check doing-global-entry.js
-          node --check doing-auto-activation-status.js
+          for f in doing-attribution.js doing-home-refresh.js doing-member-return-direct.js doing-global-entry.js doing-workspace-product-router.js doing-smart-activation.js doing-smart-activation-v5.js doing-formal-application-bridge.js doing-auto-activation-status.js; do node --check "$f"; done
           node - <<'NODE'
           const fs=require('fs'),vm=require('vm');
-          for(const f of ['index.html','register.html','member.html','member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html','operations-center.html','consignment.html']){
-            const source=fs.readFileSync(f,'utf8');let count=0;
-            for(const match of source.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){
-              if(!match[1].trim())continue;
-              new vm.Script(match[1],{filename:`${f}#script${++count}`});
-            }
-          }
+          const pages=['doing-2.html','register.html','member-panel.html','workspace.html','smart-application.html','market-center.html','market-public.html','market-session.html','booking-2-center.html','project-center.html','guide-center.html','world-tree.html'];
+          for(const f of pages){const source=fs.readFileSync(f,'utf8');let count=0;for(const match of source.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){if(match[1].trim())new vm.Script(match[1],{filename:`${f}#script${++count}`})}}
           NODE
-      - name: Validate authoritative Supabase data sources
-        run: node scripts/validate-data-sources.mjs
-      - name: Validate responsive mobile and desktop framework
-        run: node scripts/validate-responsive-layout.mjs
-      - name: Validate frontstage user-facing copy
-        run: node scripts/validate-frontstage-copy.mjs
-      - name: Validate DOING homepage visual standard
-        run: node scripts/validate-visual-standard.mjs
-      - name: Validate platform attribution flow
-        run: node scripts/validate-platform-attribution.mjs
-      - name: Validate capability inventory and operational world tree
-        run: node scripts/validate-capabilities.mjs
-      - name: Validate mobile seat map
-        run: node scripts/validate-seat-map.mjs
-      - name: Validate tenant application and module flow
+      - name: Reject retired root pages
+        shell: bash
         run: |
-          node scripts/validate-tenant-application.mjs
-          node scripts/validate-login-providers.mjs
-          node scripts/validate-organizer-application-e2e.mjs
-          node scripts/validate-member-brand-e2e.mjs
-          node scripts/validate-role-module-access.mjs
+          set -euo pipefail
+          for f in index.html member.html admin.html onsite.html platform.html operations-center.html photo.html consignment.html about.html booking-center.html; do test ! -e "$f"; done
+          ! find . -maxdepth 1 -type f -name 'uat-application-*.html' | grep -q .
+          test -d legacy-pages
+          test -d tests/uat
+      - name: Build canonical site
+        run: |
+          node scripts/build-doing-2-site.mjs
+          node scripts/postprocess-market-v19.mjs
+      - name: Validate unified entry and product routes
+        run: |
+          node scripts/validate-unified-entry.mjs
+          node scripts/validate-booking-center.mjs
+          node scripts/validate-member-panel-return.mjs
+          node scripts/validate-application-login-flow.mjs
+          node scripts/validate-fixed-product-application.mjs
           node scripts/validate-formal-application-closure.mjs
-      - name: Validate full system routes, buttons and settings
+      - name: Validate SSOT and Core safety
         run: |
-          node scripts/validate-full-system.mjs
-          node scripts/validate-navigation-actions.mjs
-          node scripts/validate-smart-oauth-top.mjs
-          node scripts/validate-application-social-required.mjs
-          node scripts/validate-platform-operations-e2e.mjs
-          node scripts/validate-naming-autoactivation-retention.mjs
-          node scripts/validate-role-journey-uat.mjs
-          node scripts/validate-universal-booking.mjs
-          node scripts/validate-operational-closeout.mjs
-          node scripts/validate-operational-readiness.mjs
+          node scripts/validate-data-sources.mjs
           node scripts/validate-market-app-core-contracts.mjs
-      - name: Validate compact admin visual consistency
-        run: node scripts/validate-admin-consistency.mjs
-      - name: Validate reusable test records
-        run: node scripts/validate-test-records.mjs
-      - name: Verify unified visual shell and private long press
+          node scripts/validate-market-auth-role-separation.mjs
+          node scripts/validate-market-member-oauth-primary-return.mjs
+      - name: Validate Market regressions
         run: |
-          for page in member-panel.html admin.html onsite.html platform.html photo.html; do
-            grep -q 'doing-system.css?v=20260817-system5' "$page"
-            grep -q 'doing-app' "$page"
-          done
-          grep -q 'member-panel.html' member.html
-          grep -q 'index.html' member.html
-          ! grep -q 'doing-app' member.html
-          ! grep -q 'doing-logo.png' member.html
-          grep -q 'smart-application.html' about.html
-          ! grep -q 'apply-wrap' about.html
-          ! grep -q 'smart-flow-guide' about.html
-          grep -q "hiddenAdminSelector='#brandHoldTarget,.doing-nav-brand'" index.html
-          grep -q "document.addEventListener('pointerdown'" index.html
-          grep -q "e.target.closest?.(hiddenAdminSelector)" index.html
-          grep -q "setTimeout(openHiddenAdminEntry,3000)" index.html
-          grep -q "Math.hypot" index.html
-          HOME_UI=doing-home-refresh.js
-          test ! -f doing-home-refresh-core.js || HOME_UI=doing-home-refresh-core.js
-          grep -q "brand.dataset.hiddenAdminTarget='true'" "$HOME_UI"
-          grep -q "setAttribute('draggable','false')" "$HOME_UI"
-          if [ -f doing-home-refresh-core.js ]; then
-            grep -q "doing-home-refresh-core.js" doing-home-refresh.js
-            grep -q "handoffToWorkspace" doing-home-refresh.js
-            grep -q "createMemberWorkspaceAdminSession" doing-home-refresh.js
-          fi
-          grep -q -- '-webkit-touch-callout:none' doing-home-refresh.css
-          grep -q "u.searchParams.set('tenant','platform')" index.html
-          ! grep -q 'navigator.vibrate' index.html
-          ! grep -q 'holdPulse' index.html
-          ! grep -q "classList.add('holding')" index.html
-          grep -q 'platform_super_admin' worker.js
+          node scripts/validate-market-green-closure.mjs
+      - name: Validate world tree and reusable checkpoints
+        run: |
+          node scripts/validate-world-tree-mindmap.mjs
+          node scripts/validate-test-records.mjs
       - name: Verify member and tenant safety invariants
         run: |
           grep -q "platform_member_id" worker.js
           grep -q "verifiedRegOwnerGuard" worker.js
-          grep -q "member_token" index.html
           grep -q "member_token" register.html
+          grep -q "createMemberWorkspaceAdminSession" doing-global-entry.js
+          grep -q "new URL('/workspace/',location.origin)" doing-global-entry.js
           ! grep -q "Math.random(" worker.js
+          cmp worker.js worker.txt
 
   cloudflare-audit:
     runs-on: ubuntu-latest
@@ -181,8 +131,7 @@ jobs:
         env:
           COMPATIBILITY_DATE: ${{ needs.cloudflare-audit.outputs.compatibility_date }}
         run: |
-          jq -n --arg name "$TARGET_WORKER" --arg main "worker.js" --arg date "$COMPATIBILITY_DATE" \
-            '{name:$name,main:$main,compatibility_date:$date}' > wrangler.deploy.json
+          jq -n --arg name "$TARGET_WORKER" --arg main "worker.js" --arg date "$COMPATIBILITY_DATE" '{name:$name,main:$main,compatibility_date:$date}' > wrangler.deploy.json
       - name: Deploy only to tobeloved-api
         uses: cloudflare/wrangler-action@v3
         with:
@@ -199,8 +148,7 @@ jobs:
           deployments="$(curl --fail-with-body --silent --show-error -H "Authorization: Bearer ${CF_TOKEN}" "${base}/scripts/${TARGET_WORKER}/deployments")"
           deployment_id="$(jq -r '.result.deployments[0].id // empty' <<<"$deployments")"
           test -n "$deployment_id"
-          jq -n --arg worker "$TARGET_WORKER" --arg deployment_id "$deployment_id" --arg commit "$GITHUB_SHA" \
-            '{worker:$worker,deployment_id:$deployment_id,commit:$commit,verified:true}' > deployment-result.json
+          jq -n --arg worker "$TARGET_WORKER" --arg deployment_id "$deployment_id" --arg commit "$GITHUB_SHA" '{worker:$worker,deployment_id:$deployment_id,commit:$commit,verified:true}' > deployment-result.json
       - uses: actions/upload-artifact@v4
         with:
           name: doing-production-deployment
