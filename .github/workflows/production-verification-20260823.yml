@@ -1,0 +1,141 @@
+name: DOING Production Verification 20260823
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/production-verification-20260823.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-production:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Verify live Pages assets and short routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          fetch_live(){
+            local url="$1" out="$2"
+            for i in {1..30}; do
+              if curl --fail --silent --show-error --location --max-time 20 "$url" -o "$out"; then return 0; fi
+              sleep 4
+            done
+            return 1
+          }
+          fetch_live 'https://doing.2b-love.com/apply/' /tmp/apply.html
+          fetch_live 'https://doing.2b-love.com/doing-formal-application-bridge.js' /tmp/bridge.js
+          fetch_live 'https://doing.2b-love.com/market/public/' /tmp/market-public.html
+          grep -q 'doing-formal-application-bridge.js' /tmp/apply.html
+          grep -q 'doing-smart-activation-v5.js' /tmp/apply.html
+          node - <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('/tmp/apply.html','utf8');
+          const bridge=html.indexOf('doing-formal-application-bridge.js');
+          const activation=html.indexOf('doing-smart-activation-v5.js');
+          if(bridge<0||activation<0||bridge>activation)throw new Error('formal application bridge is missing or loaded too late');
+          const js=fs.readFileSync('/tmp/bridge.js','utf8');
+          for(const s of ['doing_formal_application_resume_v1','createOrganizerApplicationDraft','savePlatformMemberProfile','existing_workspace','/me/'])if(!js.includes(s))throw new Error('live bridge missing marker: '+s);
+          const market=fs.readFileSync('/tmp/market-public.html','utf8');
+          if(!/Market|市集|market/i.test(market))throw new Error('live Market public route is not the expected page');
+          NODE
+
+      - name: Verify live Core LINE member routing and permission denial
+        shell: bash
+        run: |
+          set -euo pipefail
+          API='https://tobeloved-api.ndiangrace.workers.dev'
+          RETURN='https%3A%2F%2Fdoing.2b-love.com%2Fmarket%2Fpublic%2F%3Ftenant%3Dplatform'
+          curl -sS -D /tmp/start.headers -o /dev/null --max-time 20 "$API/auth/line/start?mode=member&tenant=platform&return_url=$RETURN"
+          START_LOCATION="$(awk 'BEGIN{IGNORECASE=1}/^location:/{sub(/\r$/,"",$0);sub(/^[^:]+:[[:space:]]*/,"",$0);print;exit}' /tmp/start.headers)"
+          test -n "$START_LOCATION"
+          export START_LOCATION
+          STATE="$(python3 - <<'PY'
+          import os,urllib.parse
+          u=urllib.parse.urlparse(os.environ['START_LOCATION'])
+          q=urllib.parse.parse_qs(u.query)
+          print(q.get('state',[''])[0])
+          PY
+          )"
+          test -n "$STATE"
+          ENCODED_STATE="$(python3 - <<PY
+          import urllib.parse
+          print(urllib.parse.quote('''$STATE''',safe=''))
+          PY
+          )"
+          curl -sS -D /tmp/callback.headers -o /dev/null --max-time 20 "$API/auth/line/callback?error=access_denied&state=$ENCODED_STATE"
+          CALLBACK_LOCATION="$(awk 'BEGIN{IGNORECASE=1}/^location:/{sub(/\r$/,"",$0);sub(/^[^:]+:[[:space:]]*/,"",$0);print;exit}' /tmp/callback.headers)"
+          test -n "$CALLBACK_LOCATION"
+          export CALLBACK_LOCATION
+          python3 - <<'PY'
+          import os,urllib.parse
+          u=urllib.parse.urlparse(os.environ['CALLBACK_LOCATION'])
+          q=urllib.parse.parse_qs(u.query)
+          assert u.scheme=='https' and u.netloc=='doing.2b-love.com', u.geturl()
+          assert u.path=='/market/public/', u.geturl()
+          assert q.get('tenant',[''])[0]=='platform', u.geturl()
+          assert 'member_login_error' in q, u.geturl()
+          assert 'admin_token' not in q, u.geturl()
+          assert '/admin' not in u.path and '/platform' not in u.path, u.geturl()
+          PY
+          CODE="$(curl -sS -o /tmp/admin-denied.json -w '%{http_code}' --max-time 20 -H 'Content-Type: application/json' -X POST "$API?action=createMemberWorkspaceAdminSession" --data '{"member_token":"invalid-production-verification-token","tenantId":"demo"}')"
+          test "$CODE" -ge 400
+          ! grep -q 'adminToken' /tmp/admin-denied.json
+
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Real-browser production smoke on desktop and mobile
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import {chromium} from 'playwright';
+          import fs from 'node:fs';
+          fs.mkdirSync('artifacts',{recursive:true});
+          const browser=await chromium.launch({headless:true});
+          const results=[];
+          try{
+            for(const cfg of [{name:'desktop',viewport:{width:1440,height:1000}},{name:'mobile',viewport:{width:390,height:844}}]){
+              const context=await browser.newContext({viewport:cfg.viewport});
+              const page=await context.newPage();
+              const errors=[];page.on('pageerror',e=>errors.push(String(e)));
+              await page.goto('https://doing.2b-love.com/apply/',{waitUntil:'domcontentloaded',timeout:30000});
+              const apply=await page.evaluate(()=>({
+                bridge:[...document.scripts].some(s=>String(s.src).includes('doing-formal-application-bridge.js')),
+                activation:[...document.scripts].some(s=>String(s.src).includes('doing-smart-activation-v5.js')),
+                title:document.title,
+                form:!!document.getElementById('signupForm')
+              }));
+              if(!apply.bridge||!apply.activation||!apply.form)throw new Error(cfg.name+' apply contract missing: '+JSON.stringify(apply));
+              await page.screenshot({path:`artifacts/production-apply-${cfg.name}.png`,fullPage:false,timeout:10000});
+              await page.goto('https://doing.2b-love.com/market/public/',{waitUntil:'domcontentloaded',timeout:30000});
+              const market=await page.evaluate(()=>({title:document.title,body:(document.body?.innerText||'').slice(0,2000)}));
+              if(!/Market|市集/i.test(market.title+' '+market.body))throw new Error(cfg.name+' Market public page mismatch');
+              await page.screenshot({path:`artifacts/production-market-public-${cfg.name}.png`,fullPage:false,timeout:10000});
+              if(errors.length)throw new Error(cfg.name+' browser errors: '+errors.join(' | '));
+              results.push({viewport:cfg.name,apply:true,marketPublic:true});
+              await context.close();
+            }
+          } finally {await browser.close();}
+          fs.writeFileSync('artifacts/production-verification.json',JSON.stringify({result:'PASS',pagesDomain:'doing.2b-love.com',worker:'tobeloved-api',desktop:true,mobile:true,productionWrites:0,results},null,2));
+          console.log(fs.readFileSync('artifacts/production-verification.json','utf8'));
+          NODE
+
+      - name: Upload production verification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: doing-production-verification-20260823
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 90
