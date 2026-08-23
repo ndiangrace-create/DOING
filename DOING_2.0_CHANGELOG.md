@@ -110,3 +110,13 @@
 - 新增 `DOING_V11_HOME_RELEASE_SPEC_20260822.md` 與 `scripts/validate-doing-v11-home-e2e.mjs`。
 - 首頁 public layer 僅注入根首頁，不套用 Market／Project／Booking／Guide，避免樣式污染後台。
 - 本次新增資料表 0、Schema 變更 0、Worker 正式邏輯變更 0、2BL 變更 0。
+
+## 2026-08-23｜v15.5 Market 報名者 LINE 登入回原前台鎖定
+
+- 根因修正：DOING Core 正式站點 fallback 由舊 GitHub Pages 改為 `https://doing.2b-love.com/`。
+- LINE OAuth `mode=member` 固定走會員 `return_url`；`tenant` 只保留場域上下文，不再能把 member 導向 admin／platform。
+- `mode=platform`、`mode=admin`、`mode=organizer_signup` 才能分別進對應管理入口；`member_token` 永遠不等於 `admin_token`。
+- 新增 Core 直接驗證：`tenant=demo` 與 `tenant=platform` 均無法改變 member 角色，正常流程 `rescueFallbackRequired=false`。
+- 原有 Market 短效同來源回跳只保留為 defense-in-depth，不作正常主流程。
+- `worker.js`／`worker.txt` 同步；新增資料表 0、正式營運資料寫入 0、2BL／`2bl-v7` 未修改。
+
