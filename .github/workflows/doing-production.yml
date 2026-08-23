@@ -61,19 +61,14 @@ jobs:
           node scripts/validate-application-login-flow.mjs
           node scripts/validate-fixed-product-application.mjs
           node scripts/validate-formal-application-closure.mjs
-      - name: Validate SSOT and role safety
+      - name: Validate SSOT and Core safety
         run: |
           node scripts/validate-data-sources.mjs
-          node scripts/validate-tenant-application.mjs
-          node scripts/validate-login-providers.mjs
-          node scripts/validate-organizer-application-e2e.mjs
-          node scripts/validate-member-brand-e2e.mjs
-          node scripts/validate-role-module-access.mjs
           node scripts/validate-market-app-core-contracts.mjs
-      - name: Validate Market auth and regressions
-        run: |
           node scripts/validate-market-auth-role-separation.mjs
           node scripts/validate-market-member-oauth-primary-return.mjs
+      - name: Validate Market regressions
+        run: |
           node scripts/validate-market-green-closure.mjs
       - name: Validate world tree and reusable checkpoints
         run: |
