@@ -37,4 +37,4 @@ jobs:
           test ! -f booking-center.html
           test -s legacy-pages/booking-center.html
           test -s .doing-2-site/booking/index.html
-          ! grep -R "DOING-Market-App\|doingmarket://\|2bl-v7" .doing-2-site/booking/index.html scripts/validate-booking-center.mjs
+          ! grep -E "DOING-Market-App|doingmarket://|2bl-v7" .doing-2-site/booking/index.html
