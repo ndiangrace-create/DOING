@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 const pub=fs.readFileSync('market-public.html','utf8');
 const publicRoute=fs.readFileSync('market/public/index.html','utf8');
+const adminEntry=fs.readFileSync('doing-market-admin-entry.js','utf8');
 const home=fs.readFileSync('doing-home-refresh.js','utf8');
 const admin=fs.readFileSync('market-center.html','utf8');
 const member=fs.readFileSync('member-panel.html','utf8');
@@ -23,8 +24,8 @@ for(const token of [
   "api('savePlatformMemberProfile'"
 ]) assert.ok(pub.includes(token),`前台會員登入契約缺少：${token}`);
 assert.ok(pub.includes('/auth/line/start'),'前台必須使用 DOING LINE 登入');
-assert.ok(!pub.includes("createMemberWorkspaceAdminSession"),'一般報名者前台不得交換主辦 admin session');
-assert.ok(!pub.includes("admin_token"),'一般報名者前台不得依賴主辦 admin_token');
+assert.ok(!pub.includes("createMemberWorkspaceAdminSession"),'一般報名者前台本體不得直接交換主辦 admin session');
+assert.ok(!pub.includes("admin_token"),'一般報名者前台本體不得依賴主辦 admin_token');
 
 // Core 主流程必須從源頭決定角色；tenant 只能是上下文，永遠不可把 member 提升成 admin/platform。
 assert.equal(worker,workerMirror,'worker.js / worker.txt 必須 byte-identical');
@@ -46,6 +47,21 @@ for(const token of ['doing_market_member_return','handoffToPendingMarket','clear
 assert.ok(home.includes("target.origin!==location.origin"),'Market 回跳必須限制同來源，禁止開放式轉址');
 assert.ok(home.includes("startMyDoingLineLogin(){clearMarketMemberReturn()")&&home.includes("startRegistrationsLineLogin(){clearMarketMemberReturn()"),'DOING 自己的會員／工作空間登入必須先清除 Market 暫存回跳，避免誤導流');
 
+// 前台 LOGO 長按 3 秒＝隱藏主辦入口；手勢本身不授權，必須 LINE member 驗證後由 Core 交換指定 tenant admin session。
+assert.ok(pub.includes('/doing-market-admin-entry.js'),'Market 前台必須載入安全主辦入口');
+for(const token of [
+  'const HOLD_MS=3000',
+  "u.searchParams.set('mode','member')",
+  "u.searchParams.set('doing_login_flow',FLOW)",
+  "action:'createMemberWorkspaceAdminSession'",
+  'member_token:memberToken',
+  'tenantId:targetTenant',
+  'if(data.locked)',
+  "new URL('/market/',siteOrigin)",
+  "dest.searchParams.set('admin_token',adminToken)"
+]) assert.ok(adminEntry.includes(token),`LOGO 主辦入口契約缺少：${token}`);
+assert.ok(!adminEntry.includes("u.searchParams.set('mode','admin')"),'LOGO 不得直接用 admin mode 繞過會員→staff 權限交換');
+
 // 後台＝主辦單位。只能接受正式主辦 admin token，不能拿一般 member token 直接放行。
 for(const token of [
   "TOKEN=P.get('admin_token')||P.get('token')||''",
@@ -65,6 +81,7 @@ for(const token of [
   'findStaffForPlatformMember',
   "if(!staff)return jsonErr('你沒有這個營運空間的管理權限',403)",
   "if(active===false)return jsonErr('這個營運空間的管理權限已停用',403)",
+  "status=eq.active&select=id,name,is_locked,locked_reason",
   'issueAdminToken'
 ]) assert.ok(worker.includes(token),`Core 主辦權限交換缺少：${token}`);
 
@@ -76,8 +93,12 @@ console.log(JSON.stringify({
   corePrimaryRouting:'mode-only; tenant-context-never-authority',
   officialDoingSite:'https://doing.2b-love.com/',
   publicFallbackReturn:'defense-in-depth only',
+  hiddenOrganizerEntry:'public LOGO hold 3s -> LINE member -> Core staff/tenant exchange -> Market admin',
+  organizerRequiresActiveTenant:true,
+  organizerRequiresActiveStaff:true,
+  lockedTenantDeniedAtEntry:true,
   organizerRole:'approved organizer/staff only',
-  organizerEntry:'application -> approval -> workspace -> admin session',
+  organizerEntry:'application -> approval -> workspace/staff -> admin session',
   participantCannotEnterAdmin:true,
   memberTokenIsNotAdminToken:true,
   openRedirectBlocked:true,
