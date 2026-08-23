@@ -10,8 +10,19 @@ function b64url(obj){return Buffer.from(JSON.stringify(obj)).toString('base64url
 function fakeLineToken(subject='U_FORMAL_E2E'){
   return `${b64url({alg:'HS256',typ:'JWT'})}.${b64url({iss:'DOING',type:'member',sub:subject,provider:'line',provider_subject:subject,expires_at:Date.now()+3600_000})}.test`;
 }
-async function waitForOperations(page,{postApplication=false,timeout=15000}={}){
-  await page.waitForFunction(({postApplication})=>location.pathname==='/me/'&&location.hash==='#operations'&&(!postApplication||new URL(location.href).searchParams.get('post_application')==='1'),{postApplication},{timeout});
+function waitForOperationsNavigation(page,{postApplication=false,timeout=15000}={}){
+  return page.waitForEvent('framenavigated',{timeout,predicate:frame=>{
+    if(frame!==page.mainFrame())return false;
+    try{const u=new URL(frame.url());return u.pathname==='/me/'&&u.hash==='#operations'&&(!postApplication||u.searchParams.get('post_application')==='1')}catch(_){return false}
+  }});
+}
+async function assertStableOperations(page,{postApplication=false}={}){
+  await page.waitForTimeout(300);
+  const u=new URL(page.url());
+  assert.equal(u.pathname,'/me/','完成後必須穩定停在我的 DOING');
+  assert.equal(u.hash,'#operations','完成後必須開啟我的營運');
+  if(postApplication)assert.equal(u.searchParams.get('post_application'),'1','申請完成後必須保留 post_application checkpoint');
+  return u;
 }
 function completedMember(extra={}){
   return {ok:true,complete:true,profile:{name:'王小明',email:'formal@example.com',phone:'0912345678',city:'台中市'},linkedProviders:['line'],roles:[],platformAccess:null,applications:[],workspaces:[],brands:[],...extra};
@@ -66,11 +77,14 @@ async function firstTimeScenario(browser,name,viewport){
   });
 
   await fillApplication(page,name);
+  const reached=waitForOperationsNavigation(page,{postApplication:true});
   await page.locator('#nx').click();
-  await waitForOperations(page,{postApplication:true});
-  const final=new URL(page.url());
-  assert.equal(final.searchParams.get('application_id'),`APP_${name}`,'我的 DOING 必須保留正式申請編號');
-  assert.equal(final.searchParams.get('tenant_id'),`tenant-${name}`,'我的 DOING 必須保留已建立 tenant');
+  const frame=await reached,checkpoint=new URL(frame.url());
+  assert.equal(checkpoint.searchParams.get('application_id'),`APP_${name}`,'我的 DOING checkpoint 必須保留正式申請編號');
+  assert.equal(checkpoint.searchParams.get('tenant_id'),`tenant-${name}`,'我的 DOING checkpoint 必須保留已建立 tenant');
+  const settled=await assertStableOperations(page,{postApplication:true});
+  assert.equal(settled.searchParams.get('application_id'),`APP_${name}`,'穩定頁必須保留正式申請編號');
+  assert.equal(settled.searchParams.get('tenant_id'),`tenant-${name}`,'穩定頁必須保留已建立 tenant');
   await page.screenshot({path:`artifacts/formal-application-closure-${name}.png`,fullPage:true});
   assert.equal(state.authStarts,1,'第一次申請只能做一次 LINE member 驗證');
   assert.equal(state.profileSaves,1,'LINE 回來後必須先寫回同一會員主檔');
@@ -103,8 +117,9 @@ async function existingWorkspaceScenario(browser){
   await page.goto(`${BASE}/apply/`,{waitUntil:'domcontentloaded'});
   await page.getByText('你的工作空間已經開通').waitFor({timeout:8000});
   await page.screenshot({path:'artifacts/formal-application-existing-workspace-mobile.png',fullPage:true});
+  const reached=waitForOperationsNavigation(page);
   await page.getByRole('button',{name:'進入我的 DOING'}).click();
-  await waitForOperations(page);
+  await reached;await assertStableOperations(page);
   assert.equal(drafts,0,'已有工作空間不得再建立申請');
   assert.equal(authStarts,0,'已有有效 LINE member token 不得重複登入');
   await context.close();
@@ -126,8 +141,9 @@ async function pendingApplicationScenario(browser){
     return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'});
   });
   await fillApplication(page,'pending');
+  const reached=waitForOperationsNavigation(page,{postApplication:true,timeout:10000});
   await page.locator('#nx').click();
-  await waitForOperations(page,{postApplication:true,timeout:10000});
+  await reached;await assertStableOperations(page,{postApplication:true});
   assert.equal(profileSaves,1);
   assert.equal(drafts,1,'進行中申請檢查只允許一次正式 create 呼叫');
   assert.equal(authStarts,0,'已有有效 LINE member token 不得再登入');
