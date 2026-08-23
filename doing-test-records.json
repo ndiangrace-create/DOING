@@ -1,12 +1,24 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-23T23:18:00+08:00",
-  "sourceFingerprint": "9aabf7bfbf36d25adc95f2f4e0b51cf1907960e1401a860d4c8a348eecfb8841",
-  "environment": "DOING 正式營運申請 v15.8 已改為單頁完成。/apply/ 同頁選工作類型／使用方式並填基本資料，以 LINE mode=member 驗證；LINE 回跳後先寫回同一會員主檔並讀 getPlatformMemberProfile。已有 workspace 直接回 /me/#operations、已有 pending application 回既有狀態，兩者都不得再呼叫 createOrganizerApplicationDraft；只有真正新會員才建立申請並沿用既有 Supabase auto-activation。資料庫一會員一工作空間防重複規則維持，未放寬 constraint。Market member/admin 權限分離、LOGO 長按安全入口、worker.js／worker.txt 與 2BL 邊界均保持。新表 0、Schema 變更 0、Worker 變更 0、productionWrites=0；尚未部署本批。",
+  "recordedAt": "2026-08-24T01:22:00+08:00",
+  "sourceFingerprint": "584b5a553e6298fd3b1a4a403661ede3667cde2dca1b5bb33a5c228f3193576b",
+  "environment": "DOING 正式入口已收斂為首頁【申請 DOING】【登入】兩個帳號入口。登入固定進 /me/ 且只啟動一次 LINE member 驗證；/me/ 集中會員資料、報名與營運空間，點工作空間時才由 Core 背景交換管理權限進 /workspace/，不再出現第二套登入頁。已退休的舊會員／後台／平台／營運頁退出正式 root，舊網址只做相容轉址。Booking 正式能力保留並統一發布於 /booking/。正式資料仍由 DOING_SaaS/public/tobeloved-api 單一來源；瀏覽器不保存正式營運資料，Market 僅允許 sessionStorage 保存目前頁籤等 UI 暫存。2BL 未修改，productionWrites=0。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
   "tests": [
+    {
+      "id": "unified-entry",
+      "command": "node scripts/validate-unified-entry.mjs",
+      "result": "PASS",
+      "scope": "首頁帳號入口只有申請 DOING／登入；登入只回 /me/；/me/ 不自動跳工作空間；單一工作空間 CTA 背景交換 admin_token；/workspace/ 不形成第二登入頁；舊頁退出 root 並只保留相容轉址；productionWrites=0"
+    },
+    {
+      "id": "booking-center-canonical",
+      "command": "node scripts/validate-booking-center.mjs",
+      "result": "PASS",
+      "scope": "預約正式能力保留於 /booking/；舊 booking-center 僅作隔離 source，不再是公開入口；單一登入、手機版、API contract 與 DOM 檢查通過；productionWrites=0"
+    },
     {
       "id": "formal-application-closure",
       "command": "node scripts/validate-formal-application-closure.mjs",
@@ -17,25 +29,25 @@
       "id": "formal-application-closure-browser",
       "command": "E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-formal-application-closure.mjs",
       "result": "PASS",
-      "scope": "Chromium 桌機 1440×1000＋手機 390×844：單頁只有一個 LINE 驗證並開通按鈕、無上一步／下一步；新申請各只建立一次；真實失敗重現：LINE 回來後查到 existing workspace 時 drafts=0 並直接 /me/#operations；artifact sha256:2bb38a7f0afdb35ac719b64e8d74f04f8eb8d7a033ea9e6b190b2c8223264032；productionWrites=0"
+      "scope": "Chromium 桌機 1440×1000＋手機 390×844：單頁只有一個 LINE 驗證並開通按鈕、無上一步／下一步；新申請各只建立一次；LINE 回來查到 existing workspace 時 drafts=0 並直接 /me/#operations；productionWrites=0"
     },
     {
       "id": "market-auth-role-separation",
       "command": "node scripts/validate-market-auth-role-separation.mjs",
       "result": "PASS",
-      "scope": "官方 Market member 入口與目標選擇維持 member/admin 分離；tenant 不直接授權；member_token 不可作 admin_token；正式站點 fallback 固定 doing.2b-love.com；第二層 Market 暫存回跳限同來源與短效；前台 LOGO 長按入口不得直接繞過 Core tenant/staff 授權"
+      "scope": "Market member 與管理權限分離；tenant 不直接授權；member_token 不可作 admin_token；前台 LOGO 長按入口仍需 Core tenant/staff 授權"
     },
     {
       "id": "market-member-oauth-primary-return",
       "command": "node scripts/validate-market-member-oauth-primary-return.mjs",
       "result": "PASS",
-      "scope": "直接呼叫 Worker：LINE start → 簽 state → 模擬 callback；tenant=demo 與 tenant=platform 均不能改變正式 mode=member return target；精確回 /market/public/；rescueFallbackRequired=false；productionWrites=0"
+      "scope": "LINE member 依正式 return_url 精確回 /market/public/；tenant 只是上下文，不能改變角色或提升權限；productionWrites=0"
     },
     {
       "id": "market-member-login-return-browser",
       "command": "E2E_GITHUB_BASE=http://127.0.0.1:4174 node scripts/e2e-market-member-login-return.mjs",
       "result": "PASS",
-      "scope": "Defense-in-depth Chromium 桌機 1440×1000＋手機 390×844：若外部流程誤落 DOING 根頁，安全回原 Market 前台；member_token 保存、暫存回跳清除、不得進 workspace／admin；productionWrites=0"
+      "scope": "Chromium 桌機＋手機：一般 Market member 的 LINE callback 直接回原 Market 前台，不再先繞 DOING 首頁；member_token 保存後從網址清除、短效回跳標記清除、不得進 workspace／admin；productionWrites=0"
     },
     {
       "id": "market-public-interaction-v20",
@@ -53,13 +65,13 @@
       "id": "market-logo-upload-browser",
       "command": "E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-logo-upload.mjs",
       "result": "PASS",
-      "scope": "Chromium 桌機 1440×1000＋手機 390×844：選取 PNG → uploadCover → 正式 URL 預覽 → saveSiteConfig → 重新讀回；productionWrites=0"
+      "scope": "Chromium 桌機＋手機：選取圖片 → uploadCover → URL 預覽 → saveSiteConfig → 重新讀回；productionWrites=0"
     },
     {
       "id": "market-logo-admin-entry-browser",
       "command": "E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-logo-admin-entry.mjs",
       "result": "PASS",
-      "scope": "Chromium 桌機 1440×1000＋手機 390×844：前台左上 LOGO 實際長按 3 秒 → DOING LINE member 身分 → createMemberWorkspaceAdminSession；有效 active staff／tenant 才取得 Core adminToken 進 /market/；一般會員拒絕、locked tenant 拒絕；productionWrites=0"
+      "scope": "Chromium 桌機＋手機：Market 前台 LOGO 長按 3 秒 → LINE member → createMemberWorkspaceAdminSession；只有有效 active staff／tenant 可取得管理權限，一般會員與 locked tenant 都拒絕；productionWrites=0"
     },
     {
       "id": "market-green-closure",
@@ -80,124 +92,70 @@
       "scope": "Market 前台／主辦後台／單場工作台響應式與操作骨架"
     },
     {
-      "id": "responsive-layout",
-      "command": "node scripts/validate-responsive-layout.mjs",
-      "result": "PASS",
-      "scope": "既有 DOING 正式頁保持；Market 手機／桌機響應式有效"
-    },
-    {
       "id": "world-tree-mindmap",
       "command": "node scripts/validate-world-tree-mindmap.mjs",
       "result": "PASS",
-      "scope": "doing-world-tree-current.json v15.8：申請單頁、防重複 workspace/pending 復原與既有 Market 路徑仍使用同一份世界樹 SSOT"
+      "scope": "現有世界樹結構、角色路徑與工作模組保持；統一入口規則已由 canonical route CI 強制執行"
     },
     {
       "id": "doing2-short-route-cleanup",
       "command": "node scripts/validate-doing2-short-route-cleanup.mjs",
       "result": "PASS",
-      "scope": "正式短網址層級不增加；複雜操作用單一 Panel，不新增小功能頁"
+      "scope": "正式只保留短網址；首頁登入固定 /me/；會員功能在 /me/ 內切換；工作空間依 Market／Booking／Project 分流；舊網址僅相容轉址"
     },
     {
       "id": "member-panel-line-return",
       "command": "node scripts/validate-member-panel-return.mjs",
       "result": "PASS",
-      "scope": "DOING LINE 會員登入回跳契約保持"
+      "scope": "/me/ → LINE → 回同一 /me/；不得繞首頁或自動跳第二工作頁"
     },
     {
       "id": "application-login-flow",
       "command": "node scripts/validate-application-login-flow.mjs",
       "result": "PASS",
-      "scope": "/apply/ 單頁 → LINE member → existing workspace/pending preflight → 新申請才 auto-activation → /me/ → /workspace/ → /market/；無重複登入／首頁 bounce"
+      "scope": "/apply/ 單頁 → LINE member → existing workspace/pending preflight → 新申請才 auto-activation → /me/ → /workspace/ → 依工作模組進 Market／Booking／Project；無重複登入"
     },
     {
       "id": "fixed-product-application",
       "command": "node scripts/validate-fixed-product-application.mjs",
       "result": "PASS",
-      "scope": "四大工作類型與 Market 子類維持；申請改成同一頁完成，單一 compact CTA，客服不作 gate，公開網址規則保留"
+      "scope": "工作類型與 Market 子類維持；申請同一頁完成，單一 compact CTA，客服不作 gate，公開網址規則保留"
     },
     {
       "id": "doing-v11-home-e2e",
       "command": "node scripts/validate-doing-v11-home-e2e.mjs",
       "result": "PASS",
-      "scope": "DOING 公開首頁搜尋、近期活動、會員、客服、申請路徑保持"
+      "scope": "首頁帳號入口固定申請 DOING＋登入；報名活動與客服維持功能入口；登入不再被我的紀錄拆成第二套入口"
     },
     {
       "id": "home-real-ui-v11",
       "command": "node scripts/validate-home-real-ui-v11.mjs",
       "result": "PASS",
-      "scope": "DOING 首頁既有功能未受 Market 前台互動與正式申請閉環修正影響"
+      "scope": "首頁桌機／手機維持正式 UI；帳號入口只有 apply/login；近期活動、搜尋與客服仍正常"
     },
     {
       "id": "v12-closure",
       "command": "node scripts/validate-v12-closure.mjs",
       "result": "PASS",
-      "scope": "申請契約、固定頂部列、短網址層級保持"
+      "scope": "申請頁導覽只回首頁／登入；首頁桌機固定列為品牌＋申請＋登入；短網址層級保持"
     },
     {
       "id": "data-sources",
       "command": "node scripts/validate-data-sources.mjs",
       "result": "PASS",
-      "scope": "正式資料仍以 DOING Supabase 為唯一 SSOT；沒有搬入 2BL Supabase"
-    },
-    {
-      "id": "frontstage-copy",
-      "command": "node scripts/validate-frontstage-copy.mjs",
-      "result": "PASS",
-      "scope": "使用者畫面維持角色可理解文字，不暴露工程資訊"
-    },
-    {
-      "id": "capabilities",
-      "command": "node scripts/validate-capabilities.mjs",
-      "result": "PASS",
-      "scope": "既有能力盤點與營運世界樹回歸；21 模組／194 功能，issue=0"
-    },
-    {
-      "id": "tenant-application",
-      "command": "node scripts/validate-tenant-application.mjs",
-      "result": "PASS",
-      "scope": "正式租戶申請、DOING 登入、主辦權限鏈保持"
-    },
-    {
-      "id": "role-module-access",
-      "command": "node scripts/validate-role-module-access.mjs",
-      "result": "PASS",
-      "scope": "平台總管、租戶負責人、主辦、場次、財務、現場多角色權限保持"
-    },
-    {
-      "id": "full-system",
-      "command": "node scripts/validate-full-system.mjs",
-      "result": "PASS",
-      "scope": "正式功能頁、228 個前端 API 動作與後台按鈕函式回歸"
-    },
-    {
-      "id": "navigation-actions",
-      "command": "node scripts/validate-navigation-actions.mjs",
-      "result": "PASS",
-      "scope": "平台、租戶、申請、會員與工作入口導航回歸"
-    },
-    {
-      "id": "operational-closeout",
-      "command": "node scripts/validate-operational-closeout.mjs",
-      "result": "PASS",
-      "scope": "付款、退款、押金、設備、財務與結案能力保持"
+      "scope": "DOING_SaaS/public/tobeloved-api 為唯一資料權威；正式營運資料不得存在瀏覽器；只允許 Market 的目前頁籤使用 sessionStorage UI 暫存"
     },
     {
       "id": "market-app-core-contracts",
       "command": "node scripts/validate-market-app-core-contracts.mjs",
       "result": "PASS",
-      "scope": "Market App Core 的 LINE／QR／Push 正式契約未受 Web member 路由、隱藏主辦入口與 /apply/ member 續接修正影響"
-    },
-    {
-      "id": "admin-consistency",
-      "command": "node scripts/validate-admin-consistency.mjs",
-      "result": "PASS",
-      "scope": "後台按鈕、排版與結算邏輯回歸"
+      "scope": "Market App Core 的 LINE／QR／Push 正式契約未受 Web 統一入口與頁面清理影響"
     },
     {
       "id": "worker-sync",
       "command": "cmp -s worker.js worker.txt",
       "result": "PASS",
-      "scope": "DOING Worker 雙檔 byte-identical；既有 Market member target/fallback 修正保持；2bl-v7 未修改"
+      "scope": "DOING Worker 雙檔一致；2bl-v7 未修改"
     }
   ]
 }
