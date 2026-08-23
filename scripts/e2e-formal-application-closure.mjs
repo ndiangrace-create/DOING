@@ -24,6 +24,7 @@ async function assertStableOperations(page,{postApplication=false}={}){
   if(postApplication)assert.equal(u.searchParams.get('post_application'),'1','申請完成後必須保留 post_application checkpoint');
   return u;
 }
+async function stableShot(page,path){await page.screenshot({path,fullPage:false,animations:'disabled',timeout:10000})}
 function completedMember(extra={}){
   return {ok:true,complete:true,profile:{name:'王小明',email:'formal@example.com',phone:'0912345678',city:'台中市'},linkedProviders:['line'],roles:[],platformAccess:null,applications:[],workspaces:[],brands:[],...extra};
 }
@@ -77,6 +78,7 @@ async function firstTimeScenario(browser,name,viewport){
   });
 
   await fillApplication(page,name);
+  await stableShot(page,`artifacts/formal-application-form-${name}.png`);
   const reached=waitForOperationsNavigation(page,{postApplication:true});
   await page.locator('#nx').click();
   const frame=await reached,checkpoint=new URL(frame.url());
@@ -85,7 +87,6 @@ async function firstTimeScenario(browser,name,viewport){
   const settled=await assertStableOperations(page,{postApplication:true});
   assert.equal(settled.searchParams.get('application_id'),`APP_${name}`,'穩定頁必須保留正式申請編號');
   assert.equal(settled.searchParams.get('tenant_id'),`tenant-${name}`,'穩定頁必須保留已建立 tenant');
-  await page.screenshot({path:`artifacts/formal-application-closure-${name}.png`,fullPage:true});
   assert.equal(state.authStarts,1,'第一次申請只能做一次 LINE member 驗證');
   assert.equal(state.profileSaves,1,'LINE 回來後必須先寫回同一會員主檔');
   assert.equal(state.drafts,1,'正式申請只能建立一次');
@@ -116,7 +117,7 @@ async function existingWorkspaceScenario(browser){
   });
   await page.goto(`${BASE}/apply/`,{waitUntil:'domcontentloaded'});
   await page.getByText('你的工作空間已經開通').waitFor({timeout:8000});
-  await page.screenshot({path:'artifacts/formal-application-existing-workspace-mobile.png',fullPage:true});
+  await stableShot(page,'artifacts/formal-application-existing-workspace-mobile.png');
   const reached=waitForOperationsNavigation(page);
   await page.getByRole('button',{name:'進入我的 DOING'}).click();
   await reached;await assertStableOperations(page);
@@ -158,8 +159,8 @@ try{
   await pendingApplicationScenario(browser);
   console.log(JSON.stringify({
     result:'PASS',
-    desktop:{authStarts:desktop.authStarts,profileSaves:desktop.profileSaves,drafts:desktop.drafts},
-    mobile:{authStarts:mobile.authStarts,profileSaves:mobile.profileSaves,drafts:mobile.drafts},
+    desktop:{authStarts:desktop.authStarts,profileSaves:desktop.profileSaves,drafts:desktop.drafts,screenshot:'formal-application-form-desktop.png'},
+    mobile:{authStarts:mobile.authStarts,profileSaves:mobile.profileSaves,drafts:mobile.drafts,screenshot:'formal-application-form-mobile.png'},
     existingWorkspace:'no duplicate application',
     pendingApplication:'resume existing application state',
     lineMode:'member',
