@@ -141,3 +141,15 @@
 - `smart-application.html`、`scripts/build-doing-2-site.mjs`、Site／Market／Safe Production CI 已納入 bridge 與 closure validation，正式 Pages build 會帶入新檔。
 - Real-browser E2E：桌機 1440×1000、手機 390×844、既有工作空間、防重複進行中申請均 PASS；Market Validation #297 PASS，視覺證據 artifact digest `sha256:76da6e49fccd5736324eb88c1a0bb464e1aee6d0bfc5fe2d8132b410a73d0c7e`。
 - 新增資料表 0、Schema 變更 0、正式營運資料寫入 0；2BL／`2bl-v7` 未修改；尚未正式部署。
+
+
+## 2026-08-23｜v15.8 正式申請單頁＋既有營運空間復原
+
+- 使用者於正式 `/apply/` 完成 LINE 回跳後看到「申請尚未完成／系統發生異常」；正式 `error_logs` 於 2026-08-23 23:00:18（Asia/Taipei）記錄到真正原因為資料庫 23505 防重複規則：同一會員已經有自己的 DOING 工作空間，不允許建立第二個工作空間。
+- 資料庫保護本身正確，因此本次沒有移除 constraint、沒有新增資料表、沒有放寬一會員一工作空間規則。
+- `/apply/` 改為單頁：工作類型＋實際使用方式＋基本資料＋公開網址＋單一「LINE 驗證並開通」按鈕；移除上一步／下一步，縮小產品卡片與 CTA，桌機／手機皆不破框。
+- LINE 回 `/apply/` 後先 `savePlatformMemberProfile`，再以同一 `member_token` 讀 `getPlatformMemberProfile`；若已有 workspace，直接進 `/me/#operations`，不再呼叫 `createOrganizerApplicationDraft`。
+- 若已有進行中申請，同樣直接回既有申請狀態；只有真正沒有 workspace／pending application 的會員才建立正式申請，並沿用既有 `tenant_apply_logs`＋Supabase trigger auto-activation。
+- Chromium E2E：桌機 1440×1000、手機 390×844 單頁流程 PASS；另重現本次真實失敗情境並鎖定 `drafts=0`（已有 workspace 時不可再建申請）PASS。
+- DOING 2.0 Site #309 PASS、Market #302 PASS、Auth Role #82 PASS；Safe Production 在 checkpoint 更新前所有產品／資料／權限檢查 PASS，Cloudflare audit PASS，deploy SKIPPED。
+- 新增資料表 0、Schema 變更 0、Worker 變更 0、productionWrites=0；2BL／`2bl-v7` 未修改。
