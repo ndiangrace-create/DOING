@@ -26,11 +26,14 @@ for(const helper of ['dbGet','dbInsert','dbUpsert','dbUpdate','dbUpdateReturning
 }
 for(const name of refs)if(!tableNames.has(name))fail('Worker 引用未經正式盤點的資料表：'+name);
 const allowed=new Set(catalog.browserStorage.allowedKeys||[]);
-for(const page of ['index.html','register.html','member.html','member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html','workspace.html','operations-center.html','consignment.html']){
+const canonicalPages=['doing-2.html','register.html','member-panel.html','workspace.html','smart-application.html','market-center.html','market-public.html','market-session.html','booking-2-center.html','project-center.html','guide-center.html','world-tree.html'];
+for(const page of canonicalPages){
+  if(!fs.existsSync(root+'/'+page))fail('正式 canonical source 遺失：'+page);
   const source=fs.readFileSync(root+'/'+page,'utf8');
   const re=/(?:localStorage|sessionStorage)\.(?:getItem|setItem|removeItem)\(\s*['"]([^'"]+)/g;
   let match;while((match=re.exec(source)))if(!allowed.has(match[1]))fail(page+' 使用未核准的瀏覽器資料鍵：'+match[1]);
 }
+for(const retired of ['index.html','member.html','admin.html','onsite.html','platform.html','operations-center.html','photo.html','consignment.html','about.html','booking-center.html'])if(fs.existsSync(root+'/'+retired))fail('退休頁不得回到正式 root：'+retired);
 if(settings.authority?.project!=='DOING_SaaS'||settings.authority?.schema!=='public'||settings.authority?.api!=='tobeloved-api')fail('正式設定 SSOT 必須是 DOING_SaaS/public/tobeloved-api');
 if(settings.browserStorage?.formalSettingsAllowed!==false||settings.browserStorage?.businessDataAllowed!==false)fail('正式設定與營運資料不可保存在瀏覽器');
 if(!Array.isArray(settings.domains)||!settings.domains.length)fail('正式設定 SSOT 清單不可為空');
@@ -52,4 +55,4 @@ for(const domain of settings.domains){
   for(const action of [...domain.readActions,...domain.writeActions])if(!worker.includes(action))fail('正式設定 API 未存在 Worker：'+domain.key+' -> '+action);
 }
 if(worker!==fs.readFileSync(root+'/worker.txt','utf8'))fail('worker.js / worker.txt 不一致');
-console.log('資料來源驗證完成：'+tableNames.size+' 個真實資料表、'+refs.size+' 個 Worker 讀寫引用、'+moduleMap.size+' 個功能盤點模組、'+settings.domains.length+' 類正式設定全部以 Supabase 為 SSOT。');
+console.log(JSON.stringify({result:'PASS',authority:'DOING_SaaS/public/tobeloved-api',tables:tableNames.size,workerTableRefs:refs.size,modules:moduleMap.size,settingsDomains:settings.domains.length,canonicalPages:canonicalPages.length,retiredRootPages:0,browserBusinessData:false},null,2));
