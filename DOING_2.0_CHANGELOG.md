@@ -129,3 +129,15 @@
 - Chromium 桌機 1440×1000／手機 390×844 實際長按 3 秒 PASS；成功、一般會員拒絕、locked tenant 拒絕均 PASS。
 - 新增資料表 0、Schema 變更 0、正式營運資料寫入 0、2BL／`2bl-v7` 未修改。
 
+## 2026-08-23｜v15.7 正式營運申請同一次 LINE 身分閉環
+
+- `/apply/` 新增正式申請 bridge，申請資料只以短效 15 分鐘 session snapshot 暫存，用於跨 LINE OAuth 回跳續接；不寫正式營運狀態到 localStorage。
+- 第一次申請者固定先走 DOING LINE `mode=member`，精確回原 `/apply/?doing_application_resume=1`；不用第二次登入，也不建立 App／Web 第二套會員。
+- LINE 回來後使用同一 `member_token` 呼叫既有 `savePlatformMemberProfile`，把本人剛填的姓名、Email、手機、地區寫回同一正式會員主檔，再呼叫既有 `createOrganizerApplicationDraft`。
+- Core 既有快速驗證契約在 LINE identity＋會員 Email／電話與申請資料一致時回 `lineVerified:true`；正式 `tenant_apply_logs`／資料庫 trigger 繼續負責 auto-activation 與 tenant／workspace 建立，前端不自建正式狀態。
+- 成功後保留 `application_id`、`tenant_id`、`post_application=1` 並穩定進 `/me/#operations`。
+- 既有工作空間使用者直接顯示「你的工作空間已經開通」並進我的 DOING，不建立第二份申請；已有進行中申請則回既有申請狀態，不重複建立。
+- 新 bridge 不包含 `admin_token`、`mode=admin`、`mode=platform`；`member_token` 仍不等於 `admin_token`，主辦管理權限仍須由正式 workspace／staff Core 契約交換。
+- `smart-application.html`、`scripts/build-doing-2-site.mjs`、Site／Market／Safe Production CI 已納入 bridge 與 closure validation，正式 Pages build 會帶入新檔。
+- Real-browser E2E：桌機 1440×1000、手機 390×844、既有工作空間、防重複進行中申請均 PASS；Market Validation #297 PASS，視覺證據 artifact digest `sha256:76da6e49fccd5736324eb88c1a0bb464e1aee6d0bfc5fe2d8132b410a73d0c7e`。
+- 新增資料表 0、Schema 變更 0、正式營運資料寫入 0；2BL／`2bl-v7` 未修改；尚未正式部署。
