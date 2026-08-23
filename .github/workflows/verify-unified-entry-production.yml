@@ -10,32 +10,31 @@ jobs:
   verify-production:
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for live unified entry
+      - name: Verify live unified entry now
         shell: bash
         run: |
           set -euo pipefail
           base='https://doing.2b-love.com'; core='https://tobeloved-api.ndiangrace.workers.dev'
-          ok=0
-          for i in $(seq 1 60); do
-            home_js="$(curl -fsSL --max-time 20 "$base/doing-2-home-v11.js?verify=$i" || true)"
-            member_js="$(curl -fsSL --max-time 20 "$base/doing-member-return-direct.js?verify=$i" || true)"
-            global_js="$(curl -fsSL --max-time 20 "$base/doing-global-entry.js?verify=$i" || true)"
-            booking="$(curl -fsSL --max-time 20 "$base/booking/?verify=$i" || true)"
-            apply_js="$(curl -fsSL --max-time 20 "$base/doing-smart-activation-v5.js?verify=$i" || true)"
-            a=0;b=0;c=0;d=0;e=0;f=0;g=0
-            grep -q '申請 DOING' <<<"$home_js" && a=1 || true
-            grep -q 'd2HomeLogin' <<<"$home_js" && b=1 || true
-            grep -q "new URL('/me/',location.origin)" <<<"$member_js" && c=1 || true
-            grep -q '重新使用 LINE 登入' <<<"$member_js" && d=1 || true
-            grep -q 'createMemberWorkspaceAdminSession' <<<"$global_js" && e=1 || true
-            grep -q 'getOperationUnitsAdmin' <<<"$booking" && f=1 || true
-            grep -q 'LINE 驗證並開通' <<<"$apply_js" && g=1 || true
-            echo "attempt=$i home=$a login=$b member=$c retry=$d workspace=$e booking=$f apply=$g"
-            if [ "$a$b$c$d$e$f$g" = '1111111' ]; then ok=1; break; fi
-            sleep 5
-          done
-          test "$ok" = 1
-          for path in / /apply/ /me/ /workspace/ /booking/ /market/public/; do code="$(curl -sS -o /dev/null -w '%{http_code}' "$base$path")"; echo "$path=$code"; test "$code" = 200; done
-          admin_headers="$(curl -sSI "$base/admin.html" | tr -d '\r')"; grep -qi '^location: .*/workspace/' <<<"$admin_headers"
-          code="$(curl -sS -o /tmp/core.txt -w '%{http_code}' "$core/?action=publicDiscovery")"; echo "core=$code"; test "$code" = 200
+          home_js="$(curl -fsSL --max-time 20 "$base/doing-2-home-v11.js?verify=now")"
+          member_js="$(curl -fsSL --max-time 20 "$base/doing-member-return-direct.js?verify=now")"
+          global_js="$(curl -fsSL --max-time 20 "$base/doing-global-entry.js?verify=now")"
+          booking="$(curl -fsSL --max-time 20 "$base/booking/?verify=now")"
+          apply_js="$(curl -fsSL --max-time 20 "$base/doing-smart-activation-v5.js?verify=now")"
+          a=0;b=0;c=0;d=0;e=0;f=0;g=0
+          grep -q '申請 DOING' <<<"$home_js" && a=1 || true
+          grep -q 'd2HomeLogin' <<<"$home_js" && b=1 || true
+          grep -q "new URL('/me/',location.origin)" <<<"$member_js" && c=1 || true
+          grep -q '重新使用 LINE 登入' <<<"$member_js" && d=1 || true
+          grep -q 'createMemberWorkspaceAdminSession' <<<"$global_js" && e=1 || true
+          grep -q 'getOperationUnitsAdmin' <<<"$booking" && f=1 || true
+          grep -q 'LINE 驗證並開通' <<<"$apply_js" && g=1 || true
+          echo "markers home=$a login=$b member=$c retry=$d workspace=$e booking=$f apply=$g"
+          codes=''
+          for path in / /apply/ /me/ /workspace/ /booking/ /market/public/; do code="$(curl -sS -o /dev/null -w '%{http_code}' "$base$path")"; echo "$path=$code"; codes="$codes$code,"; done
+          admin_headers="$(curl -sSI "$base/admin.html" | tr -d '\r')"; echo "$admin_headers" | grep -i '^location:' || true
+          core_code="$(curl -sS -o /tmp/core.txt -w '%{http_code}' "$core/?action=publicDiscovery")"; echo "core=$core_code"
+          test "$a$b$c$d$e$f$g" = '1111111'
+          for path in / /apply/ /me/ /workspace/ /booking/ /market/public/; do test "$(curl -sS -o /dev/null -w '%{http_code}' "$base$path")" = 200; done
+          grep -qi '^location: .*/workspace/' <<<"$admin_headers"
+          test "$core_code" = 200
           echo 'production unified entry PASS'
