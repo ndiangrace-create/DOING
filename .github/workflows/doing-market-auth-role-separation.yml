@@ -6,60 +6,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  checkpoint-market-admin-entry-once:
-    if: github.event_name == 'pull_request' && github.head_ref == 'fix/market-logo-upload-20260823' && github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-      - name: Update World Tree and ChangeLog minimally
-        shell: python
-        run: |
-          from pathlib import Path
-
-          tree_path=Path('doing-world-tree-current.json')
-          text=tree_path.read_text(encoding='utf-8')
-          replacements=[
-            ('"version": "v15.5"','"version": "v15.6"'),
-            ('"updatedAt": "2026-08-23 10:06"','"updatedAt": "2026-08-23 13:32"'),
-            ('"summary": "Market 前後台維持 2BL 操作骨架；一般報名者 LINE OAuth 已鎖定 mode-only 角色路由並固定回原 Market 前台，DOING Core／API／Supabase 與主辦權限仍維持正式 SSOT。"',
-             '"summary": "Market 前後台維持 2BL 操作骨架；一般報名者 LINE OAuth 固定回原 Market 前台；前台 LOGO 長按 3 秒新增隱藏主辦入口，但仍必須通過 DOING LINE 身分與正式 tenant／staff 權限交換後才能進後台。DOING Core／API／Supabase 維持正式 SSOT。"'),
-            ('"summary": "主辦由 DOING 工作空間進入 Market；沿用 DOING 正式登入與權限，不搬 2BL 的登入技術。"',
-             '"summary": "主辦可由 DOING 工作空間或 Market 前台 LOGO 長按 3 秒進入；兩條入口都沿用 DOING LINE 與正式 tenant／staff 權限，手勢本身不授權。"'),
-            ('                {"id": "admin-entry-role", "title": "確認主辦權限", "summary": "依 DOING 正式角色與租戶權限決定可操作範圍。", "status": "done"}\n              ]',
-             '                {"id": "admin-entry-role", "title": "確認主辦權限", "summary": "依 DOING 正式角色與租戶權限決定可操作範圍。", "status": "done"},\n                {"id": "admin-entry-logo-hold", "title": "前台 LOGO 長按 3 秒安全進後台", "summary": "桌機／手機長按前台左上 LOGO 3 秒只發起 DOING LINE member 身分驗證；回來後由 createMemberWorkspaceAdminSession 驗證指定 tenant 的 active staff／owner 與 active tenant，locked tenant 仍拒絕；成功才簽發 admin_token 進 /market/。", "status": "done"}\n              ]')
-          ]
-          for old,new in replacements:
-              if new in text:
-                  continue
-              if text.count(old)!=1:
-                  raise SystemExit(f'Unsafe World Tree patch count={text.count(old)}: {old[:100]}')
-              text=text.replace(old,new,1)
-          tree_path.write_text(text,encoding='utf-8')
-
-          log_path=Path('DOING_2.0_CHANGELOG.md')
-          log=log_path.read_text(encoding='utf-8')
-          marker='## 2026-08-23｜v15.6 Market 前台 LOGO 長按 3 秒安全主辦入口'
-          if marker not in log:
-              entry='''\n\n## 2026-08-23｜v15.6 Market 前台 LOGO 長按 3 秒安全主辦入口\n\n- 前台左上 LOGO 長按 3 秒新增隱藏主辦入口；一般點擊維持前台首頁行為。\n- 長按只發起 DOING LINE `mode=member` 身分驗證，不直接取得或假設主辦權限。\n- LINE 回跳後必須呼叫 `createMemberWorkspaceAdminSession`，由 Core 依同一會員身分、指定 tenant、active staff／owner、active tenant 交換正式 `admin_token`。\n- 一般會員、停用 staff、非 active tenant 一律拒絕；tenant `locked=true` 時前台入口也拒絕進後台。\n- Chromium 桌機 1440×1000／手機 390×844 實際長按 3 秒 PASS；成功、一般會員拒絕、locked tenant 拒絕均 PASS。\n- 新增資料表 0、Schema 變更 0、正式營運資料寫入 0、2BL／`2bl-v7` 未修改。\n'''
-              log_path.write_text(log.rstrip()+entry+'\n',encoding='utf-8')
-      - name: Commit checkpoint if changed
-        run: |
-          if git diff --quiet -- doing-world-tree-current.json DOING_2.0_CHANGELOG.md; then
-            echo "Checkpoint already present."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add doing-world-tree-current.json DOING_2.0_CHANGELOG.md
-          git commit -m "docs: checkpoint Market hidden admin entry v15.6"
-          git push origin HEAD:${{ github.head_ref }}
-
   validate:
     runs-on: ubuntu-latest
     steps:
