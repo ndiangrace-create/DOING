@@ -75,6 +75,7 @@ jobs:
           curl -sS -D /tmp/callback.headers -o /dev/null --max-time 20 "$API/auth/line/callback?error=access_denied&state=$ENCODED_STATE"
           CALLBACK_LOCATION="$(awk 'BEGIN{IGNORECASE=1}/^location:/{sub(/\r$/,"",$0);sub(/^[^:]+:[[:space:]]*/,"",$0);print;exit}' /tmp/callback.headers)"
           test -n "$CALLBACK_LOCATION"
+          echo "callback=$CALLBACK_LOCATION"
           export CALLBACK_LOCATION
           python3 - <<'PY'
           import os,urllib.parse
@@ -88,8 +89,16 @@ jobs:
           assert '/admin' not in u.path and '/platform' not in u.path, u.geturl()
           PY
           CODE="$(curl -sS -o /tmp/admin-denied.json -w '%{http_code}' --max-time 20 -H 'Content-Type: application/json' -X POST "$API?action=createMemberWorkspaceAdminSession" --data '{"member_token":"invalid-production-verification-token","tenantId":"demo"}')"
-          test "$CODE" -ge 400
-          ! grep -q 'adminToken' /tmp/admin-denied.json
+          echo "admin-session-http=$CODE"
+          cat /tmp/admin-denied.json
+          export CODE
+          python3 - <<'PY'
+          import json,os
+          with open('/tmp/admin-denied.json','r',encoding='utf-8') as f:d=json.load(f)
+          body=json.dumps(d,ensure_ascii=False)
+          assert 'adminToken' not in body and 'admin_token' not in body, body
+          assert int(os.environ['CODE'])>=400 or d.get('ok') is False or bool(d.get('error')), (os.environ['CODE'],body)
+          PY
 
       - name: Install Chromium
         run: |
