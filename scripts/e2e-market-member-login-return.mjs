@@ -7,7 +7,7 @@ const RETURN_KEY='doing_market_member_return';
 const root=process.cwd();
 const wrapper=fs.readFileSync(root+'/market/public/index.html','utf8');
 const home=fs.readFileSync(root+'/doing-home-refresh.js','utf8');
-for(const token of [RETURN_KEY,'member_token','member_login_error','market/public/'])assert.ok(wrapper.includes(token),'Market 公開入口缺少回跳保護：'+token);
+for(const token of [RETURN_KEY,'member_token','member_login_error','../../market-public.html'])assert.ok(wrapper.includes(token),'Market 公開入口缺少回跳保護：'+token);
 for(const token of [RETURN_KEY,'handoffToPendingMarket','clearMarketMemberReturn','startRegistrationsLineLogin'])assert.ok(home.includes(token),'DOING 首頁缺少 Market member 回跳保護：'+token);
 
 const browser=await chromium.launch({headless:true});
