@@ -7,7 +7,7 @@ function clearMemberToken(){try{localStorage.removeItem(TOKEN_KEY);sessionStorag
 function tenantOf(el){return String(el?.dataset?.workspaceAdmin||el?.dataset?.workspaceCalendar||el?.dataset?.workspaceOperations||el?.dataset?.v20Workspace||'').trim().toLowerCase()}
 async function openWorkspace(tenantId,button){
   const token=memberToken(),id=String(tenantId||'').trim().toLowerCase();
-  if(!token){location.href='/me/';return}
+  if(!token){location.href='/me/#operations';return}
   if(!id)return;
   if(button)button.disabled=true;
   try{
@@ -25,6 +25,8 @@ function normalizeMemberHub(){
 }
 function normalizeWorkspace(){
   if(!/\/workspace\/?$/.test(location.pathname)&&!/workspace\.html$/i.test(location.pathname))return;
+  const q=new URL(location.href).searchParams,tenant=String(q.get('tenant')||'').trim(),adminToken=String(q.get('admin_token')||q.get('token')||'').trim();
+  if(!tenant||!adminToken){location.replace('/me/#operations');return}
   const advanced=document.getElementById('admin');if(advanced)advanced.remove();
   const my=document.getElementById('my');if(my){my.textContent='我的 DOING';my.onclick=e=>{e.preventDefault();location.href='/me/'}}
 }
