@@ -13,6 +13,9 @@ function fakeLineToken(subject='U_FORMAL_E2E'){
 async function waitForOperations(page,{postApplication=false,timeout=15000}={}){
   await page.waitForFunction(({postApplication})=>location.pathname==='/me/'&&location.hash==='#operations'&&(!postApplication||new URL(location.href).searchParams.get('post_application')==='1'),{postApplication},{timeout});
 }
+function completedMember(extra={}){
+  return {ok:true,complete:true,profile:{name:'王小明',email:'formal@example.com',phone:'0912345678',city:'台中市'},linkedProviders:['line'],roles:[],platformAccess:null,applications:[],workspaces:[],brands:[],...extra};
+}
 
 async function fillApplication(page,suffix='desktop'){
   await page.goto(`${BASE}/apply/`,{waitUntil:'domcontentloaded'});
@@ -56,13 +59,18 @@ async function firstTimeScenario(browser,name,viewport){
       const body=JSON.parse(req.postData()||'{}');state.draftPayload=body;
       return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,applicationId:`APP_${name}`,lineVerified:true,status:'approved',tenantId:`tenant-${name}`})});
     }
-    if(action==='getPlatformMemberProfile')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,workspaces:[]})});
+    if(action==='getPlatformMemberProfile')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(completedMember({workspaces:[{id:`tenant-${name}`,tenant_id:`tenant-${name}`,name:`閉環測試品牌-${name}`,role:'owner'}]}))});
+    if(action==='getMyRegsGlobal')return route.fulfill({status:200,contentType:'application/json',body:'[]'});
+    if(action==='getMyOperationalTasks'||action==='getBrandAccessRequests')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(action==='getMyOperationalTasks'?{registrations:[],salesReports:[],serviceVisits:[]}:[])});
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true})});
   });
 
   await fillApplication(page,name);
   await page.locator('#nx').click();
   await waitForOperations(page,{postApplication:true});
+  const final=new URL(page.url());
+  assert.equal(final.searchParams.get('application_id'),`APP_${name}`,'我的 DOING 必須保留正式申請編號');
+  assert.equal(final.searchParams.get('tenant_id'),`tenant-${name}`,'我的 DOING 必須保留已建立 tenant');
   await page.screenshot({path:`artifacts/formal-application-closure-${name}.png`,fullPage:true});
   assert.equal(state.authStarts,1,'第一次申請只能做一次 LINE member 驗證');
   assert.equal(state.profileSaves,1,'LINE 回來後必須先寫回同一會員主檔');
@@ -87,7 +95,9 @@ async function existingWorkspaceScenario(browser){
     const req=route.request(),url=new URL(req.url()),action=url.searchParams.get('action')||'';
     if(url.pathname.endsWith('/auth/line/start')){authStarts++;return route.abort()}
     if(action==='createOrganizerApplicationDraft'){drafts++;return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'})}
-    if(action==='getPlatformMemberProfile')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,workspaces:[{tenant_id:'tenant-existing',name:'既有工作空間'}]})});
+    if(action==='getPlatformMemberProfile')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(completedMember({workspaces:[{id:'tenant-existing',tenant_id:'tenant-existing',name:'既有工作空間',role:'owner'}]}))});
+    if(action==='getMyRegsGlobal')return route.fulfill({status:200,contentType:'application/json',body:'[]'});
+    if(action==='getMyOperationalTasks'||action==='getBrandAccessRequests')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(action==='getMyOperationalTasks'?{registrations:[],salesReports:[],serviceVisits:[]}:[])});
     return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'});
   });
   await page.goto(`${BASE}/apply/`,{waitUntil:'domcontentloaded'});
@@ -108,9 +118,11 @@ async function pendingApplicationScenario(browser){
   await page.route(`${API}/**`,async route=>{
     const req=route.request(),url=new URL(req.url()),action=url.searchParams.get('action')||'';
     if(url.pathname.endsWith('/auth/line/start')){authStarts++;return route.abort()}
-    if(action==='getPlatformMemberProfile')return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true,"workspaces":[]}'});
+    if(action==='getPlatformMemberProfile')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(completedMember({applications:[{id:'APP_PENDING',status:'pending',unitName:'既有申請'}]}))});
     if(action==='savePlatformMemberProfile'){profileSaves++;return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'})}
     if(action==='createOrganizerApplicationDraft'){drafts++;return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({error:'此會員已有進行中的營運申請'})})}
+    if(action==='getMyRegsGlobal')return route.fulfill({status:200,contentType:'application/json',body:'[]'});
+    if(action==='getMyOperationalTasks'||action==='getBrandAccessRequests')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(action==='getMyOperationalTasks'?{registrations:[],salesReports:[],serviceVisits:[]}:[])});
     return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'});
   });
   await fillApplication(page,'pending');
