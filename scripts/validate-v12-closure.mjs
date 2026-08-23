@@ -25,6 +25,7 @@ assert(shell.includes('d2-home-desktop-topbar'),'首頁缺少桌機專用固定�
 assert(shell.includes("matchMedia('(min-width:621px)')"),'首頁桌機／手機頂部列切換規則缺失');
 assert(shell.includes("setProperty('position','fixed'"),'桌機頂部列不是 position: fixed');
 assert(shell.includes("setProperty('padding-top'"),'固定列沒有替內容保留高度');
-for(const label of ['首頁','報名活動','申請 DOING','登入'])assert(shell.includes(`>${label}<`),`首頁桌機固定列缺少：${label}`);
-assert(!shell.includes('>我的紀錄<'),'首頁桌機固定列不得再出現第二個會員入口');
-console.log(JSON.stringify({result:'PASS',applicationGate:'closed',helperRole:'customer-service-only',applicationNav:['home','login'],homeAccountEntries:['apply','login'],desktopTopbar:'fixed>=621px',mobileTopbar:'hidden<=620px',shortHierarchy:true,extraRoutes:false,logoSlot:'reserved',productionWrites:0},null,2));
+assert(shell.includes('class="d2-brand" href="/"'),'桌機頂部 DOING 品牌必須可回首頁');
+for(const label of ['申請 DOING','登入'])assert(shell.includes(`>${label}<`)||shell.includes(`?'我的 DOING':'${label}'`),`首頁桌機固定列缺少帳號入口：${label}`);
+assert(!shell.includes('>我的紀錄<')&&!shell.includes('>報名活動<'),'桌機頂列不得再膨脹成重複功能／會員入口');
+console.log(JSON.stringify({result:'PASS',applicationGate:'closed',helperRole:'customer-service-only',applicationNav:['home','login'],homeAccountEntries:['apply','login'],desktopTopbar:'brand-home + apply + login',mobileTopbar:'hidden<=620px',shortHierarchy:true,extraRoutes:false,logoSlot:'reserved',productionWrites:0},null,2));
