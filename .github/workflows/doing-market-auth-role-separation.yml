@@ -1,6 +1,8 @@
 name: DOING Market Auth Role Separation
 
 on:
+  push:
+    branches: [fix/market-logo-upload-20260823]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -10,12 +12,12 @@ permissions:
 
 jobs:
   patch-formal-application-closure-once:
-    if: github.event_name == 'pull_request' && github.head_ref == 'fix/market-logo-upload-20260823' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'push' && github.ref_name == 'fix/market-logo-upload-20260823'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          ref: fix/market-logo-upload-20260823
           fetch-depth: 0
       - name: Patch canonical apply callback and existing-workspace recovery
         shell: python
@@ -48,7 +50,6 @@ jobs:
               old_line="const activationRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&select=status,tenant_id,note`).catch(()=>[]),activation=activationRows[0]||{},activationStatus=String(activation.status||'pending');\n      if(activationStatus==='approved'){"
               new_line="const activationRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&select=status,tenant_id,note`).catch(()=>[]),activation=activationRows[0]||{},activationStatus=String(activation.status||'pending');\n      const applicationMemberToken=await issueMemberToken({email:member.email,provider:'line',provider_subject:lineSubject,display_name:lineName,avatar_url:lineAvatar},env);\n      applicationTarget.searchParams.set('member_token',applicationMemberToken);applicationTarget.searchParams.set('member_status',platformMemberComplete(member)?'ready':'profile_required');\n      if(activationStatus==='approved'){"
               text=once(text,old_line,new_line,f'{name}: LINE member handoff')
-              # Google is backup only, but it must use the same canonical application surface.
               text=text.replace("doingSiteUrl(env)+'#apply'","applicationSiteUrl(env)")
               text=text.replace("const u=new URL(doingSiteUrl(env));u.hash='apply';","const u=new URL(applicationSiteUrl(env));")
               path.write_text(text,encoding='utf-8')
@@ -64,6 +65,7 @@ jobs:
           old_end="render();\n})();"
           new_end="""render();
 (async function recoverExistingWorkspace(){
+  const qp=new URL(location.href).searchParams;if(['application_status','application_id','member_token','member_login_error','login_error'].some(k=>qp.has(k)))return;
   const token=localStorage.getItem('doing_member_token')||'';if(!token)return;
   try{const r=await fetch(API+'?action=getPlatformMemberProfile&member_token='+encodeURIComponent(token),{cache:'no-store'}),d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false||d.error)return;const data=d.data??d.result??d,spaces=Array.isArray(data.workspaces)?data.workspaces:[];if(!spaces.length)return;const target=new URL('/me/',location.origin);target.hash='operations';form.innerHTML='<div id="d2a"><section class="h"><small>DOING 營運帳號</small><h2>你的工作空間已經開通</h2><p>這個會員已經有自己的 DOING 工作空間，不需要重新申請。</p></section><section class="c"><button class="b pri" id="existingWorkspaceBtn" type="button">進入我的 DOING</button></section></div>';document.getElementById('existingWorkspaceBtn').onclick=()=>location.href=target.toString()}catch(_){}}
 )();
@@ -75,9 +77,10 @@ jobs:
           cmp worker.js worker.txt
           node --check worker.js
           node --check doing-smart-activation-v5.js
-          grep -F "applicationSiteUrl(env)" worker.js >/dev/null
+          grep -F "new URL('apply/', doingSiteUrl(env))" worker.js >/dev/null
           grep -F "applicationMemberToken" worker.js >/dev/null
           grep -F "你的工作空間已經開通" doing-smart-activation-v5.js >/dev/null
+          grep -F "application_status','application_id','member_token'" doing-smart-activation-v5.js >/dev/null
       - name: Commit patch if changed
         run: |
           if git diff --quiet -- worker.js worker.txt doing-smart-activation-v5.js; then
@@ -85,10 +88,10 @@ jobs:
             exit 0
           fi
           git config user.name "github-actions[bot]"
-          git config user.email "4189827+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add worker.js worker.txt doing-smart-activation-v5.js
           git commit -m "fix: close formal organizer application return flow"
-          git push origin HEAD:${{ github.head_ref }}
+          git push origin HEAD:fix/market-logo-upload-20260823
 
   validate:
     runs-on: ubuntu-latest
