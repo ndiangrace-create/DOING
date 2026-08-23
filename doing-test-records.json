@@ -1,12 +1,13 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-23T03:39:00+08:00",
-  "sourceFingerprint": "d7194feb5cf4adc2bc9e68e30b934fd69b489c4a893eb8a7882c006c5f4c21a2",
-  "environment": "DOING Market 市集前台已依 2BL_INTERACTION_FRAMEWORK_PACKAGE 的互動架構執行：主導航 → 卡片 → 直接操作；複雜操作僅使用單一 Panel／Modal。分類維持原頁 filter；活動卡原頁開活動 Panel，只有 Primary『立即報名』進正式 /register/；會員原頁開會員／我的報名 Panel，沿用 DOING LINE、getPlatformMemberProfile、savePlatformMemberProfile、getMyRegsGlobal；客服原頁開客服 Panel。DOING Core、Supabase SSOT、角色權限與後台既有功能不變。Chromium 已實際驗證活動卡不跳頁、會員／客服原頁 Panel、正式報名連結與既有 Market 全流程。",
+  "recordedAt": "2026-08-23T04:07:00+08:00",
+  "sourceFingerprint": "579e3787dded665e74d01173ab89448ae6ce51ab0a7d46479ac805c3e9dcbfea",
+  "environment": "DOING Market 已正式鎖定兩條不同登入／授權契約。前台 /market/public/ 為一般報名者／會員：DOING LINE 登入以原頁為 return_url，成功後 member_token 寫入 doing_member_token 並留在原本 Market 前台，不跳 DOING 首頁、不自動跳 /me/、不取得 admin_token。主辦後台 /market/ 為已申請／核准之主辦單位：一般 member token 不可直接操作後台；主辦需經 /apply/ 申請、正式 workspace／staff 權限，再由 createMemberWorkspaceAdminSession 驗證 staff 關聯並簽發 admin_token。2BL 僅作為 Market 互動骨架；Identity、Core、Supabase SSOT、權限與正式資料仍為 DOING。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
   "tests": [
+    {"id":"market-auth-role-separation","command":"node scripts/validate-market-auth-role-separation.mjs","result":"PASS","scope":"前台一般報名者 LINE 登入回原 Market 前台；member_token 不可作 admin token；主辦必須經申請／核准／workspace／staff 權限後才能交換 admin_token"},
     {"id":"market-public-interaction-v20","command":"E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-public-interaction-v20.mjs","result":"PASS","scope":"Chromium：分類原頁 filter、活動卡→單一 Panel→正式 /register/、會員→原頁會員資料／我的報名、客服→原頁客服 Panel"},
     {"id":"market-role-browser-v18","command":"E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-role-ui-v18.mjs","result":"PASS","scope":"Chromium：Market 前台／後台／單場工作台既有操作、審核、付款、報到、設定寫入回歸"},
     {"id":"market-green-closure","command":"node scripts/validate-market-green-closure.mjs","result":"PASS","scope":"公開探索→卡片→單一 Panel→報名；會員原頁資料／我的報名→儲存→重讀；客服原頁 Panel；主辦數字→名單→寫入→重讀"},
