@@ -10,6 +10,9 @@ function b64url(obj){return Buffer.from(JSON.stringify(obj)).toString('base64url
 function fakeLineToken(subject='U_FORMAL_E2E'){
   return `${b64url({alg:'HS256',typ:'JWT'})}.${b64url({iss:'DOING',type:'member',sub:subject,provider:'line',provider_subject:subject,expires_at:Date.now()+3600_000})}.test`;
 }
+async function waitForOperations(page,{postApplication=false,timeout=15000}={}){
+  await page.waitForFunction(({postApplication})=>location.pathname==='/me/'&&location.hash==='#operations'&&(!postApplication||new URL(location.href).searchParams.get('post_application')==='1'),{postApplication},{timeout});
+}
 
 async function fillApplication(page,suffix='desktop'){
   await page.goto(`${BASE}/apply/`,{waitUntil:'domcontentloaded'});
@@ -59,7 +62,7 @@ async function firstTimeScenario(browser,name,viewport){
 
   await fillApplication(page,name);
   await page.locator('#nx').click();
-  await page.waitForURL(u=>u.pathname==='/me/'&&u.hash==='#operations',{timeout:15000});
+  await waitForOperations(page,{postApplication:true});
   await page.screenshot({path:`artifacts/formal-application-closure-${name}.png`,fullPage:true});
   assert.equal(state.authStarts,1,'第一次申請只能做一次 LINE member 驗證');
   assert.equal(state.profileSaves,1,'LINE 回來後必須先寫回同一會員主檔');
@@ -91,7 +94,7 @@ async function existingWorkspaceScenario(browser){
   await page.getByText('你的工作空間已經開通').waitFor({timeout:8000});
   await page.screenshot({path:'artifacts/formal-application-existing-workspace-mobile.png',fullPage:true});
   await page.getByRole('button',{name:'進入我的 DOING'}).click();
-  await page.waitForURL(u=>u.pathname==='/me/'&&u.hash==='#operations');
+  await waitForOperations(page);
   assert.equal(drafts,0,'已有工作空間不得再建立申請');
   assert.equal(authStarts,0,'已有有效 LINE member token 不得重複登入');
   await context.close();
@@ -112,7 +115,7 @@ async function pendingApplicationScenario(browser){
   });
   await fillApplication(page,'pending');
   await page.locator('#nx').click();
-  await page.waitForURL(u=>u.pathname==='/me/'&&u.searchParams.get('post_application')==='1'&&u.hash==='#operations',{timeout:10000});
+  await waitForOperations(page,{postApplication:true,timeout:10000});
   assert.equal(profileSaves,1);
   assert.equal(drafts,1,'進行中申請檢查只允許一次正式 create 呼叫');
   assert.equal(authStarts,0,'已有有效 LINE member token 不得再登入');
