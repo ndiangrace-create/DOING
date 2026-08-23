@@ -6,7 +6,9 @@ on:
       - 'doing-market-v18.css'
       - 'doing-market-completion-v16.css'
       - 'doing-visual-system-20260822.js'
+      - 'doing-home-refresh.js'
       - 'market-public.html'
+      - 'market/public/index.html'
       - 'market-center.html'
       - 'market-session.html'
       - 'member-panel.html'
@@ -29,6 +31,7 @@ on:
       - 'scripts/e2e-market-ui.mjs'
       - 'scripts/e2e-market-role-ui-v18.mjs'
       - 'scripts/e2e-market-logo-upload.mjs'
+      - 'scripts/e2e-market-member-login-return.mjs'
       - 'scripts/e2e-market-public-interaction-v20.mjs'
       - '.github/workflows/doing-market-2-validation.yml'
   workflow_dispatch:
@@ -64,11 +67,15 @@ jobs:
         run: |
           python3 -m http.server 4173 --directory .doing-2-site >/tmp/doing-market-e2e.log 2>&1 &
           SERVER_PID=$!
-          trap 'kill $SERVER_PID || true' EXIT
+          python3 -m http.server 4174 --directory . >/tmp/doing-github-e2e.log 2>&1 &
+          ROOT_SERVER_PID=$!
+          trap 'kill $SERVER_PID $ROOT_SERVER_PID || true' EXIT
           for i in {1..30}; do curl -fsS http://127.0.0.1:4173/market/public/ >/dev/null && break; sleep 1; done
+          for i in {1..30}; do curl -fsS http://127.0.0.1:4174/market/public/ >/dev/null && break; sleep 1; done
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-ui.mjs
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-role-ui-v18.mjs
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-logo-upload.mjs
+          E2E_GITHUB_BASE=http://127.0.0.1:4174 node scripts/e2e-market-member-login-return.mjs
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-public-interaction-v20.mjs
       - name: Upload Market v18 visual evidence
         uses: actions/upload-artifact@v4
