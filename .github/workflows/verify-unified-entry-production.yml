@@ -1,0 +1,40 @@
+name: Verify Unified Entry Production
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-unified-entry-production.yml'
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for production and verify canonical entry
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://doing.2b-love.com'
+          core='https://tobeloved-api.ndiangrace.workers.dev'
+          ok=0
+          for i in $(seq 1 60); do
+            home_js="$(curl -fsSL --max-time 20 "$base/doing-2-home-v11.js?verify=$i" || true)"
+            member_js="$(curl -fsSL --max-time 20 "$base/doing-member-return-direct.js?verify=$i" || true)"
+            global_js="$(curl -fsSL --max-time 20 "$base/doing-global-entry.js?verify=$i" || true)"
+            booking="$(curl -fsSL --max-time 20 "$base/booking/?verify=$i" || true)"
+            apply_js="$(curl -fsSL --max-time 20 "$base/doing-smart-activation-v5.js?verify=$i" || true)"
+            if grep -q '申請 DOING' <<<"$home_js" && grep -q 'd2HomeLogin' <<<"$home_js" && grep -q "new URL('/me/',location.origin)" <<<"$member_js" && grep -q '重新使用 LINE 登入' <<<"$member_js" && grep -q 'createMemberWorkspaceAdminSession' <<<"$global_js" && grep -q 'getOperationUnitsAdmin' <<<"$booking" && grep -q 'LINE 驗證並開通' <<<"$apply_js"; then ok=1; break; fi
+            sleep 5
+          done
+          test "$ok" = 1
+          test "$(curl -sS -o /dev/null -w '%{http_code}' "$base/")" = 200
+          test "$(curl -sS -o /dev/null -w '%{http_code}' "$base/apply/")" = 200
+          test "$(curl -sS -o /dev/null -w '%{http_code}' "$base/me/")" = 200
+          test "$(curl -sS -o /dev/null -w '%{http_code}' "$base/workspace/")" = 200
+          test "$(curl -sS -o /dev/null -w '%{http_code}' "$base/booking/")" = 200
+          test "$(curl -sS -o /dev/null -w '%{http_code}' "$base/market/public/")" = 200
+          admin_headers="$(curl -sSI "$base/admin.html" | tr -d '\r')"
+          grep -qi '^location: .*/workspace/' <<<"$admin_headers"
+          core_code="$(curl -sS -o /tmp/core.txt -w '%{http_code}' "$core/?action=publicDiscovery")"
+          test "$core_code" = 200
+          echo 'production unified entry PASS'
