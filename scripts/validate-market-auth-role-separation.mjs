@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const pub=fs.readFileSync('market-public.html','utf8');
+const publicRoute=fs.readFileSync('market/public/index.html','utf8');
+const home=fs.readFileSync('doing-home-refresh.js','utf8');
 const admin=fs.readFileSync('market-center.html','utf8');
 const member=fs.readFileSync('member-panel.html','utf8');
 const apply=fs.readFileSync('smart-application.html','utf8');
@@ -22,6 +24,12 @@ for(const token of [
 assert.ok(pub.includes('/auth/line/start'),'前台必須使用 DOING LINE 登入');
 assert.ok(!pub.includes("createMemberWorkspaceAdminSession"),'一般報名者前台不得交換主辦 admin session');
 assert.ok(!pub.includes("admin_token"),'一般報名者前台不得依賴主辦 admin_token');
+
+// GitHub Pages／公開短路徑若因 OAuth fallback 誤落 DOING 根頁，必須用短效標記送回 Market 前台。
+for(const token of ['doing_market_member_return','market/public/','member_token','member_login_error'])assert.ok(publicRoute.includes(token),`Market 公開入口缺少登入回跳保護：${token}`);
+for(const token of ['doing_market_member_return','handoffToPendingMarket','clearMarketMemberReturn','MARKET_RETURN_MAX_AGE'])assert.ok(home.includes(token),`DOING 根頁缺少 Market member 回跳保護：${token}`);
+assert.ok(home.includes("target.origin!==location.origin"),'Market 回跳必須限制同來源，禁止開放式轉址');
+assert.ok(home.includes("startMyDoingLineLogin(){clearMarketMemberReturn()")&&home.includes("startRegistrationsLineLogin(){clearMarketMemberReturn()"),'DOING 自己的會員／工作空間登入必須先清除 Market 暫存回跳，避免誤導流');
 
 // 後台＝主辦單位。只能接受正式主辦 admin token，不能拿一般 member token 直接放行。
 for(const token of [
@@ -50,10 +58,12 @@ console.log(JSON.stringify({
   identity:'DOING LINE',
   publicRole:'participant',
   publicReturn:'/market/public/ same-page return',
+  publicFallbackReturn:'DOING root -> remembered Market frontstage',
   organizerRole:'approved organizer/staff only',
   organizerEntry:'application -> approval -> workspace -> admin session',
   participantCannotEnterAdmin:true,
   memberTokenIsNotAdminToken:true,
+  openRedirectBlocked:true,
   coreAuthority:'staff/workspace permission',
   databaseChanges:0,
   workerChanges:0
