@@ -6,50 +6,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  normalize-world-tree-once:
-    if: github.event_name == 'pull_request' && github.head_ref == 'fix/market-logo-upload-20260823' && github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-      - name: Restore World Tree formatting and keep only v15.5 delta
-        shell: python
-        run: |
-          from pathlib import Path
-          import subprocess
-
-          base='03b7abfd4238c490c38aff59e49fe43ee77aac31'
-          text=subprocess.check_output(['git','show',f'{base}:doing-world-tree-current.json'],text=True)
-          replacements=[
-            ('"version": "v15.4"','"version": "v15.5"'),
-            ('"updatedAt": "2026-08-22 20:36"','"updatedAt": "2026-08-23 10:06"'),
-            ('"summary": "依 2BL 的使用者操作骨架補齊 Market 前後台路徑；DOING 會員登入、Core／API、Supabase 與權限仍維持 DOING 正式機制。"','"summary": "Market 前後台維持 2BL 操作骨架；一般報名者 LINE OAuth 已鎖定 mode-only 角色路由並固定回原 Market 前台，DOING Core／API／Supabase 與主辦權限仍維持正式 SSOT。"'),
-            ('"summary": "使用同一會員身分進入報名與後續紀錄。"','"summary": "一般報名者使用 DOING LINE member 身分承接報名與紀錄；登入完成固定回原 Market 前台，tenant 不得改變角色。"'),
-            ('                {"id": "front-member-profile", "title": "首次／資料不完整", "summary": "補齊姓名、手機、品牌與至少一項可查看的社群／官網連結。", "status": "verify"}\n              ]',
-             '                {"id": "front-member-profile", "title": "首次／資料不完整", "summary": "補齊姓名、手機、品牌與至少一項可查看的社群／官網連結。", "status": "verify"},\n                {"id": "front-member-oauth-return", "title": "LINE 登入固定回原 Market 前台", "summary": "一般報名者固定 mode=member；tenant 僅為上下文，不具授權效果。Core Callback 只依 mode 決定角色，member 必須回原 return_url；正式 fallback 為 https://doing.2b-love.com/；member_token 不等於 admin_token。", "status": "done"}\n              ]')
-          ]
-          for old,new in replacements:
-              if text.count(old)!=1:
-                  raise SystemExit(f'Unexpected World Tree source count {text.count(old)} for: {old[:100]}')
-              text=text.replace(old,new)
-          Path('doing-world-tree-current.json').write_text(text,encoding='utf-8')
-      - name: Commit minimal World Tree diff if changed
-        run: |
-          if git diff --quiet -- doing-world-tree-current.json; then
-            echo "World Tree already normalized."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add doing-world-tree-current.json
-          git commit -m "docs: normalize Market auth World Tree v15.5"
-          git push origin HEAD:${{ github.head_ref }}
-
   validate:
     runs-on: ubuntu-latest
     steps:
