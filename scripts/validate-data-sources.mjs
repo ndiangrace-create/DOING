@@ -28,7 +28,10 @@ for(const name of refs)if(!tableNames.has(name))fail('Worker 引用未經正式�
 const allowed=new Set(catalog.browserStorage.allowedKeys||[]);
 // UI-only ephemeral state is intentionally NOT business data and may only live in sessionStorage.
 // Keep this list tiny and page-scoped so it cannot become a back door for formal records.
-const sessionUiOnly=new Map([['doing_market_page',new Set(['market-center.html'])]]);
+const sessionUiOnly=new Map([
+  ['doing_market_page',new Set(['market-center.html'])],
+  ['doing_market_session_tab',new Set(['market-session.html'])]
+]);
 const canonicalPages=['doing-2.html','register.html','member-panel.html','workspace.html','smart-application.html','market-center.html','market-public.html','market-session.html','booking-2-center.html','project-center.html','guide-center.html','world-tree.html'];
 for(const page of canonicalPages){
   if(!fs.existsSync(root+'/'+page))fail('正式 canonical source 遺失：'+page);
