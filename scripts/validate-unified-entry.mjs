@@ -23,7 +23,8 @@ for(const token of ['data-account-entry="apply"','data-account-entry="login"','h
 assert.equal((memberGate.match(/\/auth\/line\/start/g)||[]).length,1,'/me/ 只能有一個 LINE 登入啟動點');
 for(const token of ["loginUrl.searchParams.set('mode','member')","new URL('/me/',location.origin)","localStorage.setItem(TOKEN_KEY,incoming)",'重新使用 LINE 登入'])assert.ok(memberGate.includes(token),`/me/ 登入契約缺少：${token}`);
 assert.ok(!memberGate.includes('/workspace/'),'登入完成不得由登入 gate 自動跳工作空間');
-for(const forbidden of ['directMemberPanelHandoff',"mode','platform",'member.html','operations-center.html','about.html#apply'])assert.ok(!globalEntry.includes(forbidden),`統一入口仍殘留舊自動分流：${forbidden}`);
+for(const forbidden of ['directMemberPanelHandoff',"mode','platform","location.href='member.html'","location.replace('member.html'","location.href='operations-center.html'","location.href='about.html#apply'"])assert.ok(!globalEntry.includes(forbidden),`統一入口仍殘留舊自動分流：${forbidden}`);
+assert.ok(globalEntry.includes('a[href*="member.html"]'),'相容層應攔截舊 member 連結並改寫，而不是重新發布舊頁');
 for(const token of ['進入工作空間','createMemberWorkspaceAdminSession',"new URL('/workspace/',location.origin)","location.replace('/me/#operations')",'adminGoogleBtn','adminLineBtn'])assert.ok(globalEntry.includes(token),`統一入口契約缺少：${token}`);
 assert.ok(globalEntry.includes("clearMemberToken();location.replace('/')"),'登出必須清除 member token 並回首頁');
 for(const token of ["market:'/market/'","booking:'/booking/'","project:'/project/'"])assert.ok(router.includes(token),`工作模組路由缺少：${token}`);
@@ -44,4 +45,4 @@ for(const token of ['getOperationUnitsAdmin','getBookingCalendarAdmin','saveAvai
 assert.ok(!builtBooking.includes('operations-center.html'),'正式 /booking/ 不得回舊營運頁');
 for(const line of ['/member.html /me/ 302','/admin.html /workspace/ 302','/about.html /apply/ 302','/booking-center.html /booking/ 302'])assert.ok(redirects.includes(line),`缺少舊網址相容轉址：${line}`);
 
-console.log(JSON.stringify({result:'PASS',publicAccountEntries:['申請 DOING','登入'],loginLanding:'/me/',memberHub:'/me/',workspace:'/workspace/',loginCount:1,automaticWorkspaceBounce:false,duplicateWorkspaceButtons:false,legacyRootPages:0,uatRootPages:0,legacyRedirects:true,bookingCapabilitiesPreserved:true,productionWrites:0},null,2));
+console.log(JSON.stringify({result:'PASS',publicAccountEntries:['申請 DOING','登入'],loginLanding:'/me/',memberHub:'/me/',workspace:'/workspace/',loginCount:1,automaticWorkspaceBounce:false,duplicateWorkspaceButtons:false,legacyRootPages:0,uatRootPages:0,legacyRedirects:true,legacySelectors:'intercept-only',bookingCapabilitiesPreserved:true,productionWrites:0},null,2));
