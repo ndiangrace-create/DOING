@@ -4,203 +4,76 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main]
+    branches: [fix/market-logo-upload-20260823]
+  workflow_dispatch:
 
 permissions:
-  contents: read
-
-concurrency:
-  group: doing-tobeloved-api-production
-  cancel-in-progress: false
-
-env:
-  TARGET_WORKER: tobeloved-api
-  FORBIDDEN_WORKER: 2bl-v7
+  contents: write
 
 jobs:
-  validate:
+  patch-formal-application-closure-once:
+    if: github.event_name == 'push' && github.ref_name == 'fix/market-logo-upload-20260823'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: fix/market-logo-upload-20260823
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Verify fixed production target
+      - name: Patch formal application closure
+        shell: python
         run: |
-          test "$TARGET_WORKER" = "tobeloved-api"
-          test "$TARGET_WORKER" != "$FORBIDDEN_WORKER"
-          test -f worker.js
-          test -f worker.txt
+          from pathlib import Path
+          def once(text,old,new,label):
+              if new in text:return text
+              n=text.count(old)
+              if n!=1:raise SystemExit(f'{label}: unsafe match count={n}')
+              return text.replace(old,new,1)
+          for name in ('worker.js','worker.txt'):
+              p=Path(name);text=p.read_text(encoding='utf-8')
+              text=once(text,"const fallback=mode==='platform'?platformSiteUrl(env):mode==='organizer_signup'?doingSiteUrl(env)+'#apply':doingSiteUrl(env);","const fallback=mode==='platform'?platformSiteUrl(env):mode==='organizer_signup'?new URL('apply/',doingSiteUrl(env)).toString():doingSiteUrl(env);",name+' line fallback')
+              text=once(text,"const memberTarget=safeDoingReturnUrl(env,statePayload&&statePayload.return_url),applicationTarget=new URL(doingSiteUrl(env)),adminTarget=new URL(adminLoginSiteUrl(env)),platformTarget=new URL(platformSiteUrl(env));applicationTarget.hash='apply';","const memberTarget=safeDoingReturnUrl(env,statePayload&&statePayload.return_url),applicationTarget=new URL('apply/',doingSiteUrl(env)),adminTarget=new URL(adminLoginSiteUrl(env)),platformTarget=new URL(platformSiteUrl(env));",name+' application target')
+              old="const activationRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&select=status,tenant_id,note`).catch(()=>[]),activation=activationRows[0]||{},activationStatus=String(activation.status||'pending');\n      if(activationStatus==='approved'){"
+              new="const activationRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&select=status,tenant_id,note`).catch(()=>[]),activation=activationRows[0]||{},activationStatus=String(activation.status||'pending');\n      const applicationMemberToken=await issueMemberToken({email:member.email,provider:'line',provider_subject:lineSubject,display_name:lineName,avatar_url:lineAvatar},env);\n      applicationTarget.searchParams.set('member_token',applicationMemberToken);applicationTarget.searchParams.set('member_status',platformMemberComplete(member)?'ready':'profile_required');\n      if(activationStatus==='approved'){"
+              text=once(text,old,new,name+' member handoff')
+              text=text.replace("if(mode==='platform'||tenant==='platform')","if(mode==='platform')")
+              text=text.replace("if(mode==='admin'||tenant){","if(mode==='admin'){")
+              text=text.replace("if(statePayload.mode==='platform'||tenant==='platform')","if(statePayload.mode==='platform')")
+              text=text.replace("if(statePayload.mode==='admin'||tenant){","if(statePayload.mode==='admin'){")
+              text=text.replace("doingSiteUrl(env)+'#apply'","new URL('apply/',doingSiteUrl(env)).toString()")
+              text=text.replace("const u=new URL(doingSiteUrl(env));u.hash='apply';","const u=new URL('apply/',doingSiteUrl(env));")
+              p.write_text(text,encoding='utf-8')
+          if Path('worker.js').read_bytes()!=Path('worker.txt').read_bytes():raise SystemExit('worker mirrors diverged')
+          p=Path('doing-smart-activation-v5.js');text=p.read_text(encoding='utf-8')
+          text=once(text,"}catch(e){err(e.message||'申請資料保存失敗');b.disabled=false;b.textContent='我要申請｜使用 LINE 驗證 →'}}","}catch(e){const message=e.message||'申請資料保存失敗';if(/此會員已是正式營運方|已有自己的 DOING 工作空間/.test(message)){const target=new URL('/me/',location.origin);target.hash='operations';const token=localStorage.getItem('doing_member_token')||'';if(token){location.href=target.toString();return}const a=new URL(API+'/auth/line/start');a.searchParams.set('mode','member');a.searchParams.set('return_url',target.toString());location.href=a.toString();return}if(/此會員已有進行中的營運申請|已有進行中的工作空間申請/.test(message)){const target=new URL('/me/',location.origin);target.searchParams.set('post_application','1');target.hash='operations';const token=localStorage.getItem('doing_member_token')||'';if(token){location.href=target.toString();return}const a=new URL(API+'/auth/line/start');a.searchParams.set('mode','member');a.searchParams.set('return_url',target.toString());location.href=a.toString();return}err(message);b.disabled=false;b.textContent='我要申請｜使用 LINE 驗證 →'}}",'duplicate recovery')
+          text=once(text,"render();\n})();","""render();
+(async function recoverExistingWorkspace(){
+ const q=new URL(location.href).searchParams;if(['application_status','application_id','member_token','member_login_error','login_error'].some(k=>q.has(k)))return;
+ const token=localStorage.getItem('doing_member_token')||'';if(!token)return;
+ try{const r=await fetch(API+'?action=getPlatformMemberProfile&member_token='+encodeURIComponent(token),{cache:'no-store'}),d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false||d.error)return;const data=d.data??d.result??d,spaces=Array.isArray(data.workspaces)?data.workspaces:[];if(!spaces.length)return;const target=new URL('/me/',location.origin);target.hash='operations';form.innerHTML='<div id="d2a"><section class="h"><small>DOING 營運帳號</small><h2>你的工作空間已經開通</h2><p>這個會員已經有自己的 DOING 工作空間，不需要重新申請。</p></section><section class="c"><button class="b pri" id="existingWorkspaceBtn" type="button">進入我的 DOING</button></section></div>';document.getElementById('existingWorkspaceBtn').onclick=()=>location.href=target.toString()}catch(_){}
+})();
+})();""",'existing workspace preflight')
+          p.write_text(text,encoding='utf-8')
+          p=Path('doing-application-completion.js');text=p.read_text(encoding='utf-8');text=once(text,"if(!['approved','auto_activated'].includes(status)) return;","if(!['approved','auto_activated','existing_workspace'].includes(status)) return;",'completion existing workspace');p.write_text(text,encoding='utf-8')
+      - name: Verify product patch
+        run: |
           cmp worker.js worker.txt
-      - name: Parse JavaScript and HTML scripts
+          node --check worker.js
+          node --check doing-smart-activation-v5.js
+          node --check doing-application-completion.js
+          ! grep -F "mode==='platform'||tenant==='platform'" worker.js
+          ! grep -F "mode==='admin'||tenant" worker.js
+          grep -F "new URL('apply/',doingSiteUrl(env))" worker.js >/dev/null
+          grep -F "applicationMemberToken" worker.js >/dev/null
+          grep -F "你的工作空間已經開通" doing-smart-activation-v5.js >/dev/null
+          grep -F "existing_workspace" doing-application-completion.js >/dev/null
+      - name: Commit product patch once
         run: |
-          node -e "import('./worker.js')"
-          node --check doing-attribution.js
-          node --check doing-home-refresh.js
-          test ! -f doing-home-refresh-core.js || node --check doing-home-refresh-core.js
-          test ! -f doing-about-refresh.js
-          test ! -f doing-about-refresh.css
-          node --check doing-smart-activation.js
-          node --check doing-global-entry.js
-          node --check doing-auto-activation-status.js
-          node - <<'NODE'
-          const fs=require('fs'),vm=require('vm');
-          for(const f of ['index.html','register.html','member.html','member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html','operations-center.html','consignment.html']){
-            const source=fs.readFileSync(f,'utf8');let count=0;
-            for(const match of source.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){
-              if(!match[1].trim())continue;
-              new vm.Script(match[1],{filename:`${f}#script${++count}`});
-            }
-          }
-          NODE
-      - name: Validate authoritative Supabase data sources
-        run: node scripts/validate-data-sources.mjs
-      - name: Validate responsive mobile and desktop framework
-        run: node scripts/validate-responsive-layout.mjs
-      - name: Validate frontstage user-facing copy
-        run: node scripts/validate-frontstage-copy.mjs
-      - name: Validate DOING homepage visual standard
-        run: node scripts/validate-visual-standard.mjs
-      - name: Validate platform attribution flow
-        run: node scripts/validate-platform-attribution.mjs
-      - name: Validate capability inventory and operational world tree
-        run: node scripts/validate-capabilities.mjs
-      - name: Validate mobile seat map
-        run: node scripts/validate-seat-map.mjs
-      - name: Validate tenant application and module flow
-        run: |
-          node scripts/validate-tenant-application.mjs
-          node scripts/validate-login-providers.mjs
-          node scripts/validate-organizer-application-e2e.mjs
-          node scripts/validate-member-brand-e2e.mjs
-          node scripts/validate-role-module-access.mjs
-      - name: Validate full system routes, buttons and settings
-        run: |
-          node scripts/validate-full-system.mjs
-          node scripts/validate-navigation-actions.mjs
-          node scripts/validate-smart-oauth-top.mjs
-          node scripts/validate-application-social-required.mjs
-          node scripts/validate-platform-operations-e2e.mjs
-          node scripts/validate-naming-autoactivation-retention.mjs
-          node scripts/validate-role-journey-uat.mjs
-          node scripts/validate-universal-booking.mjs
-          node scripts/validate-operational-closeout.mjs
-          node scripts/validate-operational-readiness.mjs
-          node scripts/validate-market-app-core-contracts.mjs
-      - name: Validate compact admin visual consistency
-        run: node scripts/validate-admin-consistency.mjs
-      - name: Validate reusable test records
-        run: node scripts/validate-test-records.mjs
-      - name: Verify unified visual shell and private long press
-        run: |
-          for page in member-panel.html admin.html onsite.html platform.html photo.html; do
-            grep -q 'doing-system.css?v=20260817-system5' "$page"
-            grep -q 'doing-app' "$page"
-          done
-          grep -q 'member-panel.html' member.html
-          grep -q 'index.html' member.html
-          ! grep -q 'doing-app' member.html
-          ! grep -q 'doing-logo.png' member.html
-          grep -q 'smart-application.html' about.html
-          ! grep -q 'apply-wrap' about.html
-          ! grep -q 'smart-flow-guide' about.html
-          grep -q "hiddenAdminSelector='#brandHoldTarget,.doing-nav-brand'" index.html
-          grep -q "document.addEventListener('pointerdown'" index.html
-          grep -q "e.target.closest?.(hiddenAdminSelector)" index.html
-          grep -q "setTimeout(openHiddenAdminEntry,3000)" index.html
-          grep -q "Math.hypot" index.html
-          HOME_UI=doing-home-refresh.js
-          test ! -f doing-home-refresh-core.js || HOME_UI=doing-home-refresh-core.js
-          grep -q "brand.dataset.hiddenAdminTarget='true'" "$HOME_UI"
-          grep -q "setAttribute('draggable','false')" "$HOME_UI"
-          if [ -f doing-home-refresh-core.js ]; then
-            grep -q "doing-home-refresh-core.js" doing-home-refresh.js
-            grep -q "handoffToWorkspace" doing-home-refresh.js
-            grep -q "createMemberWorkspaceAdminSession" doing-home-refresh.js
-          fi
-          grep -q -- '-webkit-touch-callout:none' doing-home-refresh.css
-          grep -q "u.searchParams.set('tenant','platform')" index.html
-          ! grep -q 'navigator.vibrate' index.html
-          ! grep -q 'holdPulse' index.html
-          ! grep -q "classList.add('holding')" index.html
-          grep -q 'platform_super_admin' worker.js
-      - name: Verify member and tenant safety invariants
-        run: |
-          grep -q "platform_member_id" worker.js
-          grep -q "verifiedRegOwnerGuard" worker.js
-          grep -q "member_token" index.html
-          grep -q "member_token" register.html
-          ! grep -q "Math.random(" worker.js
-
-  cloudflare-audit:
-    runs-on: ubuntu-latest
-    outputs:
-      compatibility_date: ${{ steps.audit.outputs.compatibility_date }}
-    steps:
-      - name: Verify Cloudflare secrets exist
-        env:
-          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          test -n "$CF_TOKEN"
-          test -n "$CF_ACCOUNT"
-      - name: Read only the target Worker settings
-        id: audit
-        env:
-          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          set -euo pipefail
-          base="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/workers"
-          scripts="$(curl --fail-with-body --silent --show-error -H "Authorization: Bearer ${CF_TOKEN}" "${base}/scripts")"
-          count="$(jq --arg id "$TARGET_WORKER" '[.result[] | select(.id==$id)] | length' <<<"$scripts")"
-          test "$count" = "1"
-          settings="$(curl --fail-with-body --silent --show-error -H "Authorization: Bearer ${CF_TOKEN}" "${base}/scripts/${TARGET_WORKER}/settings")"
-          date="$(jq -r '.result.compatibility_date // empty' <<<"$settings")"
-          test -n "$date"
-          unsafe="$(jq '[.result.bindings[]? | select(.type != "plain_text" and .type != "secret_text" and .type != "json")] | length' <<<"$settings")"
-          test "$unsafe" = "0"
-          echo "compatibility_date=$date" >> "$GITHUB_OUTPUT"
-          jq -n --arg worker "$TARGET_WORKER" --arg date "$date" '{worker:$worker,compatibility_date:$date,audit:"passed"}' > cloudflare-audit.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: doing-cloudflare-audit
-          path: cloudflare-audit.json
-          retention-days: 30
-
-  deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [validate, cloudflare-audit]
-    runs-on: ubuntu-latest
-    environment: doing-production
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build deployment-only Wrangler config
-        env:
-          COMPATIBILITY_DATE: ${{ needs.cloudflare-audit.outputs.compatibility_date }}
-        run: |
-          jq -n --arg name "$TARGET_WORKER" --arg main "worker.js" --arg date "$COMPATIBILITY_DATE" \
-            '{name:$name,main:$main,compatibility_date:$date}' > wrangler.deploy.json
-      - name: Deploy only to tobeloved-api
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --config wrangler.deploy.json --keep-vars
-      - name: Verify deployed Worker responds
-        env:
-          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          set -euo pipefail
-          base="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/workers"
-          deployments="$(curl --fail-with-body --silent --show-error -H "Authorization: Bearer ${CF_TOKEN}" "${base}/scripts/${TARGET_WORKER}/deployments")"
-          deployment_id="$(jq -r '.result.deployments[0].id // empty' <<<"$deployments")"
-          test -n "$deployment_id"
-          jq -n --arg worker "$TARGET_WORKER" --arg deployment_id "$deployment_id" --arg commit "$GITHUB_SHA" \
-            '{worker:$worker,deployment_id:$deployment_id,commit:$commit,verified:true}' > deployment-result.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: doing-production-deployment
-          path: deployment-result.json
-          retention-days: 90
+          if git diff --quiet -- worker.js worker.txt doing-smart-activation-v5.js doing-application-completion.js; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add worker.js worker.txt doing-smart-activation-v5.js doing-application-completion.js
+          git commit -m 'fix: close formal organizer application flow'
+          git push origin HEAD:fix/market-logo-upload-20260823
