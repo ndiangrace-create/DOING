@@ -1,0 +1,116 @@
+name: DOING v15.8 SSOT Finalize Once
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/ssot-finalize-v158.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.head_ref == 'fix/application-single-page-20260823' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Update World Tree, ChangeLog and test checkpoint
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+
+          world_path=Path('doing-world-tree-current.json')
+          world=json.loads(world_path.read_text(encoding='utf-8'))
+          world['version']='v15.8'
+          world['updatedAt']='2026-08-23 23:18'
+          world['current']={
+            'title':'DOING 2.0｜營運申請單頁完成＋既有工作空間復原',
+            'summary':'正式 /apply/ 改為單頁完成：工作類型、使用方式、基本資料與單一 LINE 驗證送出都在同一頁。LINE 回跳後先讀同一會員的正式工作空間／申請狀態；已有工作空間直接進 /me/#operations，已有進行中申請直接回既有狀態，不再重複呼叫建立申請；只有真正的新申請才進 createOrganizerApplicationDraft 與既有 Supabase auto-activation。Market、DOING Core 權限與 2BL 均未重做。'
+          }
+          def find_node(node, node_id):
+            if isinstance(node, dict):
+              if node.get('id')==node_id: return node
+              for child in node.get('children',[]):
+                found=find_node(child,node_id)
+                if found:return found
+            return None
+          apply=None
+          for root in world.get('branches',[]):
+            apply=find_node(root,'apply')
+            if apply:break
+          if not apply: raise SystemExit('apply node missing')
+          apply['summary']='申請 DOING 2.0 工作系統；正式流程已改成一頁填完＋LINE 驗證＋自動開通，並先復原既有工作空間／進行中申請，避免重複建立。'
+          children=apply.setdefault('children',[])
+          byid={x.get('id'):x for x in children}
+          if 'apply-flow' in byid:
+            byid['apply-flow']['summary']='同一頁完成工作類型、實際使用方式、營運單位、姓名、電話、Email、地區與公開網址，再以單一 LINE 驗證送出。'
+            byid['apply-flow']['status']='done'
+          if 'apply-auto' in byid:
+            byid['apply-auto']['summary']='LINE 回跳後先以同一 member_token 讀會員正式狀態：已有工作空間直接進 /me/#operations；已有進行中申請回既有狀態；只有新申請才建立 tenant_apply_logs 並由既有 trigger 自動開通。'
+            byid['apply-auto']['status']='done'
+          if 'apply-single-page' not in byid:
+            insert_at=next((i+1 for i,x in enumerate(children) if x.get('id')=='apply-auto'),len(children))
+            children.insert(insert_at,{
+              'id':'apply-single-page','title':'單頁申請＋防重複復原','summary':'正式申請不再有上一步／下一步；桌機與手機皆為單頁。真實失敗回歸鎖定：LINE 回來後若已存在 workspace，createOrganizerApplicationDraft 呼叫數必須為 0，直接回我的 DOING。','status':'done'
+            })
+          change={
+            'time':'2026-08-23 23:18','title':'正式申請改單頁＋既有營運空間不再誤報錯','summary':'依 23:00 真實申請失敗紀錄，資料庫其實正確阻擋同會員建立第二個工作空間；本次不放寬 DB 安全鎖，而是在 LINE 回跳後先讀會員正式 workspace／application 狀態。已有 workspace 直接回 /me/#operations、pending 直接回既有申請，新會員才建立申請並沿用 auto-activation。/apply/ 同步改成單頁且縮小按鈕。'
+          }
+          changes=world.setdefault('changes',[])
+          if not any(x.get('title')==change['title'] for x in changes): changes.insert(0,change)
+          world_path.write_text(json.dumps(world,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+
+          log_path=Path('DOING_2.0_CHANGELOG.md')
+          log=log_path.read_text(encoding='utf-8')
+          heading='## 2026-08-23｜v15.8 正式申請單頁＋既有營運空間復原'
+          if heading not in log:
+            log += f'''\n\n{heading}\n\n- 使用者於正式 `/apply/` 完成 LINE 回跳後看到「申請尚未完成／系統發生異常」；正式 `error_logs` 於 2026-08-23 23:00:18（Asia/Taipei）記錄到真正原因為資料庫 23505 防重複規則：同一會員已經有自己的 DOING 工作空間，不允許建立第二個工作空間。\n- 資料庫保護本身正確，因此本次沒有移除 constraint、沒有新增資料表、沒有放寬一會員一工作空間規則。\n- `/apply/` 改為單頁：工作類型＋實際使用方式＋基本資料＋公開網址＋單一「LINE 驗證並開通」按鈕；移除上一步／下一步，縮小產品卡片與 CTA，桌機／手機皆不破框。\n- LINE 回 `/apply/` 後先 `savePlatformMemberProfile`，再以同一 `member_token` 讀 `getPlatformMemberProfile`；若已有 workspace，直接進 `/me/#operations`，不再呼叫 `createOrganizerApplicationDraft`。\n- 若已有進行中申請，同樣直接回既有申請狀態；只有真正沒有 workspace／pending application 的會員才建立正式申請，並沿用既有 `tenant_apply_logs`＋Supabase trigger auto-activation。\n- Chromium E2E：桌機 1440×1000、手機 390×844 單頁流程 PASS；另重現本次真實失敗情境並鎖定 `drafts=0`（已有 workspace 時不可再建申請）PASS。\n- DOING 2.0 Site #309 PASS、Market #302 PASS、Auth Role #82 PASS；Safe Production 在 checkpoint 更新前所有產品／資料／權限檢查 PASS，Cloudflare audit PASS，deploy SKIPPED。\n- 新增資料表 0、Schema 變更 0、Worker 變更 0、productionWrites=0；2BL／`2bl-v7` 未修改。\n'''
+            log_path.write_text(log,encoding='utf-8')
+
+          rec_path=Path('doing-test-records.json')
+          rec=json.loads(rec_path.read_text(encoding='utf-8'))
+          rec['recordedAt']='2026-08-23T23:18:00+08:00'
+          rec['environment']='DOING 正式營運申請 v15.8 已改為單頁完成。/apply/ 同頁選工作類型／使用方式並填基本資料，以 LINE mode=member 驗證；LINE 回跳後先寫回同一會員主檔並讀 getPlatformMemberProfile。已有 workspace 直接回 /me/#operations、已有 pending application 回既有狀態，兩者都不得再呼叫 createOrganizerApplicationDraft；只有真正新會員才建立申請並沿用既有 Supabase auto-activation。資料庫一會員一工作空間防重複規則維持，未放寬 constraint。Market member/admin 權限分離、LOGO 長按安全入口、worker.js／worker.txt 與 2BL 邊界均保持。新表 0、Schema 變更 0、Worker 變更 0、productionWrites=0；尚未部署本批。'
+          scopes={
+            'formal-application-closure':'/apply/ 單頁＋LINE mode=member＋savePlatformMemberProfile＋getPlatformMemberProfile preflight；existing workspace／pending application 在 createOrganizerApplicationDraft 前復原；新申請才 auto-activation；無 admin/platform 權限提升；productionWrites=0',
+            'formal-application-closure-browser':'Chromium 桌機 1440×1000＋手機 390×844：單頁只有一個 LINE 驗證並開通按鈕、無上一步／下一步；新申請各只建立一次；真實失敗重現：LINE 回來後查到 existing workspace 時 drafts=0 並直接 /me/#operations；artifact sha256:2bb38a7f0afdb35ac719b64e8d74f04f8eb8d7a033ea9e6b190b2c8223264032；productionWrites=0',
+            'application-login-flow':'/apply/ 單頁 → LINE member → existing workspace/pending preflight → 新申請才 auto-activation → /me/ → /workspace/ → /market/；無重複登入／首頁 bounce',
+            'fixed-product-application':'四大工作類型與 Market 子類維持；申請改成同一頁完成，單一 compact CTA，客服不作 gate，公開網址規則保留',
+            'world-tree-mindmap':'doing-world-tree-current.json v15.8：申請單頁、防重複 workspace/pending 復原與既有 Market 路徑仍使用同一份世界樹 SSOT'
+          }
+          for test in rec.get('tests',[]):
+            if test.get('id') in scopes: test['scope']=scopes[test['id']]
+          rec['sourceFingerprint']=''
+          rec_path.write_text(json.dumps(rec,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+
+          Path('.github/workflows/ssot-finalize-v158.yml').unlink()
+      - name: Compute final source fingerprint
+        run: |
+          FP="$(node scripts/validate-test-records.mjs --fingerprint)"
+          python - "$FP" <<'PY'
+          import json,sys
+          from pathlib import Path
+          p=Path('doing-test-records.json');d=json.loads(p.read_text(encoding='utf-8'));d['sourceFingerprint']=sys.argv[1].strip();p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+          echo "sourceFingerprint=$FP"
+      - name: Validate finalized records
+        run: |
+          node scripts/validate-formal-application-closure.mjs
+          node scripts/validate-application-login-flow.mjs
+          node scripts/validate-fixed-product-application.mjs
+          node scripts/validate-test-records.mjs
+      - name: Commit finalized SSOT
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "docs: finalize v15.8 application single-page checkpoint"
+          git push origin HEAD:${{ github.head_ref }}
