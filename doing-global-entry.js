@@ -9,7 +9,8 @@ function tenantOf(el){return String(el?.dataset?.workspaceAdmin||el?.dataset?.wo
 function isMemberHub(){return /\/me\/?$/.test(path)||/member-panel\.html$/i.test(path)}
 function isWorkspace(){return /\/workspace\/?$/.test(path)||/workspace\.html$/i.test(path)}
 function isRegister(){return /\/register\/?$/.test(path)||/register\.html$/i.test(path)}
-if(isWorkspace()){
+function isProtectedProduct(){return /^\/(?:market(?:\/session)?|booking|project|guide)\/?$/.test(path)}
+if(isWorkspace()||isProtectedProduct()){
   const q=new URL(location.href).searchParams,tenant=String(q.get('tenant')||'').trim(),adminToken=String(q.get('admin_token')||q.get('token')||'').trim();
   if(!tenant||!adminToken){location.replace('/me/#operations');return}
 }
