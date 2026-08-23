@@ -6,25 +6,43 @@ on:
       - '.github/workflows/verify-unified-entry-production.yml'
 permissions:
   contents: read
-  actions: read
 jobs:
-  diagnose:
+  deploy-pages-direct:
     runs-on: ubuntu-latest
+    environment: doing-production
     steps:
-      - name: Show failed main Pages job
-        env:
-          GH_TOKEN: ${{ github.token }}
-          MAIN_SHA: 15dad25b52ae8b57c809ac3cacf59f893f577455
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build exact main site
+        run: |
+          node scripts/build-doing-2-site.mjs
+          node scripts/postprocess-market-v19.mjs
+          grep -q 'getOperationUnitsAdmin' .doing-2-site/booking/index.html
+          grep -q 'd2HomeLogin' .doing-2-site/doing-2-home-v11.js
+      - name: Deploy Pages directly
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy .doing-2-site --project-name doing-2 --branch main --commit-dirty=true
+      - name: Verify live site
         shell: bash
         run: |
           set -euo pipefail
-          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${MAIN_SHA}&event=push&per_page=20"
-          runs="$(curl -fsS -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' "$api")"
-          run_id="$(jq -r '[.workflow_runs[]|select(.name=="DOING 2.0 Site")][0].id // empty' <<<"$runs")"
-          echo "site_run_id=$run_id"
-          test -n "$run_id"
-          jobs="$(curl -fsS -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")"
-          jq -r '.jobs[] | "JOB\t"+.name+"\t"+(.conclusion//""), (.steps[]? | "STEP\t"+.name+"\t"+(.conclusion//""))' <<<"$jobs"
-          failed_job="$(jq -r '[.jobs[]|select(.conclusion=="failure")][0].id // empty' <<<"$jobs")"
-          test -n "$failed_job"
-          echo "failed_job_id=$failed_job"
+          base='https://doing.2b-love.com'; core='https://tobeloved-api.ndiangrace.workers.dev'
+          ok=0
+          for i in $(seq 1 40); do
+            booking="$(curl -fsSL -H 'Cache-Control: no-cache' "$base/booking/?verify=$i" || true)"
+            home="$(curl -fsSL -H 'Cache-Control: no-cache' "$base/doing-2-home-v11.js?verify=$i" || true)"
+            member="$(curl -fsSL -H 'Cache-Control: no-cache' "$base/doing-member-return-direct.js?verify=$i" || true)"
+            if grep -q 'getOperationUnitsAdmin' <<<"$booking" && grep -q 'd2HomeLogin' <<<"$home" && grep -q '重新使用 LINE 登入' <<<"$member"; then ok=1; break; fi
+            sleep 5
+          done
+          test "$ok" = 1
+          for path in / /apply/ /me/ /workspace/ /booking/ /market/public/; do test "$(curl -sS -o /dev/null -w '%{http_code}' "$base$path")" = 200; done
+          test "$(curl -sS -o /tmp/core.txt -w '%{http_code}' "$core/?action=publicDiscovery")" = 200
+          echo 'DOING production PASS'
