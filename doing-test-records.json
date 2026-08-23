@@ -1,14 +1,15 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-23T09:56:00+08:00",
-  "sourceFingerprint": "a84e2c1b3997ef9fb0df7a26301f286995bdd88b914a5b03de0f8b925849c45f",
-  "environment": "DOING Market 已正式鎖定兩條不同登入／授權契約。前台 /market/public/ 為一般報名者／會員：DOING LINE 登入以原頁為 return_url，成功後 member_token 寫入 doing_member_token 並留在原本 Market 前台，不跳 DOING 首頁、不自動跳 /me/、不取得 admin_token。主辦後台 /market/ 為已申請／核准之主辦單位：一般 member token 不可直接操作後台；主辦需經 /apply/ 申請、正式 workspace／staff 權限，再由 createMemberWorkspaceAdminSession 驗證 staff 關聯並簽發 admin_token。2BL 僅作為 Market 互動骨架；Identity、Core、Supabase SSOT、權限與正式資料仍為 DOING。本批新增主辦後台前台 Logo 圖片上傳、預覽與 URL 回存，沿用既有 uploadCover／saveSiteConfig；並新增 Market 報名者登入短效來源回跳保護：即使 LINE Callback 誤落 DOING 根首頁，也只把一般 member_token 帶回原 Market 前台，主辦／工作空間登入會先清除該暫存標記。未新增資料表、未修改 Worker、未寫正式營運資料。",
+  "recordedAt": "2026-08-23T10:05:00+08:00",
+  "sourceFingerprint": "4481b4d5313061c8cf630824dc6f427808907eac471ba51c15b889edf86d55ab",
+  "environment": "DOING Market 已正式鎖定兩條不同登入／授權契約。前台 /market/public/ 為一般報名者／會員：DOING LINE 只使用 mode=member，原頁 return_url 原樣簽入 OAuth state；Core Callback 只依 mode 決定角色，tenant 僅為上下文，不能把 member 提升成 admin/platform。正式 DOING 站點預設固定 https://doing.2b-love.com/，不再 fallback 到舊 GitHub Pages。成功後 member_token 寫入 doing_member_token 並留在原本 Market 前台，不取得 admin_token。主辦後台 /market/ 為已申請／核准之主辦單位：需經 /apply/、workspace／staff 權限，再由 createMemberWorkspaceAdminSession 驗證並簽發 admin_token。原本 Market 短效同來源回跳保護保留，但只作 defense-in-depth，不是正常主流程。本批另含主辦後台前台 Logo 圖片上傳、預覽與 URL 回存，沿用既有 uploadCover／saveSiteConfig。worker.js／worker.txt 已同步修改 Core 三個根因點；未新增資料表、未修改 2BL／2bl-v7、未寫正式營運資料。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
   "tests": [
-    {"id":"market-auth-role-separation","command":"node scripts/validate-market-auth-role-separation.mjs","result":"PASS","scope":"前台一般報名者 LINE 登入回原 Market 前台；member_token 不可作 admin token；主辦必須經申請／核准／workspace／staff 權限後才能交換 admin_token；Market 暫存回跳限同來源與短效"},
-    {"id":"market-member-login-return-browser","command":"E2E_GITHUB_BASE=http://127.0.0.1:4174 node scripts/e2e-market-member-login-return.mjs","result":"PASS","scope":"Chromium 桌機 1440×1000＋手機 390×844：Market 公開入口 → 模擬 LINE Callback 錯落 DOING 根頁 → 自動回原 Market 前台；member_token 保存、暫存回跳清除、不得進 workspace／admin；productionWrites=0"},
+    {"id":"market-auth-role-separation","command":"node scripts/validate-market-auth-role-separation.mjs","result":"PASS","scope":"Core 主流程以 mode 為唯一角色路由依據；tenant 只作上下文；member_token 不可作 admin_token；正式站點 fallback 固定 doing.2b-love.com；第二層 Market 暫存回跳限同來源與短效"},
+    {"id":"market-member-oauth-primary-return","command":"node scripts/validate-market-member-oauth-primary-return.mjs","result":"PASS","scope":"直接呼叫 Worker：LINE start → 簽 state → 模擬 callback；tenant=demo 與 tenant=platform 均不能改變 mode=member；精確回 /market/public/；rescueFallbackRequired=false；productionWrites=0"},
+    {"id":"market-member-login-return-browser","command":"E2E_GITHUB_BASE=http://127.0.0.1:4174 node scripts/e2e-market-member-login-return.mjs","result":"PASS","scope":"Defense-in-depth Chromium 桌機 1440×1000＋手機 390×844：若外部流程誤落 DOING 根頁，安全回原 Market 前台；member_token 保存、暫存回跳清除、不得進 workspace／admin；productionWrites=0"},
     {"id":"market-public-interaction-v20","command":"E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-public-interaction-v20.mjs","result":"PASS","scope":"Chromium：分類原頁 filter、活動卡→單一 Panel→正式 /register/、會員→原頁會員資料／我的報名、客服→原頁客服 Panel"},
     {"id":"market-role-browser-v18","command":"E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-role-ui-v18.mjs","result":"PASS","scope":"Chromium：Market 前台／後台／單場工作台既有操作、審核、付款、報到、設定寫入回歸"},
     {"id":"market-logo-upload-browser","command":"E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-logo-upload.mjs","result":"PASS","scope":"Chromium 桌機 1440×1000＋手機 390×844：選取 PNG → uploadCover → 正式 URL 預覽 → saveSiteConfig → 重新讀回；productionWrites=0"},
@@ -32,8 +33,8 @@
     {"id":"full-system","command":"node scripts/validate-full-system.mjs","result":"PASS","scope":"正式功能頁、前端 API 動作與後台按鈕函式回歸"},
     {"id":"navigation-actions","command":"node scripts/validate-navigation-actions.mjs","result":"PASS","scope":"平台、租戶、申請、會員與工作入口導航回歸"},
     {"id":"operational-closeout","command":"node scripts/validate-operational-closeout.mjs","result":"PASS","scope":"付款、退款、押金、設備、財務與結案能力保持"},
-    {"id":"market-app-core-contracts","command":"node scripts/validate-market-app-core-contracts.mjs","result":"PASS","scope":"Market App Core 的 LINE／QR／Push 正式契約未受前台互動修正影響"},
+    {"id":"market-app-core-contracts","command":"node scripts/validate-market-app-core-contracts.mjs","result":"PASS","scope":"Market App Core 的 LINE／QR／Push 正式契約未受 Web member 路由修正影響"},
     {"id":"admin-consistency","command":"node scripts/validate-admin-consistency.mjs","result":"PASS","scope":"後台按鈕、排版與結算邏輯回歸"},
-    {"id":"worker-sync","command":"cmp -s worker.js worker.txt","result":"PASS","scope":"DOING Worker 雙檔未變更且同步；2bl-v7 未修改"}
+    {"id":"worker-sync","command":"cmp -s worker.js worker.txt","result":"PASS","scope":"DOING Worker 雙檔已同步套用 member mode-only 路由與正式站點 fallback；2bl-v7 未修改"}
   ]
 }
