@@ -26,7 +26,7 @@ assert.ok(!pub.includes("createMemberWorkspaceAdminSession"),'一般報名者前
 assert.ok(!pub.includes("admin_token"),'一般報名者前台不得依賴主辦 admin_token');
 
 // GitHub Pages／公開短路徑若因 OAuth fallback 誤落 DOING 根頁，必須用短效標記送回 Market 前台。
-for(const token of ['doing_market_member_return','market/public/','member_token','member_login_error'])assert.ok(publicRoute.includes(token),`Market 公開入口缺少登入回跳保護：${token}`);
+for(const token of ['doing_market_member_return','../../market-public.html','member_token','member_login_error'])assert.ok(publicRoute.includes(token),`Market 公開入口缺少登入回跳保護：${token}`);
 for(const token of ['doing_market_member_return','handoffToPendingMarket','clearMarketMemberReturn','MARKET_RETURN_MAX_AGE'])assert.ok(home.includes(token),`DOING 根頁缺少 Market member 回跳保護：${token}`);
 assert.ok(home.includes("target.origin!==location.origin"),'Market 回跳必須限制同來源，禁止開放式轉址');
 assert.ok(home.includes("startMyDoingLineLogin(){clearMarketMemberReturn()")&&home.includes("startRegistrationsLineLogin(){clearMarketMemberReturn()"),'DOING 自己的會員／工作空間登入必須先清除 Market 暫存回跳，避免誤導流');
