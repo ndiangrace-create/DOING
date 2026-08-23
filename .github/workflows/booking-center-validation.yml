@@ -2,10 +2,14 @@ name: Booking Center Validation
 on:
   pull_request:
     paths:
-      - 'booking-center.html'
+      - 'legacy-pages/booking-center.html'
+      - 'booking-2-center.html'
+      - 'doing-workspace-product-router.js'
+      - 'doing-global-entry.js'
+      - 'scripts/build-doing-2-site.mjs'
+      - 'scripts/postprocess-market-v19.mjs'
       - 'scripts/validate-booking-center.mjs'
       - '.github/workflows/booking-center-validation.yml'
-      - 'DOING_BOOKING_MODULE_RELEASE_READY_20260821.md'
   workflow_dispatch:
 permissions:
   contents: read
@@ -18,13 +22,19 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-      - name: Validate booking center
+          node-version: '24'
+      - name: Build canonical DOING site
+        run: |
+          node scripts/build-doing-2-site.mjs
+          node scripts/postprocess-market-v19.mjs
+      - name: Validate canonical booking center
         run: node scripts/validate-booking-center.mjs
       - name: Repository safety checks
         shell: bash
         run: |
           set -euo pipefail
           git diff --check ${{ github.event.pull_request.base.sha || 'HEAD^' }}...HEAD
-          ! grep -R "DOING-Market-App\|doingmarket://\|2bl-v7" booking-center.html scripts/validate-booking-center.mjs
-          test -s booking-center.html
+          test ! -f booking-center.html
+          test -s legacy-pages/booking-center.html
+          test -s .doing-2-site/booking/index.html
+          ! grep -R "DOING-Market-App\|doingmarket://\|2bl-v7" .doing-2-site/booking/index.html scripts/validate-booking-center.mjs
