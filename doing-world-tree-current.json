@@ -1,9 +1,9 @@
 {
-  "version": "v15.5",
-  "updatedAt": "2026-08-23 10:06",
+  "version": "v15.6",
+  "updatedAt": "2026-08-23 13:32",
   "current": {
     "title": "Market｜市集操作路徑完成版",
-    "summary": "Market 前後台維持 2BL 操作骨架；一般報名者 LINE OAuth 已鎖定 mode-only 角色路由並固定回原 Market 前台，DOING Core／API／Supabase 與主辦權限仍維持正式 SSOT。"
+    "summary": "Market 前後台維持 2BL 操作骨架；一般報名者 LINE OAuth 固定回原 Market 前台；前台 LOGO 長按 3 秒新增隱藏主辦入口，但仍必須通過 DOING LINE 身分與正式 tenant／staff 權限交換後才能進後台。DOING Core／API／Supabase 維持正式 SSOT。"
   },
   "branches": [
     {
@@ -107,11 +107,12 @@
             {
               "id": "admin-entry",
               "title": "後台入口",
-              "summary": "主辦由 DOING 工作空間進入 Market；沿用 DOING 正式登入與權限，不搬 2BL 的登入技術。",
+              "summary": "主辦可由 DOING 工作空間或 Market 前台 LOGO 長按 3 秒進入；兩條入口都沿用 DOING LINE 與正式 tenant／staff 權限，手勢本身不授權。",
               "status": "done",
               "children": [
                 {"id": "admin-entry-workspace", "title": "從工作空間進入 Market", "summary": "主辦登入 DOING 後，從工作空間進入 Market。", "status": "done"},
-                {"id": "admin-entry-role", "title": "確認主辦權限", "summary": "依 DOING 正式角色與租戶權限決定可操作範圍。", "status": "done"}
+                {"id": "admin-entry-role", "title": "確認主辦權限", "summary": "依 DOING 正式角色與租戶權限決定可操作範圍。", "status": "done"},
+                {"id": "admin-entry-logo-hold", "title": "前台 LOGO 長按 3 秒安全進後台", "summary": "桌機／手機長按前台左上 LOGO 3 秒只發起 DOING LINE member 身分驗證；回來後由 createMemberWorkspaceAdminSession 驗證指定 tenant 的 active staff／owner 與 active tenant，locked tenant 仍拒絕；成功才簽發 admin_token 進 /market/。", "status": "done"}
               ]
             },
             {

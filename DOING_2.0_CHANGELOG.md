@@ -120,3 +120,12 @@
 - 原有 Market 短效同來源回跳只保留為 defense-in-depth，不作正常主流程。
 - `worker.js`／`worker.txt` 同步；新增資料表 0、正式營運資料寫入 0、2BL／`2bl-v7` 未修改。
 
+## 2026-08-23｜v15.6 Market 前台 LOGO 長按 3 秒安全主辦入口
+
+- 前台左上 LOGO 長按 3 秒新增隱藏主辦入口；一般點擊維持前台首頁行為。
+- 長按只發起 DOING LINE `mode=member` 身分驗證，不直接取得或假設主辦權限。
+- LINE 回跳後必須呼叫 `createMemberWorkspaceAdminSession`，由 Core 依同一會員身分、指定 tenant、active staff／owner、active tenant 交換正式 `admin_token`。
+- 一般會員、停用 staff、非 active tenant 一律拒絕；tenant `locked=true` 時前台入口也拒絕進後台。
+- Chromium 桌機 1440×1000／手機 390×844 實際長按 3 秒 PASS；成功、一般會員拒絕、locked tenant 拒絕均 PASS。
+- 新增資料表 0、Schema 變更 0、正式營運資料寫入 0、2BL／`2bl-v7` 未修改。
+
