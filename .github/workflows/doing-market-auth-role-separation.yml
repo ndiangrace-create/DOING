@@ -6,9 +6,44 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  wire-market-admin-entry-once:
+    if: github.event_name == 'pull_request' && github.head_ref == 'fix/market-logo-upload-20260823' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Add secure Market logo admin entry script once
+        shell: python
+        run: |
+          from pathlib import Path
+          path=Path('market-public.html')
+          text=path.read_text(encoding='utf-8')
+          old="<script>'use strict';const API="
+          new="<script src=\"/doing-market-admin-entry.js?v=20260823-secure\"></script><script>'use strict';const API="
+          if new in text:
+              pass
+          elif text.count(old)==1:
+              text=text.replace(old,new,1)
+              path.write_text(text,encoding='utf-8')
+          else:
+              raise SystemExit(f'Unsafe market-public patch state: {text.count(old)}')
+      - name: Commit wiring if changed
+        run: |
+          if git diff --quiet -- market-public.html; then
+            echo "Market admin entry already wired."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add market-public.html
+          git commit -m "feat: wire secure Market logo admin entry"
+          git push origin HEAD:${{ github.head_ref }}
+
   validate:
     runs-on: ubuntu-latest
     steps:
