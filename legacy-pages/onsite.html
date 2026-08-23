@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DOING｜現場工作台</title>
+<style>
+:root{--ink:#17313A;--muted:#5D747C;--line:#D9E7EA;--main:#169DA3;--bg:#F4F8FA;--ok:#238B67;--bad:#C85C50}
+*{box-sizing:border-box}html,body{margin:0;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Noto Sans TC","Segoe UI",sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden}
+button,input{font:inherit}button{min-height:46px;border:0;border-radius:14px;padding:10px 14px;font-weight:900;background:var(--main);color:#fff}button.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}button.danger{background:var(--bad)}
+.login{min-height:100vh;display:grid;place-items:center;padding:16px}.loginbox{width:min(440px,100%);background:#fff;border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:0 18px 50px rgba(23,49,58,.12)}.loginbox h1{margin:0 0 6px;font-size:25px}.sub{color:var(--muted)}.field{display:grid;gap:6px;margin-top:13px}.field label{font-weight:900}.field input{width:100%;min-height:48px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:17px}.hidden{display:none!important}.doing-home-brand{display:flex;align-items:center;gap:9px;color:inherit;text-decoration:none;margin-bottom:10px}.doing-home-brand img{width:46px;height:46px;object-fit:contain}.doing-home-brand span{display:grid}.doing-home-brand small{color:var(--muted)}
+header{position:sticky;top:0;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);z-index:5}.head{max-width:980px;margin:auto;padding:10px 12px;display:flex;justify-content:space-between;gap:10px;align-items:center}main{max-width:980px;margin:auto;padding:12px 12px 100px}.hero,.summary,.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 24px rgba(23,49,58,.06)}.hero{padding:14px}.hero h2{margin:0;font-size:22px}.workbar{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px}.workbar input{min-width:0;border:1px solid var(--line);border-radius:14px;padding:11px;font-size:17px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:9px;margin:10px 0}.sum{padding:9px;border-radius:13px;background:#F6FAFB}.sum span{display:block;color:var(--muted)}.sum b{font-size:22px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px}.card{padding:13px}.card h3{margin:0;font-size:19px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.meta div{background:#F7FAFB;border-radius:12px;padding:8px;word-break:break-word}.meta small{display:block;color:var(--muted)}.actions{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:10px}.empty{padding:24px;text-align:center;background:#fff;border:1px dashed var(--line);border-radius:16px;color:var(--muted)}.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:grid;place-items:center;padding:14px;z-index:20}.modalbox{width:min(430px,100%);background:#fff;border-radius:20px;padding:16px}.checks{display:grid;gap:9px;margin:12px 0}.checks label{font-size:17px}.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#17313A;color:#fff;padding:10px 14px;border-radius:999px;display:none;z-index:30}@media(max-width:600px){.grid{grid-template-columns:1fr}.head{align-items:flex-start}.workbar{grid-template-columns:1fr}.actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+<style id="doing-accessible-type-system">
+/* DOING 全系統老花友善字級基準
+   正文/控制項 17-18px；小字最低 16px；手機不縮字，只改版面。 */
+html{font-size:18px!important;-webkit-text-size-adjust:100%!important}
+body{font-size:18px!important;line-height:1.7!important}
+button,input,select,textarea{font:inherit!important;font-size:17px!important;line-height:1.45!important}
+button,.btn,[role="button"]{min-height:44px!important;padding-top:10px!important;padding-bottom:10px!important}
+input,select,textarea{min-height:46px!important;padding:10px 12px!important}
+label{font-size:17px!important;line-height:1.5!important}
+small,.small,.sub,.muted,.hint,.help,.desc,.eyebrow,.meta,.note{
+  font-size:16px!important;
+  line-height:1.55!important;
+}
+h1{font-size:clamp(36px,4vw,58px)!important;line-height:1.16!important}
+h2{font-size:clamp(28px,2.5vw,38px)!important;line-height:1.22!important}
+h3{font-size:22px!important;line-height:1.3!important}
+h4{font-size:19px!important;line-height:1.35!important}
+table,th,td{font-size:17px!important;line-height:1.5!important}
+a{font-size:inherit}
+::placeholder{font-size:16px!important;opacity:.78!important}
+@media(max-width:760px){
+  html,body{font-size:17px!important}
+  button,input,select,textarea,label{font-size:17px!important}
+  small,.small,.sub,.muted,.hint,.help,.desc,.eyebrow,.meta,.note{font-size:16px!important}
+}
+</style>
+
+
+<style id="doing-global-polish-20260813">
+*{box-sizing:border-box!important}
+html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+body{margin:0!important;background:#F7F9FA!important;color:#1F2933!important}
+img,svg,video,canvas{max-width:100%!important;height:auto}
+main,section,header,footer,nav,div{min-width:0}
+:root{
+  --doing-ink:#1F2933;
+  --doing-muted:#687581;
+  --doing-line:#DFE6E8;
+  --doing-paper:#FFFFFF;
+  --doing-wash:#F7F9FA;
+  --doing-teal:#2F8F8B;
+  --doing-teal-dark:#216C69;
+  --doing-sand:#F4EEE4;
+  --doing-blue:#6F91B3;
+  --doing-purple:#9B8AB7;
+}
+body,button,input,select,textarea{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif!important}
+body{font-size:18px!important;line-height:1.72!important}
+p,li,td,th{font-size:18px!important;line-height:1.72!important}
+label,button,.btn,input,select,textarea{font-size:17px!important}
+small,.small,.sub,.muted,.hint,.help,.desc,.meta,.note{font-size:16px!important;line-height:1.58!important}
+button,.btn,[role="button"],a.button{min-height:46px!important;border-radius:12px!important}
+input,select,textarea{min-height:48px!important;border-radius:12px!important}
+a{color:inherit}
+@media(max-width:760px){
+  body,p,li,td,th{font-size:17px!important}
+  label,button,.btn,input,select,textarea{font-size:17px!important}
+  small,.small,.sub,.muted,.hint,.help,.desc,.meta,.note{font-size:16px!important}
+}
+</style>
+
+
+<style id="doing-responsive-overflow-fix">
+html,body{overflow-x:hidden!important}
+main,.wrap,.shell,.container,.app{max-width:100%!important}
+table{max-width:100%!important}
+.table-wrap{max-width:100%!important;overflow-x:auto!important}
+</style>
+
+<link rel="stylesheet" href="doing-system.css?v=20260817-system5">
+<link rel="stylesheet" href="doing-design-tokens.css?v=20260816a">
+<link rel="stylesheet" href="doing-pastel-pages.css?v=20260816a">
+</head>
+<body class="doing-app doing-onsite">
+<section id="login" class="login"><div class="loginbox"><a class="doing-home-brand" href="index.html" data-doing-admin-entry><img src="doing-logo.png" alt="DOING"><span><b>DOING</b><small>回到首頁</small></span></a><div class="actions"><a class="secondary" id="onsiteLoginReturn" href="member.html#operations">我的 DOING</a><a class="secondary" href="index.html">DOING 首頁</a></div><h1>DOING 現場工作台</h1><div class="sub">輸入場次通行碼後開始工作。</div><div class="field"><label>場次通行碼</label><input id="code" inputmode="numeric" maxlength="4" placeholder="4 位數字"></div><div class="field"><label>操作人員姓名</label><input id="operator" placeholder="請輸入真實姓名"></div><button style="width:100%;margin-top:14px" onclick="startWork()">開始工作</button><div id="loginErr" class="sub" style="margin-top:10px"></div></div></section>
+<section id="app" class="hidden"><header><div class="head"><a class="doing-home-brand" href="index.html" data-doing-admin-entry><img src="doing-logo.png" alt="DOING"><span><b>DOING｜現場工作台</b><small>回到首頁</small><small id="who" class="sub"></small></span></a><div class="actions"><a class="secondary" href="member.html#operations">我的 DOING</a><button class="secondary" onclick="returnFromOnsite()">結束並返回</button><button class="danger" onclick="endWork()">結束工作</button></div></div></header><main><section class="hero"><h2 id="sessionName">場次</h2><div class="sub">只顯示本場已繳費、今天應出席的名單。</div><div class="workbar"><input id="search" placeholder="搜尋品牌／姓名／電話" oninput="render()"><button class="secondary" onclick="loadRows()">重新整理</button></div></section><div id="summary" class="summary"></div><div id="list" class="grid"><div class="empty">載入中…</div></div></main></section>
+<div id="modal" class="modal hidden"><div class="modalbox"><h3 id="modalTitle">現場操作</h3><div id="modalBody"></div><div class="actions"><button onclick="submitModal()">儲存</button><button class="secondary" onclick="closeModal()">取消</button></div></div></div><div id="toast" class="toast"></div>
+<script>
+const API='https://tobeloved-api.ndiangrace.workers.dev',$=id=>document.getElementById(id);const ONSITE_QUERY=new URL(location.href).searchParams;const S={tenant:ONSITE_QUERY.get('tenant')||'',code:'',operator:'',sessionId:'',sessionName:'',shiftId:'',rows:[],modal:null,modules:{}};
+function onsiteReturnUrl(){return ONSITE_QUERY.get('from')==='admin'&&S.tenant?'admin.html?tenant='+encodeURIComponent(S.tenant):'member.html#operations'}
+function configureOnsiteReturn(){const link=$('onsiteLoginReturn');if(link)link.href=onsiteReturnUrl()}
+function money(n){return 'NT$'+Math.round(Number(n)||0).toLocaleString('zh-TW')}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+async function post(action,p={}){const body={action,tenant:S.tenant||undefined,passcode:S.code,code:S.code,operatorName:S.operator,...p};const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json();if(!r.ok||j.error)throw Error(j.error||'操作失敗');return j}
+async function get(action,p={}){const q=new URLSearchParams({action,tenant:S.tenant,passcode:S.code,email:'_',token:'_',...p});const r=await fetch(API+'?'+q);const j=await r.json();if(!r.ok||j.error)throw Error(j.error||'讀取失敗');return j}
+function toast(t){const x=$('toast');x.textContent=t;x.style.display='block';setTimeout(()=>x.style.display='none',2200)}
+async function startWork(){S.code=$('code').value.trim();S.operator=$('operator').value.trim();if(!/^\d{4}$/.test(S.code)){loginErr.textContent='請輸入 4 位數字通行碼';return}if(!S.operator){loginErr.textContent='請輸入操作人員姓名';return}try{const v=await post('onsitePasscodeVerify',{code:S.code});S.sessionId=v.sessionId;S.sessionName=v.sessionName;S.modules=v.modules||{};const sh=await post('onsiteShiftStart',{code:S.code,operatorName:S.operator});S.shiftId=sh.shiftId;$('sessionName').textContent=S.sessionName;$('who').textContent=S.operator+'｜開始 '+new Date(sh.startedAt).toLocaleString('zh-TW');$('login').classList.add('hidden');$('app').classList.remove('hidden');await loadRows()}catch(e){$('loginErr').textContent=e.message}}
+async function loadRows(){try{const r=await get('onsiteRegs',{sessionId:S.sessionId});S.rows=Array.isArray(r)?r:(r.rows||[]);render()}catch(e){$('list').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}}
+function render(){
+ const kw=$('search').value.trim().toLowerCase();let rows=S.rows.filter(r=>((r.brand||'')+(r.name||'')+(r.phone||'')).toLowerCase().includes(kw));const checked=S.rows.filter(r=>String(r.checkinStatus||'').includes('已報到')).length;
+ $('summary').innerHTML='<div class="sum"><span>應出席</span><b>'+S.rows.length+'</b></div><div class="sum"><span>已報到</span><b>'+checked+'</b></div><div class="sum"><span>未完成</span><b>'+(S.rows.length-checked)+'</b></div>';
+ const m=S.modules||{},showSeat=!!m.seatSelection,showEquip=!!m.equipment,showDeposit=String(m.depositKind||'none')==='refundable';
+ $('list').innerHTML=rows.length?rows.map(r=>{const meta=[];if(showSeat)meta.push('<div><small>位置</small>'+esc(r.stallNo||'—')+'</div>');if(showEquip)meta.push('<div><small>設備</small>'+esc(r.equipmentText||'設備自備')+'</div>');meta.push('<div><small>報到</small>'+esc(r.checkinStatus||'未報到')+'</div>');if(showDeposit)meta.push('<div><small>押金</small>'+money(r.deposit||0)+'｜'+esc(r.depositStatus||'未退押金')+'</div>');const acts=['<button onclick="mark(\''+r.id+'\',\'checkin\')">報到</button>','<button class="secondary" onclick="openAttendance(\''+r.id+'\',\'lateFlag\')">遲到</button>','<button class="secondary" onclick="openAttendance(\''+r.id+'\',\'noShow\')">未到</button>','<button class="secondary" onclick="mark(\''+r.id+'\',\'teardownDone\')">撤場</button>'];if(showDeposit){acts.push('<button class="secondary" onclick="mark(\''+r.id+'\',\'depositRefund\',\'退還實際押金\')">退押金</button>');acts.push('<button class="secondary" onclick="openDeduct(\''+r.id+'\')">扣押金</button>')}return '<article class="card"><h3>'+esc(r.brand||r.name)+'</h3><div class="sub">'+esc(r.name)+'｜'+esc(r.phone)+'</div><div class="meta">'+meta.join('')+'</div><div class="actions">'+acts.join('')+'</div></article>'}).join(''):'<div class="empty">沒有符合條件的名單</div>';
+}
+async function mark(id,mode,note=''){try{await post('onsiteMark',{regId:id,mode,note});toast('已更新');await loadRows()}catch(e){toast(e.message)}}
+function openAttendance(id,mode){S.modal={id,mode};$('modalTitle').textContent=mode==='lateFlag'?'標記遲到':'標記未到';$('modalBody').innerHTML=(mode==='lateFlag'?'<div class="field"><label>遲到幾分鐘</label><input id="m_minutes" type="number" min="1" value="10"></div>':'')+'<div class="checks"><label><input id="m_line" type="checkbox"> LINE 已通知</label><label><input id="m_phone" type="checkbox"> 電話已聯絡</label></div>';$('modal').classList.remove('hidden')}
+function openDeduct(id){S.modal={id,mode:'depositForfeited'};$('modalTitle').textContent='扣押金';$('modalBody').innerHTML='<div class="field"><label>原因</label><input id="m_reason"></div><div class="field"><label>扣除金額</label><input id="m_amount" type="number" min="1" value="0"></div>';$('modal').classList.remove('hidden')}
+function closeModal(){$('modal').classList.add('hidden');S.modal=null}
+async function submitModal(){const m=S.modal;if(!m)return;let payload={regId:m.id,mode:m.mode};if(m.mode==='lateFlag'||m.mode==='noShow'){const mins=Number($('m_minutes')?.value||0),line=!!$('m_line').checked,phone=!!$('m_phone').checked;payload.lateMinutes=mins;payload.lineNotified=line;payload.phoneContacted=phone;payload.note=(m.mode==='lateFlag'?'遲到 '+mins+' 分鐘':'未到')+(line?'｜LINE 已通知':'')+(phone?'｜電話已聯絡':'')}else{payload.deductReason=$('m_reason').value.trim();payload.deductAmount=Number($('m_amount').value||0);payload.note='扣押金 NT$'+payload.deductAmount+'｜原因：'+payload.deductReason}try{await post('onsiteMark',payload);closeModal();toast('已更新');await loadRows()}catch(e){toast(e.message)}}
+async function closeOnsiteShift(){if(!S.shiftId)return;await post('onsiteShiftEnd',{shiftId:S.shiftId,operatorName:S.operator});S.shiftId=''}
+async function returnFromOnsite(){if(S.shiftId&&!confirm('返回前會先結束本次工時，確定返回？'))return;try{await closeOnsiteShift();location.href=onsiteReturnUrl()}catch(e){toast(e.message)}}
+async function endWork(){if(!confirm('確定結束工作？'))return;try{await closeOnsiteShift();alert('工作已結束');location.reload()}catch(e){toast(e.message)}}
+configureOnsiteReturn();
+</script><script src="doing-global-entry.js?v=20260817a"></script></body></html>
