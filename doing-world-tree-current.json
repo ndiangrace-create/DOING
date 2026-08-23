@@ -25,24 +25,9 @@
               "summary": "從公開活動／搜尋找到可報名場次。",
               "status": "verify",
               "children": [
-                {
-                  "id": "front-discovery-home",
-                  "title": "首頁／活動列表／日曆",
-                  "summary": "先看可參加活動與日期。",
-                  "status": "verify"
-                },
-                {
-                  "id": "front-discovery-card",
-                  "title": "活動／場次卡",
-                  "summary": "查看主題、日期、地點與開放狀態。",
-                  "status": "verify"
-                },
-                {
-                  "id": "front-discovery-detail",
-                  "title": "場次詳情",
-                  "summary": "查看費用、設備、加購、合約與報名狀態。",
-                  "status": "verify"
-                }
+                {"id": "front-discovery-home", "title": "首頁／活動列表／日曆", "summary": "先看可參加活動與日期。", "status": "verify"},
+                {"id": "front-discovery-card", "title": "活動／場次卡", "summary": "查看主題、日期、地點與開放狀態。", "status": "verify"},
+                {"id": "front-discovery-detail", "title": "場次詳情", "summary": "查看費用、設備、加購、合約與報名狀態。", "status": "verify"}
               ]
             },
             {
@@ -51,24 +36,9 @@
               "summary": "一般報名者使用 DOING LINE member 身分承接報名與紀錄；登入完成固定回原 Market 前台，tenant 不得改變角色。",
               "status": "done",
               "children": [
-                {
-                  "id": "front-member-verify",
-                  "title": "會員驗證",
-                  "summary": "LINE／正式會員身分驗證後承接報名。",
-                  "status": "done"
-                },
-                {
-                  "id": "front-member-profile",
-                  "title": "首次／資料不完整",
-                  "summary": "補齊姓名、手機、品牌與至少一項可查看的社群／官網連結。",
-                  "status": "verify"
-                },
-                {
-                  "id": "front-member-oauth-return",
-                  "title": "LINE 登入固定回原 Market 前台",
-                  "summary": "一般報名者固定 mode=member；tenant 僅為上下文，不具授權效果。Core Callback 只依 mode 決定角色，member 必須回原 return_url；正式 fallback 為 https://doing.2b-love.com/；member_token 不等於 admin_token。",
-                  "status": "done"
-                }
+                {"id": "front-member-verify", "title": "會員驗證", "summary": "LINE／正式會員身分驗證後承接報名。", "status": "done"},
+                {"id": "front-member-profile", "title": "首次／資料不完整", "summary": "補齊姓名、手機、品牌與至少一項可查看的社群／官網連結。", "status": "verify"},
+                {"id": "front-member-oauth-return", "title": "LINE 登入固定回原 Market 前台", "summary": "一般報名者固定 mode=member；tenant 僅為上下文，不具授權效果。Core Callback 只依 mode 決定角色，member 必須回原 return_url；正式 fallback 為 https://doing.2b-love.com/；member_token 不等於 admin_token。", "status": "done"}
               ]
             },
             {
@@ -77,30 +47,10 @@
               "summary": "填寫報名資料、日期／攤位／設備／加購與必要同意。",
               "status": "verify",
               "children": [
-                {
-                  "id": "front-registration-form",
-                  "title": "報名表",
-                  "summary": "選參加日、攤位數、設備與加購。",
-                  "status": "verify"
-                },
-                {
-                  "id": "front-registration-contract",
-                  "title": "合約",
-                  "summary": "讀取正式合約並完成同意。",
-                  "status": "verify"
-                },
-                {
-                  "id": "front-registration-submit",
-                  "title": "送出",
-                  "summary": "由正式 Core 驗證規則與名額，再寫入正式資料。",
-                  "status": "verify"
-                },
-                {
-                  "id": "front-registration-result",
-                  "title": "我的報名",
-                  "summary": "送出後查看待審核、已錄取、備取或未錄取。",
-                  "status": "verify"
-                }
+                {"id": "front-registration-form", "title": "報名表", "summary": "選參加日、攤位數、設備與加購。", "status": "verify"},
+                {"id": "front-registration-contract", "title": "合約", "summary": "讀取正式合約並完成同意。", "status": "verify"},
+                {"id": "front-registration-submit", "title": "送出", "summary": "由正式 Core 驗證規則與名額，再寫入正式資料。", "status": "verify"},
+                {"id": "front-registration-result", "title": "我的報名", "summary": "送出後查看待審核、已錄取、備取或未錄取。", "status": "verify"}
               ]
             },
             {
@@ -109,24 +59,9 @@
               "summary": "錄取後顯示應繳，攤商付款／回報，主辦確認後成為已繳費。",
               "status": "done",
               "children": [
-                {
-                  "id": "front-payment-due",
-                  "title": "正式應繳",
-                  "summary": "顯示正式金額與收款資訊。",
-                  "status": "done"
-                },
-                {
-                  "id": "front-payment-report",
-                  "title": "付款回報",
-                  "summary": "攤商完成付款後回報。",
-                  "status": "done"
-                },
-                {
-                  "id": "front-payment-confirmed",
-                  "title": "主辦確認付款",
-                  "summary": "確認後更新正式付款狀態與收款紀錄。",
-                  "status": "done"
-                }
+                {"id": "front-payment-due", "title": "正式應繳", "summary": "顯示正式金額與收款資訊。", "status": "done"},
+                {"id": "front-payment-report", "title": "付款回報", "summary": "攤商完成付款後回報。", "status": "done"},
+                {"id": "front-payment-confirmed", "title": "主辦確認付款", "summary": "確認後更新正式付款狀態與收款紀錄。", "status": "done"}
               ]
             },
             {
@@ -135,18 +70,8 @@
               "summary": "已繳費後依場次規則進入編號、選位／排位與設備資訊。",
               "status": "verify",
               "children": [
-                {
-                  "id": "front-seat-display",
-                  "title": "正式排位資料",
-                  "summary": "付款確認後才顯示正式攤位／排位結果。",
-                  "status": "verify"
-                },
-                {
-                  "id": "front-seat-equipment",
-                  "title": "設備資訊",
-                  "summary": "同步顯示已登記設備與現場配置。",
-                  "status": "verify"
-                }
+                {"id": "front-seat-display", "title": "正式排位資料", "summary": "付款確認後才顯示正式攤位／排位結果。", "status": "verify"},
+                {"id": "front-seat-equipment", "title": "設備資訊", "summary": "同步顯示已登記設備與現場配置。", "status": "verify"}
               ]
             },
             {
@@ -155,24 +80,9 @@
               "summary": "活動日查看行前資訊、QR／報到、現場狀態與撤場相關操作。",
               "status": "verify",
               "children": [
-                {
-                  "id": "front-onsite-prep",
-                  "title": "行前通知／大群組",
-                  "summary": "已繳費後顯示行前資訊與主辦提供的社群加入資訊。",
-                  "status": "verify"
-                },
-                {
-                  "id": "front-onsite-checkin",
-                  "title": "活動當日報到",
-                  "summary": "姓名／品牌搜尋與 QR 報到走正式現場資料。",
-                  "status": "verify"
-                },
-                {
-                  "id": "front-onsite-close",
-                  "title": "撤場／押金",
-                  "summary": "撤場、押金與必要現場狀態需同步正式紀錄。",
-                  "status": "verify"
-                }
+                {"id": "front-onsite-prep", "title": "行前通知／大群組", "summary": "已繳費後顯示行前資訊與主辦提供的社群加入資訊。", "status": "verify"},
+                {"id": "front-onsite-checkin", "title": "活動當日報到", "summary": "姓名／品牌搜尋與 QR 報到走正式現場資料。", "status": "verify"},
+                {"id": "front-onsite-close", "title": "撤場／押金", "summary": "撤場、押金與必要現場狀態需同步正式紀錄。", "status": "verify"}
               ]
             },
             {
@@ -181,24 +91,9 @@
               "summary": "活動完成後仍可在我的紀錄查看報名、付款、退款、場次與歷史結果。",
               "status": "todo",
               "children": [
-                {
-                  "id": "front-history-past",
-                  "title": "過往活動",
-                  "summary": "活動結束後保留可查詢的歷史紀錄。",
-                  "status": "todo"
-                },
-                {
-                  "id": "front-history-refund",
-                  "title": "退款／轉場／活動金",
-                  "summary": "取消、不可抗力、轉場或活動金處理後仍保留正式結果。",
-                  "status": "verify"
-                },
-                {
-                  "id": "front-history-release",
-                  "title": "取消未繳費",
-                  "summary": "取消未繳費時需釋放正式名額／位置，不只改畫面。",
-                  "status": "verify"
-                }
+                {"id": "front-history-past", "title": "過往活動", "summary": "活動結束後保留可查詢的歷史紀錄。", "status": "todo"},
+                {"id": "front-history-refund", "title": "退款／轉場／活動金", "summary": "取消、不可抗力、轉場或活動金處理後仍保留正式結果。", "status": "verify"},
+                {"id": "front-history-release", "title": "取消未繳費", "summary": "取消未繳費時需釋放正式名額／位置，不只改畫面。", "status": "verify"}
               ]
             }
           ]
@@ -215,18 +110,8 @@
               "summary": "主辦由 DOING 工作空間進入 Market；沿用 DOING 正式登入與權限，不搬 2BL 的登入技術。",
               "status": "done",
               "children": [
-                {
-                  "id": "admin-entry-workspace",
-                  "title": "從工作空間進入 Market",
-                  "summary": "主辦登入 DOING 後，從工作空間進入 Market。",
-                  "status": "done"
-                },
-                {
-                  "id": "admin-entry-role",
-                  "title": "確認主辦權限",
-                  "summary": "依 DOING 正式角色與租戶權限決定可操作範圍。",
-                  "status": "done"
-                }
+                {"id": "admin-entry-workspace", "title": "從工作空間進入 Market", "summary": "主辦登入 DOING 後，從工作空間進入 Market。", "status": "done"},
+                {"id": "admin-entry-role", "title": "確認主辦權限", "summary": "依 DOING 正式角色與租戶權限決定可操作範圍。", "status": "done"}
               ]
             },
             {
@@ -235,18 +120,8 @@
               "summary": "先看全部市集場次、日期與目前狀態，再進入指定場次工作。",
               "status": "verify",
               "children": [
-                {
-                  "id": "admin-overview-list",
-                  "title": "全部場次",
-                  "summary": "查看進行中、即將開始與已結束場次。",
-                  "status": "verify"
-                },
-                {
-                  "id": "admin-overview-open",
-                  "title": "進入單場工作",
-                  "summary": "選定場次後進入該場設定、待辦、名單與後續處理。",
-                  "status": "verify"
-                }
+                {"id": "admin-overview-list", "title": "全部場次", "summary": "查看進行中、即將開始與已結束場次。", "status": "verify"},
+                {"id": "admin-overview-open", "title": "進入單場工作", "summary": "選定場次後進入該場設定、待辦、名單與後續處理。", "status": "verify"}
               ]
             },
             {
@@ -255,30 +130,10 @@
               "summary": "建立／設定活動場次、日期、報名條件、費用、設備與現場規則。",
               "status": "verify",
               "children": [
-                {
-                  "id": "admin-session-base",
-                  "title": "場次基本資料",
-                  "summary": "主題、日期、時段與名額。",
-                  "status": "verify"
-                },
-                {
-                  "id": "admin-session-fee",
-                  "title": "費用與設備",
-                  "summary": "攤位費、押金、設備與加購。",
-                  "status": "verify"
-                },
-                {
-                  "id": "admin-session-rule",
-                  "title": "報名規則",
-                  "summary": "設定是否審核、報名開放與截止。",
-                  "status": "verify"
-                },
-                {
-                  "id": "admin-session-wave",
-                  "title": "報名排程／分波錄取",
-                  "summary": "開始、截止與錄取日等排程需依正式規則呈現。",
-                  "status": "verify"
-                }
+                {"id": "admin-session-base", "title": "場次基本資料", "summary": "主題、日期、時段與名額。", "status": "verify"},
+                {"id": "admin-session-fee", "title": "費用與設備", "summary": "攤位費、押金、設備與加購。", "status": "verify"},
+                {"id": "admin-session-rule", "title": "報名規則", "summary": "設定是否審核、報名開放與截止。", "status": "verify"},
+                {"id": "admin-session-wave", "title": "報名排程／分波錄取", "summary": "開始、截止與錄取日等排程需依正式規則呈現。", "status": "verify"}
               ]
             },
             {
@@ -287,18 +142,8 @@
               "summary": "集中顯示需要主辦處理的審核、付款、補件、現場與結案事項。",
               "status": "progress",
               "children": [
-                {
-                  "id": "admin-todo-overview",
-                  "title": "全部待辦",
-                  "summary": "跨場次集中看需要處理的項目。",
-                  "status": "progress"
-                },
-                {
-                  "id": "admin-todo-session",
-                  "title": "單場待辦",
-                  "summary": "進入指定場次後只看該場要處理的工作。",
-                  "status": "progress"
-                }
+                {"id": "admin-todo-overview", "title": "全部待辦", "summary": "跨場次集中看需要處理的項目。", "status": "progress"},
+                {"id": "admin-todo-session", "title": "單場待辦", "summary": "進入指定場次後只看該場要處理的工作。", "status": "progress"}
               ]
             },
             {
@@ -307,18 +152,8 @@
               "summary": "主辦審核報名並處理錄取、候補、未錄取等狀態。",
               "status": "done",
               "children": [
-                {
-                  "id": "admin-review-pending",
-                  "title": "待審核",
-                  "summary": "查看待審核報名。",
-                  "status": "done"
-                },
-                {
-                  "id": "admin-review-result",
-                  "title": "錄取／備取／未錄取",
-                  "summary": "決定結果後同步會員端正式狀態。",
-                  "status": "done"
-                }
+                {"id": "admin-review-pending", "title": "待審核", "summary": "查看待審核報名。", "status": "done"},
+                {"id": "admin-review-result", "title": "錄取／備取／未錄取", "summary": "決定結果後同步會員端正式狀態。", "status": "done"}
               ]
             },
             {
@@ -327,24 +162,9 @@
               "summary": "查看應繳／回報並確認付款，確認後同步會員端狀態。",
               "status": "done",
               "children": [
-                {
-                  "id": "admin-payment-pending",
-                  "title": "付款待確認",
-                  "summary": "查看已回報但尚未確認的付款。",
-                  "status": "done"
-                },
-                {
-                  "id": "admin-payment-confirm",
-                  "title": "確認付款",
-                  "summary": "確認正式收款並留下紀錄。",
-                  "status": "done"
-                },
-                {
-                  "id": "admin-payment-paid",
-                  "title": "已繳費／行前",
-                  "summary": "付款完成後進入排位與行前準備。",
-                  "status": "verify"
-                }
+                {"id": "admin-payment-pending", "title": "付款待確認", "summary": "查看已回報但尚未確認的付款。", "status": "done"},
+                {"id": "admin-payment-confirm", "title": "確認付款", "summary": "確認正式收款並留下紀錄。", "status": "done"},
+                {"id": "admin-payment-paid", "title": "已繳費／行前", "summary": "付款完成後進入排位與行前準備。", "status": "verify"}
               ]
             },
             {
@@ -353,18 +173,8 @@
               "summary": "依正式場次資料管理排位、設備與現場配置，不由前端自行推算。",
               "status": "verify",
               "children": [
-                {
-                  "id": "admin-seat-order",
-                  "title": "排位",
-                  "summary": "依正式規則安排攤位與連號範圍。",
-                  "status": "verify"
-                },
-                {
-                  "id": "admin-seat-equipment",
-                  "title": "設備／配置",
-                  "summary": "同步設備、加購與現場配置。",
-                  "status": "verify"
-                }
+                {"id": "admin-seat-order", "title": "排位", "summary": "依正式規則安排攤位與連號範圍。", "status": "verify"},
+                {"id": "admin-seat-equipment", "title": "設備／配置", "summary": "同步設備、加購與現場配置。", "status": "verify"}
               ]
             },
             {
@@ -373,24 +183,9 @@
               "summary": "取消／退款走正式交易與紀錄，並同步會員紀錄與財務。",
               "status": "verify",
               "children": [
-                {
-                  "id": "admin-refund-cancel",
-                  "title": "取消／退款",
-                  "summary": "依正式交易流程處理取消與退款。",
-                  "status": "verify"
-                },
-                {
-                  "id": "admin-refund-event-credit",
-                  "title": "轉場／活動金",
-                  "summary": "轉場與活動金需走正式可追溯紀錄。",
-                  "status": "verify"
-                },
-                {
-                  "id": "admin-refund-force",
-                  "title": "不可抗力",
-                  "summary": "不可抗力情境依正式規則處理，不直接覆蓋付款資料。",
-                  "status": "verify"
-                }
+                {"id": "admin-refund-cancel", "title": "取消／退款", "summary": "依正式交易流程處理取消與退款。", "status": "verify"},
+                {"id": "admin-refund-event-credit", "title": "轉場／活動金", "summary": "轉場與活動金需走正式可追溯紀錄。", "status": "verify"},
+                {"id": "admin-refund-force", "title": "不可抗力", "summary": "不可抗力情境依正式規則處理，不直接覆蓋付款資料。", "status": "verify"}
               ]
             },
             {
@@ -399,24 +194,9 @@
               "summary": "場次完成後彙整收入、退款、設備／支出與結案資料。",
               "status": "verify",
               "children": [
-                {
-                  "id": "admin-finance-income",
-                  "title": "收入／退款",
-                  "summary": "彙整正式收入與退款。",
-                  "status": "verify"
-                },
-                {
-                  "id": "admin-finance-cost",
-                  "title": "支出／設備",
-                  "summary": "整理設備、場地與其他正式支出。",
-                  "status": "verify"
-                },
-                {
-                  "id": "admin-finance-settle",
-                  "title": "結算／分潤",
-                  "summary": "場次結束後依正式規則完成結算並保留紀錄。",
-                  "status": "verify"
-                }
+                {"id": "admin-finance-income", "title": "收入／退款", "summary": "彙整正式收入與退款。", "status": "verify"},
+                {"id": "admin-finance-cost", "title": "支出／設備", "summary": "整理設備、場地與其他正式支出。", "status": "verify"},
+                {"id": "admin-finance-settle", "title": "結算／分潤", "summary": "場次結束後依正式規則完成結算並保留紀錄。", "status": "verify"}
               ]
             },
             {
@@ -425,30 +205,10 @@
               "summary": "2BL 圖中的系統設定、管理工具、錯誤紀錄與會員管理，收在同一工作區，不另拆新後台。",
               "status": "verify",
               "children": [
-                {
-                  "id": "admin-support-settings",
-                  "title": "設定",
-                  "summary": "管理員、通知模板、收款與合約等設定。",
-                  "status": "verify"
-                },
-                {
-                  "id": "admin-support-audit",
-                  "title": "錯誤／稽核紀錄",
-                  "summary": "保留錯誤與操作稽核紀錄供追查。",
-                  "status": "done"
-                },
-                {
-                  "id": "admin-support-tools",
-                  "title": "營運工具",
-                  "summary": "AI 文案、規劃與其他營運工具屬輔助能力。",
-                  "status": "verify"
-                },
-                {
-                  "id": "admin-support-members",
-                  "title": "會員管理",
-                  "summary": "搜尋會員、協助修改並保留異動紀錄。",
-                  "status": "verify"
-                }
+                {"id": "admin-support-settings", "title": "設定", "summary": "管理員、通知模板、收款與合約等設定。", "status": "verify"},
+                {"id": "admin-support-audit", "title": "錯誤／稽核紀錄", "summary": "保留錯誤與操作稽核紀錄供追查。", "status": "done"},
+                {"id": "admin-support-tools", "title": "營運工具", "summary": "AI 文案、規劃與其他營運工具屬輔助能力。", "status": "verify"},
+                {"id": "admin-support-members", "title": "會員管理", "summary": "搜尋會員、協助修改並保留異動紀錄。", "status": "verify"}
               ]
             }
           ]
@@ -460,690 +220,148 @@
           "status": "done",
           "children": [
             {
-              "id": "loop-action",
-              "title": "按鈕／操作",
-              "summary": "使用者或主辦在前台、後台、現場執行操作。",
-              "status": "done",
+              "id": "loop-action", "title": "按鈕／操作", "summary": "使用者或主辦在前台、後台、現場執行操作。", "status": "done",
               "children": [
-                {
-                  "id": "loop-action-public",
-                  "title": "公開／會員操作",
-                  "summary": "探索、報名、付款、查看紀錄。",
-                  "status": "done"
-                },
-                {
-                  "id": "loop-action-admin",
-                  "title": "主辦操作",
-                  "summary": "審核、付款確認、排位、退款與結案。",
-                  "status": "done"
-                },
-                {
-                  "id": "loop-action-onsite",
-                  "title": "現場操作",
-                  "summary": "搜尋、QR、報到、撤場與現場狀態。",
-                  "status": "done"
-                }
+                {"id": "loop-action-public", "title": "公開／會員操作", "summary": "探索、報名、付款、查看紀錄。", "status": "done"},
+                {"id": "loop-action-admin", "title": "主辦操作", "summary": "審核、付款確認、排位、退款與結案。", "status": "done"},
+                {"id": "loop-action-onsite", "title": "現場操作", "summary": "搜尋、QR、報到、撤場與現場狀態。", "status": "done"}
               ]
             },
             {
-              "id": "loop-core",
-              "title": "Core／API",
-              "summary": "由正式 Core 驗證身分、權限、規則與資料契約。",
-              "status": "done",
+              "id": "loop-core", "title": "Core／API", "summary": "由正式 Core 驗證身分、權限、規則與資料契約。", "status": "done",
               "children": [
-                {
-                  "id": "loop-core-auth",
-                  "title": "身分／權限",
-                  "summary": "確認會員、主辦與現場角色可做什麼。",
-                  "status": "done"
-                },
-                {
-                  "id": "loop-core-registration",
-                  "title": "報名／場次",
-                  "summary": "檢查名額、日期、規則與報名狀態。",
-                  "status": "done"
-                },
-                {
-                  "id": "loop-core-finance",
-                  "title": "付款／退款／財務",
-                  "summary": "處理正式金額與交易狀態。",
-                  "status": "done"
-                },
-                {
-                  "id": "loop-core-onsite",
-                  "title": "排位／現場",
-                  "summary": "處理正式排位、報到與現場權限。",
-                  "status": "done"
-                }
+                {"id": "loop-core-auth", "title": "身分／權限", "summary": "確認會員、主辦與現場角色可做什麼。", "status": "done"},
+                {"id": "loop-core-registration", "title": "報名／場次", "summary": "檢查名額、日期、規則與報名狀態。", "status": "done"},
+                {"id": "loop-core-finance", "title": "付款／退款／財務", "summary": "處理正式金額與交易狀態。", "status": "done"},
+                {"id": "loop-core-onsite", "title": "排位／現場", "summary": "處理正式排位、報到與現場權限。", "status": "done"}
               ]
             },
             {
-              "id": "loop-db",
-              "title": "Supabase SSOT",
-              "summary": "正式資料寫入唯一資料來源；多表異動需交易或安全補償。",
-              "status": "done",
+              "id": "loop-db", "title": "Supabase SSOT", "summary": "正式資料寫入唯一資料來源；多表異動需交易或安全補償。", "status": "done",
               "children": [
-                {
-                  "id": "loop-db-members",
-                  "title": "會員資料",
-                  "summary": "會員與身分關聯。",
-                  "status": "done"
-                },
-                {
-                  "id": "loop-db-sessions",
-                  "title": "活動／場次",
-                  "summary": "活動與場次正式資料。",
-                  "status": "done"
-                },
-                {
-                  "id": "loop-db-registrations",
-                  "title": "報名紀錄",
-                  "summary": "報名、審核與參加狀態。",
-                  "status": "done"
-                },
-                {
-                  "id": "loop-db-payments",
-                  "title": "付款／退款",
-                  "summary": "付款、退款與相關正式交易。",
-                  "status": "done"
-                },
-                {
-                  "id": "loop-db-finance",
-                  "title": "財務／結案",
-                  "summary": "收入、支出與結算正式紀錄。",
-                  "status": "done"
-                },
-                {
-                  "id": "loop-db-seat",
-                  "title": "每日營運／排位",
-                  "summary": "活動日營運與排位資料。",
-                  "status": "done"
-                },
-                {
-                  "id": "loop-db-audit",
-                  "title": "錯誤／稽核",
-                  "summary": "錯誤與操作稽核紀錄。",
-                  "status": "done"
-                }
+                {"id": "loop-db-members", "title": "會員資料", "summary": "會員與身分關聯。", "status": "done"},
+                {"id": "loop-db-sessions", "title": "活動／場次", "summary": "活動與場次正式資料。", "status": "done"},
+                {"id": "loop-db-registrations", "title": "報名紀錄", "summary": "報名、審核與參加狀態。", "status": "done"},
+                {"id": "loop-db-payments", "title": "付款／退款", "summary": "付款、退款與相關正式交易。", "status": "done"},
+                {"id": "loop-db-finance", "title": "財務／結案", "summary": "收入、支出與結算正式紀錄。", "status": "done"},
+                {"id": "loop-db-seat", "title": "每日營運／排位", "summary": "活動日營運與排位資料。", "status": "done"},
+                {"id": "loop-db-audit", "title": "錯誤／稽核", "summary": "錯誤與操作稽核紀錄。", "status": "done"}
               ]
             },
             {
-              "id": "loop-reread",
-              "title": "重讀正式資料",
-              "summary": "異動完成後重新取得正式結果，不能只改前端畫面。",
-              "status": "done",
+              "id": "loop-reread", "title": "重讀正式資料", "summary": "異動完成後重新取得正式結果，不能只改前端畫面。", "status": "done",
               "children": [
-                {
-                  "id": "loop-reread-member",
-                  "title": "重讀會員端",
-                  "summary": "付款、退款、排位與活動狀態重新取正式結果。",
-                  "status": "done"
-                },
-                {
-                  "id": "loop-reread-admin",
-                  "title": "重讀主辦端",
-                  "summary": "待辦、名單、統計與財務重新取正式結果。",
-                  "status": "done"
-                }
+                {"id": "loop-reread-member", "title": "重讀會員端", "summary": "付款、退款、排位與活動狀態重新取正式結果。", "status": "done"},
+                {"id": "loop-reread-admin", "title": "重讀主辦端", "summary": "待辦、名單、統計與財務重新取正式結果。", "status": "done"}
               ]
             },
             {
-              "id": "loop-screen",
-              "title": "畫面同步",
-              "summary": "會員端、場次統計、名額、排位、財務與歷史紀錄同步顯示正式結果。",
-              "status": "verify",
+              "id": "loop-screen", "title": "畫面同步", "summary": "會員端、場次統計、名額、排位、財務與歷史紀錄同步顯示正式結果。", "status": "verify",
               "children": [
-                {
-                  "id": "loop-screen-member",
-                  "title": "會員畫面",
-                  "summary": "我的報名、付款、退款、排位與歷史同步。",
-                  "status": "verify"
-                },
-                {
-                  "id": "loop-screen-admin",
-                  "title": "主辦畫面",
-                  "summary": "待辦、審核、付款、排位與財務同步。",
-                  "status": "verify"
-                },
-                {
-                  "id": "loop-screen-onsite",
-                  "title": "現場畫面",
-                  "summary": "名單、報到與現場狀態同步。",
-                  "status": "verify"
-                }
+                {"id": "loop-screen-member", "title": "會員畫面", "summary": "我的報名、付款、退款、排位與歷史同步。", "status": "verify"},
+                {"id": "loop-screen-admin", "title": "主辦畫面", "summary": "待辦、審核、付款、排位與財務同步。", "status": "verify"},
+                {"id": "loop-screen-onsite", "title": "現場畫面", "summary": "名單、報到與現場狀態同步。", "status": "verify"}
               ]
             }
           ]
         },
-        {
-          "id": "market-main-tabs",
-          "title": "Market 主工作頁",
-          "summary": "場次／待辦／現場／會員／設定維持同一工作區，正在依新視覺逐區精修。",
-          "status": "progress"
-        },
-        {
-          "id": "market-session",
-          "title": "單場工作頁",
-          "summary": "總覽／報名／付款／排位設備／通知／現場／結案已定案，正在依新視覺精修。",
-          "status": "progress"
-        },
-        {
-          "id": "market-public",
-          "title": "公開活動頁",
-          "summary": "/market/public/ 搜尋與公開活動入口存在；正式畫面仍需逐頁驗收。",
-          "status": "verify"
-        },
-        {
-          "id": "market-settings",
-          "title": "設定與現場層級",
-          "summary": "設定、現場已回到 Market 主工作區，不再拆成獨立後台頁。",
-          "status": "done"
-        },
-        {
-          "id": "market-visual",
-          "title": "Market 全頁面成熟視覺",
-          "summary": "基礎 Design System 已套用，但每個分頁仍需完成正式商業產品級細節精修。",
-          "status": "progress"
-        },
-        {
-          "id": "market-browser-uat",
-          "title": "正式桌機／手機真人 UAT",
-          "summary": "尚未完成所有角色、所有按鈕的正式網域真人瀏覽器 click-through。",
-          "status": "todo"
-        }
+        {"id": "market-main-tabs", "title": "Market 主工作頁", "summary": "場次／待辦／現場／會員／設定維持同一工作區，正在依新視覺逐區精修。", "status": "progress"},
+        {"id": "market-session", "title": "單場工作頁", "summary": "總覽／報名／付款／排位設備／通知／現場／結案已定案，正在依新視覺精修。", "status": "progress"},
+        {"id": "market-public", "title": "公開活動頁", "summary": "/market/public/ 搜尋與公開活動入口存在；正式畫面仍需逐頁驗收。", "status": "verify"},
+        {"id": "market-settings", "title": "設定與現場層級", "summary": "設定、現場已回到 Market 主工作區，不再拆成獨立後台頁。", "status": "done"},
+        {"id": "market-visual", "title": "Market 全頁面成熟視覺", "summary": "基礎 Design System 已套用，但每個分頁仍需完成正式商業產品級細節精修。", "status": "progress"},
+        {"id": "market-browser-uat", "title": "正式桌機／手機真人 UAT", "summary": "尚未完成所有角色、所有按鈕的正式網域真人瀏覽器 click-through。", "status": "todo"}
       ]
     },
-    {
-      "id": "project",
-      "side": "left",
-      "title": "Project",
-      "summary": "室內設計／工程專案工作系統。",
-      "status": "todo",
-      "children": [
-        {
-          "id": "project-route",
-          "title": "正式入口",
-          "summary": "/project/ 已保留並套用 DOING 2.0 共用視覺。",
-          "status": "done"
-        },
-        {
-          "id": "project-existing",
-          "title": "既有能力保留",
-          "summary": "既有專案能力沒有在本輪刪除或重建，需再逐項盤點正式工作流程。",
-          "status": "verify"
-        },
-        {
-          "id": "project-flat",
-          "title": "Flat IA 重整",
-          "summary": "專案主要工作、設定、成員、檔案等需依『入口→實際操作』最多兩層重新整理。",
-          "status": "todo"
-        },
-        {
-          "id": "project-visual",
-          "title": "完整正式畫面精修",
-          "summary": "尚未依唯一視覺基準完成所有專案工作頁。",
-          "status": "todo"
-        },
-        {
-          "id": "project-uat",
-          "title": "真人 E2E／UAT",
-          "summary": "尚未完成角色、權限、按鈕、API、資料讀寫的正式瀏覽器逐項驗收。",
-          "status": "todo"
-        }
-      ]
-    },
-    {
-      "id": "booking",
-      "side": "left",
-      "title": "Booking",
-      "summary": "美類／一般服務預約工作系統。",
-      "status": "verify",
-      "children": [
-        {
-          "id": "booking-route",
-          "title": "正式入口",
-          "summary": "/booking/ 已保留並套用 DOING 2.0 共用視覺。",
-          "status": "done"
-        },
-        {
-          "id": "booking-core",
-          "title": "預約核心能力",
-          "summary": "通用預約核心、自動擋單、週期空檔與租戶隔離等自動回歸已通過。",
-          "status": "done"
-        },
-        {
-          "id": "booking-requirements",
-          "title": "已定案預約需求",
-          "summary": "店家行事曆、60/90/120 分鐘、30 分緩衝、跨下班擋單、臨時開關、最多 10 人員、團體課、VIP／黑名單、生日提醒、問卷／同意書、中日英、協作者／排班、空檔圖卡等已定案；需逐項對照正式畫面。",
-          "status": "verify"
-        },
-        {
-          "id": "booking-visual",
-          "title": "完整正式畫面精修",
-          "summary": "尚未依唯一視覺基準把所有預約頁逐區完成。",
-          "status": "todo"
-        },
-        {
-          "id": "booking-uat",
-          "title": "真人 E2E／UAT",
-          "summary": "尚未完成正式網域手機／桌機全流程實際預約與後台操作驗收。",
-          "status": "todo"
-        }
-      ]
-    },
-    {
-      "id": "guide",
-      "side": "left",
-      "title": "Guide",
-      "summary": "導覽員／導覽預約工作系統。",
-      "status": "todo",
-      "children": [
-        {
-          "id": "guide-route",
-          "title": "正式入口",
-          "summary": "/guide/ 已保留並套用 DOING 2.0 共用視覺。",
-          "status": "done"
-        },
-        {
-          "id": "guide-definition",
-          "title": "產品定位",
-          "summary": "Guide＝導覽員／導覽預約，已定案為 DOING 2.0 四大工作系統之一。",
-          "status": "verify"
-        },
-        {
-          "id": "guide-workflow",
-          "title": "完整導覽工作流",
-          "summary": "導覽場次、可預約時段、人員／名額、報名／付款／通知等正式操作流程尚未完整重整。",
-          "status": "todo"
-        },
-        {
-          "id": "guide-visual",
-          "title": "完整正式畫面精修",
-          "summary": "尚未依唯一視覺基準完成逐頁精修。",
-          "status": "todo"
-        },
-        {
-          "id": "guide-uat",
-          "title": "真人 E2E／UAT",
-          "summary": "尚未完成正式網域角色、按鈕與資料讀寫驗收。",
-          "status": "todo"
-        }
-      ]
-    },
-    {
-      "id": "member",
-      "side": "right",
-      "title": "會員／我的紀錄",
-      "summary": "一般會員查看自己的報名、付款、活動與品牌等紀錄。",
-      "status": "progress",
-      "children": [
-        {
-          "id": "member-route",
-          "title": "我的紀錄短網址",
-          "summary": "固定使用 /me/，不再用 member-panel.html。",
-          "status": "done"
-        },
-        {
-          "id": "member-login-return",
-          "title": "登入回原工作狀態",
-          "summary": "LINE 登入後回 /me/ 原紀錄分頁，不再繞回首頁。",
-          "status": "done"
-        },
-        {
-          "id": "member-scope",
-          "title": "會員層與工作空間分離",
-          "summary": "我的紀錄不是 DOING 首頁，也不是四大工作系統首頁，層級已定案。",
-          "status": "done"
-        },
-        {
-          "id": "member-visual",
-          "title": "會員頁成熟視覺精修",
-          "summary": "共用 Design System 已套用，但仍需依唯一視覺基準逐區精修。",
-          "status": "todo"
-        },
-        {
-          "id": "member-uat",
-          "title": "真人紀錄流程 UAT",
-          "summary": "需在正式網域驗證登入、報名、付款、取消／退款、返回與狀態保存。",
-          "status": "todo"
-        }
-      ]
-    },
-    {
-      "id": "apply",
-      "side": "right",
-      "title": "申請",
-      "summary": "申請 DOING 2.0 工作系統。",
-      "status": "progress",
-      "children": [
-        {
-          "id": "apply-route",
-          "title": "正式短網址",
-          "summary": "固定使用 /apply/。",
-          "status": "done"
-        },
-        {
-          "id": "apply-flow",
-          "title": "申請主流程",
-          "summary": "選產品→選使用類型→填資料→LINE 驗證→建立工作空間，已定案並通過自動流程驗證。",
-          "status": "done"
-        },
-        {
-          "id": "apply-helper",
-          "title": "智慧小幫手不阻擋申請",
-          "summary": "智慧小幫手只作客服／導引，不再作申請 gate。",
-          "status": "done"
-        },
-        {
-          "id": "apply-auto",
-          "title": "LINE 驗證後自動開通",
-          "summary": "申請完成後可接續 /me/ → /workspace/ → 對應產品。",
-          "status": "done"
-        },
-        {
-          "id": "apply-visual",
-          "title": "申請頁成熟視覺精修",
-          "summary": "基礎共用視覺已套用，正式商業產品級版面仍需逐區驗收。",
-          "status": "todo"
-        },
-        {
-          "id": "apply-uat",
-          "title": "正式申請真人 UAT",
-          "summary": "仍需在正式網域以真實瀏覽器驗證完整申請與回跳。",
-          "status": "todo"
-        }
-      ]
-    },
-    {
-      "id": "workspace",
-      "side": "right",
-      "title": "我的 DOING／工作空間",
-      "summary": "登入後承接 Market／Project／Booking／Guide 的工作入口，不再當公開首頁。",
-      "status": "progress",
-      "children": [
-        {
-          "id": "workspace-route",
-          "title": "正式入口",
-          "summary": "固定使用 /workspace/。",
-          "status": "done"
-        },
-        {
-          "id": "workspace-products",
-          "title": "四大工作系統入口",
-          "summary": "Market／Project／Booking／Guide 由工作空間承接，不再和 DOING 公開首頁混在一起。",
-          "status": "done"
-        },
-        {
-          "id": "workspace-role",
-          "title": "依角色顯示工作入口",
-          "summary": "既有角色與權限契約保留；正式畫面仍需真人逐角色驗證。",
-          "status": "verify"
-        },
-        {
-          "id": "workspace-visual",
-          "title": "工作空間正式視覺精修",
-          "summary": "四大格不再當公開首頁，但工作空間本身仍需完成成熟 SaaS 視覺與操作整理。",
-          "status": "todo"
-        }
-      ]
-    },
-    {
-      "id": "public-doing",
-      "side": "right",
-      "title": "DOING 公開平台",
-      "summary": "目前已鎖定先不動，與 DOING 2.0 工作系統分開。",
-      "status": "done",
-      "children": [
-        {
-          "id": "public-home",
-          "title": "唯一公開首頁",
-          "summary": "保留使用者指定的 DOING／協槓人生小幫手首頁，不再讓四大格 2.0 取代它。",
-          "status": "done"
-        },
-        {
-          "id": "public-boundary",
-          "title": "DOING 與 DOING 2.0 分層",
-          "summary": "DOING＝公開平台；DOING 2.0＝登入後工作系統，邊界已重新鎖定。",
-          "status": "done"
-        },
-        {
-          "id": "public-freeze",
-          "title": "本輪先不修改 DOING",
-          "summary": "現階段視覺與工作流重整只處理 DOING 2.0，公開 DOING 暫不動。",
-          "status": "done"
-        }
-      ]
-    },
-    {
-      "id": "roles",
-      "side": "right",
-      "title": "角色／權限",
-      "summary": "同一正式資料根依角色、租戶、場次與工作範圍裁決可見與可操作內容。",
-      "status": "verify",
-      "children": [
-        {
-          "id": "role-member",
-          "title": "一般會員／參加者",
-          "summary": "探索、報名、付款、查看自己的紀錄與個人狀態。",
-          "status": "verify"
-        },
-        {
-          "id": "role-brand",
-          "title": "攤商／品牌使用者",
-          "summary": "管理品牌資料、報名場次、付款、排位設備與現場資訊。",
-          "status": "verify"
-        },
-        {
-          "id": "role-tenant",
-          "title": "租戶負責人／主辦管理員",
-          "summary": "管理工作空間、場次、審核、付款、排位、通知、退款與結案。",
-          "status": "verify"
-        },
-        {
-          "id": "role-onsite",
-          "title": "現場工作人員",
-          "summary": "只處理被授權場次的搜尋、QR／報到與必要現場操作。",
-          "status": "verify"
-        },
-        {
-          "id": "role-platform",
-          "title": "平台總管",
-          "summary": "處理平台層例外、風險、租戶與平台營運；不得混入公開一般使用者入口。",
-          "status": "verify"
-        }
-      ]
-    },
-    {
-      "id": "shared-modules",
-      "side": "right",
-      "title": "共用模組",
-      "summary": "四大工作系統共用能力；可掛在工作上，不另外建立第二套會員、交易或狀態資料根。",
-      "status": "verify",
-      "children": [
-        {
-          "id": "shared-product-ticket",
-          "title": "商品／票券",
-          "summary": "可掛在 Market、Project、Booking、Guide 的工作或場次上。",
-          "status": "verify"
-        },
-        {
-          "id": "shared-qr",
-          "title": "QR 報到／核銷",
-          "summary": "共用活動日身分與工作人員權限契約。",
-          "status": "verify"
-        },
-        {
-          "id": "shared-payment",
-          "title": "收款／訂金",
-          "summary": "金額與付款狀態由正式 Core／Supabase 裁決，不由前端假算。",
-          "status": "verify"
-        },
-        {
-          "id": "shared-coupon",
-          "title": "優惠券／回訪",
-          "summary": "共用顧客回訪與優惠能力，正式情境仍需逐產品驗證。",
-          "status": "verify"
-        },
-        {
-          "id": "shared-notification",
-          "title": "通知提醒",
-          "summary": "報名、付款、預約、現場與營運提醒共用通知能力。",
-          "status": "verify"
-        },
-        {
-          "id": "shared-team",
-          "title": "團隊／排班",
-          "summary": "工作空間角色、協作者與人員排班共用。",
-          "status": "verify"
-        },
-        {
-          "id": "shared-finance",
-          "title": "進階財務",
-          "summary": "正式收入、退款、支出與結案資料需保留可追溯紀錄。",
-          "status": "verify"
-        },
-        {
-          "id": "shared-files",
-          "title": "照片／檔案",
-          "summary": "各工作系統共用檔案與照片能力，不另建孤立資料流程。",
-          "status": "verify"
-        },
-        {
-          "id": "shared-sign",
-          "title": "電子簽名",
-          "summary": "可掛在需要同意、合約或確認的工作流程；正式畫面待逐系統驗證。",
-          "status": "verify"
-        },
-        {
-          "id": "shared-calendar",
-          "title": "Google／Apple 日曆同步",
-          "summary": "外部日曆是副本與入口，DOING 正式資料仍以 Supabase 為準。",
-          "status": "verify"
-        }
-      ]
-    },
-    {
-      "id": "core",
-      "side": "right",
-      "title": "共用核心",
-      "summary": "DOING 2.0 共用視覺、網址、資料閉環、發布規則與進度 SSOT。",
-      "status": "progress",
-      "children": [
-        {
-          "id": "core-design",
-          "title": "Design System 基礎",
-          "summary": "米白／淺色底、粉藍／淡綠／低飽和色、深灰字、細邊框、輕陰影、小圓角；禁止粉紅主色、漸層、灰霧、深色 AI 後台感。",
-          "status": "done"
-        },
-        {
-          "id": "core-topbar",
-          "title": "固定頂部列",
-          "summary": "桌機滑動時必須固定顯示，已列為永久規則並完成共用樣式。",
-          "status": "done"
-        },
-        {
-          "id": "core-flat",
-          "title": "Flat IA／淺層導覽",
-          "summary": "一般操作最多兩層、小功能優先頁內分頁／抽屜／彈窗；Market 已落地，其他工作系統仍需完整套用。",
-          "status": "progress"
-        },
-        {
-          "id": "core-routes",
-          "title": "短網址整理",
-          "summary": "/market/、/project/、/booking/、/guide/、/workspace/、/me/、/apply/、/register/、/world-tree/ 為正式短網址；舊長網址與多餘獨立頁已退出正式 Pages。",
-          "status": "done"
-        },
-        {
-          "id": "core-legacy",
-          "title": "舊框架清理",
-          "summary": "admin／onsite／platform／operations／photo／consignment／about／member 等不再作獨立公開頁。",
-          "status": "done"
-        },
-        {
-          "id": "core-engineering-copy",
-          "title": "隱藏工程文字",
-          "summary": "一般使用者畫面不得顯示 tenant_id、API、Worker、資料表名稱、內部路徑、工程代碼與除錯文字。",
-          "status": "done"
-        },
-        {
-          "id": "core-ssot",
-          "title": "資料 SSOT",
-          "summary": "Supabase 仍是唯一正式資料來源；金額、付款、退款、押金、名額、排位與權限不可由前端假算。",
-          "status": "done"
-        },
-        {
-          "id": "core-loop",
-          "title": "功能閉環",
-          "summary": "按鈕→Worker／API→Supabase→重讀→畫面是固定驗收鏈；多表異動需交易或安全補償。",
-          "status": "done"
-        },
-        {
-          "id": "core-release",
-          "title": "發布規則",
-          "summary": "依本次專案安全規則，完成功能、檢查點、驗證與回歸後停在 Release Ready；正式發布需依當次明確授權。",
-          "status": "done"
-        },
-        {
-          "id": "core-world-tree",
-          "title": "世界樹進度 SSOT",
-          "summary": "/world-tree/ 使用 doing-world-tree-current.json；之後實際更新只同步同一份 current 資料。",
-          "status": "done"
-        },
-        {
-          "id": "core-browser-uat",
-          "title": "全角色正式瀏覽器 Click-through",
-          "summary": "平台總管、租戶負責人、主辦管理員、場次、財務、現場等角色的正式網域真人逐按鈕驗收仍未完整完成。",
-          "status": "todo"
-        },
-        {
-          "id": "core-prod-verify",
-          "title": "正式網域 Production Verification",
-          "summary": "CI／自動驗證已多次通過，但未完成本輪正式網域真人瀏覽器全角色驗證，不能冒充 PASS。",
-          "status": "verify"
-        }
-      ]
-    }
+    {"id": "project", "side": "left", "title": "Project", "summary": "室內設計／工程專案工作系統。", "status": "todo", "children": [
+      {"id": "project-route", "title": "正式入口", "summary": "/project/ 已保留並套用 DOING 2.0 共用視覺。", "status": "done"},
+      {"id": "project-existing", "title": "既有能力保留", "summary": "既有專案能力沒有在本輪刪除或重建，需再逐項盤點正式工作流程。", "status": "verify"},
+      {"id": "project-flat", "title": "Flat IA 重整", "summary": "專案主要工作、設定、成員、檔案等需依『入口→實際操作』最多兩層重新整理。", "status": "todo"},
+      {"id": "project-visual", "title": "完整正式畫面精修", "summary": "尚未依唯一視覺基準完成所有專案工作頁。", "status": "todo"},
+      {"id": "project-uat", "title": "真人 E2E／UAT", "summary": "尚未完成角色、權限、按鈕、API、資料讀寫的正式瀏覽器逐項驗收。", "status": "todo"}
+    ]},
+    {"id": "booking", "side": "left", "title": "Booking", "summary": "美類／一般服務預約工作系統。", "status": "verify", "children": [
+      {"id": "booking-route", "title": "正式入口", "summary": "/booking/ 已保留並套用 DOING 2.0 共用視覺。", "status": "done"},
+      {"id": "booking-core", "title": "預約核心能力", "summary": "通用預約核心、自動擋單、週期空檔與租戶隔離等自動回歸已通過。", "status": "done"},
+      {"id": "booking-requirements", "title": "已定案預約需求", "summary": "店家行事曆、60/90/120 分鐘、30 分緩衝、跨下班擋單、臨時開關、最多 10 人員、團體課、VIP／黑名單、生日提醒、問卷／同意書、中日英、協作者／排班、空檔圖卡等已定案；需逐項對照正式畫面。", "status": "verify"},
+      {"id": "booking-visual", "title": "完整正式畫面精修", "summary": "尚未依唯一視覺基準把所有預約頁逐區完成。", "status": "todo"},
+      {"id": "booking-uat", "title": "真人 E2E／UAT", "summary": "尚未完成正式網域手機／桌機全流程實際預約與後台操作驗收。", "status": "todo"}
+    ]},
+    {"id": "guide", "side": "left", "title": "Guide", "summary": "導覽員／導覽預約工作系統。", "status": "todo", "children": [
+      {"id": "guide-route", "title": "正式入口", "summary": "/guide/ 已保留並套用 DOING 2.0 共用視覺。", "status": "done"},
+      {"id": "guide-definition", "title": "產品定位", "summary": "Guide＝導覽員／導覽預約，已定案為 DOING 2.0 四大工作系統之一。", "status": "verify"},
+      {"id": "guide-workflow", "title": "完整導覽工作流", "summary": "導覽場次、可預約時段、人員／名額、報名／付款／通知等正式操作流程尚未完整重整。", "status": "todo"},
+      {"id": "guide-visual", "title": "完整正式畫面精修", "summary": "尚未依唯一視覺基準完成逐頁精修。", "status": "todo"},
+      {"id": "guide-uat", "title": "真人 E2E／UAT", "summary": "尚未完成正式網域角色、按鈕與資料讀寫驗收。", "status": "todo"}
+    ]},
+    {"id": "member", "side": "right", "title": "會員／我的紀錄", "summary": "一般會員查看自己的報名、付款、活動與品牌等紀錄。", "status": "progress", "children": [
+      {"id": "member-route", "title": "我的紀錄短網址", "summary": "固定使用 /me/，不再用 member-panel.html。", "status": "done"},
+      {"id": "member-login-return", "title": "登入回原工作狀態", "summary": "LINE 登入後回 /me/ 原紀錄分頁，不再繞回首頁。", "status": "done"},
+      {"id": "member-scope", "title": "會員層與工作空間分離", "summary": "我的紀錄不是 DOING 首頁，也不是四大工作系統首頁，層級已定案。", "status": "done"},
+      {"id": "member-visual", "title": "會員頁成熟視覺精修", "summary": "共用 Design System 已套用，但仍需依唯一視覺基準逐區精修。", "status": "todo"},
+      {"id": "member-uat", "title": "真人紀錄流程 UAT", "summary": "需在正式網域驗證登入、報名、付款、取消／退款、返回與狀態保存。", "status": "todo"}
+    ]},
+    {"id": "apply", "side": "right", "title": "申請", "summary": "申請 DOING 2.0 工作系統。", "status": "progress", "children": [
+      {"id": "apply-route", "title": "正式短網址", "summary": "固定使用 /apply/。", "status": "done"},
+      {"id": "apply-flow", "title": "申請主流程", "summary": "選產品→選使用類型→填資料→LINE 驗證→建立工作空間，已定案並通過自動流程驗證。", "status": "done"},
+      {"id": "apply-helper", "title": "智慧小幫手不阻擋申請", "summary": "智慧小幫手只作客服／導引，不再作申請 gate。", "status": "done"},
+      {"id": "apply-auto", "title": "LINE 驗證後自動開通", "summary": "申請完成後可接續 /me/ → /workspace/ → 對應產品。", "status": "done"},
+      {"id": "apply-visual", "title": "申請頁成熟視覺精修", "summary": "基礎共用視覺已套用，正式商業產品級版面仍需逐區驗收。", "status": "todo"},
+      {"id": "apply-uat", "title": "正式申請真人 UAT", "summary": "仍需在正式網域以真實瀏覽器驗證完整申請與回跳。", "status": "todo"}
+    ]},
+    {"id": "workspace", "side": "right", "title": "我的 DOING／工作空間", "summary": "登入後承接 Market／Project／Booking／Guide 的工作入口，不再當公開首頁。", "status": "progress", "children": [
+      {"id": "workspace-route", "title": "正式入口", "summary": "固定使用 /workspace/。", "status": "done"},
+      {"id": "workspace-products", "title": "四大工作系統入口", "summary": "Market／Project／Booking／Guide 由工作空間承接，不再和 DOING 公開首頁混在一起。", "status": "done"},
+      {"id": "workspace-role", "title": "依角色顯示工作入口", "summary": "既有角色與權限契約保留；正式畫面仍需真人逐角色驗證。", "status": "verify"},
+      {"id": "workspace-visual", "title": "工作空間正式視覺精修", "summary": "四大格不再當公開首頁，但工作空間本身仍需完成成熟 SaaS 視覺與操作整理。", "status": "todo"}
+    ]},
+    {"id": "public-doing", "side": "right", "title": "DOING 公開平台", "summary": "目前已鎖定先不動，與 DOING 2.0 工作系統分開。", "status": "done", "children": [
+      {"id": "public-home", "title": "唯一公開首頁", "summary": "保留使用者指定的 DOING／協槓人生小幫手首頁，不再讓四大格 2.0 取代它。", "status": "done"},
+      {"id": "public-boundary", "title": "DOING 與 DOING 2.0 分層", "summary": "DOING＝公開平台；DOING 2.0＝登入後工作系統，邊界已重新鎖定。", "status": "done"},
+      {"id": "public-freeze", "title": "本輪先不修改 DOING", "summary": "現階段視覺與工作流重整只處理 DOING 2.0，公開 DOING 暫不動。", "status": "done"}
+    ]},
+    {"id": "roles", "side": "right", "title": "角色／權限", "summary": "同一正式資料根依角色、租戶、場次與工作範圍裁決可見與可操作內容。", "status": "verify", "children": [
+      {"id": "role-member", "title": "一般會員／參加者", "summary": "探索、報名、付款、查看自己的紀錄與個人狀態。", "status": "verify"},
+      {"id": "role-brand", "title": "攤商／品牌使用者", "summary": "管理品牌資料、報名場次、付款、排位設備與現場資訊。", "status": "verify"},
+      {"id": "role-tenant", "title": "租戶負責人／主辦管理員", "summary": "管理工作空間、場次、審核、付款、排位、通知、退款與結案。", "status": "verify"},
+      {"id": "role-onsite", "title": "現場工作人員", "summary": "只處理被授權場次的搜尋、QR／報到與必要現場操作。", "status": "verify"},
+      {"id": "role-platform", "title": "平台總管", "summary": "處理平台層例外、風險、租戶與平台營運；不得混入公開一般使用者入口。", "status": "verify"}
+    ]},
+    {"id": "shared-modules", "side": "right", "title": "共用模組", "summary": "四大工作系統共用能力；可掛在工作上，不另外建立第二套會員、交易或狀態資料根。", "status": "verify", "children": [
+      {"id": "shared-product-ticket", "title": "商品／票券", "summary": "可掛在 Market、Project、Booking、Guide 的工作或場次上。", "status": "verify"},
+      {"id": "shared-qr", "title": "QR 報到／核銷", "summary": "共用活動日身分與工作人員權限契約。", "status": "verify"},
+      {"id": "shared-payment", "title": "收款／訂金", "summary": "金額與付款狀態由正式 Core／Supabase 裁決，不由前端假算。", "status": "verify"},
+      {"id": "shared-coupon", "title": "優惠券／回訪", "summary": "共用顧客回訪與優惠能力，正式情境仍需逐產品驗證。", "status": "verify"},
+      {"id": "shared-notification", "title": "通知提醒", "summary": "報名、付款、預約、現場與營運提醒共用通知能力。", "status": "verify"},
+      {"id": "shared-team", "title": "團隊／排班", "summary": "工作空間角色、協作者與人員排班共用。", "status": "verify"},
+      {"id": "shared-finance", "title": "進階財務", "summary": "正式收入、退款、支出與結案資料需保留可追溯紀錄。", "status": "verify"},
+      {"id": "shared-files", "title": "照片／檔案", "summary": "各工作系統共用檔案與照片能力，不另建孤立資料流程。", "status": "verify"},
+      {"id": "shared-sign", "title": "電子簽名", "summary": "可掛在需要同意、合約或確認的工作流程；正式畫面待逐系統驗證。", "status": "verify"},
+      {"id": "shared-calendar", "title": "Google／Apple 日曆同步", "summary": "外部日曆是副本與入口，DOING 正式資料仍以 Supabase 為準。", "status": "verify"}
+    ]},
+    {"id": "core", "side": "right", "title": "共用核心", "summary": "DOING 2.0 共用視覺、網址、資料閉環、發布規則與進度 SSOT。", "status": "progress", "children": [
+      {"id": "core-design", "title": "Design System 基礎", "summary": "米白／淺色底、粉藍／淡綠／低飽和色、深灰字、細邊框、輕陰影、小圓角；禁止粉紅主色、漸層、灰霧、深色 AI 後台感。", "status": "done"},
+      {"id": "core-topbar", "title": "固定頂部列", "summary": "桌機滑動時必須固定顯示，已列為永久規則並完成共用樣式。", "status": "done"},
+      {"id": "core-flat", "title": "Flat IA／淺層導覽", "summary": "一般操作最多兩層、小功能優先頁內分頁／抽屜／彈窗；Market 已落地，其他工作系統仍需完整套用。", "status": "progress"},
+      {"id": "core-routes", "title": "短網址整理", "summary": "/market/、/project/、/booking/、/guide/、/workspace/、/me/、/apply/、/register/、/world-tree/ 為正式短網址；舊長網址與多餘獨立頁已退出正式 Pages。", "status": "done"},
+      {"id": "core-legacy", "title": "舊框架清理", "summary": "admin／onsite／platform／operations／photo／consignment／about／member 等不再作獨立公開頁。", "status": "done"},
+      {"id": "core-engineering-copy", "title": "隱藏工程文字", "summary": "一般使用者畫面不得顯示 tenant_id、API、Worker、資料表名稱、內部路徑、工程代碼與除錯文字。", "status": "done"},
+      {"id": "core-ssot", "title": "資料 SSOT", "summary": "Supabase 仍是唯一正式資料來源；金額、付款、退款、押金、名額、排位與權限不可由前端假算。", "status": "done"},
+      {"id": "core-loop", "title": "功能閉環", "summary": "按鈕→Worker／API→Supabase→重讀→畫面是固定驗收鏈；多表異動需交易或安全補償。", "status": "done"},
+      {"id": "core-release", "title": "發布規則", "summary": "依本次專案安全規則，完成功能、檢查點、驗證與回歸後停在 Release Ready；正式發布需依當次明確授權。", "status": "done"},
+      {"id": "core-world-tree", "title": "世界樹進度 SSOT", "summary": "/world-tree/ 使用 doing-world-tree-current.json；之後實際更新只同步同一份 current 資料。", "status": "done"},
+      {"id": "core-browser-uat", "title": "全角色正式瀏覽器 Click-through", "summary": "平台總管、租戶負責人、主辦管理員、場次、財務、現場等角色的正式網域真人逐按鈕驗收仍未完整完成。", "status": "todo"},
+      {"id": "core-prod-verify", "title": "正式網域 Production Verification", "summary": "CI／自動驗證已多次通過，但未完成本輪正式網域真人瀏覽器全角色驗證，不能冒充 PASS。", "status": "verify"}
+    ]}
   ],
   "changes": [
-    {
-      "time": "2026-08-22 20:36",
-      "title": "Market 市集操作路徑補齊",
-      "summary": "依 2BL 操作骨架補上後台入口與場次總覽，形成後台入口→場次總覽→場次設定→待辦→審核→付款→排位→退款→財務結案；DOING 的 LINE／權限／Core／Supabase 不變。"
-    },
-    {
-      "time": "2026-08-22 20:24",
-      "title": "Market 操作路徑往下一層展開",
-      "summary": "依 2BL 營運世界樹，把前台 7 步、後台 7 步與系統閉環往下補成實際操作節點；保留原主線與既有驗證狀態。"
-    },
-    {
-      "time": "2026-08-22 19:42",
-      "title": "全系統心智圖完整展開",
-      "summary": "全系統總樹不再只顯示頂層卡片；直接展開所有既有子節點，並補上角色／權限與 10 個共用模組。功能狀態維持原驗證結果。"
-    },
-    {
-      "time": "2026-08-22 18:58",
-      "title": "Market 接上完整 2BL 操作路徑",
-      "summary": "世界樹新增前台攤商路徑、後台主辦路徑與系統閉環，並把每一步標成已完成／進行中／待驗證／尚未做。"
-    },
-    {
-      "time": "2026-08-22 18:40",
-      "title": "世界樹整併所有已做／已說／未做",
-      "summary": "新增『尚未做』灰色狀態，將 Market、Project、Booking、Guide、會員、申請、工作空間、DOING 公開平台與共用核心的已完成／已定案／進行中／未做統一收進同一棵樹。"
-    },
-    {
-      "time": "2026-08-22 18:30",
-      "title": "世界樹改為心智圖",
-      "summary": "中央主幹＋左右分支＋子節點＋狀態顏色，一眼看整體關係。"
-    },
-    {
-      "time": "2026-08-22 18:16",
-      "title": "建立世界樹進度 SSOT",
-      "summary": "之後實際更新只同步 doing-world-tree-current.json。"
-    },
-    {
-      "time": "2026-08-22 17:29",
-      "title": "DOING 2.0 v14 視覺系統",
-      "summary": "全站 Design System、固定頂部列、Flat IA 與響應式框架完成自動驗證並合併。"
-    }
+    {"time": "2026-08-22 20:36", "title": "Market 市集操作路徑補齊", "summary": "依 2BL 操作骨架補上後台入口與場次總覽，形成後台入口→場次總覽→場次設定→待辦→審核→付款→排位→退款→財務結案；DOING 的 LINE／權限／Core／Supabase 不變。"},
+    {"time": "2026-08-22 20:24", "title": "Market 操作路徑往下一層展開", "summary": "依 2BL 營運世界樹，把前台 7 步、後台 7 步與系統閉環往下補成實際操作節點；保留原主線與既有驗證狀態。"},
+    {"time": "2026-08-22 19:42", "title": "全系統心智圖完整展開", "summary": "全系統總樹不再只顯示頂層卡片；直接展開所有既有子節點，並補上角色／權限與 10 個共用模組。功能狀態維持原驗證結果。"},
+    {"time": "2026-08-22 18:58", "title": "Market 接上完整 2BL 操作路徑", "summary": "世界樹新增前台攤商路徑、後台主辦路徑與系統閉環，並把每一步標成已完成／進行中／待驗證／尚未做。"},
+    {"time": "2026-08-22 18:40", "title": "世界樹整併所有已做／已說／未做", "summary": "新增『尚未做』灰色狀態，將 Market、Project、Booking、Guide、會員、申請、工作空間、DOING 公開平台與共用核心的已完成／已定案／進行中／未做統一收進同一棵樹。"},
+    {"time": "2026-08-22 18:30", "title": "世界樹改為心智圖", "summary": "中央主幹＋左右分支＋子節點＋狀態顏色，一眼看整體關係。"},
+    {"time": "2026-08-22 18:16", "title": "建立世界樹進度 SSOT", "summary": "之後實際更新只同步 doing-world-tree-current.json。"},
+    {"time": "2026-08-22 17:29", "title": "DOING 2.0 v14 視覺系統", "summary": "全站 Design System、固定頂部列、Flat IA 與響應式框架完成自動驗證並合併。"}
   ]
 }
