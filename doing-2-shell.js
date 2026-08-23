@@ -1,16 +1,19 @@
 (()=>{
 'use strict';
-const p=new URL(location.href).searchParams;
-const keep=(path)=>{const u=new URL(path,location.origin);for(const k of ['tenant','admin_token','token']){const v=p.get(k);if(v)u.searchParams.set(k,v)}return u.toString()};
-const path=location.pathname;
+const params=new URL(location.href).searchParams,path=location.pathname,body=document.body;if(!body)return;
+const publicUrl=path=>new URL(path,location.origin).toString();
+const workUrl=path=>{const u=new URL(path,location.origin);for(const k of ['tenant','admin_token','token']){const v=params.get(k);if(v)u.searchParams.set(k,v)}return u.toString()};
+const hasMember=()=>{try{return !!(localStorage.getItem('doing_member_token')||sessionStorage.getItem('doing_member_token'))}catch(_){return false}};
+const style=document.createElement('style');style.textContent=`
+.d2-home-account-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 auto 24px}.d2-home-account{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 18px;border-radius:10px;text-decoration:none;font-weight:950;border:1px solid #d6e4e7;box-shadow:0 3px 0 #d5e1e4}.d2-home-account.apply{background:#fff;color:#48606a}.d2-home-account.login{background:#bfe9e6;color:#23484a;border-color:#9ed5d1}.d2-home-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important;max-width:760px}.d2-home-action{min-height:66px!important;font-size:20px!important;border-radius:16px!important}.d2-top-actions a[data-account-entry]{font-weight:950}.d2-top-actions a[data-account-entry="login"]{background:#dff2ef}
+@media(max-width:620px){.d2-home-account-actions{margin-bottom:16px}.d2-home-account{min-height:42px;padding:8px 14px}.d2-home-actions{grid-template-columns:1fr 1fr!important}.d2-home-action{min-height:54px!important;font-size:16px!important}}
+`;document.head.appendChild(style);
 const isPublicHome=path==='/'||/\/doing-2\.html$/.test(path);
-const body=document.body;if(!body)return;
 if(isPublicHome){
   body.classList.add('d2-public-home');
   if(!document.querySelector('.d2-topbar')){
-    const top=document.createElement('header');
-    top.className='d2-topbar d2-home-desktop-topbar';
-    top.innerHTML=`<div class="d2-topbar-in"><a class="d2-brand" href="${keep('/')}"><div class="d2-brand-copy"><div class="d2-brand-title">DOING</div><div class="d2-brand-sub">協槓人生小幫手</div></div></a><div class="d2-top-actions"><a href="${keep('/')}">首頁</a><a href="${keep('/market/public/')}">報名活動</a><a href="${keep('/me/#activities')}">我的紀錄</a><a href="${keep('/apply/')}">我要申請</a></div></div>`;
+    const top=document.createElement('header');top.className='d2-topbar d2-home-desktop-topbar';
+    top.innerHTML=`<div class="d2-topbar-in"><a class="d2-brand" href="/"><div class="d2-brand-copy"><div class="d2-brand-title">DOING</div><div class="d2-brand-sub">協槓人生小幫手</div></div></a><div class="d2-top-actions"><a data-account-entry="apply" href="/apply/">申請 DOING</a><a data-account-entry="login" href="/me/">${hasMember()?'我的 DOING':'登入'}</a></div></div>`;
     body.prepend(top);
     const sync=()=>{const desktop=matchMedia('(min-width:621px)').matches;top.style.setProperty('display',desktop?'block':'none','important');if(desktop){top.style.setProperty('position','fixed','important');top.style.setProperty('top','0','important');top.style.setProperty('left','0','important');top.style.setProperty('right','0','important');top.style.setProperty('z-index','1000','important');requestAnimationFrame(()=>document.body.style.setProperty('padding-top',top.offsetHeight+'px','important'))}else document.body.style.removeProperty('padding-top')};
     sync();const mq=matchMedia('(min-width:621px)');if(mq.addEventListener)mq.addEventListener('change',sync);else if(mq.addListener)mq.addListener(sync);addEventListener('resize',()=>requestAnimationFrame(sync),{passive:true});
@@ -19,11 +22,8 @@ if(isPublicHome){
 }
 const product=path.includes('/market')?'market':path.includes('/project')?'project':path.includes('/booking')?'booking':path.includes('/guide')?'guide':'hub';
 if(document.querySelector('.d2-topbar'))return;
-const applyLink=`<a href="${keep('/apply/')}">我要申請</a>`;
-const marketActions=`${applyLink}<a href="${keep('/me/#account')}">登入／會員</a>`;
-const defaultActions=`${applyLink}<a class="optional" href="${keep('/market/public/')}">找活動</a><a href="${keep('/me/#activities')}">我的紀錄</a><a href="${keep('/workspace/')}">我的 DOING</a>`;
 const top=document.createElement('header');top.className='d2-topbar';
-top.innerHTML=`<div class="d2-topbar-in"><a class="d2-brand" href="${keep('/workspace/')}"><img src="/doing-logo.png" alt="DOING"><div class="d2-brand-copy"><div class="d2-brand-title">${product==='market'?'DOING Market':'DOING 2.0'}</div><div class="d2-brand-sub">${product==='market'?'市集營運':product==='project'?'室內設計':product==='booking'?'預約服務':product==='guide'?'導覽預約':'工作入口'}</div></div></a><div class="d2-top-actions">${product==='market'?marketActions:defaultActions}</div></div><nav class="d2-product-nav"><a class="${product==='market'?'active':''}" href="${keep('/market/')}">Market</a><a class="${product==='project'?'active':''}" href="${keep('/project/')}">Project</a><a class="${product==='booking'?'active':''}" href="${keep('/booking/')}">Booking</a><a class="${product==='guide'?'active':''}" href="${keep('/guide/')}">Guide</a></nav>`;
+top.innerHTML=`<div class="d2-topbar-in"><a class="d2-brand" href="${publicUrl('/')}"><img src="/doing-logo.png" alt="DOING"><div class="d2-brand-copy"><div class="d2-brand-title">${product==='market'?'DOING Market':'DOING'}</div><div class="d2-brand-sub">${product==='market'?'市集營運':product==='project'?'室內設計':product==='booking'?'預約服務':product==='guide'?'導覽預約':'工作空間'}</div></div></a><div class="d2-top-actions"><a href="/">首頁</a><a data-account-entry="login" href="/me/">我的 DOING</a></div></div><nav class="d2-product-nav"><a class="${product==='market'?'active':''}" href="${workUrl('/market/')}">Market</a><a class="${product==='project'?'active':''}" href="${workUrl('/project/')}">Project</a><a class="${product==='booking'?'active':''}" href="${workUrl('/booking/')}">Booking</a><a class="${product==='guide'?'active':''}" href="${workUrl('/guide/')}">Guide</a></nav>`;
 body.prepend(top);
 if(product==='market'){
   const tabs=document.querySelector('.tabs'),topIn=document.querySelector('.d2-topbar-in');if(tabs&&topIn){tabs.classList.add('d2-market-mainnav');topIn.insertBefore(tabs,topIn.querySelector('.d2-top-actions'))}
@@ -32,15 +32,11 @@ if(product==='market'){
   addMarketJourney();
 }
 document.querySelectorAll('.note').forEach(el=>{if(/不重建資料庫|QR 功能保留完整|正式資料仍由/.test(el.textContent||''))el.classList.add('d2-hide-engineering')});
-for(const el of document.querySelectorAll('.hero p,.muted')){const t=(el.textContent||'').trim();if(t.includes('正式資料仍由 DOING API')||t.includes('第一開發主線')||t.includes('第二開發主線')||t.includes('第三開發主線')||t.includes('第四開發主線'))el.classList.add('d2-hide-engineering')}
 function addMarketJourney(){
-  if(document.querySelector('.d2-market-journey'))return;
-  const hero=document.querySelector('.hero'),main=document.querySelector('main.shell');if(!main)return;
-  const session=/\/market\/session\/?$/.test(path);
-  const items=session?[['場次總覽','/market/'],['場次設定','#overview'],['待辦','/market/#tasks'],['審核','#registrations'],['付款','#payments'],['排位','#seat'],['退款','#closeout'],['財務結案','#closeout']]:[['後台入口','/workspace/'],['場次總覽','#sessions'],['場次設定','#sessions'],['待辦','#tasks'],['審核','#sessions'],['付款','#sessions'],['排位','#sessions'],['退款','#sessions'],['財務結案','#sessions']];
-  const nav=document.createElement('nav');nav.className='d2-market-journey';nav.setAttribute('aria-label','Market 操作路徑');nav.innerHTML=items.map(([label,target],i)=>`<a href="${target.startsWith('/')?keep(target):target}" class="d2-market-journey-step ${i===0?'done':''}">${label}</a>`).join('');
-  (hero||main.firstElementChild)?.insertAdjacentElement(hero?'afterend':'beforebegin',nav);
-  const st=document.createElement('style');st.textContent='.d2-market-journey{display:flex;gap:7px;overflow:auto;margin:10px 0 14px;padding:2px 1px 7px;scrollbar-width:none}.d2-market-journey::-webkit-scrollbar{display:none}.d2-market-journey-step{flex:0 0 auto;min-height:40px;padding:8px 12px;border-radius:14px;border:1px solid #e8def2;background:#fff;color:#67529a;text-decoration:none;font-weight:900;box-shadow:0 4px 10px rgba(90,70,120,.08)}.d2-market-journey-step.done{background:#dff0b0;border-color:#c6dc7b;color:#53681d}@media(max-width:620px){.d2-market-journey{margin:8px 0 10px}.d2-market-journey-step{min-height:36px;padding:7px 10px;font-size:12px}}';document.head.appendChild(st);
-  nav.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{const id=a.getAttribute('href').slice(1);const tab=document.querySelector(`[data-tab="${CSS.escape(id)}"]`);if(tab){e.preventDefault();tab.click();history.replaceState(null,'','#'+id);document.querySelector('.panel.on')?.scrollIntoView({block:'start',behavior:'smooth'})}}));
+  if(document.querySelector('.d2-market-journey'))return;const hero=document.querySelector('.hero'),main=document.querySelector('main.shell');if(!main)return;
+  const session=/\/market\/session\/?$/.test(path),items=session?[['場次總覽','/market/'],['場次設定','#overview'],['待辦','/market/#tasks'],['審核','#registrations'],['付款','#payments'],['排位','#seat'],['退款','#closeout'],['財務結案','#closeout']]:[['工作空間','/workspace/'],['場次總覽','#sessions'],['場次設定','#sessions'],['待辦','#tasks'],['審核','#sessions'],['付款','#sessions'],['排位','#sessions'],['退款','#sessions'],['財務結案','#sessions']];
+  const nav=document.createElement('nav');nav.className='d2-market-journey';nav.setAttribute('aria-label','Market 操作路徑');nav.innerHTML=items.map(([label,target],i)=>`<a href="${target.startsWith('/')?workUrl(target):target}" class="d2-market-journey-step ${i===0?'done':''}">${label}</a>`).join('');(hero||main.firstElementChild)?.insertAdjacentElement(hero?'afterend':'beforebegin',nav);
+  const st=document.createElement('style');st.textContent='.d2-market-journey{display:flex;gap:7px;overflow:auto;margin:10px 0 14px;padding:2px 1px 7px;scrollbar-width:none}.d2-market-journey-step{flex:0 0 auto;min-height:40px;padding:8px 12px;border-radius:12px;border:1px solid #dfe8ea;background:#fff;color:#53636d;text-decoration:none;font-weight:900}.d2-market-journey-step.done{background:#e6f4ed;color:#3d674d}@media(max-width:620px){.d2-market-journey-step{min-height:36px;padding:7px 10px;font-size:12px}}';document.head.appendChild(st);
+  nav.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{const id=a.getAttribute('href').slice(1),tab=document.querySelector(`[data-tab="${CSS.escape(id)}"]`);if(tab){e.preventDefault();tab.click();history.replaceState(null,'','#'+id)}}));
 }
 })();
