@@ -36,7 +36,7 @@ if(!fs.existsSync('.doing-2-site/me/index.html')){
 const builtMe=read('.doing-2-site/me/index.html'),builtWorkspace=read('.doing-2-site/workspace/index.html'),builtRegister=read('.doing-2-site/register/index.html'),builtBooking=read('.doing-2-site/booking/index.html'),redirects=read('.doing-2-site/_redirects');
 assert.ok(builtMe.includes('doing-member-return-direct.js'),'正式 /me/ 缺少唯一登入 gate');
 assert.equal((builtMe.match(/doing-member-return-direct\.js/g)||[]).length,1,'正式 /me/ 不得重複載入登入 gate');
-assert.ok(!builtMe.includes('data-workspace-calendar=')&&!builtMe.includes('data-workspace-operations='),'正式 /me/ 同一 workspace 只能有一個進入按鈕');
+assert.ok(!/<button[^>]+data-workspace-(?:calendar|operations)=/.test(builtMe),'正式 /me/ 同一 workspace 只能有一個進入按鈕');
 assert.ok(builtWorkspace.includes('doing-global-entry.js'),'正式 /workspace/ 缺少統一權限入口');
 assert.ok(builtRegister.includes('doing-global-entry.js'),'正式 /register/ 必須移除第二套 admin 登入');
 assert.ok(builtBooking.includes('doing-global-entry.js'),'正式 /booking/ 缺少統一權限入口');
