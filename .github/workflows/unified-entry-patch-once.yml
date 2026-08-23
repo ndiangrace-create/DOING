@@ -1,0 +1,93 @@
+name: DOING Unified Entry Patch Once
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/unified-entry-patch-once.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.head_ref == 'fix/unified-entry-login-cleanup-20260823'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Patch canonical member/workspace routes and delete retired pages
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          def replace_once(text, old, new, label):
+              n=text.count(old)
+              if n==0 and new in text:return text
+              if n!=1:raise SystemExit(f'{label}: expected 1 match, got {n}')
+              return text.replace(old,new,1)
+
+          p=Path('member-panel.html');t=p.read_text(encoding='utf-8')
+          t=t.replace("new URL('member.html',location.href)","new URL('/me/',location.origin)")
+          t=t.replace("new URL('admin.html',location.href)","new URL('/workspace/',location.origin)")
+          t=t.replace("new URL('operations-center.html',location.href)","new URL('/workspace/',location.origin)")
+          t=t.replace("href=\"about.html#apply\"","href=\"/apply/\"")
+          t=t.replace("href='about.html#apply'","href='/apply/'")
+          t=t.replace("location.href='index.html'","location.href='/'")
+          t=t.replace("href=\"index.html\"","href=\"/\"")
+          t=replace_once(t,"if(!d.complete){location.href='index.html?openMemberProfile=1';return}","if(!d.complete){render();switchPage('account');return}",'member incomplete profile bounce')
+          # Collapse three workspace CTAs into one; global entry also enforces this dynamically.
+          t=re.sub(r'<button class=\"btn secondary\" data-workspace-calendar=\"[^\"]+\">安排預約日曆</button>','',t)
+          t=re.sub(r'<button class=\"btn secondary\" data-workspace-operations=\"[^\"]+\">完整營運中心</button>','',t)
+          t=t.replace('進入主辦後台','進入工作空間').replace('直接進入主辦後台','進入工作空間')
+          p.write_text(t,encoding='utf-8')
+
+          p=Path('scripts/build-doing-2-site.mjs');t=p.read_text(encoding='utf-8')
+          old="if(source==='member-panel.html')html=inject(html,'doing-member-return-direct.js','<script src=\"/doing-member-return-direct.js?v=20260822-short5\"></script>','body');"
+          new="if(source==='member-panel.html')html=inject(html,'doing-member-return-direct.js','<script src=\"/doing-member-return-direct.js?v=20260823-unified-entry\"></script>');"
+          t=replace_once(t,old,new,'member auth script order')
+          marker="if(source==='workspace.html')html=inject(html,'doing-workspace-product-router.js','<script src=\"/doing-workspace-product-router.js?v=20260822-short5\"></script>','body');"
+          replacement=marker+"\n  if(source==='workspace.html')html=inject(html,'doing-global-entry.js','<script src=\"/doing-global-entry.js?v=20260823-unified-entry\"></script>','body');"
+          t=replace_once(t,marker,replacement,'workspace unified entry injection')
+          p.write_text(t,encoding='utf-8')
+
+          p=Path('.github/workflows/doing-production.yml');t=p.read_text(encoding='utf-8')
+          old="for(const f of ['index.html','register.html','member.html','member-panel.html','admin.html','onsite.html','platform.html','about.html','photo.html','operations-center.html','consignment.html']){"
+          new="for(const f of ['doing-2.html','smart-application.html','register.html','member-panel.html','workspace.html','market-public.html','market-center.html','market-session.html','project-center.html','booking-2-center.html','guide-center.html','world-tree.html']){"
+          t=replace_once(t,old,new,'production html parse list')
+          # Replace the legacy visual-shell block with canonical source checks.
+          start=t.index('      - name: Verify unified visual shell and private long press')
+          end=t.index('      - name: Verify member and tenant safety invariants',start)
+          block="""      - name: Verify unified entry and canonical source pages
+        run: |
+          node scripts/validate-unified-entry.mjs
+          for page in doing-2.html smart-application.html member-panel.html workspace.html market-public.html market-center.html market-session.html project-center.html booking-2-center.html guide-center.html register.html world-tree.html; do test -f \"$page\"; done
+          for retired in index.html member.html admin.html onsite.html platform.html operations-center.html photo.html consignment.html about.html; do test ! -e \"$retired\"; done
+          grep -q 'd2-home-account-actions' doing-2-home-v11.js
+          grep -q \"new URL('/me/',location.origin)\" doing-member-return-direct.js
+          grep -q 'createMemberWorkspaceAdminSession' doing-global-entry.js
+          grep -q \"new URL('/workspace/',location.origin)\" doing-global-entry.js
+"""
+          t=t[:start]+block+t[end:]
+          p.write_text(t,encoding='utf-8')
+
+          for name in ['index.html','member.html','admin.html','onsite.html','platform.html','operations-center.html','photo.html','consignment.html','about.html']:
+              Path(name).unlink(missing_ok=True)
+      - name: Validate patch syntax
+        run: |
+          node --check doing-member-return-direct.js
+          node --check doing-global-entry.js
+          node --check doing-2-home-v11.js
+          node --check doing-2-shell.js
+          node --check scripts/build-doing-2-site.mjs
+          node --check scripts/validate-unified-entry.mjs
+          node scripts/build-doing-2-site.mjs
+          node scripts/validate-unified-entry.mjs
+      - name: Remove temporary audit/patch workflows and commit
+        run: |
+          git rm -f .github/workflows/unified-entry-audit-once.yml .github/workflows/unified-entry-patch-once.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix: unify login entry and remove retired pages'
+          git push origin HEAD:${{ github.head_ref }}
