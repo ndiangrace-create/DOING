@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-23T10:05:00+08:00",
-  "sourceFingerprint": "4481b4d5313061c8cf630824dc6f427808907eac471ba51c15b889edf86d55ab",
+  "recordedAt": "2026-08-23T10:08:00+08:00",
+  "sourceFingerprint": "6f8bf840bfa01e0147801ceb62e99d589cedf0801e83b34e701738f7b83ff36e",
   "environment": "DOING Market 已正式鎖定兩條不同登入／授權契約。前台 /market/public/ 為一般報名者／會員：DOING LINE 只使用 mode=member，原頁 return_url 原樣簽入 OAuth state；Core Callback 只依 mode 決定角色，tenant 僅為上下文，不能把 member 提升成 admin/platform。正式 DOING 站點預設固定 https://doing.2b-love.com/，不再 fallback 到舊 GitHub Pages。成功後 member_token 寫入 doing_member_token 並留在原本 Market 前台，不取得 admin_token。主辦後台 /market/ 為已申請／核准之主辦單位：需經 /apply/、workspace／staff 權限，再由 createMemberWorkspaceAdminSession 驗證並簽發 admin_token。原本 Market 短效同來源回跳保護保留，但只作 defense-in-depth，不是正常主流程。本批另含主辦後台前台 Logo 圖片上傳、預覽與 URL 回存，沿用既有 uploadCover／saveSiteConfig。worker.js／worker.txt 已同步修改 Core 三個根因點；未新增資料表、未修改 2BL／2bl-v7、未寫正式營運資料。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
