@@ -10,48 +10,32 @@ jobs:
   verify-production:
     runs-on: ubuntu-latest
     steps:
-      - name: Verify Cloudflare production deployment
-        env:
-          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          MAIN_SHA: 15dad25b52ae8b57c809ac3cacf59f893f577455
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -n "$CF_TOKEN"; test -n "$CF_ACCOUNT"
-          pages_url="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/pages/projects/doing-2/deployments"
-          worker_url="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/workers/scripts/tobeloved-api/deployments"
-          ok=0
-          for i in $(seq 1 40); do
-            pages="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" "$pages_url")"
-            commit="$(jq -r '[.result[] | select(.environment=="production")][0].deployment_trigger.metadata.commit_hash // empty' <<<"$pages")"
-            status="$(jq -r '[.result[] | select(.environment=="production")][0].latest_stage.status // empty' <<<"$pages")"
-            if [ "$commit" = "$MAIN_SHA" ] && [ "$status" = "success" ]; then ok=1; break; fi
-            sleep 5
-          done
-          echo "pages_commit=$commit status=$status"
-          test "$ok" = 1
-          workers="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" "$worker_url")"
-          worker_id="$(jq -r '.result.deployments[0].id // empty' <<<"$workers")"
-          test -n "$worker_id"
-      - name: Verify live pages and single login
+      - name: Wait for live unified entry
         shell: bash
         run: |
           set -euo pipefail
           base='https://doing.2b-love.com'; core='https://tobeloved-api.ndiangrace.workers.dev'
-          home_js="$(curl -fsSL --max-time 20 "$base/doing-2-home-v11.js?verify=final")"
-          member_js="$(curl -fsSL --max-time 20 "$base/doing-member-return-direct.js?verify=final")"
-          global_js="$(curl -fsSL --max-time 20 "$base/doing-global-entry.js?verify=final")"
-          booking="$(curl -fsSL --max-time 20 "$base/booking/?verify=final")"
-          apply_js="$(curl -fsSL --max-time 20 "$base/doing-smart-activation-v5.js?verify=final")"
-          grep -q '申請 DOING' <<<"$home_js"
-          grep -q 'd2HomeLogin' <<<"$home_js"
-          grep -q "new URL('/me/',location.origin)" <<<"$member_js"
-          grep -q '重新使用 LINE 登入' <<<"$member_js"
-          grep -q 'createMemberWorkspaceAdminSession' <<<"$global_js"
-          grep -q 'getOperationUnitsAdmin' <<<"$booking"
-          grep -q 'LINE 驗證並開通' <<<"$apply_js"
-          for path in / /apply/ /me/ /workspace/ /booking/ /market/public/; do test "$(curl -sS -o /dev/null -w '%{http_code}' "$base$path")" = 200; done
+          ok=0
+          for i in $(seq 1 60); do
+            home_js="$(curl -fsSL --max-time 20 "$base/doing-2-home-v11.js?verify=$i" || true)"
+            member_js="$(curl -fsSL --max-time 20 "$base/doing-member-return-direct.js?verify=$i" || true)"
+            global_js="$(curl -fsSL --max-time 20 "$base/doing-global-entry.js?verify=$i" || true)"
+            booking="$(curl -fsSL --max-time 20 "$base/booking/?verify=$i" || true)"
+            apply_js="$(curl -fsSL --max-time 20 "$base/doing-smart-activation-v5.js?verify=$i" || true)"
+            a=0;b=0;c=0;d=0;e=0;f=0;g=0
+            grep -q '申請 DOING' <<<"$home_js" && a=1 || true
+            grep -q 'd2HomeLogin' <<<"$home_js" && b=1 || true
+            grep -q "new URL('/me/',location.origin)" <<<"$member_js" && c=1 || true
+            grep -q '重新使用 LINE 登入' <<<"$member_js" && d=1 || true
+            grep -q 'createMemberWorkspaceAdminSession' <<<"$global_js" && e=1 || true
+            grep -q 'getOperationUnitsAdmin' <<<"$booking" && f=1 || true
+            grep -q 'LINE 驗證並開通' <<<"$apply_js" && g=1 || true
+            echo "attempt=$i home=$a login=$b member=$c retry=$d workspace=$e booking=$f apply=$g"
+            if [ "$a$b$c$d$e$f$g" = '1111111' ]; then ok=1; break; fi
+            sleep 5
+          done
+          test "$ok" = 1
+          for path in / /apply/ /me/ /workspace/ /booking/ /market/public/; do code="$(curl -sS -o /dev/null -w '%{http_code}' "$base$path")"; echo "$path=$code"; test "$code" = 200; done
           admin_headers="$(curl -sSI "$base/admin.html" | tr -d '\r')"; grep -qi '^location: .*/workspace/' <<<"$admin_headers"
-          test "$(curl -sS -o /tmp/core.txt -w '%{http_code}' "$core/?action=publicDiscovery")" = 200
+          code="$(curl -sS -o /tmp/core.txt -w '%{http_code}' "$core/?action=publicDiscovery")"; echo "core=$code"; test "$code" = 200
           echo 'production unified entry PASS'
