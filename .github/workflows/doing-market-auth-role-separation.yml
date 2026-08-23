@@ -6,9 +6,90 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  patch-formal-application-closure-once:
+    if: github.event_name == 'pull_request' && github.head_ref == 'fix/market-logo-upload-20260823' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Patch canonical apply callback and existing-workspace recovery
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def once(text, old, new, label):
+              if new in text:
+                  return text
+              count=text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: unsafe match count={count}')
+              return text.replace(old,new,1)
+
+          for name in ['worker.js','worker.txt']:
+              path=Path(name)
+              text=path.read_text(encoding='utf-8')
+              text=once(text,
+              "function doingPageUrl(env, filename) {\n  return new URL(filename, doingSiteUrl(env)).toString();\n}\n\nfunction adminLoginSiteUrl(env) {",
+              "function doingPageUrl(env, filename) {\n  return new URL(filename, doingSiteUrl(env)).toString();\n}\n\nfunction applicationSiteUrl(env) {\n  return new URL('apply/', doingSiteUrl(env)).toString();\n}\n\nfunction adminLoginSiteUrl(env) {",
+              f'{name}: applicationSiteUrl')
+              text=once(text,
+              "const fallback=mode==='platform'?platformSiteUrl(env):mode==='organizer_signup'?doingSiteUrl(env)+'#apply':doingSiteUrl(env);",
+              "const fallback=mode==='platform'?platformSiteUrl(env):mode==='organizer_signup'?applicationSiteUrl(env):doingSiteUrl(env);",
+              f'{name}: LINE organizer fallback')
+              text=once(text,
+              "const memberTarget=safeDoingReturnUrl(env,statePayload&&statePayload.return_url),applicationTarget=new URL(doingSiteUrl(env)),adminTarget=new URL(adminLoginSiteUrl(env)),platformTarget=new URL(platformSiteUrl(env));applicationTarget.hash='apply';",
+              "const memberTarget=safeDoingReturnUrl(env,statePayload&&statePayload.return_url),applicationTarget=new URL(applicationSiteUrl(env)),adminTarget=new URL(adminLoginSiteUrl(env)),platformTarget=new URL(platformSiteUrl(env));",
+              f'{name}: LINE application target')
+              old_line="const activationRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&select=status,tenant_id,note`).catch(()=>[]),activation=activationRows[0]||{},activationStatus=String(activation.status||'pending');\n      if(activationStatus==='approved'){"
+              new_line="const activationRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&select=status,tenant_id,note`).catch(()=>[]),activation=activationRows[0]||{},activationStatus=String(activation.status||'pending');\n      const applicationMemberToken=await issueMemberToken({email:member.email,provider:'line',provider_subject:lineSubject,display_name:lineName,avatar_url:lineAvatar},env);\n      applicationTarget.searchParams.set('member_token',applicationMemberToken);applicationTarget.searchParams.set('member_status',platformMemberComplete(member)?'ready':'profile_required');\n      if(activationStatus==='approved'){"
+              text=once(text,old_line,new_line,f'{name}: LINE member handoff')
+              # Google is backup only, but it must use the same canonical application surface.
+              text=text.replace("doingSiteUrl(env)+'#apply'","applicationSiteUrl(env)")
+              text=text.replace("const u=new URL(doingSiteUrl(env));u.hash='apply';","const u=new URL(applicationSiteUrl(env));")
+              path.write_text(text,encoding='utf-8')
+
+          if Path('worker.js').read_bytes()!=Path('worker.txt').read_bytes():
+              raise SystemExit('worker.js / worker.txt diverged')
+
+          path=Path('doing-smart-activation-v5.js')
+          text=path.read_text(encoding='utf-8')
+          old="}catch(e){err(e.message||'申請資料保存失敗');b.disabled=false;b.textContent='我要申請｜使用 LINE 驗證 →'}}"
+          new="}catch(e){const message=e.message||'申請資料保存失敗';if(/已有自己的 DOING 工作空間|已有進行中的工作空間申請/.test(message)){const target=new URL('/me/',location.origin);target.hash='operations';const token=localStorage.getItem('doing_member_token')||'';if(token){location.href=target.toString();return}const a=new URL(API+'/auth/line/start');a.searchParams.set('mode','member');a.searchParams.set('return_url',target.toString());location.href=a.toString();return}err(message);b.disabled=false;b.textContent='我要申請｜使用 LINE 驗證 →'}}"
+          text=once(text,old,new,'activation duplicate recovery')
+          old_end="render();\n})();"
+          new_end="""render();
+(async function recoverExistingWorkspace(){
+  const token=localStorage.getItem('doing_member_token')||'';if(!token)return;
+  try{const r=await fetch(API+'?action=getPlatformMemberProfile&member_token='+encodeURIComponent(token),{cache:'no-store'}),d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false||d.error)return;const data=d.data??d.result??d,spaces=Array.isArray(data.workspaces)?data.workspaces:[];if(!spaces.length)return;const target=new URL('/me/',location.origin);target.hash='operations';form.innerHTML='<div id="d2a"><section class="h"><small>DOING 營運帳號</small><h2>你的工作空間已經開通</h2><p>這個會員已經有自己的 DOING 工作空間，不需要重新申請。</p></section><section class="c"><button class="b pri" id="existingWorkspaceBtn" type="button">進入我的 DOING</button></section></div>';document.getElementById('existingWorkspaceBtn').onclick=()=>location.href=target.toString()}catch(_){}}
+)();
+})();"""
+          text=once(text,old_end,new_end,'existing workspace preflight')
+          path.write_text(text,encoding='utf-8')
+      - name: Verify patch
+        run: |
+          cmp worker.js worker.txt
+          node --check worker.js
+          node --check doing-smart-activation-v5.js
+          grep -F "applicationSiteUrl(env)" worker.js >/dev/null
+          grep -F "applicationMemberToken" worker.js >/dev/null
+          grep -F "你的工作空間已經開通" doing-smart-activation-v5.js >/dev/null
+      - name: Commit patch if changed
+        run: |
+          if git diff --quiet -- worker.js worker.txt doing-smart-activation-v5.js; then
+            echo "Formal application closure patch already present."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "4189827+github-actions[bot]@users.noreply.github.com"
+          git add worker.js worker.txt doing-smart-activation-v5.js
+          git commit -m "fix: close formal organizer application return flow"
+          git push origin HEAD:${{ github.head_ref }}
+
   validate:
     runs-on: ubuntu-latest
     steps:
