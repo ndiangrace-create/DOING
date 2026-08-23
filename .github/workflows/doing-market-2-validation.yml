@@ -5,14 +5,22 @@ on:
       - 'doing-2.html'
       - 'doing-market-v18.css'
       - 'doing-market-completion-v16.css'
+      - 'doing-market-admin-entry.js'
+      - 'doing-smart-activation-v5.js'
+      - 'doing-formal-application-bridge.js'
+      - 'smart-application.html'
       - 'doing-visual-system-20260822.js'
+      - 'doing-home-refresh.js'
       - 'market-public.html'
+      - 'market/public/index.html'
       - 'market-center.html'
       - 'market-session.html'
       - 'member-panel.html'
       - 'project-center.html'
       - 'booking-2-center.html'
       - 'guide-center.html'
+      - 'worker.js'
+      - 'worker.txt'
       - 'doing-world-tree-current.json'
       - 'DOING_2.0_WORLD_TREE_V1_BASELINE_20260822.md'
       - 'DOING_2.0_WORLD_TREE_V3_MARKET_EXECUTION_20260822.md'
@@ -26,9 +34,14 @@ on:
       - 'scripts/validate-doing-market-compact-ui.mjs'
       - 'scripts/validate-market-green-closure.mjs'
       - 'scripts/validate-market-role-ui-v18.mjs'
+      - 'scripts/validate-formal-application-closure.mjs'
       - 'scripts/e2e-market-ui.mjs'
       - 'scripts/e2e-market-role-ui-v18.mjs'
+      - 'scripts/e2e-market-logo-upload.mjs'
+      - 'scripts/e2e-market-logo-admin-entry.mjs'
+      - 'scripts/e2e-market-member-login-return.mjs'
       - 'scripts/e2e-market-public-interaction-v20.mjs'
+      - 'scripts/e2e-formal-application-closure.mjs'
       - '.github/workflows/doing-market-2-validation.yml'
   workflow_dispatch:
 permissions:
@@ -53,25 +66,35 @@ jobs:
         run: node scripts/validate-market-green-closure.mjs
       - name: Validate Market role UI v18
         run: node scripts/validate-market-role-ui-v18.mjs
+      - name: Validate formal application closure
+        run: node scripts/validate-formal-application-closure.mjs
       - name: Build DOING 2.0 site
         run: node scripts/build-doing-2-site.mjs
       - name: Install Chromium E2E
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Real-browser Market E2E
+      - name: Real-browser Market and formal application E2E
         run: |
           python3 -m http.server 4173 --directory .doing-2-site >/tmp/doing-market-e2e.log 2>&1 &
           SERVER_PID=$!
-          trap 'kill $SERVER_PID || true' EXIT
+          python3 -m http.server 4174 --directory . >/tmp/doing-github-e2e.log 2>&1 &
+          ROOT_SERVER_PID=$!
+          trap 'kill $SERVER_PID $ROOT_SERVER_PID || true' EXIT
           for i in {1..30}; do curl -fsS http://127.0.0.1:4173/market/public/ >/dev/null && break; sleep 1; done
+          for i in {1..30}; do curl -fsS http://127.0.0.1:4173/apply/ >/dev/null && break; sleep 1; done
+          for i in {1..30}; do curl -fsS http://127.0.0.1:4174/market/public/ >/dev/null && break; sleep 1; done
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-ui.mjs
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-role-ui-v18.mjs
+          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-logo-upload.mjs
+          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-logo-admin-entry.mjs
+          E2E_GITHUB_BASE=http://127.0.0.1:4174 node scripts/e2e-market-member-login-return.mjs
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-public-interaction-v20.mjs
-      - name: Upload Market v18 visual evidence
+          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-formal-application-closure.mjs
+      - name: Upload visual evidence
         uses: actions/upload-artifact@v4
         with:
-          name: market-v18-visual-evidence
+          name: doing-market-application-visual-evidence
           path: artifacts/*.png
           if-no-files-found: error
       - name: Diff quality

@@ -110,3 +110,34 @@
 - 新增 `DOING_V11_HOME_RELEASE_SPEC_20260822.md` 與 `scripts/validate-doing-v11-home-e2e.mjs`。
 - 首頁 public layer 僅注入根首頁，不套用 Market／Project／Booking／Guide，避免樣式污染後台。
 - 本次新增資料表 0、Schema 變更 0、Worker 正式邏輯變更 0、2BL 變更 0。
+
+## 2026-08-23｜v15.5 Market 報名者 LINE 登入回原前台鎖定
+
+- 根因修正：DOING Core 正式站點 fallback 由舊 GitHub Pages 改為 `https://doing.2b-love.com/`。
+- LINE OAuth `mode=member` 固定走會員 `return_url`；`tenant` 只保留場域上下文，不再能把 member 導向 admin／platform。
+- `mode=platform`、`mode=admin`、`mode=organizer_signup` 才能分別進對應管理入口；`member_token` 永遠不等於 `admin_token`。
+- 新增 Core 直接驗證：`tenant=demo` 與 `tenant=platform` 均無法改變 member 角色，正常流程 `rescueFallbackRequired=false`。
+- 原有 Market 短效同來源回跳只保留為 defense-in-depth，不作正常主流程。
+- `worker.js`／`worker.txt` 同步；新增資料表 0、正式營運資料寫入 0、2BL／`2bl-v7` 未修改。
+
+## 2026-08-23｜v15.6 Market 前台 LOGO 長按 3 秒安全主辦入口
+
+- 前台左上 LOGO 長按 3 秒新增隱藏主辦入口；一般點擊維持前台首頁行為。
+- 長按只發起 DOING LINE `mode=member` 身分驗證，不直接取得或假設主辦權限。
+- LINE 回跳後必須呼叫 `createMemberWorkspaceAdminSession`，由 Core 依同一會員身分、指定 tenant、active staff／owner、active tenant 交換正式 `admin_token`。
+- 一般會員、停用 staff、非 active tenant 一律拒絕；tenant `locked=true` 時前台入口也拒絕進後台。
+- Chromium 桌機 1440×1000／手機 390×844 實際長按 3 秒 PASS；成功、一般會員拒絕、locked tenant 拒絕均 PASS。
+- 新增資料表 0、Schema 變更 0、正式營運資料寫入 0、2BL／`2bl-v7` 未修改。
+
+## 2026-08-23｜v15.7 正式營運申請同一次 LINE 身分閉環
+
+- `/apply/` 新增正式申請 bridge，申請資料只以短效 15 分鐘 session snapshot 暫存，用於跨 LINE OAuth 回跳續接；不寫正式營運狀態到 localStorage。
+- 第一次申請者固定先走 DOING LINE `mode=member`，精確回原 `/apply/?doing_application_resume=1`；不用第二次登入，也不建立 App／Web 第二套會員。
+- LINE 回來後使用同一 `member_token` 呼叫既有 `savePlatformMemberProfile`，把本人剛填的姓名、Email、手機、地區寫回同一正式會員主檔，再呼叫既有 `createOrganizerApplicationDraft`。
+- Core 既有快速驗證契約在 LINE identity＋會員 Email／電話與申請資料一致時回 `lineVerified:true`；正式 `tenant_apply_logs`／資料庫 trigger 繼續負責 auto-activation 與 tenant／workspace 建立，前端不自建正式狀態。
+- 成功後保留 `application_id`、`tenant_id`、`post_application=1` 並穩定進 `/me/#operations`。
+- 既有工作空間使用者直接顯示「你的工作空間已經開通」並進我的 DOING，不建立第二份申請；已有進行中申請則回既有申請狀態，不重複建立。
+- 新 bridge 不包含 `admin_token`、`mode=admin`、`mode=platform`；`member_token` 仍不等於 `admin_token`，主辦管理權限仍須由正式 workspace／staff Core 契約交換。
+- `smart-application.html`、`scripts/build-doing-2-site.mjs`、Site／Market／Safe Production CI 已納入 bridge 與 closure validation，正式 Pages build 會帶入新檔。
+- Real-browser E2E：桌機 1440×1000、手機 390×844、既有工作空間、防重複進行中申請均 PASS；Market Validation #297 PASS，視覺證據 artifact digest `sha256:76da6e49fccd5736324eb88c1a0bb464e1aee6d0bfc5fe2d8132b410a73d0c7e`。
+- 新增資料表 0、Schema 變更 0、正式營運資料寫入 0；2BL／`2bl-v7` 未修改；尚未正式部署。

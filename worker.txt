@@ -5037,7 +5037,7 @@ async function findAdminWorkspacesByMemberId(env, memberId) {
   return workspaces;
 }
 
-const DEFAULT_DOING_SITE_URL = 'https://ndiangrace-create.github.io/DOING/';
+const DEFAULT_DOING_SITE_URL = 'https://doing.2b-love.com/';
 
 function doingSiteUrl(env) {
   const raw = String(env.DOING_SITE_URL || DEFAULT_DOING_SITE_URL).trim();
@@ -5306,7 +5306,7 @@ async function hLineStart(env,url){
   if(nativeApp&&(!/^[A-Za-z0-9_-]{43,128}$/.test(codeChallenge)||!/^[A-Za-z0-9._:-]{8,160}$/.test(deviceId)||!appState||appState.length>160))return new Response('原生 App 登入資料不完整',{status:400});
   const link=mode==='link'?await verifyIdentityLinkStart(env,url.searchParams.get('link_token'),'line'):null;
   if(mode==='link'&&!link)return new Response('帳號連結已失效，請回會員中心重新操作',{status:400});
-  const fallback=mode==='platform'||tenant==='platform'?platformSiteUrl(env):mode==='organizer_signup'?doingSiteUrl(env)+'#apply':doingSiteUrl(env);
+  const fallback=mode==='platform'?platformSiteUrl(env):mode==='organizer_signup'?doingSiteUrl(env)+'#apply':doingSiteUrl(env);
   const state=await issueLineOAuthState(env,{mode,tenant,application_id:url.searchParams.get('application_id')||'',return_url:link?.return_url||url.searchParams.get('return_url')||fallback,link_member_id:link?.member_id||'',nonce,code_challenge:codeChallenge,device_id:deviceId,app_state:appState});
   // LINE Email 權限需經 LINE Developers 另行審核。尚未核准時仍以固定 provider subject
   // 完成安全登入；有核准並明確開啟設定時，才額外取得已驗證 Email 做跨服務自動合併。
@@ -5320,7 +5320,7 @@ async function hLineCallback(env,url){
   const statePayload=await verifyLineOAuthState(env,url.searchParams.get('state')||'');
   const mode=String(statePayload&&statePayload.mode||'member').trim().toLowerCase(),tenant=String(statePayload&&statePayload.tenant||'').trim().toLowerCase();
   const memberTarget=safeDoingReturnUrl(env,statePayload&&statePayload.return_url),applicationTarget=new URL(doingSiteUrl(env)),adminTarget=new URL(adminLoginSiteUrl(env)),platformTarget=new URL(platformSiteUrl(env));applicationTarget.hash='apply';
-  const target=mode==='organizer_signup'?applicationTarget:mode==='platform'||tenant==='platform'?platformTarget:mode==='admin'||tenant?adminTarget:memberTarget;
+  const target=mode==='organizer_signup'?applicationTarget:mode==='platform'?platformTarget:mode==='admin'?adminTarget:memberTarget;
   const fail=reason=>{if(mode==='market_app')return Response.redirect(`doingmarket://auth/line?error=${encodeURIComponent(reason)}&state=${encodeURIComponent(String(statePayload&&statePayload.app_state||''))}`,302);target.searchParams.set(['member','link'].includes(mode)?'member_login_error':'login_error',reason);return Response.redirect(target.toString(),302)};
   if(!statePayload)return fail('invalid_or_expired_state');
   if(url.searchParams.get('error'))return fail('line_cancelled');

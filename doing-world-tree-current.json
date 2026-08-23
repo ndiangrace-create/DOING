@@ -1,9 +1,9 @@
 {
-  "version": "v15.4",
-  "updatedAt": "2026-08-22 20:36",
+  "version": "v15.7",
+  "updatedAt": "2026-08-23 18:35",
   "current": {
-    "title": "Market｜市集操作路徑完成版",
-    "summary": "依 2BL 的使用者操作骨架補齊 Market 前後台路徑；DOING 會員登入、Core／API、Supabase 與權限仍維持 DOING 正式機制。"
+    "title": "DOING 2.0｜正式申請閉環＋Market 安全入口",
+    "summary": "正式申請已補齊同一次 LINE member 身分續接：/apply/ 保留申請資料，LINE 驗證回原 /apply/ 後寫回同一會員主檔，再以同一 member_token 建立正式申請並承接 Core auto-activation，成功進 /me/#operations；已有工作空間或進行中申請不重複建立。Market 一般報名者登入與 LOGO 長按主辦入口既有安全契約維持不變，DOING Core／API／Supabase 仍為正式 SSOT。"
   },
   "branches": [
     {
@@ -33,11 +33,12 @@
             {
               "id": "front-member",
               "title": "會員／登入",
-              "summary": "使用同一會員身分進入報名與後續紀錄。",
+              "summary": "一般報名者使用 DOING LINE member 身分承接報名與紀錄；登入完成固定回原 Market 前台，tenant 不得改變角色。",
               "status": "done",
               "children": [
                 {"id": "front-member-verify", "title": "會員驗證", "summary": "LINE／正式會員身分驗證後承接報名。", "status": "done"},
-                {"id": "front-member-profile", "title": "首次／資料不完整", "summary": "補齊姓名、手機、品牌與至少一項可查看的社群／官網連結。", "status": "verify"}
+                {"id": "front-member-profile", "title": "首次／資料不完整", "summary": "補齊姓名、手機、品牌與至少一項可查看的社群／官網連結。", "status": "verify"},
+                {"id": "front-member-oauth-return", "title": "LINE 登入固定回原 Market 前台", "summary": "一般報名者固定 mode=member；tenant 僅為上下文，不具授權效果。Core Callback 只依 mode 決定角色，member 必須回原 return_url；正式 fallback 為 https://doing.2b-love.com/；member_token 不等於 admin_token。", "status": "done"}
               ]
             },
             {
@@ -106,11 +107,12 @@
             {
               "id": "admin-entry",
               "title": "後台入口",
-              "summary": "主辦由 DOING 工作空間進入 Market；沿用 DOING 正式登入與權限，不搬 2BL 的登入技術。",
+              "summary": "主辦可由 DOING 工作空間或 Market 前台 LOGO 長按 3 秒進入；兩條入口都沿用 DOING LINE 與正式 tenant／staff 權限，手勢本身不授權。",
               "status": "done",
               "children": [
                 {"id": "admin-entry-workspace", "title": "從工作空間進入 Market", "summary": "主辦登入 DOING 後，從工作空間進入 Market。", "status": "done"},
-                {"id": "admin-entry-role", "title": "確認主辦權限", "summary": "依 DOING 正式角色與租戶權限決定可操作範圍。", "status": "done"}
+                {"id": "admin-entry-role", "title": "確認主辦權限", "summary": "依 DOING 正式角色與租戶權限決定可操作範圍。", "status": "done"},
+                {"id": "admin-entry-logo-hold", "title": "前台 LOGO 長按 3 秒安全進後台", "summary": "桌機／手機長按前台左上 LOGO 3 秒只發起 DOING LINE member 身分驗證；回來後由 createMemberWorkspaceAdminSession 驗證指定 tenant 的 active staff／owner 與 active tenant，locked tenant 仍拒絕；成功才簽發 admin_token 進 /market/。", "status": "done"}
               ]
             },
             {
@@ -300,13 +302,15 @@
       {"id": "member-visual", "title": "會員頁成熟視覺精修", "summary": "共用 Design System 已套用，但仍需依唯一視覺基準逐區精修。", "status": "todo"},
       {"id": "member-uat", "title": "真人紀錄流程 UAT", "summary": "需在正式網域驗證登入、報名、付款、取消／退款、返回與狀態保存。", "status": "todo"}
     ]},
-    {"id": "apply", "side": "right", "title": "申請", "summary": "申請 DOING 2.0 工作系統。", "status": "progress", "children": [
+    {"id": "apply", "side": "right", "title": "申請", "summary": "申請 DOING 2.0 工作系統；正式申請使用同一 DOING LINE member 身分與同一份 Supabase 會員／工作空間資料。", "status": "progress", "children": [
       {"id": "apply-route", "title": "正式短網址", "summary": "固定使用 /apply/。", "status": "done"},
-      {"id": "apply-flow", "title": "申請主流程", "summary": "選產品→選使用類型→填資料→LINE 驗證→建立工作空間，已定案並通過自動流程驗證。", "status": "done"},
+      {"id": "apply-flow", "title": "申請主流程", "summary": "選產品→選使用類型→填資料→LINE member 驗證→回原 /apply/ 續接→寫回同一會員主檔→正式申請→Core auto-activation→/me/#operations。", "status": "done"},
+      {"id": "apply-member-resume", "title": "同一次 LINE 身分續接", "summary": "申請資料以 15 分鐘 session snapshot 暫存；LINE 固定使用 mode=member，回 /apply/ 後沿用同一 member_token，不另建第二套主辦會員或直接簽 admin_token。", "status": "done"},
+      {"id": "apply-no-duplicate", "title": "既有空間／進行中申請防重複", "summary": "會員已有工作空間時直接進我的 DOING；已有進行中申請時回既有申請狀態，不再建立第二份正式申請。", "status": "done"},
       {"id": "apply-helper", "title": "智慧小幫手不阻擋申請", "summary": "智慧小幫手只作客服／導引，不再作申請 gate。", "status": "done"},
-      {"id": "apply-auto", "title": "LINE 驗證後自動開通", "summary": "申請完成後可接續 /me/ → /workspace/ → 對應產品。", "status": "done"},
+      {"id": "apply-auto", "title": "LINE 驗證後自動開通", "summary": "同一會員資料通過既有 Core 契約後，由正式 tenant_apply_logs／資料庫 trigger 承接 auto-activation；完成後進 /me/#operations，再由工作空間進對應產品。", "status": "done"},
       {"id": "apply-visual", "title": "申請頁成熟視覺精修", "summary": "基礎共用視覺已套用，正式商業產品級版面仍需逐區驗收。", "status": "todo"},
-      {"id": "apply-uat", "title": "正式申請真人 UAT", "summary": "仍需在正式網域以真實瀏覽器驗證完整申請與回跳。", "status": "todo"}
+      {"id": "apply-uat", "title": "正式申請真人 UAT", "summary": "桌機／手機 Real-browser E2E 已通過；正式發布後仍需以真實 LINE 與正式網域完成真人 UAT。", "status": "verify"}
     ]},
     {"id": "workspace", "side": "right", "title": "我的 DOING／工作空間", "summary": "登入後承接 Market／Project／Booking／Guide 的工作入口，不再當公開首頁。", "status": "progress", "children": [
       {"id": "workspace-route", "title": "正式入口", "summary": "固定使用 /workspace/。", "status": "done"},
@@ -354,6 +358,7 @@
     ]}
   ],
   "changes": [
+    {"time": "2026-08-23 18:35", "title": "正式營運申請同一次 LINE 身分閉環", "summary": "/apply/ 現在先保留申請資料，再以 mode=member 完成 LINE 身分；回原 /apply/ 後用同一 member_token 寫回會員主檔並呼叫既有 createOrganizerApplicationDraft，lineVerified 後由正式資料庫 auto-activation 建立工作空間，最後進 /me/#operations。已有工作空間與進行中申請都不重複建立；未新增資料表，未建立第二套會員或權限系統。"},
     {"time": "2026-08-22 20:36", "title": "Market 市集操作路徑補齊", "summary": "依 2BL 操作骨架補上後台入口與場次總覽，形成後台入口→場次總覽→場次設定→待辦→審核→付款→排位→退款→財務結案；DOING 的 LINE／權限／Core／Supabase 不變。"},
     {"time": "2026-08-22 20:24", "title": "Market 操作路徑往下一層展開", "summary": "依 2BL 營運世界樹，把前台 7 步、後台 7 步與系統閉環往下補成實際操作節點；保留原主線與既有驗證狀態。"},
     {"time": "2026-08-22 19:42", "title": "全系統心智圖完整展開", "summary": "全系統總樹不再只顯示頂層卡片；直接展開所有既有子節點，並補上角色／權限與 10 個共用模組。功能狀態維持原驗證結果。"},

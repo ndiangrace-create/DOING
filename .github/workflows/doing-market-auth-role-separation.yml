@@ -18,3 +18,5 @@ jobs:
           node-version: 24
       - name: Validate Market auth role separation
         run: node scripts/validate-market-auth-role-separation.mjs
+      - name: Validate Market member OAuth primary return
+        run: node scripts/validate-market-member-oauth-primary-return.mjs

@@ -41,6 +41,7 @@ jobs:
           test ! -f doing-about-refresh.js
           test ! -f doing-about-refresh.css
           node --check doing-smart-activation.js
+          node --check doing-formal-application-bridge.js
           node --check doing-global-entry.js
           node --check doing-auto-activation-status.js
           node - <<'NODE'
@@ -74,6 +75,7 @@ jobs:
           node scripts/validate-organizer-application-e2e.mjs
           node scripts/validate-member-brand-e2e.mjs
           node scripts/validate-role-module-access.mjs
+          node scripts/validate-formal-application-closure.mjs
       - name: Validate full system routes, buttons and settings
         run: |
           node scripts/validate-full-system.mjs

@@ -2,10 +2,14 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const pub=fs.readFileSync('market-public.html','utf8');
+const publicRoute=fs.readFileSync('market/public/index.html','utf8');
+const adminEntry=fs.readFileSync('doing-market-admin-entry.js','utf8');
+const home=fs.readFileSync('doing-home-refresh.js','utf8');
 const admin=fs.readFileSync('market-center.html','utf8');
 const member=fs.readFileSync('member-panel.html','utf8');
 const apply=fs.readFileSync('smart-application.html','utf8');
 const worker=fs.readFileSync('worker.js','utf8');
+const workerMirror=fs.readFileSync('worker.txt','utf8');
 
 // 前台＝一般報名者。LINE 登入成功後必須回原本 Market 前台並留在原頁。
 for(const token of [
@@ -20,8 +24,43 @@ for(const token of [
   "api('savePlatformMemberProfile'"
 ]) assert.ok(pub.includes(token),`前台會員登入契約缺少：${token}`);
 assert.ok(pub.includes('/auth/line/start'),'前台必須使用 DOING LINE 登入');
-assert.ok(!pub.includes("createMemberWorkspaceAdminSession"),'一般報名者前台不得交換主辦 admin session');
-assert.ok(!pub.includes("admin_token"),'一般報名者前台不得依賴主辦 admin_token');
+assert.ok(!pub.includes("createMemberWorkspaceAdminSession"),'一般報名者前台本體不得直接交換主辦 admin session');
+assert.ok(!pub.includes("admin_token"),'一般報名者前台本體不得依賴主辦 admin_token');
+
+// Core 主流程必須從源頭決定角色；tenant 只能是上下文，永遠不可把 member 提升成 admin/platform。
+assert.equal(worker,workerMirror,'worker.js / worker.txt 必須 byte-identical');
+for(const token of [
+  "const DEFAULT_DOING_SITE_URL = 'https://doing.2b-love.com/';",
+  "const fallback=mode==='platform'?platformSiteUrl(env):mode==='organizer_signup'?doingSiteUrl(env)+'#apply':doingSiteUrl(env);",
+  "const target=mode==='organizer_signup'?applicationTarget:mode==='platform'?platformTarget:mode==='admin'?adminTarget:memberTarget;"
+]) assert.ok(worker.includes(token),`Core member 主流程缺少：${token}`);
+for(const forbidden of [
+  "const DEFAULT_DOING_SITE_URL = 'https://ndiangrace-create.github.io/DOING/';",
+  "mode==='platform'||tenant==='platform'?platformTarget",
+  "mode==='admin'||tenant?adminTarget",
+  "mode==='platform'||tenant==='platform'?platformSiteUrl(env)"
+]) assert.ok(!worker.includes(forbidden),`Core 仍存在 tenant 越權／舊站 fallback：${forbidden}`);
+
+// 第二層 defense-in-depth：若外部 OAuth 供應商／瀏覽器異常讓使用者誤落根頁，仍可安全送回 Market。
+for(const token of ['doing_market_member_return','../../market-public.html','member_token','member_login_error'])assert.ok(publicRoute.includes(token),`Market 公開入口缺少登入回跳保護：${token}`);
+for(const token of ['doing_market_member_return','handoffToPendingMarket','clearMarketMemberReturn','MARKET_RETURN_MAX_AGE'])assert.ok(home.includes(token),`DOING 根頁缺少 Market member 回跳保護：${token}`);
+assert.ok(home.includes("target.origin!==location.origin"),'Market 回跳必須限制同來源，禁止開放式轉址');
+assert.ok(home.includes("startMyDoingLineLogin(){clearMarketMemberReturn()")&&home.includes("startRegistrationsLineLogin(){clearMarketMemberReturn()"),'DOING 自己的會員／工作空間登入必須先清除 Market 暫存回跳，避免誤導流');
+
+// 前台 LOGO 長按 3 秒＝隱藏主辦入口；手勢本身不授權，必須 LINE member 驗證後由 Core 交換指定 tenant admin session。
+assert.ok(pub.includes('/doing-market-admin-entry.js'),'Market 前台必須載入安全主辦入口');
+for(const token of [
+  'const HOLD_MS=3000',
+  "u.searchParams.set('mode','member')",
+  "u.searchParams.set('doing_login_flow',FLOW)",
+  "action:'createMemberWorkspaceAdminSession'",
+  'member_token:memberToken',
+  'tenantId:targetTenant',
+  'if(data.locked)',
+  "new URL('/market/',siteOrigin)",
+  "dest.searchParams.set('admin_token',adminToken)"
+]) assert.ok(adminEntry.includes(token),`LOGO 主辦入口契約缺少：${token}`);
+assert.ok(!adminEntry.includes("u.searchParams.set('mode','admin')"),'LOGO 不得直接用 admin mode 繞過會員→staff 權限交換');
 
 // 後台＝主辦單位。只能接受正式主辦 admin token，不能拿一般 member token 直接放行。
 for(const token of [
@@ -42,6 +81,7 @@ for(const token of [
   'findStaffForPlatformMember',
   "if(!staff)return jsonErr('你沒有這個營運空間的管理權限',403)",
   "if(active===false)return jsonErr('這個營運空間的管理權限已停用',403)",
+  "status=eq.active&select=id,name,is_locked,locked_reason",
   'issueAdminToken'
 ]) assert.ok(worker.includes(token),`Core 主辦權限交換缺少：${token}`);
 
@@ -49,12 +89,20 @@ console.log(JSON.stringify({
   result:'PASS',
   identity:'DOING LINE',
   publicRole:'participant',
-  publicReturn:'/market/public/ same-page return',
+  publicReturn:'/market/public/ exact primary return',
+  corePrimaryRouting:'mode-only; tenant-context-never-authority',
+  officialDoingSite:'https://doing.2b-love.com/',
+  publicFallbackReturn:'defense-in-depth only',
+  hiddenOrganizerEntry:'public LOGO hold 3s -> LINE member -> Core staff/tenant exchange -> Market admin',
+  organizerRequiresActiveTenant:true,
+  organizerRequiresActiveStaff:true,
+  lockedTenantDeniedAtEntry:true,
   organizerRole:'approved organizer/staff only',
-  organizerEntry:'application -> approval -> workspace -> admin session',
+  organizerEntry:'application -> approval -> workspace/staff -> admin session',
   participantCannotEnterAdmin:true,
   memberTokenIsNotAdminToken:true,
+  openRedirectBlocked:true,
   coreAuthority:'staff/workspace permission',
   databaseChanges:0,
-  workerChanges:0
+  workerChanges:2
 },null,2));
