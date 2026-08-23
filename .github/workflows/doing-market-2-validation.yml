@@ -6,6 +6,7 @@ on:
       - 'doing-market-v18.css'
       - 'doing-market-completion-v16.css'
       - 'doing-market-admin-entry.js'
+      - 'doing-smart-activation-v5.js'
       - 'doing-visual-system-20260822.js'
       - 'doing-home-refresh.js'
       - 'market-public.html'
@@ -16,6 +17,8 @@ on:
       - 'project-center.html'
       - 'booking-2-center.html'
       - 'guide-center.html'
+      - 'worker.js'
+      - 'worker.txt'
       - 'doing-world-tree-current.json'
       - 'DOING_2.0_WORLD_TREE_V1_BASELINE_20260822.md'
       - 'DOING_2.0_WORLD_TREE_V3_MARKET_EXECUTION_20260822.md'
@@ -38,8 +41,69 @@ on:
       - '.github/workflows/doing-market-2-validation.yml'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
+  patch-formal-application-closure-once:
+    if: github.event_name == 'pull_request' && github.head_ref == 'fix/market-logo-upload-20260823' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Patch canonical application closure
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def once(text, old, new, label):
+              if new in text:
+                  return text
+              n=text.count(old)
+              if n!=1:
+                  raise SystemExit(f'{label}: unsafe match count={n}')
+              return text.replace(old,new,1)
+
+          for name in ('worker.js','worker.txt'):
+              path=Path(name);text=path.read_text(encoding='utf-8')
+              text=once(text,"function doingPageUrl(env, filename) {\n  return new URL(filename, doingSiteUrl(env)).toString();\n}\n\nfunction adminLoginSiteUrl(env) {","function doingPageUrl(env, filename) {\n  return new URL(filename, doingSiteUrl(env)).toString();\n}\n\nfunction applicationSiteUrl(env) {\n  return new URL('apply/', doingSiteUrl(env)).toString();\n}\n\nfunction adminLoginSiteUrl(env) {",name+' applicationSiteUrl')
+              text=once(text,"const fallback=mode==='platform'?platformSiteUrl(env):mode==='organizer_signup'?doingSiteUrl(env)+'#apply':doingSiteUrl(env);","const fallback=mode==='platform'?platformSiteUrl(env):mode==='organizer_signup'?applicationSiteUrl(env):doingSiteUrl(env);",name+' line fallback')
+              text=once(text,"const memberTarget=safeDoingReturnUrl(env,statePayload&&statePayload.return_url),applicationTarget=new URL(doingSiteUrl(env)),adminTarget=new URL(adminLoginSiteUrl(env)),platformTarget=new URL(platformSiteUrl(env));applicationTarget.hash='apply';","const memberTarget=safeDoingReturnUrl(env,statePayload&&statePayload.return_url),applicationTarget=new URL(applicationSiteUrl(env)),adminTarget=new URL(adminLoginSiteUrl(env)),platformTarget=new URL(platformSiteUrl(env));",name+' line callback target')
+              old="const activationRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&select=status,tenant_id,note`).catch(()=>[]),activation=activationRows[0]||{},activationStatus=String(activation.status||'pending');\n      if(activationStatus==='approved'){"
+              new="const activationRows=await dbGet(env,'tenant_apply_logs',`id=eq.${encodeURIComponent(applicationId)}&select=status,tenant_id,note`).catch(()=>[]),activation=activationRows[0]||{},activationStatus=String(activation.status||'pending');\n      const applicationMemberToken=await issueMemberToken({email:member.email,provider:'line',provider_subject:lineSubject,display_name:lineName,avatar_url:lineAvatar},env);\n      applicationTarget.searchParams.set('member_token',applicationMemberToken);applicationTarget.searchParams.set('member_status',platformMemberComplete(member)?'ready':'profile_required');\n      if(activationStatus==='approved'){"
+              text=once(text,old,new,name+' line member handoff')
+              text=text.replace("doingSiteUrl(env)+'#apply'","applicationSiteUrl(env)")
+              text=text.replace("const u=new URL(doingSiteUrl(env));u.hash='apply';","const u=new URL(applicationSiteUrl(env));")
+              path.write_text(text,encoding='utf-8')
+
+          if Path('worker.js').read_bytes()!=Path('worker.txt').read_bytes(): raise SystemExit('worker mirror mismatch')
+
+          path=Path('doing-smart-activation-v5.js');text=path.read_text(encoding='utf-8')
+          text=once(text,"}catch(e){err(e.message||'申請資料保存失敗');b.disabled=false;b.textContent='我要申請｜使用 LINE 驗證 →'}}","}catch(e){const message=e.message||'申請資料保存失敗';if(/已有自己的 DOING 工作空間|已有進行中的工作空間申請/.test(message)){const target=new URL('/me/',location.origin);target.hash='operations';const token=localStorage.getItem('doing_member_token')||'';if(token){location.href=target.toString();return}const a=new URL(API+'/auth/line/start');a.searchParams.set('mode','member');a.searchParams.set('return_url',target.toString());location.href=a.toString();return}err(message);b.disabled=false;b.textContent='我要申請｜使用 LINE 驗證 →'}}",'duplicate workspace recovery')
+          text=once(text,"render();\n})();","""render();
+(async function recoverExistingWorkspace(){
+  const token=localStorage.getItem('doing_member_token')||'';if(!token)return;
+  try{const r=await fetch(API+'?action=getPlatformMemberProfile&member_token='+encodeURIComponent(token),{cache:'no-store'}),d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false||d.error)return;const data=d.data??d.result??d,spaces=Array.isArray(data.workspaces)?data.workspaces:[];if(!spaces.length)return;const target=new URL('/me/',location.origin);target.hash='operations';form.innerHTML='<div id="d2a"><section class="h"><small>DOING 營運帳號</small><h2>你的工作空間已經開通</h2><p>這個會員已經有自己的 DOING 工作空間，不需要重新申請。</p></section><section class="c"><button class="b pri" id="existingWorkspaceBtn" type="button">進入我的 DOING</button></section></div>';document.getElementById('existingWorkspaceBtn').onclick=()=>location.href=target.toString()}catch(_){}}
+)();
+})();""",'existing workspace preflight')
+          path.write_text(text,encoding='utf-8')
+      - name: Verify exact patch
+        run: |
+          cmp worker.js worker.txt
+          node --check worker.js
+          node --check doing-smart-activation-v5.js
+          grep -F "new URL('apply/', doingSiteUrl(env))" worker.js >/dev/null
+          grep -F "applicationMemberToken" worker.js >/dev/null
+          grep -F "你的工作空間已經開通" doing-smart-activation-v5.js >/dev/null
+      - name: Commit patch
+        run: |
+          if git diff --quiet -- worker.js worker.txt doing-smart-activation-v5.js; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add worker.js worker.txt doing-smart-activation-v5.js
+          git commit -m "fix: close formal organizer application flow"
+          git push origin HEAD:${{ github.head_ref }}
+
   validate:
     runs-on: ubuntu-latest
     steps:
