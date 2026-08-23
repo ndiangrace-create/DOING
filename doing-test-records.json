@@ -1,18 +1,19 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-23T10:08:00+08:00",
-  "sourceFingerprint": "6f8bf840bfa01e0147801ceb62e99d589cedf0801e83b34e701738f7b83ff36e",
-  "environment": "DOING Market 已正式鎖定兩條不同登入／授權契約。前台 /market/public/ 為一般報名者／會員：DOING LINE 只使用 mode=member，原頁 return_url 原樣簽入 OAuth state；Core Callback 只依 mode 決定角色，tenant 僅為上下文，不能把 member 提升成 admin/platform。正式 DOING 站點預設固定 https://doing.2b-love.com/，不再 fallback 到舊 GitHub Pages。成功後 member_token 寫入 doing_member_token 並留在原本 Market 前台，不取得 admin_token。主辦後台 /market/ 為已申請／核准之主辦單位：需經 /apply/、workspace／staff 權限，再由 createMemberWorkspaceAdminSession 驗證並簽發 admin_token。原本 Market 短效同來源回跳保護保留，但只作 defense-in-depth，不是正常主流程。本批另含主辦後台前台 Logo 圖片上傳、預覽與 URL 回存，沿用既有 uploadCover／saveSiteConfig。worker.js／worker.txt 已同步修改 Core 三個根因點；未新增資料表、未修改 2BL／2bl-v7、未寫正式營運資料。",
+  "recordedAt": "2026-08-23T13:34:00+08:00",
+  "sourceFingerprint": "437084c51eb9846bf001475ee8c361f958c39c7ee0e51f0a596538dcf8aa7889",
+  "environment": "DOING Market 已正式鎖定兩條不同登入／授權契約。前台 /market/public/ 為一般報名者／會員：DOING LINE 只使用 mode=member，原頁 return_url 原樣簽入 OAuth state；Core Callback 只依 mode 決定角色，tenant 僅為上下文，不能把 member 提升成 admin/platform。正式 DOING 站點預設固定 https://doing.2b-love.com/，不再 fallback 到舊 GitHub Pages。成功後 member_token 寫入 doing_member_token 並留在原本 Market 前台，不取得 admin_token。主辦後台 /market/ 為已申請／核准之主辦單位：需經 /apply/、workspace／staff 權限，再由 createMemberWorkspaceAdminSession 驗證並簽發 admin_token。Market 前台左上 LOGO 另提供長按 3 秒的隱藏主辦入口：手勢只發起 DOING LINE member 身分驗證，回跳後仍必須由 Core 驗證同一 tenant 的 active staff／owner 與 active tenant；一般會員、停用 staff、非 active tenant、locked tenant 都不能進後台。原本 Market 短效同來源回跳保護保留，但只作 defense-in-depth，不是正常主流程。本批另含主辦後台前台 Logo 圖片上傳、預覽與 URL 回存，沿用既有 uploadCover／saveSiteConfig。worker.js／worker.txt 已同步修改 Core 三個根因點；未新增資料表、未修改 2BL／2bl-v7、未寫正式營運資料。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
   "productionWrites": 0,
   "tests": [
-    {"id":"market-auth-role-separation","command":"node scripts/validate-market-auth-role-separation.mjs","result":"PASS","scope":"Core 主流程以 mode 為唯一角色路由依據；tenant 只作上下文；member_token 不可作 admin_token；正式站點 fallback 固定 doing.2b-love.com；第二層 Market 暫存回跳限同來源與短效"},
+    {"id":"market-auth-role-separation","command":"node scripts/validate-market-auth-role-separation.mjs","result":"PASS","scope":"Core 主流程以 mode 為唯一角色路由依據；tenant 只作上下文；member_token 不可作 admin_token；正式站點 fallback 固定 doing.2b-love.com；第二層 Market 暫存回跳限同來源與短效；前台 LOGO 長按入口不得直接繞過 Core tenant/staff 授權"},
     {"id":"market-member-oauth-primary-return","command":"node scripts/validate-market-member-oauth-primary-return.mjs","result":"PASS","scope":"直接呼叫 Worker：LINE start → 簽 state → 模擬 callback；tenant=demo 與 tenant=platform 均不能改變 mode=member；精確回 /market/public/；rescueFallbackRequired=false；productionWrites=0"},
     {"id":"market-member-login-return-browser","command":"E2E_GITHUB_BASE=http://127.0.0.1:4174 node scripts/e2e-market-member-login-return.mjs","result":"PASS","scope":"Defense-in-depth Chromium 桌機 1440×1000＋手機 390×844：若外部流程誤落 DOING 根頁，安全回原 Market 前台；member_token 保存、暫存回跳清除、不得進 workspace／admin；productionWrites=0"},
     {"id":"market-public-interaction-v20","command":"E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-public-interaction-v20.mjs","result":"PASS","scope":"Chromium：分類原頁 filter、活動卡→單一 Panel→正式 /register/、會員→原頁會員資料／我的報名、客服→原頁客服 Panel"},
     {"id":"market-role-browser-v18","command":"E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-role-ui-v18.mjs","result":"PASS","scope":"Chromium：Market 前台／後台／單場工作台既有操作、審核、付款、報到、設定寫入回歸"},
     {"id":"market-logo-upload-browser","command":"E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-logo-upload.mjs","result":"PASS","scope":"Chromium 桌機 1440×1000＋手機 390×844：選取 PNG → uploadCover → 正式 URL 預覽 → saveSiteConfig → 重新讀回；productionWrites=0"},
+    {"id":"market-logo-admin-entry-browser","command":"E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-logo-admin-entry.mjs","result":"PASS","scope":"Chromium 桌機 1440×1000＋手機 390×844：前台左上 LOGO 實際長按 3 秒 → DOING LINE member 身分 → createMemberWorkspaceAdminSession；有效 active staff／tenant 才取得 Core adminToken 進 /market/；一般會員拒絕、locked tenant 拒絕；productionWrites=0"},
     {"id":"market-green-closure","command":"node scripts/validate-market-green-closure.mjs","result":"PASS","scope":"公開探索→卡片→單一 Panel→報名；會員原頁資料／我的報名→儲存→重讀；客服原頁 Panel；主辦數字→名單→寫入→重讀"},
     {"id":"market-role-ui","command":"node scripts/validate-market-role-ui-v18.mjs","result":"PASS","scope":"2BL UI parity、DOING LINE/Core/Supabase、前台單一 Panel、後台 8 主導覽、雙向數字"},
     {"id":"market-ui","command":"node scripts/validate-doing-market-compact-ui.mjs","result":"PASS","scope":"Market 前台／主辦後台／單場工作台響應式與操作骨架"},
@@ -33,7 +34,7 @@
     {"id":"full-system","command":"node scripts/validate-full-system.mjs","result":"PASS","scope":"正式功能頁、前端 API 動作與後台按鈕函式回歸"},
     {"id":"navigation-actions","command":"node scripts/validate-navigation-actions.mjs","result":"PASS","scope":"平台、租戶、申請、會員與工作入口導航回歸"},
     {"id":"operational-closeout","command":"node scripts/validate-operational-closeout.mjs","result":"PASS","scope":"付款、退款、押金、設備、財務與結案能力保持"},
-    {"id":"market-app-core-contracts","command":"node scripts/validate-market-app-core-contracts.mjs","result":"PASS","scope":"Market App Core 的 LINE／QR／Push 正式契約未受 Web member 路由修正影響"},
+    {"id":"market-app-core-contracts","command":"node scripts/validate-market-app-core-contracts.mjs","result":"PASS","scope":"Market App Core 的 LINE／QR／Push 正式契約未受 Web member 路由與隱藏主辦入口修正影響"},
     {"id":"admin-consistency","command":"node scripts/validate-admin-consistency.mjs","result":"PASS","scope":"後台按鈕、排版與結算邏輯回歸"},
     {"id":"worker-sync","command":"cmp -s worker.js worker.txt","result":"PASS","scope":"DOING Worker 雙檔已同步套用 member mode-only 路由與正式站點 fallback；2bl-v7 未修改"}
   ]
