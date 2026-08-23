@@ -12,6 +12,7 @@ on:
       - 'doing-home-logo-slot-v12.js'
       - 'doing-candy-theme.css'
       - 'doing-application-contract-v12.js'
+      - 'doing-formal-application-bridge.js'
       - 'doing-market-v18.css'
       - 'doing-market-v19-layout.css'
       - 'doing-market-auth-bridge-v19.js'
@@ -38,6 +39,7 @@ on:
       - 'scripts/validate-member-panel-return.mjs'
       - 'scripts/validate-application-login-flow.mjs'
       - 'scripts/validate-fixed-product-application.mjs'
+      - 'scripts/validate-formal-application-closure.mjs'
       - 'scripts/validate-doing-v11-home-e2e.mjs'
       - 'scripts/validate-home-real-ui-v11.mjs'
       - 'scripts/validate-v12-closure.mjs'
@@ -56,6 +58,7 @@ on:
       - 'doing-home-logo-slot-v12.js'
       - 'doing-candy-theme.css'
       - 'doing-application-contract-v12.js'
+      - 'doing-formal-application-bridge.js'
       - 'doing-market-v18.css'
       - 'doing-market-v19-layout.css'
       - 'doing-market-auth-bridge-v19.js'
@@ -82,6 +85,7 @@ on:
       - 'scripts/validate-member-panel-return.mjs'
       - 'scripts/validate-application-login-flow.mjs'
       - 'scripts/validate-fixed-product-application.mjs'
+      - 'scripts/validate-formal-application-closure.mjs'
       - 'scripts/validate-doing-v11-home-e2e.mjs'
       - 'scripts/validate-home-real-ui-v11.mjs'
       - 'scripts/validate-v12-closure.mjs'
@@ -116,6 +120,8 @@ jobs:
         run: node scripts/validate-application-login-flow.mjs
       - name: Validate fixed product application
         run: node scripts/validate-fixed-product-application.mjs
+      - name: Validate formal application closure
+        run: node scripts/validate-formal-application-closure.mjs
       - name: Validate v11 public home end-to-end contracts
         run: node scripts/validate-doing-v11-home-e2e.mjs
       - name: Validate real homepage visual and live cards
@@ -148,6 +154,7 @@ jobs:
             test -f ".doing-2-site/$f"
           done
           test -f .doing-2-site/doing-world-tree-current.json
+          test -f .doing-2-site/doing-formal-application-bridge.js
           test -f .doing-2-site/doing-market-v19-layout.css
           test -f .doing-2-site/doing-market-auth-bridge-v19.js
 
@@ -164,6 +171,7 @@ jobs:
           done
 
           grep -q 'doing-member-return-direct.js' .doing-2-site/me/index.html
+          grep -q 'doing-formal-application-bridge.js' .doing-2-site/apply/index.html
           grep -q 'doing-smart-activation-v5.js' .doing-2-site/apply/index.html
           grep -q 'doing-application-contract-v12.js' .doing-2-site/apply/index.html
           grep -q 'doing-application-completion.js' .doing-2-site/apply/index.html
