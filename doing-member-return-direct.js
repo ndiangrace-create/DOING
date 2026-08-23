@@ -11,14 +11,9 @@ if(incoming){
   history.replaceState(null,'',u.pathname+u.search+(u.hash||'#home'));
 }
 let token='';try{token=localStorage.getItem(TOKEN_KEY)||sessionStorage.getItem(TOKEN_KEY)||''}catch(_){}
-const inlineLogin=document.getElementById('lineLogin');if(inlineLogin)inlineLogin.remove();
-if(!token&&!loginError){
-  const returnUrl=new URL('/me/',location.origin);
-  for(const key of ['staff_invite','registration_invite']){const value=u.searchParams.get(key);if(value)returnUrl.searchParams.set(key,value)}
-  returnUrl.hash=u.hash||'#home';
-  const loginUrl=new URL(API+'/auth/line/start');
-  loginUrl.searchParams.set('mode','member');
-  loginUrl.searchParams.set('return_url',returnUrl.toString());
-  location.replace(loginUrl.toString());
-}
+function canonicalReturn(){const ret=new URL('/me/',location.origin);for(const key of ['staff_invite','registration_invite']){const value=u.searchParams.get(key);if(value)ret.searchParams.set(key,value)}ret.hash=u.hash||'#home';return ret}
+function startLine(){const loginUrl=new URL(API+'/auth/line/start');loginUrl.searchParams.set('mode','member');loginUrl.searchParams.set('return_url',canonicalReturn().toString());location.replace(loginUrl.toString())}
+function wireRetry(){const btn=document.getElementById('lineLogin');if(!btn)return;btn.textContent=loginError?'重新使用 LINE 登入':'使用 LINE 登入';btn.onclick=e=>{e.preventDefault();startLine()}}
+if(!token&&!loginError){startLine();return}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wireRetry,{once:true});else wireRetry();
 })();
