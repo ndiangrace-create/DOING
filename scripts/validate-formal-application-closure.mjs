@@ -19,7 +19,7 @@ for(const token of [
   "new URL('/apply/',location.origin)",
   "u.searchParams.set('doing_application_resume','1')",
   "action:'savePlatformMemberProfile'",
-  "action:'createOrganizerApplicationDraft'",
+  "?action=createOrganizerApplicationDraft",
   "if(d&&d.lineVerified)",
   "application_status",
   "tenantId",
