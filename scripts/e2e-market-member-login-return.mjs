@@ -6,9 +6,7 @@ const base=process.env.E2E_GITHUB_BASE||'http://127.0.0.1:4174';
 const RETURN_KEY='doing_market_member_return';
 const root=process.cwd();
 const wrapper=fs.readFileSync(root+'/market/public/index.html','utf8');
-const home=fs.readFileSync(root+'/doing-home-refresh.js','utf8');
 for(const token of [RETURN_KEY,'member_token','member_login_error','../../market-public.html'])assert.ok(wrapper.includes(token),'Market 公開入口缺少回跳保護：'+token);
-for(const token of [RETURN_KEY,'handoffToPendingMarket','clearMarketMemberReturn','startRegistrationsLineLogin'])assert.ok(home.includes(token),'DOING 首頁缺少 Market member 回跳保護：'+token);
 
 const browser=await chromium.launch({headless:true});
 const results=[];
@@ -37,21 +35,22 @@ async function run(label,width,height){
   assert.ok(new URL(parsed.url).pathname.endsWith('/market/public/'),'回跳目標必須是 Market 公開前台');
   assert.ok(Date.now()-Number(parsed.createdAt)<60_000,'回跳標記必須是本次瀏覽建立');
 
-  // 模擬 LINE Callback 錯誤落到 DOING 根首頁；首頁必須立即把一般 member 帶回原 Market 前台。
-  await page.goto(base+'/?member_token=participant-token&member_status=ready',{waitUntil:'domcontentloaded'});
-  await page.waitForURL(u=>u.pathname.endsWith('/market-public.html')&&u.searchParams.get('tenant')==='demo',{timeout:8000});
+  // 正式規則：LINE member callback 直接回原 Market 公開入口，不繞 DOING 首頁。
+  await page.goto(base+'/market/public/?tenant=demo&member_token=participant-token&member_status=ready',{waitUntil:'domcontentloaded'});
+  await page.waitForURL(u=>u.pathname.endsWith('/market-public.html')&&u.searchParams.get('tenant')==='demo',{timeout:8000,waitUntil:'domcontentloaded'});
   await page.waitForTimeout(120);
-  assert.equal(await page.evaluate(()=>localStorage.getItem('doing_member_token')),'participant-token','member_token 必須回到 Market 前台並保存');
-  assert.equal(await page.evaluate(key=>localStorage.getItem(key),RETURN_KEY),null,'成功回前台後必須清除短效回跳標記');
+  assert.equal(await page.evaluate(()=>localStorage.getItem('doing_member_token')),'participant-token','member_token 必須在原 Market 前台保存');
+  assert.equal(await page.evaluate(key=>localStorage.getItem(key),RETURN_KEY),null,'成功回原前台後必須清除短效回跳標記');
   assert.ok(!/member-panel\.html|workspace\.html|admin/.test(page.url()),'一般報名者不得被送進會員管理／主辦工作空間');
+  assert.ok(!page.url().includes('member_token='),'完成登入後網址不得持續暴露 member_token');
   fs.mkdirSync('artifacts',{recursive:true});
   const screenshot=`artifacts/market-member-return-${label}.png`;
   await page.screenshot({path:screenshot,fullPage:true});
-  results.push({label,width,height,finalUrl:page.url(),storedMemberToken:true,pendingReturnCleared:true,screenshot});
+  results.push({label,width,height,finalUrl:page.url(),directMarketReturn:true,storedMemberToken:true,pendingReturnCleared:true,screenshot});
   await context.close();
 }
 try{
   await run('desktop',1440,1000);
   await run('mobile',390,844);
-  console.log(JSON.stringify({result:'PASS',browser:'Chromium',feature:'Market participant LINE return',wrongLandingSimulated:'DOING root',expectedLanding:'Market frontstage',memberTokenIsNotAdminToken:true,productionWrites:0,checks:results},null,2));
+  console.log(JSON.stringify({result:'PASS',browser:'Chromium',feature:'Market participant LINE direct return',homeBounce:false,expectedLanding:'Market frontstage',memberTokenIsNotAdminToken:true,productionWrites:0,checks:results},null,2));
 }finally{await browser.close()}
