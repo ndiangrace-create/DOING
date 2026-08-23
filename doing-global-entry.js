@@ -2,60 +2,41 @@
 'use strict';
 const API='https://tobeloved-api.ndiangrace.workers.dev';
 const TOKEN_KEY='doing_member_token';
-const targets=[...document.querySelectorAll('[data-doing-admin-entry]')];
-const style=document.createElement('style');
-style.textContent='[data-doing-admin-entry]{position:relative;user-select:none;-webkit-user-select:none}[data-doing-admin-entry].doing-entry-holding{outline:3px solid rgba(47,143,139,.28);outline-offset:3px;border-radius:16px}[data-doing-admin-entry] img{object-fit:contain}.doing-smart-overlay{position:fixed;inset:0;z-index:9999;background:rgba(24,38,43,.46);display:grid;place-items:center;padding:18px}.doing-smart-overlay-close{position:fixed;top:18px;right:22px;z-index:10001;border:1px solid #cfe1e4;background:#eef8fb;border-radius:9px;min-height:38px;padding:6px 12px;font-weight:800;box-shadow:0 4px 14px rgba(24,38,43,.12)}.doing-smart-overlay>iframe{border:0;width:min(1180px,calc(100vw - 36px));height:min(88vh,900px);background:transparent;display:block;border-radius:0;box-shadow:none}@media(max-width:720px){.doing-smart-overlay{padding:0}.doing-smart-overlay>iframe{width:100%;height:100%;max-width:none;max-height:none}.doing-smart-overlay-close{top:8px;right:8px}}';
-document.head.appendChild(style);
-let timer=null,pointer=null,origin=null,target=null,opened=false;
-const tenant=()=>String(new URL(location.href).searchParams.get('tenant')||document.body.dataset.tenant||'').trim().toLowerCase();
-function clear(){if(timer)clearTimeout(timer);timer=null;pointer=null;origin=null;target?.classList.remove('doing-entry-holding');target=null}
-function enter(){const t=tenant();opened=true;clear();if(t){location.href='admin.html?tenant='+encodeURIComponent(t)+'&from='+encodeURIComponent(location.pathname.split('/').pop().replace('.html','')||'page');return}const u=new URL(API+'/auth/line/start');u.searchParams.set('mode','platform');u.searchParams.set('tenant','platform');location.href=u.toString()}
-if(targets.length){document.addEventListener('pointerdown',e=>{const el=e.target.closest?.('[data-doing-admin-entry]');if(!el||(e.pointerType==='mouse'&&e.button!==0))return;clear();opened=false;pointer=e.pointerId;origin={x:e.clientX,y:e.clientY};target=el;el.classList.add('doing-entry-holding');timer=setTimeout(enter,3000)},true);document.addEventListener('pointermove',e=>{if(e.pointerId!==pointer||!origin||!target)return;const r=target.getBoundingClientRect();if(Math.hypot(e.clientX-origin.x,e.clientY-origin.y)>12||e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)clear()},true);['pointerup','pointercancel','lostpointercapture'].forEach(name=>document.addEventListener(name,clear,true));document.addEventListener('click',e=>{if(opened&&e.target.closest?.('[data-doing-admin-entry]')){e.preventDefault();e.stopImmediatePropagation();opened=false}},true);document.addEventListener('contextmenu',e=>{if(e.target.closest?.('[data-doing-admin-entry]'))e.preventDefault()},true)}
-function memberToken(){try{return sessionStorage.getItem(TOKEN_KEY)||localStorage.getItem(TOKEN_KEY)||''}catch(_){return''}}
-function smartApplicationUrl(){const u=new URL('smart-application.html',location.href);u.searchParams.set('embed','1');u.searchParams.set('v','20260820-single2');return u}
-function openSmartApplication(){let overlay=document.getElementById('doingSmartApplicationOverlay');if(overlay)overlay.remove();overlay=document.createElement('div');overlay.id='doingSmartApplicationOverlay';overlay.className='doing-smart-overlay';overlay.innerHTML='<button type="button" class="doing-smart-overlay-close" aria-label="關閉智慧申請">關閉</button><iframe title="DOING 智慧申請" src="'+smartApplicationUrl().toString()+'"></iframe>';document.body.appendChild(overlay);overlay.querySelector('.doing-smart-overlay-close').onclick=()=>overlay.remove();overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove()})}
-const path=location.pathname.split('/').pop().toLowerCase();
-const inviteMode=()=>{const p=new URL(location.href).searchParams;return p.has('staff_invite')||p.has('registration_invite')};
-const explicitMemberSection=()=>/^#(?:activities|brands|account|operations)$/i.test(location.hash||'');
-function startMemberLineLogin(returnUrl=new URL(location.href)){const u=new URL(API+'/auth/line/start');u.searchParams.set('mode','member');u.searchParams.set('return_url',returnUrl.toString());location.replace(u.toString())}
-async function directMemberPanelHandoff(){if(path!=='member-panel.html'||explicitMemberSection()||inviteMode())return;const params=new URL(location.href).searchParams,incoming=params.get('member_token')||'',err=params.get('member_login_error')||params.get('login_error')||'';const token=incoming||memberToken();if(!token&&!err){const ret=new URL('index.html',location.href);ret.searchParams.set('doing_login_flow','workspace');startMemberLineLogin(ret);return}if(!token)return;try{if(incoming)localStorage.setItem(TOKEN_KEY,incoming)}catch(_){}try{const u=new URL(API);u.searchParams.set('action','getPlatformMemberProfile');u.searchParams.set('member_token',token);const r=await fetch(u,{cache:'no-store'}),d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)return;const p=d.data??d.result??d;if(!p.complete){location.replace('member-panel.html?member_token='+encodeURIComponent(token)+'#account');return}const spaces=Array.isArray(p.workspaces)?p.workspaces:[];if(spaces.length===1){const rr=await fetch(API+'?action=createMemberWorkspaceAdminSession',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_token:token,tenantId:spaces[0].id||spaces[0].tenantId||spaces[0].tenant_id})}),dd=await rr.json().catch(()=>({}));if(rr.ok&&dd.ok!==false){const data=dd.data??dd.result??dd,w=new URL('workspace.html',location.href);w.searchParams.set('tenant',data.tenantId||spaces[0].id);w.searchParams.set('admin_token',data.adminToken||'');w.searchParams.set('from','member');w.hash='calendar';location.replace(w.toString());return}}if(spaces.length>1){location.hash='operations';return}location.replace(smartApplicationUrl().toString())}catch(_){}}
-directMemberPanelHandoff();
-document.addEventListener('click',e=>{if(path==='index.html'||path==='about.html'||path==='smart-application.html')return;const el=e.target.closest?.('a[href*="about.html#apply"],a[href*="index.html#apply"],a[href*="smart-application.html"],[data-doing-smart-apply]');if(!el)return;e.preventDefault();e.stopImmediatePropagation();openSmartApplication()},true);
-if(path==='member.html'){
- const params=()=>new URL(location.href).searchParams;
- const explicit=()=>/^#(?:activities|brands|account|operations)$/i.test(location.hash||'');
- const invite=()=>params().has('staff_invite')||params().has('registration_invite');
- let autoOpening=false,autoOpenAttempted=false,lineStartAttempted=false;
- function startMemberLine(){if(lineStartAttempted)return;lineStartAttempted=true;const returnUrl=new URL('index.html',location.href);returnUrl.searchParams.set('doing_login_flow','workspace');startMemberLineLogin(returnUrl)}
- async function openV20Workspace(id,{automatic=false}={}){if(autoOpening)return;autoOpening=true;if(automatic)autoOpenAttempted=true;const token=memberToken(),tenantId=String(id||'').trim().toLowerCase();if(!token||!tenantId){autoOpening=false;return}try{const r=await fetch(API+'?action=createMemberWorkspaceAdminSession',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_token:token,tenantId})});const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.error||'無法進入工作空間');const data=d.data??d.result??d,u=new URL('workspace.html',location.href);u.searchParams.set('tenant',data.tenantId||tenantId);u.searchParams.set('admin_token',data.adminToken||'');u.searchParams.set('from','member');location.replace(u.toString())}finally{autoOpening=false}}
- function applyMemberV20(){const newBtn=document.getElementById('newOperationBtn');if(newBtn)newBtn.classList.add('hidden');document.querySelectorAll('.tab[data-page="operations"]').forEach(x=>x.textContent='工作空間');document.querySelectorAll('[data-panel="operations"] h2').forEach(x=>x.textContent='工作空間');document.querySelectorAll('[data-workspace-admin]').forEach(x=>x.textContent='進入工作空間');document.querySelectorAll('[data-workspace-calendar]').forEach(x=>{x.textContent='開啟工作日曆';x.dataset.v20Calendar='1'});document.querySelectorAll('[data-workspace-admin],[data-workspace-calendar]').forEach(x=>x.setAttribute('data-v20-workspace',x.dataset.workspaceAdmin||x.dataset.workspaceCalendar||''));if(memberToken()&&!explicit()&&!invite()&&!autoOpening&&!autoOpenAttempted){const ids=[...new Set([...document.querySelectorAll('[data-v20-workspace]')].map(x=>x.getAttribute('data-v20-workspace')).filter(Boolean))];if(ids.length===1)openV20Workspace(ids[0],{automatic:true}).catch(()=>{})}}
- const incoming=params().get('member_token'),loginError=params().get('member_login_error')||params().get('login_error');if(!memberToken()&&!invite()&&!incoming&&!loginError&&!explicit()){startMemberLine();return}const mo=new MutationObserver(applyMemberV20);mo.observe(document.documentElement,{childList:true,subtree:true});applyMemberV20();document.addEventListener('click',e=>{const el=e.target.closest?.('[data-v20-workspace]');if(!el)return;const id=el.getAttribute('data-v20-workspace');if(!id)return;e.preventDefault();e.stopImmediatePropagation();el.disabled=true;openV20Workspace(id).catch(err=>{alert(err.message||'無法進入工作空間');el.disabled=false})},true)
+function memberToken(){try{return localStorage.getItem(TOKEN_KEY)||sessionStorage.getItem(TOKEN_KEY)||''}catch(_){return''}}
+function clearMemberToken(){try{localStorage.removeItem(TOKEN_KEY);sessionStorage.removeItem(TOKEN_KEY)}catch(_){}}
+function tenantOf(el){return String(el?.dataset?.workspaceAdmin||el?.dataset?.workspaceCalendar||el?.dataset?.workspaceOperations||el?.dataset?.v20Workspace||'').trim().toLowerCase()}
+async function openWorkspace(tenantId,button){
+  const token=memberToken(),id=String(tenantId||'').trim().toLowerCase();
+  if(!token){location.href='/me/';return}
+  if(!id)return;
+  if(button)button.disabled=true;
+  try{
+    const r=await fetch(API+'?action=createMemberWorkspaceAdminSession',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_token:token,tenantId:id})});
+    const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.error||'無法進入工作空間');
+    const data=d.data??d.result??d,u=new URL('/workspace/',location.origin);u.searchParams.set('tenant',data.tenantId||id);u.searchParams.set('admin_token',data.adminToken||'');location.href=u.toString();
+  }catch(e){alert(e.message||'無法進入工作空間');if(button)button.disabled=false}
 }
-
-// V20 正式會員／申請清理層：舊申請資料只保留相容讀取，不得再成為前台正式路徑。
-const DOING_APPLICATION_INDUSTRY_LABELS={
- beauty_wellness:'美容／美甲／按摩／SPA',space_studio:'空間／設備出租',market_retail:'市集／商品販售',professional_service:'設計／接案／工程',event_exhibition:'活動／講座／展演',education:'課程／手作／教學',tour_outdoor:'導覽／戶外體驗',craft_experience:'手作／體驗',other:'其他工作／副業'
-};
-function translateApplicationIndustryText(root=document){
- const scope=root.querySelector?.('[data-panel="operations"],#operations')||document.querySelector('[data-panel="operations"],#operations');if(!scope)return;
- const walker=document.createTreeWalker(scope,NodeFilter.SHOW_TEXT);let node;
- while((node=walker.nextNode())){
-   let text=node.nodeValue||'',next=text;
-   for(const [code,label] of Object.entries(DOING_APPLICATION_INDUSTRY_LABELS))next=next.replace(new RegExp('\\b'+code+'\\b','g'),label);
-   if(next!==text)node.nodeValue=next;
- }
+function normalizeMemberHub(){
+  if(!/\/me\/?$/.test(location.pathname)&&!/member-panel\.html$/i.test(location.pathname))return;
+  document.querySelectorAll('[data-workspace-calendar],[data-workspace-operations]').forEach(el=>el.remove());
+  document.querySelectorAll('[data-workspace-admin]').forEach(el=>{el.textContent='進入工作空間';el.setAttribute('data-unified-workspace','1')});
+  document.querySelectorAll('a[href*="about.html#apply"],a[href*="index.html#apply"],a[href="/#apply"],a[href*="smart-application.html"]').forEach(a=>a.href='/apply/');
+  const logout=document.getElementById('logout');if(logout)logout.textContent='登出';
 }
-function rewriteLegacyApplicationLinks(root=document){
- root.querySelectorAll?.('a[href*="about.html#apply"],a[href*="index.html#apply"]').forEach(a=>{a.href='smart-application.html';a.setAttribute('data-doing-smart-apply','1')});
+function normalizeWorkspace(){
+  if(!/\/workspace\/?$/.test(location.pathname)&&!/workspace\.html$/i.test(location.pathname))return;
+  const advanced=document.getElementById('admin');if(advanced)advanced.remove();
+  const my=document.getElementById('my');if(my){my.textContent='我的 DOING';my.onclick=e=>{e.preventDefault();location.href='/me/'}}
 }
-function installCleanMemberProfileSubmit(){
- if(path!=='member-panel.html')return;const form=document.getElementById('profileForm');if(!form||form.dataset.v20CleanSubmit==='1')return;form.dataset.v20CleanSubmit='1';
- form.onsubmit=async e=>{e.preventDefault();const fd=new FormData(form),btn=form.querySelector('[type=submit]'),msg=document.getElementById('formMessage');if(msg)msg.textContent='';if(btn)btn.disabled=true;try{const r=await fetch(API+'?action=savePlatformMemberProfile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_token:memberToken(),name:fd.get('name'),email:fd.get('email'),phone:fd.get('phone'),city:fd.get('city'),lineId:fd.get('lineId')})}),d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.error||'儲存失敗');if(typeof window.loadProfile==='function'){await window.loadProfile();if(typeof window.switchPage==='function')window.switchPage('home')}else location.reload()}catch(err){if(msg)msg.textContent=err.message||'儲存失敗'}finally{if(btn)btn.disabled=false}};
-}
-function retireLegacyAboutApplication(){if(path!=='about.html')return;document.querySelectorAll('#applicationPanel,#apply').forEach(el=>el.remove())}
-function applyFormalV20Cleanup(){
- if(path==='member-panel.html'){translateApplicationIndustryText();rewriteLegacyApplicationLinks();installCleanMemberProfileSubmit()}
- if(path==='about.html')retireLegacyAboutApplication();
-}
-setTimeout(()=>{applyFormalV20Cleanup();if(path==='member-panel.html'){const mo=new MutationObserver(()=>applyFormalV20Cleanup());mo.observe(document.body,{childList:true,subtree:true})}},0);
+document.addEventListener('click',e=>{
+  const apply=e.target.closest?.('[data-doing-smart-apply],a[href*="#apply"],a[href*="smart-application.html"]');
+  if(apply){e.preventDefault();e.stopImmediatePropagation();location.href='/apply/';return}
+  const w=e.target.closest?.('[data-workspace-admin],[data-unified-workspace]');
+  if(w){const id=tenantOf(w);if(id){e.preventDefault();e.stopImmediatePropagation();openWorkspace(id,w);return}}
+  const logout=e.target.closest?.('#logout,[data-doing-logout]');
+  if(logout){e.preventDefault();e.stopImmediatePropagation();clearMemberToken();location.replace('/')}
+},true);
+const apply=()=>{normalizeMemberHub();normalizeWorkspace()};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
+new MutationObserver(apply).observe(document.documentElement,{childList:true,subtree:true});
 })();
