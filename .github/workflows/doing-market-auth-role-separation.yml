@@ -6,67 +6,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  patch-core-once:
-    if: github.event_name == 'pull_request' && github.head_ref == 'fix/market-logo-upload-20260823' && github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-      - name: Apply exact member return authority fix once
-        shell: python
-        run: |
-          from pathlib import Path
-
-          path = Path('worker.js')
-          text = path.read_text(encoding='utf-8')
-          replacements = [
-              (
-                  "const DEFAULT_DOING_SITE_URL = 'https://ndiangrace-create.github.io/DOING/';",
-                  "const DEFAULT_DOING_SITE_URL = 'https://doing.2b-love.com/';",
-              ),
-              (
-                  "const fallback=mode==='platform'||tenant==='platform'?platformSiteUrl(env):mode==='organizer_signup'?doingSiteUrl(env)+'#apply':doingSiteUrl(env);",
-                  "const fallback=mode==='platform'?platformSiteUrl(env):mode==='organizer_signup'?doingSiteUrl(env)+'#apply':doingSiteUrl(env);",
-              ),
-              (
-                  "const target=mode==='organizer_signup'?applicationTarget:mode==='platform'||tenant==='platform'?platformTarget:mode==='admin'||tenant?adminTarget:memberTarget;",
-                  "const target=mode==='organizer_signup'?applicationTarget:mode==='platform'?platformTarget:mode==='admin'?adminTarget:memberTarget;",
-              ),
-          ]
-          changed = False
-          for old, new in replacements:
-              old_count = text.count(old)
-              new_count = text.count(new)
-              if old_count == 1 and new_count == 0:
-                  text = text.replace(old, new)
-                  changed = True
-              elif old_count == 0 and new_count == 1:
-                  pass
-              else:
-                  raise SystemExit(f'Unsafe patch state: old={old_count}, new={new_count}: {old[:90]}')
-          if changed:
-              path.write_text(text, encoding='utf-8')
-              Path('worker.txt').write_text(text, encoding='utf-8')
-          elif Path('worker.txt').read_text(encoding='utf-8') != text:
-              raise SystemExit('worker.js / worker.txt mismatch')
-      - name: Commit canonical Worker fix if changed
-        run: |
-          if git diff --quiet -- worker.js worker.txt; then
-            echo "Canonical Worker already contains the deterministic member routing fix."
-            exit 0
-          fi
-          cmp worker.js worker.txt
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add worker.js worker.txt
-          git commit -m "fix: lock Market member LINE return in Core"
-          git push origin HEAD:${{ github.head_ref }}
-
   validate:
     runs-on: ubuntu-latest
     steps:
