@@ -26,12 +26,23 @@ for(const helper of ['dbGet','dbInsert','dbUpsert','dbUpdate','dbUpdateReturning
 }
 for(const name of refs)if(!tableNames.has(name))fail('Worker 引用未經正式盤點的資料表：'+name);
 const allowed=new Set(catalog.browserStorage.allowedKeys||[]);
+// UI-only ephemeral state is intentionally NOT business data and may only live in sessionStorage.
+// Keep this list tiny and page-scoped so it cannot become a back door for formal records.
+const sessionUiOnly=new Map([['doing_market_page',new Set(['market-center.html'])]]);
 const canonicalPages=['doing-2.html','register.html','member-panel.html','workspace.html','smart-application.html','market-center.html','market-public.html','market-session.html','booking-2-center.html','project-center.html','guide-center.html','world-tree.html'];
 for(const page of canonicalPages){
   if(!fs.existsSync(root+'/'+page))fail('正式 canonical source 遺失：'+page);
   const source=fs.readFileSync(root+'/'+page,'utf8');
-  const re=/(?:localStorage|sessionStorage)\.(?:getItem|setItem|removeItem)\(\s*['"]([^'"]+)/g;
-  let match;while((match=re.exec(source)))if(!allowed.has(match[1]))fail(page+' 使用未核准的瀏覽器資料鍵：'+match[1]);
+  const re=/(localStorage|sessionStorage)\.(?:getItem|setItem|removeItem)\(\s*['"]([^'"]+)/g;
+  let match;while((match=re.exec(source))){
+    const [,storage,key]=match;if(allowed.has(key))continue;
+    const pages=sessionUiOnly.get(key);
+    if(storage==='sessionStorage'&&pages?.has(page))continue;
+    fail(page+' 使用未核准的瀏覽器資料鍵：'+key+'（'+storage+'）');
+  }
+}
+for(const [key,pages] of sessionUiOnly){
+  for(const page of pages){const source=fs.readFileSync(root+'/'+page,'utf8');if(!source.includes(`sessionStorage.setItem('${key}'`)&&!source.includes(`sessionStorage.getItem('${key}'`))fail('UI 暫存白名單已失去實際用途：'+key)}
 }
 for(const retired of ['index.html','member.html','admin.html','onsite.html','platform.html','operations-center.html','photo.html','consignment.html','about.html','booking-center.html'])if(fs.existsSync(root+'/'+retired))fail('退休頁不得回到正式 root：'+retired);
 if(settings.authority?.project!=='DOING_SaaS'||settings.authority?.schema!=='public'||settings.authority?.api!=='tobeloved-api')fail('正式設定 SSOT 必須是 DOING_SaaS/public/tobeloved-api');
@@ -55,4 +66,4 @@ for(const domain of settings.domains){
   for(const action of [...domain.readActions,...domain.writeActions])if(!worker.includes(action))fail('正式設定 API 未存在 Worker：'+domain.key+' -> '+action);
 }
 if(worker!==fs.readFileSync(root+'/worker.txt','utf8'))fail('worker.js / worker.txt 不一致');
-console.log(JSON.stringify({result:'PASS',authority:'DOING_SaaS/public/tobeloved-api',tables:tableNames.size,workerTableRefs:refs.size,modules:moduleMap.size,settingsDomains:settings.domains.length,canonicalPages:canonicalPages.length,retiredRootPages:0,browserBusinessData:false},null,2));
+console.log(JSON.stringify({result:'PASS',authority:'DOING_SaaS/public/tobeloved-api',tables:tableNames.size,workerTableRefs:refs.size,modules:moduleMap.size,settingsDomains:settings.domains.length,canonicalPages:canonicalPages.length,retiredRootPages:0,browserBusinessData:false,sessionUiOnly:[...sessionUiOnly.keys()]},null,2));
