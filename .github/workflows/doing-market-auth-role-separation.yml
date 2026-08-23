@@ -6,9 +6,60 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  checkpoint-docs-once:
+    if: github.event_name == 'pull_request' && github.head_ref == 'fix/market-logo-upload-20260823' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Update Market member auth World Tree and ChangeLog once
+        shell: python
+        run: |
+          from pathlib import Path
+          import json
+
+          tree_path=Path('doing-world-tree-current.json')
+          tree=json.loads(tree_path.read_text(encoding='utf-8'))
+          market=next(x for x in tree['branches'] if x.get('id')=='market')
+          front_path=next(x for x in market['children'] if x.get('id')=='market-front-path')
+          member=next(x for x in front_path['children'] if x.get('id')=='front-member')
+          child_id='front-member-oauth-return'
+          if not any(x.get('id')==child_id for x in member.get('children',[])):
+              member.setdefault('children',[]).append({
+                  'id':child_id,
+                  'title':'LINE 登入固定回原 Market 前台',
+                  'summary':'一般報名者固定 mode=member；tenant 僅為上下文，不具授權效果。Core Callback 只依 mode 決定角色，member 必須回原 return_url；正式 fallback 為 https://doing.2b-love.com/；member_token 不等於 admin_token。',
+                  'status':'done'
+              })
+          member['summary']='一般報名者使用 DOING LINE member 身分承接報名與紀錄；登入完成固定回原 Market 前台，tenant 不得改變角色。'
+          tree['version']='v15.5'
+          tree['updatedAt']='2026-08-23 10:06'
+          tree['current']['summary']='Market 前後台維持 2BL 操作骨架；一般報名者 LINE OAuth 已鎖定 mode-only 角色路由並固定回原 Market 前台，DOING Core／API／Supabase 與主辦權限仍維持正式 SSOT。'
+          tree_path.write_text(json.dumps(tree,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+
+          log_path=Path('DOING_2.0_CHANGELOG.md')
+          log=log_path.read_text(encoding='utf-8')
+          marker='## 2026-08-23｜v15.5 Market 報名者 LINE 登入回原前台鎖定'
+          if marker not in log:
+              entry='''\n\n## 2026-08-23｜v15.5 Market 報名者 LINE 登入回原前台鎖定\n\n- 根因修正：DOING Core 正式站點 fallback 由舊 GitHub Pages 改為 `https://doing.2b-love.com/`。\n- LINE OAuth `mode=member` 固定走會員 `return_url`；`tenant` 只保留場域上下文，不再能把 member 導向 admin／platform。\n- `mode=platform`、`mode=admin`、`mode=organizer_signup` 才能分別進對應管理入口；`member_token` 永遠不等於 `admin_token`。\n- 新增 Core 直接驗證：`tenant=demo` 與 `tenant=platform` 均無法改變 member 角色，正常流程 `rescueFallbackRequired=false`。\n- 原有 Market 短效同來源回跳只保留為 defense-in-depth，不作正常主流程。\n- `worker.js`／`worker.txt` 同步；新增資料表 0、正式營運資料寫入 0、2BL／`2bl-v7` 未修改。\n'''
+              log_path.write_text(log.rstrip()+entry+'\n',encoding='utf-8')
+      - name: Commit checkpoint docs if changed
+        run: |
+          if git diff --quiet -- doing-world-tree-current.json DOING_2.0_CHANGELOG.md; then
+            echo "Checkpoint already present."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add doing-world-tree-current.json DOING_2.0_CHANGELOG.md
+          git commit -m "docs: checkpoint Market member OAuth v15.5"
+          git push origin HEAD:${{ github.head_ref }}
+
   validate:
     runs-on: ubuntu-latest
     steps:
