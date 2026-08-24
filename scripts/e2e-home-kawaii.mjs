@@ -6,6 +6,7 @@ try{
   for(const viewport of [{width:390,height:844,name:'mobile'},{width:1440,height:1000,name:'desktop'}]){
     const page=await browser.newPage({viewport:{width:viewport.width,height:viewport.height}});
     await page.goto(base+'/',{waitUntil:'networkidle'});
+    await page.locator('text=斜槓人生小幫手').waitFor();
     await page.locator('text=DOING 可以幫你什麼？').waitFor();
     await page.locator('text=市集活動').first().waitFor();
     await page.locator('text=室內設計進度').first().waitFor();
@@ -13,23 +14,37 @@ try{
     await page.locator('text=看圖就知道 DOING 幫你省掉哪些麻煩').waitFor();
 
     const bodyText=await page.locator('body').innerText();
-    for(const forbidden of ['手機與電腦同一套','系統可以跟著你長大','需要什麼再加什麼']){
-      if(bodyText.includes(forbidden))throw new Error(`${viewport.name}: forbidden misleading highlight leaked: ${forbidden}`);
+    for(const forbidden of ['手機與電腦同一套','系統可以跟著你長大','需要什麼再加什麼','協援人生小幫手']){
+      if(bodyText.includes(forbidden))throw new Error(`${viewport.name}: forbidden copy leaked: ${forbidden}`);
     }
+    if(await page.locator('#doingSearch').count()!==0||await page.locator('.jelly-search').count()!==0)throw new Error(`${viewport.name}: homepage search was not removed`);
 
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1);
     if(overflow)throw new Error(`${viewport.name}: horizontal overflow`);
 
     const heroLogo=page.locator('.brand-logo-hero');
     const logoBox=await heroLogo.boundingBox();
-    if(!logoBox)throw new Error(`${viewport.name}: hero logo missing`);
-    const minLogoWidth=viewport.name==='mobile'?350:1100;
+    const taglineBox=await page.locator('.brand-tagline').boundingBox();
+    if(!logoBox||!taglineBox)throw new Error(`${viewport.name}: logo/tagline missing`);
+    const minLogoWidth=viewport.name==='mobile'?340:900;
     if(logoBox.width<minLogoWidth)throw new Error(`${viewport.name}: hero logo too small (${logoBox.width})`);
+    const logoGap=taglineBox.y-(logoBox.y+logoBox.height);
+    if(logoGap>18)throw new Error(`${viewport.name}: excess gap below logo (${logoGap})`);
+
+    const audiences=page.locator('.audience-card');
+    if(await audiences.count()!==2)throw new Error(`${viewport.name}: audience split count mismatch`);
+    await page.locator('text=我是來參加活動的').waitFor();
+    await page.locator('text=我是使用 DOING 的店家／主辦／團隊').waitFor();
 
     const benefits=page.locator('.benefit-card');
     const visuals=page.locator('.benefit-visual');
     if(await benefits.count()!==6)throw new Error(`${viewport.name}: benefit card count mismatch`);
     if(await visuals.count()!==6)throw new Error(`${viewport.name}: infographic visual count mismatch`);
+    for(let i=0;i<6;i++){
+      const card=await benefits.nth(i).boundingBox();
+      const visual=await visuals.nth(i).boundingBox();
+      if(!card||!visual||visual.height<card.height*.45)throw new Error(`${viewport.name}: benefit ${i+1} is still text-heavy`);
+    }
 
     const bottom=page.locator('.bottom-jelly');
     if(await bottom.count()!==3)throw new Error(`${viewport.name}: bottom jelly nav count mismatch`);
@@ -51,13 +66,6 @@ try{
       if(Math.max(...heights)-Math.min(...heights)>2)throw new Error(`desktop: system card heights not aligned ${heights.join(',')}`);
       if(Math.max(...actionBottoms)-Math.min(...actionBottoms)>2)throw new Error(`desktop: system action baseline not aligned ${actionBottoms.join(',')}`);
     }
-
-    const input=page.locator('#doingSearch');
-    await input.fill('室內');
-    const hidden=await page.locator('[data-search-hidden="1"]').count();
-    if(hidden<2)throw new Error(`${viewport.name}: search filtering failed`);
-    await page.locator('#clearSearch').click();
-    if(await page.locator('[data-search-hidden="1"]').count()!==0)throw new Error(`${viewport.name}: clear search failed`);
 
     await page.goto(base+'/me/',{waitUntil:'domcontentloaded'});
     await page.locator('#lineLogin').waitFor({state:'visible'});
@@ -85,15 +93,15 @@ try{
   });
   await authPage.goto(base+'/me/',{waitUntil:'domcontentloaded'});
   await authPage.waitForTimeout(80);
-  const loginButtonHidden=await authPage.locator('#lineLogin').evaluate(el=>el.classList.contains('hidden')||el.disabled);
-  if(!loginButtonHidden)throw new Error('auth: existing token did not lock LINE login immediately');
+  const loginButtonLocked=await authPage.locator('#lineLogin').evaluate(el=>el.classList.contains('hidden')||el.disabled);
+  if(!loginButtonLocked)throw new Error('auth: existing token did not lock LINE login immediately');
   if(oauthStarts!==0)throw new Error(`auth: duplicate LINE OAuth started while token verification was pending (${oauthStarts})`);
   await authPage.locator('#appView:not(.hidden)').waitFor();
   await authPage.locator('text=測試租戶，歡迎回來').waitFor();
   if(oauthStarts!==0)throw new Error(`auth: LINE OAuth started after member identity resolved (${oauthStarts})`);
   await authPage.close();
 
-  console.log(JSON.stringify({result:'PASS',viewports:['390x844','1440x1000'],homeIntro:true,logoDominant:true,alignedSystemCards:true,infographicHighlights:6,misleadingHighlightsRemoved:true,homeSearch:true,bottomNav:true,memberLoginEntry:true,duplicateLineOAuthRace:false,horizontalOverflow:false}));
+  console.log(JSON.stringify({result:'PASS',viewports:['390x844','1440x1000'],tagline:'斜槓人生小幫手',homepageSearchRemoved:true,croppedLogo:true,logoGapChecked:true,audienceSplit:true,alignedSystemCards:true,infographicHighlights:6,misleadingHighlightsRemoved:true,bottomNav:true,memberLoginEntry:true,duplicateLineOAuthRace:false,horizontalOverflow:false}));
 } finally {
   await browser.close();
 }
