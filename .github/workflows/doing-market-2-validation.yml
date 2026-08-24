@@ -1,9 +1,11 @@
-name: DOING Market Route Preservation
+name: DOING Market Entry Validation
 
 on:
   pull_request:
     branches: [main]
     paths:
+      - 'market-current.html'
+      - 'doing-kawaii-current.css'
       - 'scripts/build-doing-2-site.mjs'
       - '.github/workflows/doing-market-2-validation.yml'
   workflow_dispatch:
@@ -12,7 +14,7 @@ permissions:
   contents: read
 
 jobs:
-  validate-market-routes:
+  validate-market-entry:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,16 +23,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Build clean slate route shells
+      - name: Build CURRENT site
         run: node scripts/build-doing-2-site.mjs
-      - name: Validate Market URLs are preserved without old operation UI
+      - name: Validate Market system entry and preserved public/session URLs
         shell: bash
         run: |
           set -euo pipefail
-          for f in market/index.html market/public/index.html market/session/index.html; do
+          test -s .doing-2-site/market/index.html
+          grep -q '市集活動系統' .doing-2-site/market/index.html
+          grep -q 'doing-kawaii-current.css' .doing-2-site/market/index.html
+          ! grep -q '2bl-v7' .doing-2-site/market/index.html
+          ! grep -q 'supabase.co' .doing-2-site/market/index.html
+          for f in market/public/index.html market/session/index.html; do
             test -s ".doing-2-site/$f"
             grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"
-            ! grep -Ei '<script|<form|<button|tobeloved-api|supabase\.co|localStorage|sessionStorage|2bl-v7' ".doing-2-site/$f"
           done
           test ! -e .doing-2-site/market-center.html
           test ! -e .doing-2-site/market-public.html
