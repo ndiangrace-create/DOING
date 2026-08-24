@@ -40,8 +40,9 @@ for(const asset of ['doing-kawaii-current.css','doing-home-v4.css','doing-home-c
 }
 
 const logoDir=path.join(root,'.assets','doing-logo-new');
-const logoBase64=Array.from({length:6},(_,i)=>{
-  const p=path.join(logoDir,`part${i}.txt`);
+const logoParts=['part0.txt','part1.txt','part2.txt','p3c0.txt','p3c1a.txt','p3c1b0a.txt','p3c1b0b0.txt','p3c1b0b1.txt','p3c1b1.txt','p3c2.txt','p3c3.txt','p3c4.txt','part4.txt','part5.txt'];
+const logoBase64=logoParts.map(name=>{
+  const p=path.join(logoDir,name);
   if(!fs.existsSync(p))throw new Error(`missing logo source part: ${p}`);
   return fs.readFileSync(p,'utf8').trim();
 }).join('');
