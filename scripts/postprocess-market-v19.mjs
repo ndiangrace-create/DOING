@@ -9,8 +9,9 @@ patch('market/public/index.html');patch('market/index.html',{auth:true});patch('
 function injectHead(html,needle,markup){return html.includes(needle)?html:html.replace('</head>',markup+'</head>')}
 function patchMember(){
   const fp=path.join(out,'me/index.html');let html=fs.readFileSync(fp,'utf8');
+  // CURRENT /me/ owns its LINE member-token flow directly. Never re-inject the retired
+  // doing-member-return-direct.js gate, which used to clear valid tokens on any load failure.
   html=html.replace(/<script src="\/doing-member-return-direct\.js[^\"]*"><\/script>/g,'');
-  html=injectHead(html,'doing-member-return-direct.js','<script src="/doing-member-return-direct.js?v=20260824-unified-entry"></script>');
   html=html.replace(/<button[^>]*data-workspace-calendar="[^"]*"[^>]*>[\s\S]*?<\/button>/g,'');
   html=html.replace(/<button[^>]*data-workspace-operations="[^"]*"[^>]*>[\s\S]*?<\/button>/g,'');
   html=html.replace(/進入主辦後台|直接進入主辦後台/g,'進入工作空間');
@@ -50,10 +51,10 @@ const redirects=`/index.html / 301
 fs.writeFileSync(path.join(out,'_redirects'),redirects);
 
 const me=fs.readFileSync(path.join(out,'me/index.html'),'utf8'),workspace=fs.readFileSync(path.join(out,'workspace/index.html'),'utf8'),register=fs.readFileSync(path.join(out,'register/index.html'),'utf8'),booking=fs.readFileSync(path.join(out,'booking/index.html'),'utf8');
-if(!me.includes('doing-member-return-direct.js'))throw new Error('canonical /me/ login gate missing');
-if((me.match(/doing-member-return-direct\.js/g)||[]).length!==1)throw new Error('duplicate /me/ login gate');
+if(me.includes('doing-member-return-direct.js'))throw new Error('retired /me/ login gate was re-injected');
+if((me.match(/\/auth\/line\/start/g)||[]).length!==1)throw new Error('CURRENT /me/ must have exactly one LINE login start');
 if(/<button[^>]+data-workspace-(?:calendar|operations)=/.test(me))throw new Error('duplicate workspace CTA still published');
 for(const [name,html] of [['workspace',workspace],['register',register],['booking',booking]])if(!html.includes('doing-global-entry.js'))throw new Error(name+' unified entry guard missing');
 for(const token of ['getOperationUnitsAdmin','getBookingCalendarAdmin','saveAvailabilityRule','updateServiceVisit'])if(!booking.includes(token))throw new Error('booking capability lost: '+token);
 if(booking.includes('operations-center.html'))throw new Error('booking still links retired operations page');
-console.log(JSON.stringify({result:'PASS',marketV19:{desktopAdminNav:'top-fixed',mobileAdminNav:'bottom',singleDoingLogin:true,publicDesktopMaxWidth:1180},unifiedEntry:{accountEntries:['/apply/','/me/'],loginLanding:'/me/',workspace:'/workspace/',legacyRedirects:true,duplicateWorkspaceCtas:false,secondLoginPage:false},booking:{published:'/booking/',source:'modules/booking/booking-center.html',capabilitiesPreserved:true}},null,2));
+console.log(JSON.stringify({result:'PASS',marketV19:{desktopAdminNav:'top-fixed',mobileAdminNav:'bottom',singleDoingLogin:true,publicDesktopMaxWidth:1180},unifiedEntry:{accountEntries:['/apply/','/me/'],loginLanding:'/me/',workspace:'/workspace/',legacyRedirects:true,duplicateWorkspaceCtas:false,retiredMemberGateInjected:false},booking:{published:'/booking/',source:'modules/booking/booking-center.html',capabilitiesPreserved:true}},null,2));
