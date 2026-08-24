@@ -22,6 +22,9 @@ async function startAndCancel({tenant,returnUrl}){
   const lineLocation=startResponse.headers.get('location');
   assert.ok(lineLocation,'LINE member start 缺少 Location');
   const lineUrl=new URL(lineLocation);
+  assert.equal(lineUrl.searchParams.get('initial_amr_display'),'lineqr','桌機需要互動登入時應優先顯示 LINE QR Code，不得預設 Email/密碼');
+  assert.equal(lineUrl.searchParams.get('ui_locales'),'zh-TW','LINE 登入介面應固定繁體中文');
+  assert.notEqual(lineUrl.searchParams.get('prompt'),'login','不得強迫重新輸入 LINE 帳密；保留 LINE Auto Login / SSO 優先行為');
   const state=lineUrl.searchParams.get('state');
   assert.ok(state,'LINE OAuth redirect 缺少 state');
   const payload=decodeJwtPayload(state);
@@ -68,6 +71,8 @@ console.log(JSON.stringify({
   exactMarketReturn:true,
   platformTenantCannotEscalateMember:true,
   defaultDoingSite:'https://doing.2b-love.com/',
+  lineInteractiveFallback:'qr',
+  lineAutoLoginAndSsoPreserved:true,
   rescueFallbackRequired:false,
   memberTokenIsNotAdminToken:true,
   productionWrites:0
