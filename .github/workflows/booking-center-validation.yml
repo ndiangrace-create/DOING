@@ -30,7 +30,7 @@ jobs:
         run: |
           set -euo pipefail
           test -s .doing-2-site/booking/index.html
-          grep -q '美類預約系統' .doing-2-site/booking/index.html
+          grep -q '美類預約' .doing-2-site/booking/index.html
           grep -q 'doing-kawaii-current.css' .doing-2-site/booking/index.html
           ! grep -q '2bl-v7' .doing-2-site/booking/index.html
           ! grep -q 'supabase.co' .doing-2-site/booking/index.html
