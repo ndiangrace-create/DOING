@@ -47,8 +47,8 @@ const logoBase64=Array.from({length:6},(_,i)=>{
 }).join('');
 const logoBytes=Buffer.from(logoBase64,'base64');
 const logoHash=crypto.createHash('sha256').update(logoBytes).digest('hex');
-const expectedLogoHash='81514764902b4cd0cc86c2ec0aed21519a16a5bba2f9b7c5889395bd1b91fb56';
-if(logoBytes.length!==28065||logoBytes[0]!==0x89||logoBytes[1]!==0x50||logoBytes[2]!==0x4e||logoBytes[3]!==0x47||logoHash!==expectedLogoHash)throw new Error(`invalid DOING logo reconstruction: bytes=${logoBytes.length} sha256=${logoHash}`);
+const expectedLogoHash='9c05213a5e4d931490784b0bd10a4b923aa4ae7b3b5591ad10617d76b50a956a';
+if(logoBytes.length!==6449||logoBytes[0]!==0x89||logoBytes[1]!==0x50||logoBytes[2]!==0x4e||logoBytes[3]!==0x47||logoHash!==expectedLogoHash)throw new Error(`invalid DOING logo reconstruction: bytes=${logoBytes.length} sha256=${logoHash}`);
 fs.writeFileSync(path.join(out,'doing-logo.png'),logoBytes);
 
 fs.writeFileSync(path.join(out,'_headers'),`/*\n  Cache-Control: no-store, max-age=0\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`, 'utf8');
