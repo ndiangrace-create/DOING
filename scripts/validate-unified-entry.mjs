@@ -25,9 +25,10 @@ const builtWorkspace=read('.doing-2-site/workspace/index.html');
 const builtApply=read('.doing-2-site/apply/index.html');
 const redirects=read('.doing-2-site/_redirects');
 assert.ok(builtMe.includes('登入你的 DOING')&&builtMe.includes('createMemberWorkspaceAdminSession'),'正式 /me/ 必須發布 CURRENT 會員登入與工作空間入口');
+assert.ok(!builtMe.includes('doing-member-return-direct.js'),'正式 /me/ 不得再注入退休登入 gate');
 assert.ok(builtWorkspace.includes('getTenantModuleProfile')&&builtWorkspace.includes('adminMe'),'正式 /workspace/ 必須保留權限與模組讀取');
 assert.ok(builtApply.includes('data-doing-ui-state="rebuild-shell"'),'尚未重建的 /apply/ 必須維持非互動重建殼，不得復活舊申請 UI');
 for(const bad of ['<form','tobeloved-api','supabase.co','localStorage','sessionStorage'])assert.ok(!builtApply.includes(bad),`/apply/ 重建殼不得含舊互動能力：${bad}`);
-for(const line of ['/member.html /me/ 301','/admin.html /market/ 301','/about.html / 301','/booking-center.html /booking/ 301'])assert.ok(redirects.includes(line),`缺少 CURRENT 舊網址相容轉址：${line}`);
+for(const line of ['/member.html /me/ 302','/admin.html /workspace/ 302','/about.html /apply/ 302','/booking-center.html /booking/ 302'])assert.ok(redirects.includes(line),`缺少 CURRENT 舊網址相容轉址：${line}`);
 
-console.log(JSON.stringify({result:'PASS',architecture:'current-rebuild-routes',publicAccountEntries:['/apply/','/me/'],memberLogin:'/me/',workspace:'/workspace/',lineLoginCount:1,staleTokenReauthGuard:true,nonAuthLoadFailureKeepsToken:true,applyRoute:'rebuild-shell',legacyRootPages:0,productionWrites:0},null,2));
+console.log(JSON.stringify({result:'PASS',architecture:'current-rebuild-routes',publicAccountEntries:['/apply/','/me/'],memberLogin:'/me/',workspace:'/workspace/',lineLoginCount:1,retiredMemberGateInjected:false,staleTokenReauthGuard:true,nonAuthLoadFailureKeepsToken:true,applyRoute:'rebuild-shell',legacyRootPages:0,productionWrites:0},null,2));
