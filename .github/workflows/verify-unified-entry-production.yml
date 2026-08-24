@@ -7,42 +7,34 @@ on:
 permissions:
   contents: read
 jobs:
-  deploy-pages-direct:
+  verify-production:
     runs-on: ubuntu-latest
-    environment: doing-production
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Build exact main site
-        run: |
-          node scripts/build-doing-2-site.mjs
-          node scripts/postprocess-market-v19.mjs
-          grep -q 'getOperationUnitsAdmin' .doing-2-site/booking/index.html
-          grep -q 'd2HomeLogin' .doing-2-site/doing-2-home-v11.js
-      - name: Deploy Pages directly
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy .doing-2-site --project-name doing-2 --branch main --commit-dirty=true
-      - name: Verify live site
+      - name: Verify live unified entry
         shell: bash
         run: |
           set -euo pipefail
           base='https://doing.2b-love.com'; core='https://tobeloved-api.ndiangrace.workers.dev'
           ok=0
-          for i in $(seq 1 40); do
-            booking="$(curl -fsSL -H 'Cache-Control: no-cache' "$base/booking/?verify=$i" || true)"
+          for i in $(seq 1 30); do
             home="$(curl -fsSL -H 'Cache-Control: no-cache' "$base/doing-2-home-v11.js?verify=$i" || true)"
             member="$(curl -fsSL -H 'Cache-Control: no-cache' "$base/doing-member-return-direct.js?verify=$i" || true)"
-            if grep -q 'getOperationUnitsAdmin' <<<"$booking" && grep -q 'd2HomeLogin' <<<"$home" && grep -q '重新使用 LINE 登入' <<<"$member"; then ok=1; break; fi
-            sleep 5
+            global="$(curl -fsSL -H 'Cache-Control: no-cache' "$base/doing-global-entry.js?verify=$i" || true)"
+            booking="$(curl -fsSL -H 'Cache-Control: no-cache' "$base/booking/?verify=$i" || true)"
+            apply="$(curl -fsSL -H 'Cache-Control: no-cache' "$base/doing-smart-activation-v5.js?verify=$i" || true)"
+            if grep -q '申請 DOING' <<<"$home" \
+              && grep -q 'd2HomeLogin' <<<"$home" \
+              && grep -q '重新使用 LINE 登入' <<<"$member" \
+              && grep -q 'createMemberWorkspaceAdminSession' <<<"$global" \
+              && grep -q 'getOperationUnitsAdmin' <<<"$booking" \
+              && grep -q 'LINE 驗證並開通' <<<"$apply"; then ok=1; break; fi
+            sleep 3
           done
           test "$ok" = 1
-          for path in / /apply/ /me/ /workspace/ /booking/ /market/public/; do test "$(curl -sS -o /dev/null -w '%{http_code}' "$base$path")" = 200; done
+          for path in / /apply/ /me/ /workspace/ /booking/ /market/public/; do
+            code="$(curl -sS -o /dev/null -w '%{http_code}' "$base$path")"
+            echo "$path=$code"
+            test "$code" = 200
+          done
           test "$(curl -sS -o /tmp/core.txt -w '%{http_code}' "$core/?action=publicDiscovery")" = 200
-          echo 'DOING production PASS'
+          echo 'DOING production unified entry PASS'
