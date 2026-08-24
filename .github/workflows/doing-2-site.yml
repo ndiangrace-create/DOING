@@ -189,7 +189,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy .doing-2-site --project-name doing-2 --branch main --commit-dirty=true
-      - name: Attach doing.2b-love.com
+      - name: Ensure doing.2b-love.com is attached
         env:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -197,7 +197,15 @@ jobs:
           set -euo pipefail
           url="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/pages/projects/${CF_PAGES_PROJECT}/domains"
           code="$(curl -sS -o domain.json -w '%{http_code}' -X POST -H "Authorization: Bearer ${CF_TOKEN}" -H 'Content-Type: application/json' --data "{\"name\":\"${CF_CUSTOM_DOMAIN}\"}" "$url")"
-          if [ "$code" != "200" ] && [ "$code" != "201" ] && [ "$code" != "409" ]; then cat domain.json; exit 1; fi
+          if [ "$code" = "200" ] || [ "$code" = "201" ] || [ "$code" = "409" ]; then
+            exit 0
+          fi
+          if jq -e '.errors[]? | select(.code==8000018)' domain.json >/dev/null 2>&1; then
+            echo "Custom domain already attached; continuing."
+            exit 0
+          fi
+          cat domain.json
+          exit 1
       - name: Record deployment evidence
         run: |
           jq -n --arg domain "$CF_CUSTOM_DOMAIN" --arg project "$CF_PAGES_PROJECT" --arg commit "$GITHUB_SHA" '{domain:$domain,project:$project,commit:$commit,status:"deployed"}' > doing-2-site-deployment.json
