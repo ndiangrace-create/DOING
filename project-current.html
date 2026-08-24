@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DOING｜室內設計進度</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/doing-kawaii-current.css?v=20260825-1">
+</head>
+<body class="doing-kawaii min-h-screen text-slate-800">
+<div class="watercolor-surface" aria-hidden="true"></div>
+<header class="relative z-20 mx-auto flex w-full max-w-6xl items-center justify-between px-4 pt-5 sm:px-6"><a href="/"><img class="h-11 w-auto" src="/doing-logo.png" alt="DOING"></a><a id="backWorkspace" class="mini-jelly mini-jelly-lilac" href="/me/#operations">我的 DOING</a></header>
+<main class="relative z-10 mx-auto w-full max-w-6xl px-4 pb-20 pt-8 sm:px-6">
+  <section class="soft-panel overflow-hidden p-6 sm:p-8">
+    <div class="grid gap-6 md:grid-cols-[1fr_220px] md:items-center"><div><span class="kawaii-kicker">室內設計進度</span><h1 class="mt-3 text-3xl font-black text-[#6658bc] sm:text-4xl">讓業主、設計師與工班，都看同一份工程進度</h1><p class="mt-3 max-w-3xl font-bold leading-7 text-slate-600">專案、階段、報價、付款、支出、進度與簽核集中在同一個工程專案資料根，避免 LINE 訊息、試算表和現場紀錄互相脫節。</p></div><div class="system-visual bg-[#fff0d9]">🏠</div></div>
+  </section>
+  <section class="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <article class="system-card p-5"><span class="category-tag bg-[#fff0d9] text-[#9a7441]">01</span><h2 class="mt-3 text-xl font-black">專案主檔</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">建立業主、案場、專案成員與基本施工範圍。</p></article>
+    <article class="system-card p-5"><span class="category-tag bg-[#e9e4ff] text-[#6658bc]">02</span><h2 class="mt-3 text-xl font-black">工程階段</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">現勘、報價、設計、施工、驗收等階段可依實際流程追蹤。</p></article>
+    <article class="system-card p-5"><span class="category-tag bg-[#dff4ff] text-[#477e9e]">03</span><h2 class="mt-3 text-xl font-black">進度更新</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">施工狀態、照片／檔案、異常與下一步都回到專案時間線。</p></article>
+    <article class="system-card p-5"><span class="category-tag bg-[#effbcf] text-[#67812b]">04</span><h2 class="mt-3 text-xl font-black">報價與追加減</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">保留版本、金額與確認紀錄，避免口頭變更失去依據。</p></article>
+    <article class="system-card p-5"><span class="category-tag bg-[#ffe4ef] text-[#a05a78]">05</span><h2 class="mt-3 text-xl font-black">付款與支出</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">工程款、材料費、工班支出與付款證明可核對。</p></article>
+    <article class="system-card p-5"><span class="category-tag bg-[#e7f5ff] text-[#477e9e]">06</span><h2 class="mt-3 text-xl font-black">驗收與簽核</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">階段完成、驗收結果與簽核紀錄集中保存。</p></article>
+  </section>
+</main>
+<script>
+(()=>{const p=new URL(location.href).searchParams,t=p.get('tenant'),a=p.get('admin_token')||p.get('token');if(t&&a){const u=new URL('/workspace/',location.origin);u.searchParams.set('tenant',t);u.searchParams.set('admin_token',a);document.getElementById('backWorkspace').href=u.toString()}})();
+</script>
+</body>
+</html>
