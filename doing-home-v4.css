@@ -1,5 +1,5 @@
 .hero-copy{margin-top:-6px}
-.brand-logo-hero{display:block;width:min(1120px,96vw);height:auto;max-height:none;object-fit:contain;margin-bottom:0;filter:drop-shadow(0 10px 14px rgba(93,166,226,.18))}
+.brand-logo-hero{display:block;width:min(1056px,96vw);max-width:1056px;height:auto;max-height:none;object-fit:contain;margin-bottom:0;filter:drop-shadow(0 10px 14px rgba(93,166,226,.18))}
 .brand-tagline{margin:0 0 14px;color:#7768bf;font-size:clamp(18px,2.1vw,29px);font-weight:950;line-height:1.1;letter-spacing:.18em;text-shadow:0 2px 0 rgba(255,255,255,.95)}
 .audience-card{display:flex;align-items:center;gap:16px;min-height:118px;padding:18px 20px;border:3px solid rgba(255,255,255,.94);border-radius:26px;background:rgba(255,255,255,.82);box-shadow:0 12px 28px rgba(184,176,218,.18);backdrop-filter:blur(6px)}
 .audience-public{box-shadow:0 12px 28px rgba(164,211,239,.22)}
@@ -13,7 +13,7 @@
 .benefit-copy h3{margin:0 0 6px;color:#3d3d49;font-size:18px;font-weight:950;line-height:1.4}
 .benefit-copy p{margin:0;color:#676d79;font-size:14px;font-weight:800;line-height:1.65}
 @media(max-width:767px){
-  .brand-logo-hero{width:min(100%,calc(100vw - 24px));max-width:700px}
+  .brand-logo-hero{width:min(100%,calc(100vw - 24px));max-width:1056px}
   .brand-tagline{margin-top:0;margin-bottom:12px;font-size:20px;letter-spacing:.12em}
   .audience-card{min-height:0;padding:15px 16px;border-radius:22px}
   .audience-icon{flex-basis:54px;width:54px;height:54px;border-radius:18px;font-size:29px}
