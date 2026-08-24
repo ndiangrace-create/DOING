@@ -12,8 +12,9 @@ const build=read('scripts/build-doing-2-site.mjs');
 const legacy=['index.html','member.html','admin.html','onsite.html','platform.html','operations-center.html','photo.html','consignment.html','about.html','booking-center.html'];
 for(const f of legacy)assert.equal(fs.existsSync(f),false,`已退休頁面不得留在正式 root：${f}`);
 for(const f of fs.readdirSync('.').filter(x=>/^uat-application-.*\.html$/.test(x)))assert.fail(`UAT 頁不得留在正式 root：${f}`);
-assert.ok(fs.existsSync('tests/uat'),'UAT 頁必須隔離在 tests/uat');
-assert.ok(fs.existsSync('legacy-pages'),'歷史頁必須隔離在 legacy-pages');
+assert.equal(fs.existsSync('tests/uat'),false,'歷史 UAT HTML 快照不得繼續留在 repo；現行驗收使用 E2E scripts');
+assert.equal(fs.existsSync('legacy-pages'),false,'退休頁不得再保留 legacy-pages；仍使用的能力需搬入 modules');
+assert.ok(fs.existsSync('modules/booking/booking-center.html'),'正式 Booking source 必須位於 modules/booking');
 
 for(const token of ['d2-home-account-actions','申請 DOING','id="d2HomeLogin"','href="/apply/"','href="/me/"'])assert.ok(home.includes(token),`首頁缺少唯一帳號入口：${token}`);
 assert.ok(!home.includes('/auth/line/start'),'首頁不得自己啟動第二套 OAuth；登入統一交給 /me/');
@@ -50,4 +51,4 @@ for(const token of ['getOperationUnitsAdmin','getBookingCalendarAdmin','saveAvai
 assert.ok(!builtBooking.includes('operations-center.html'),'正式 /booking/ 不得回舊營運頁');
 for(const line of ['/member.html /me/ 302','/admin.html /workspace/ 302','/about.html /apply/ 302','/booking-center.html /booking/ 302'])assert.ok(redirects.includes(line),`缺少舊網址相容轉址：${line}`);
 
-console.log(JSON.stringify({result:'PASS',publicAccountEntries:['申請 DOING','登入'],loginLanding:'/me/',memberHub:'/me/',workspace:'/workspace/',loginCount:1,loggedOutInterstitial:false,automaticWorkspaceBounce:false,duplicateWorkspaceButtons:false,legacyRootPages:0,uatRootPages:0,legacyRedirects:true,legacySelectors:'intercept-only',bookingCapabilitiesPreserved:true,productionWrites:0},null,2));
+console.log(JSON.stringify({result:'PASS',publicAccountEntries:['申請 DOING','登入'],loginLanding:'/me/',memberHub:'/me/',workspace:'/workspace/',loginCount:1,loggedOutInterstitial:false,automaticWorkspaceBounce:false,duplicateWorkspaceButtons:false,legacyRootPages:0,uatRootPages:0,uatSnapshotsRemoved:true,legacyPagesRemoved:true,legacyRedirects:true,legacySelectors:'intercept-only',bookingSource:'modules/booking/booking-center.html',bookingCapabilitiesPreserved:true,productionWrites:0},null,2));

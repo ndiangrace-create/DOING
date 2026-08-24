@@ -5,7 +5,7 @@ const js=fs.readFileSync('doing-2-shell.js','utf8');
 const visual=fs.readFileSync('doing-visual-system-20260822.css','utf8');
 const visualJs=fs.readFileSync('doing-visual-system-20260822.js','utf8');
 const build=fs.readFileSync('scripts/build-doing-2-site.mjs','utf8');
-const world=fs.readFileSync('DOING_2.0_WORLD_TREE_V7_2BL_UX_SHELL_20260822.md','utf8');
+const world=fs.readFileSync('docs/archive/2026-08/DOING_2.0_WORLD_TREE_V7_2BL_UX_SHELL_20260822.md','utf8');
 for(const x of ['Market','Project','Booking','Guide'])assert(js.includes(x),`缺產品 ${x}`);
 for(const x of ['17–18px','場次','待辦','現場','會員','設定'])assert(world.includes(x),`v7 缺 ${x}`);
 assert(css.includes('font-size:18px!important'),'桌機老花字級未鎖');
@@ -23,4 +23,4 @@ assert(visualJs.includes("sessionStorage.setItem(stateKey")&&visualJs.includes('
 assert(visualJs.includes('d2-hide-engineering'),'使用者畫面必須阻擋工程文字');
 assert(build.includes('doing-visual-system-20260822.css')&&build.includes('doing-visual-system-20260822.js'),'非 Market DOING 2.0 短網址必須載入新版 Design System');
 assert(build.includes("let home=fs.readFileSync(path.join(root,'doing-2.html'),'utf8')"),'本批仍必須直接沿用 DOING 公開首頁來源，不得重做首頁');
-console.log(JSON.stringify({result:'PASS',shell:'2BL UX skeleton',visualSystem:'reference-driven SaaS redesign',fixedHeader:true,flatIA:true,statePreserved:true,desktop:true,mobile:true,newTables:0,schemaChanges:0,twoBLModified:false,doingRootModified:false},null,2));
+console.log(JSON.stringify({result:'PASS',shell:'2BL UX skeleton',visualSystem:'reference-driven SaaS redesign',historicalSpec:'docs/archive/2026-08/',fixedHeader:true,flatIA:true,statePreserved:true,desktop:true,mobile:true,newTables:0,schemaChanges:0,twoBLModified:false,doingRootModified:false},null,2));

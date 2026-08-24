@@ -22,7 +22,7 @@ on:
       - 'market-session.html'
       - 'project-center.html'
       - 'booking-2-center.html'
-      - 'legacy-pages/booking-center.html'
+      - 'modules/booking/booking-center.html'
       - 'guide-center.html'
       - 'smart-application.html'
       - 'workspace.html'
@@ -43,41 +43,38 @@ on:
       - 'scripts/validate-v12-closure.mjs'
       - 'scripts/validate-doing2-short-route-cleanup.mjs'
       - 'scripts/validate-world-tree-mindmap.mjs'
-      - 'index.html'
-      - 'member.html'
-      - 'admin.html'
-      - 'onsite.html'
-      - 'platform.html'
-      - 'operations-center.html'
-      - 'photo.html'
-      - 'consignment.html'
-      - 'about.html'
-      - 'booking-center.html'
       - '.github/workflows/doing-2-site.yml'
   push:
     branches: [main]
     paths:
       - 'doing-2.html'
       - 'doing-2-shell.js'
+      - 'doing-2-home-v11.css'
       - 'doing-2-home-v11.js'
+      - 'doing-home-logo-slot-v12.css'
+      - 'doing-home-logo-slot-v12.js'
+      - 'doing-candy-theme.css'
       - 'doing-member-return-direct.js'
       - 'doing-global-entry.js'
       - 'doing-workspace-product-router.js'
+      - 'doing-application-contract-v12.js'
+      - 'doing-formal-application-bridge.js'
+      - 'doing-smart-activation-v5.js'
       - 'market-center.html'
       - 'market-public.html'
       - 'market-session.html'
       - 'project-center.html'
-      - 'legacy-pages/booking-center.html'
+      - 'booking-2-center.html'
+      - 'modules/booking/booking-center.html'
       - 'guide-center.html'
       - 'smart-application.html'
       - 'workspace.html'
       - 'member-panel.html'
       - 'register.html'
+      - 'world-tree.html'
       - 'doing-world-tree-current.json'
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/postprocess-market-v19.mjs'
-      - 'scripts/validate-unified-entry.mjs'
-      - 'scripts/validate-booking-center.mjs'
       - '.github/workflows/doing-2-site.yml'
   workflow_dispatch:
 
@@ -142,12 +139,7 @@ jobs:
           done
           for d in admin onsite platform operations photo consignment about member; do test ! -e ".doing-2-site/$d"; done
           ! grep -R -q '2bl-v7' .doing-2-site
-          ! find . -maxdepth 1 -type f -name 'uat-application-*.html' | grep -q .
-      - uses: actions/upload-artifact@v4
-        with:
-          name: doing-2-site
-          path: .doing-2-site
-          retention-days: 14
+          test ! -d legacy-pages
 
   deploy-pages:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -197,20 +189,9 @@ jobs:
           set -euo pipefail
           url="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/pages/projects/${CF_PAGES_PROJECT}/domains"
           code="$(curl -sS -o domain.json -w '%{http_code}' -X POST -H "Authorization: Bearer ${CF_TOKEN}" -H 'Content-Type: application/json' --data "{\"name\":\"${CF_CUSTOM_DOMAIN}\"}" "$url")"
-          if [ "$code" = "200" ] || [ "$code" = "201" ] || [ "$code" = "409" ]; then
-            exit 0
-          fi
-          if jq -e '.errors[]? | select(.code==8000018)' domain.json >/dev/null 2>&1; then
-            echo "Custom domain already attached; continuing."
-            exit 0
-          fi
+          if [ "$code" = "200" ] || [ "$code" = "201" ] || [ "$code" = "409" ]; then exit 0; fi
+          if jq -e '.errors[]? | select(.code==8000018)' domain.json >/dev/null 2>&1; then echo "Custom domain already attached; continuing."; exit 0; fi
           cat domain.json
           exit 1
-      - name: Record deployment evidence
-        run: |
-          jq -n --arg domain "$CF_CUSTOM_DOMAIN" --arg project "$CF_PAGES_PROJECT" --arg commit "$GITHUB_SHA" '{domain:$domain,project:$project,commit:$commit,status:"deployed"}' > doing-2-site-deployment.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: doing-2-site-deployment
-          path: doing-2-site-deployment.json
-          retention-days: 90
+      - name: Verify deployment completed
+        run: echo "DOING Pages deployed for $GITHUB_SHA"

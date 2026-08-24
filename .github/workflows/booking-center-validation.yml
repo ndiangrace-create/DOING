@@ -2,7 +2,7 @@ name: Booking Center Validation
 on:
   pull_request:
     paths:
-      - 'legacy-pages/booking-center.html'
+      - 'modules/booking/booking-center.html'
       - 'booking-2-center.html'
       - 'doing-workspace-product-router.js'
       - 'doing-global-entry.js'
@@ -35,6 +35,7 @@ jobs:
           set -euo pipefail
           git diff --check ${{ github.event.pull_request.base.sha || 'HEAD^' }}...HEAD
           test ! -f booking-center.html
-          test -s legacy-pages/booking-center.html
+          test ! -d legacy-pages
+          test -s modules/booking/booking-center.html
           test -s .doing-2-site/booking/index.html
           ! grep -E "DOING-Market-App|doingmarket://|2bl-v7" .doing-2-site/booking/index.html

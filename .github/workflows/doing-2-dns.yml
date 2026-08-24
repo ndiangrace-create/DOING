@@ -41,21 +41,13 @@ jobs:
           zones="$(curl --fail-with-body -sS "${auth[@]}" "https://api.cloudflare.com/client/v4/zones?name=${CF_ZONE_NAME}&account.id=${CF_ACCOUNT}")"
           zone_id="$(jq -r '.result[0].id // empty' <<<"$zones")"
           test -n "$zone_id"
-
           list="$(curl --fail-with-body -sS "${auth[@]}" "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records?type=CNAME&name=${CF_CUSTOM_DOMAIN}")"
           record_id="$(jq -r '.result[0].id // empty' <<<"$list")"
           payload="$(jq -nc --arg type CNAME --arg name "$CF_CUSTOM_DOMAIN" --arg content "$CF_PAGES_TARGET" '{type:$type,name:$name,content:$content,ttl:1,proxied:true}')"
-
           if [ -n "$record_id" ]; then
-            curl --fail-with-body -sS -X PUT "${auth[@]}" --data "$payload" "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records/${record_id}" > dns-result.json
+            result="$(curl --fail-with-body -sS -X PUT "${auth[@]}" --data "$payload" "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records/${record_id}")"
           else
-            curl --fail-with-body -sS -X POST "${auth[@]}" --data "$payload" "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records" > dns-result.json
+            result="$(curl --fail-with-body -sS -X POST "${auth[@]}" --data "$payload" "https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records")"
           fi
-
-          jq -e '.success == true' dns-result.json >/dev/null
-          jq -n --arg domain "$CF_CUSTOM_DOMAIN" --arg target "$CF_PAGES_TARGET" --arg zone "$zone_id" '{domain:$domain,target:$target,zone_id:$zone,status:"dns-ready"}' > doing-2-dns-evidence.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: doing-2-dns-evidence
-          path: doing-2-dns-evidence.json
-          retention-days: 90
+          jq -e '.success == true' <<<"$result" >/dev/null
+          echo "DNS ready: ${CF_CUSTOM_DOMAIN} -> ${CF_PAGES_TARGET}"

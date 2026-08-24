@@ -19,8 +19,8 @@ function patchMember(){
 }
 function patchGuarded(rel){const fp=path.join(out,rel);let html=fs.readFileSync(fp,'utf8');html=injectHead(html,'doing-global-entry.js','<script src="/doing-global-entry.js?v=20260824-unified-entry"></script>');fs.writeFileSync(fp,html)}
 function publishBooking(){
-  const source=path.join(root,'legacy-pages','booking-center.html'),fp=path.join(out,'booking/index.html');
-  if(!fs.existsSync(source))throw new Error('isolated booking module source missing');
+  const source=path.join(root,'modules','booking','booking-center.html'),fp=path.join(out,'booking/index.html');
+  if(!fs.existsSync(source))throw new Error('booking module source missing');
   let html=fs.readFileSync(source,'utf8');
   if(!html.includes('<base '))html=html.replace('<head>','<head><base href="/">');
   html=html.replaceAll('operations-center.html','/workspace/').replaceAll('index.html','/');
@@ -56,4 +56,4 @@ if(/<button[^>]+data-workspace-(?:calendar|operations)=/.test(me))throw new Erro
 for(const [name,html] of [['workspace',workspace],['register',register],['booking',booking]])if(!html.includes('doing-global-entry.js'))throw new Error(name+' unified entry guard missing');
 for(const token of ['getOperationUnitsAdmin','getBookingCalendarAdmin','saveAvailabilityRule','updateServiceVisit'])if(!booking.includes(token))throw new Error('booking capability lost: '+token);
 if(booking.includes('operations-center.html'))throw new Error('booking still links retired operations page');
-console.log(JSON.stringify({result:'PASS',marketV19:{desktopAdminNav:'top-fixed',mobileAdminNav:'bottom',singleDoingLogin:true,publicDesktopMaxWidth:1180},unifiedEntry:{accountEntries:['/apply/','/me/'],loginLanding:'/me/',workspace:'/workspace/',legacyRedirects:true,duplicateWorkspaceCtas:false,secondLoginPage:false},booking:{published:'/booking/',source:'legacy-pages/booking-center.html',capabilitiesPreserved:true}},null,2));
+console.log(JSON.stringify({result:'PASS',marketV19:{desktopAdminNav:'top-fixed',mobileAdminNav:'bottom',singleDoingLogin:true,publicDesktopMaxWidth:1180},unifiedEntry:{accountEntries:['/apply/','/me/'],loginLanding:'/me/',workspace:'/workspace/',legacyRedirects:true,duplicateWorkspaceCtas:false,secondLoginPage:false},booking:{published:'/booking/',source:'modules/booking/booking-center.html',capabilitiesPreserved:true}},null,2));

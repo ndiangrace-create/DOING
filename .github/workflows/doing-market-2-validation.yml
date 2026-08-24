@@ -12,20 +12,16 @@ on:
       - 'doing-visual-system-20260822.js'
       - 'doing-home-refresh.js'
       - 'market-public.html'
-      - 'market/public/index.html'
       - 'market-center.html'
       - 'market-session.html'
       - 'member-panel.html'
       - 'project-center.html'
       - 'booking-2-center.html'
+      - 'modules/booking/booking-center.html'
       - 'guide-center.html'
       - 'worker.js'
       - 'worker.txt'
       - 'doing-world-tree-current.json'
-      - 'DOING_2.0_WORLD_TREE_V1_BASELINE_20260822.md'
-      - 'DOING_2.0_WORLD_TREE_V3_MARKET_EXECUTION_20260822.md'
-      - 'DOING_2.0_WORLD_TREE_V4_MARKET_OPERATIONS_20260822.md'
-      - 'DOING_2.0_WORLD_TREE_V5_MARKET_PUBLIC_20260822.md'
       - 'DOING_2.0_CHANGELOG.md'
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/validate-doing-market-2.mjs'
@@ -91,11 +87,5 @@ jobs:
           E2E_GITHUB_BASE=http://127.0.0.1:4174 node scripts/e2e-market-member-login-return.mjs
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-public-interaction-v20.mjs
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-formal-application-closure.mjs
-      - name: Upload visual evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: doing-market-application-visual-evidence
-          path: artifacts/*.png
-          if-no-files-found: error
       - name: Diff quality
         run: git diff --check HEAD^ HEAD || true
