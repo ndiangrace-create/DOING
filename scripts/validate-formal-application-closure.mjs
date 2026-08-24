@@ -1,71 +1,21 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
 
-const html=fs.readFileSync('smart-application.html','utf8');
-const smart=fs.readFileSync('doing-smart-activation-v5.js','utf8');
-const bridge=fs.readFileSync('doing-formal-application-bridge.js','utf8');
-const build=fs.readFileSync('scripts/build-doing-2-site.mjs','utf8');
 const worker=fs.readFileSync('worker.js','utf8');
 const workerMirror=fs.readFileSync('worker.txt','utf8');
-
+const member=fs.readFileSync('member-current.html','utf8');
+const build=fs.readFileSync('scripts/build-doing-2-site.mjs','utf8');
 assert.equal(worker,workerMirror,'worker.js / worker.txt 必須保持 byte-identical');
-const bridgePos=html.indexOf('doing-formal-application-bridge.js');
-const activationPos=html.indexOf('doing-smart-activation-v5.js');
-assert.ok(bridgePos>0&&activationPos>bridgePos,'正式申請 bridge 必須先於原申請 submit 程式載入');
-assert.ok(smart.includes('submitApplication'),'正式申請必須為單頁單一送出鍵');
-assert.ok(!smart.includes('← 上一步')&&!smart.includes('下一步 →'),'正式申請不得再分頁');
 
-for(const token of [
-  "SNAPSHOT_KEY='doing_formal_application_resume_v1'",
-  "MAX_AGE=15*60*1000",
-  "u.searchParams.set('mode','member')",
-  "new URL('/apply/',location.origin)",
-  "u.searchParams.set('doing_application_resume','1')",
-  "action:'savePlatformMemberProfile'",
-  "?action=getPlatformMemberProfile",
-  "readMemberState",
-  "routeResolvedMemberState",
-  "?action=createOrganizerApplicationDraft",
-  "if(d&&d.lineVerified)",
-  "application_status",
-  "tenantId",
-  "你的工作空間已經開通",
-  "你的申請已送出",
-  "post_application",
-  "sessionStorage",
-  "localStorage.setItem(TOKEN_KEY,incoming)"
-]) assert.ok(bridge.includes(token),`正式申請閉環缺少：${token}`);
+// Clean-slate rebuild may remove the old application UI, but the approved Core contracts remain.
+for(const token of ['createOrganizerApplicationDraft','tenant_apply_logs','organizer_signup','line_verification_pending','platform_member_identities','provider=eq.line'])assert.ok(worker.includes(token),`申請 Core 契約缺少：${token}`);
+for(const token of ["u.searchParams.set('mode','member')","new URL('/me/',location.origin)",'getPlatformMemberProfile'])assert.ok(member.includes(token),`會員登入契約缺少：${token}`);
+assert.ok(build.includes("'/apply/':'DOING Apply'"),'CURRENT /apply/ 網址必須保留');
 
-for(const forbidden of [
-  "admin_token",
-  "mode','admin",
-  "mode','platform",
-  "tenant','platform"
-]) assert.ok(!bridge.includes(forbidden),`申請 bridge 不得自行提升權限：${forbidden}`);
+execFileSync(process.execPath,['scripts/build-doing-2-site.mjs'],{stdio:'inherit'});
+const apply=fs.readFileSync('.doing-2-site/apply/index.html','utf8');
+assert.ok(apply.includes('data-doing-ui-state="rebuild-shell"'),'申請 UI 尚未重建完成時必須安全停在重建殼');
+for(const forbidden of ['<form','<button','tobeloved-api','supabase.co','localStorage','sessionStorage'])assert.ok(!apply.includes(forbidden),`重建殼不得發布舊申請操作：${forbidden}`);
 
-for(const token of [
-  "lineVerified:true",
-  "member_token:memberToken",
-  "status:'line_verification_pending'",
-  "platform_member_identities",
-  "provider=eq.line"
-]) assert.ok(worker.includes(token),`Core 既有 LINE 快速驗證契約缺少：${token}`);
-
-for(const token of [
-  "'doing-formal-application-bridge.js'",
-  "builtApply.includes('doing-formal-application-bridge.js')",
-  "fs.existsSync(path.join(out,'doing-formal-application-bridge.js'))"
-]) assert.ok(build.includes(token),`正式站打包契約缺少：${token}`);
-
-console.log(JSON.stringify({
-  result:'PASS',
-  flow:'single-page form -> LINE member verification -> same member profile -> existing workspace/application preflight -> new application only when needed -> lineVerified -> auto activation -> /me/#operations',
-  singlePage:true,
-  firstTimeApplicant:true,
-  existingWorkspaceRecoveryBeforeInsert:true,
-  pendingApplicationRecoveryBeforeInsert:true,
-  memberTokenIsNotAdminToken:true,
-  privilegeElevation:false,
-  newDatabaseTables:0,
-  productionWrites:0
-},null,2));
+console.log(JSON.stringify({result:'PASS',applicationUi:'rebuild-shell',applicationCorePreserved:true,lineOrganizerSignupCompatibility:true,memberLoginIsNotAdminLogin:true,privilegeElevation:false,newDatabaseTables:0,productionWrites:0},null,2));

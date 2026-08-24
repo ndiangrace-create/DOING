@@ -36,10 +36,13 @@ try{
 
     const heroLogo=page.locator('.brand-logo-hero');
     const logoBox=await heroLogo.boundingBox();
+    const logoNatural=await heroLogo.evaluate(img=>({width:img.naturalWidth,height:img.naturalHeight}));
     const taglineBox=await page.locator('.brand-tagline').boundingBox();
     if(!logoBox||!taglineBox)throw new Error(`${viewport.name}: logo/tagline missing`);
+    if(logoNatural.width!==1056||logoNatural.height!==412)throw new Error(`${viewport.name}: low-resolution logo regression ${logoNatural.width}x${logoNatural.height}`);
     const minLogoWidth=viewport.name==='mobile'?340:900;
     if(logoBox.width<minLogoWidth)throw new Error(`${viewport.name}: hero logo too small (${logoBox.width})`);
+    if(logoBox.width>1057)throw new Error(`${viewport.name}: logo is being upscaled beyond native width (${logoBox.width})`);
     const logoGap=taglineBox.y-(logoBox.y+logoBox.height);
     if(logoGap>18)throw new Error(`${viewport.name}: excess gap below logo (${logoGap})`);
 
@@ -104,7 +107,27 @@ try{
   if(oauthStarts!==0)throw new Error(`auth: LINE OAuth started after member identity resolved (${oauthStarts})`);
   await authPage.close();
 
-  console.log(JSON.stringify({result:'PASS',viewports:['390x844','1440x1000'],tagline:'斜槓人生小幫手',homepageSearchRemoved:true,latestLogo:true,logoGapChecked:true,publicSystemCount:3,independentApplication:true,benefitsRemoved:true,audienceSplitRemoved:true,bottomNav:true,memberLoginEntry:true,duplicateLineOAuthRace:false,horizontalOverflow:false}));
+  // A transient profile/workspace API failure must not destroy a valid member token or restart LINE OAuth.
+  const transientPage=await browser.newPage({viewport:{width:1440,height:1000}});
+  let transientOauthStarts=0;
+  transientPage.on('request',req=>{if(req.url().includes('/auth/line/start'))transientOauthStarts++});
+  await transientPage.addInitScript(()=>localStorage.setItem('doing_member_token','existing-member-token'));
+  await transientPage.route('https://tobeloved-api.ndiangrace.workers.dev/**',async route=>{
+    const u=new URL(route.request().url());
+    if((u.searchParams.get('action')||'')==='getPlatformMemberProfile'){await route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,error:'暫時無法讀取工作空間'})});return}
+    await route.abort();
+  });
+  await transientPage.goto(base+'/me/',{waitUntil:'domcontentloaded'});
+  await transientPage.locator('#loginMessage').waitFor();
+  await transientPage.waitForFunction(()=>document.getElementById('loginMessage')?.textContent?.includes('工作空間暫時載入失敗'));
+  const tokenAfterTransient=await transientPage.evaluate(()=>localStorage.getItem('doing_member_token'));
+  if(tokenAfterTransient!=='existing-member-token')throw new Error('auth: transient API failure incorrectly cleared member token');
+  if(transientOauthStarts!==0)throw new Error('auth: transient API failure incorrectly restarted LINE OAuth');
+  const retryText=await transientPage.locator('#lineLogin').textContent();
+  if(!String(retryText||'').includes('重新確認'))throw new Error('auth: transient API failure did not offer in-place retry');
+  await transientPage.close();
+
+  console.log(JSON.stringify({result:'PASS',viewports:['390x844','1440x1000'],tagline:'斜槓人生小幫手',homepageSearchRemoved:true,latestLogo:true,logoNaturalSize:'1056x412',logoUpscale:false,logoGapChecked:true,publicSystemCount:3,independentApplication:true,benefitsRemoved:true,audienceSplitRemoved:true,bottomNav:true,memberLoginEntry:true,duplicateLineOAuthRace:false,transientMemberLoadKeepsToken:true,horizontalOverflow:false}));
 } finally {
   await browser.close();
 }

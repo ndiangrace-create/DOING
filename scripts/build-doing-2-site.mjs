@@ -40,15 +40,18 @@ for(const asset of ['doing-kawaii-current.css','doing-home-v4.css','doing-home-c
 }
 
 const logoDir=path.join(root,'.assets','doing-logo-new');
-const logoBase64=Array.from({length:6},(_,i)=>{
-  const p=path.join(logoDir,`part${i}.txt`);
+const logoParts=['part0.txt','part1.txt','part2.txt','p3c0.txt','p3c1a.txt','p3c1b0a.txt','p3c1b0b0.txt','p3c1b0b1.txt','p3c1b1.txt','p3c2.txt','p3c3.txt','p3c4.txt','part4.txt','part5.txt'];
+const logoBase64=logoParts.map(name=>{
+  const p=path.join(logoDir,name);
   if(!fs.existsSync(p))throw new Error(`missing logo source part: ${p}`);
   return fs.readFileSync(p,'utf8').trim();
 }).join('');
 const logoBytes=Buffer.from(logoBase64,'base64');
 const logoHash=crypto.createHash('sha256').update(logoBytes).digest('hex');
-const expectedLogoHash='9c05213a5e4d931490784b0bd10a4b923aa4ae7b3b5591ad10617d76b50a956a';
-if(logoBytes.length!==6449||logoBytes[0]!==0x89||logoBytes[1]!==0x50||logoBytes[2]!==0x4e||logoBytes[3]!==0x47||logoHash!==expectedLogoHash)throw new Error(`invalid DOING logo reconstruction: bytes=${logoBytes.length} sha256=${logoHash}`);
+const logoWidth=logoBytes.length>=24?logoBytes.readUInt32BE(16):0;
+const logoHeight=logoBytes.length>=24?logoBytes.readUInt32BE(20):0;
+const expectedLogoHash='f3db93bf278cc2880e8f863eea97dba20b4d7fb44525ab3d658e2c5362149817';
+if(logoBytes.length!==63375||logoBytes[0]!==0x89||logoBytes[1]!==0x50||logoBytes[2]!==0x4e||logoBytes[3]!==0x47||logoWidth!==1056||logoHeight!==412||logoHash!==expectedLogoHash)throw new Error(`invalid DOING logo reconstruction: bytes=${logoBytes.length} size=${logoWidth}x${logoHeight} sha256=${logoHash}`);
 fs.writeFileSync(path.join(out,'doing-logo.png'),logoBytes);
 
 fs.writeFileSync(path.join(out,'_headers'),`/*\n  Cache-Control: no-store, max-age=0\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`, 'utf8');
@@ -75,4 +78,4 @@ for(const removed of ['doingSearch','jelly-search','搜尋市集、工程進度�
 const member=fs.readFileSync(path.join(out,'me/index.html'),'utf8');for(const token of ['auth/line/start','getPlatformMemberProfile','createMemberWorkspaceAdminSession'])if(!member.includes(token))throw new Error(`member auth contract missing: ${token}`);
 const workspace=fs.readFileSync(path.join(out,'workspace/index.html'),'utf8');for(const token of ['getTenantModuleProfile','adminMe','市集活動系統','室內設計系統','美類預約系統'])if(!workspace.includes(token))throw new Error(`workspace contract missing: ${token}`);
 
-console.log(JSON.stringify({result:'PASS',mode:'kawaii-home-v5',routeCount:allRoutes.length,liveRoutes:Object.keys(sourceRoutes),shellRoutes:Object.keys(shellRoutes),tenantLogin:true,search:false,tagline:'斜槓人生小幫手',publicSystemsOnly:true,publicSystemCount:3,benefitGrid:false,audienceSplit:false,logo:{bytes:logoBytes.length,sha256:logoHash},systemCategories:['market-activity','interior-project','beauty-booking'],databaseWrites:0,workerChanges:0,twoBlChanges:0},null,2));
+console.log(JSON.stringify({result:'PASS',mode:'kawaii-home-v5',routeCount:allRoutes.length,liveRoutes:Object.keys(sourceRoutes),shellRoutes:Object.keys(shellRoutes),tenantLogin:true,search:false,tagline:'斜槓人生小幫手',publicSystemsOnly:true,publicSystemCount:3,benefitGrid:false,audienceSplit:false,logo:{bytes:logoBytes.length,width:logoWidth,height:logoHeight,sha256:logoHash},systemCategories:['market-activity','interior-project','beauty-booking'],databaseWrites:0,workerChangeScope:'line-login-only',twoBlChanges:0},null,2));

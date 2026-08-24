@@ -1,31 +1,19 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-const js=fs.readFileSync('doing-smart-activation-v5.js','utf8');
-const shell=fs.readFileSync('doing-2-shell.js','utf8');
-const page=fs.readFileSync('smart-application.html','utf8');
+import {execFileSync} from 'node:child_process';
+
+const home=fs.readFileSync('home-current.html','utf8');
 const build=fs.readFileSync('scripts/build-doing-2-site.mjs','utf8');
-for(const t of ['市集／活動／體驗','室內設計／工程','美類／服務預約','導覽預約']) assert.ok(js.includes(t),'missing public product '+t);
-assert.ok(!js.includes('我是攤商／參與者'),'Market 不得再詢問攤商參與者角色');
-assert.ok(!js.includes('兩種都有'),'Market 不得再走主辦／攤商舊角色分流');
-for(const t of ['市集','一般活動','體驗活動／DIY']) assert.ok(js.includes(t),'Market subtype missing '+t);
-assert.ok(!js.includes('固定模組確認'),'前台不得顯示固定模組確認');
-assert.ok(!js.includes('查看固定模組'),'前台不得要求查看固定模組');
-assert.ok(!js.includes('確認，這就是我要申請的系統'),'前台不得要求二次確認系統');
-assert.ok(!js.includes('請先確認固定模組內容'),'固定模組不得成為申請 gate');
-assert.ok(js.includes('applicationGate:false'),'智慧小幫手不得成為申請 gate');
-assert.ok(js.includes('customerServiceOnly:true'),'智慧小幫手角色固定為客服／導引');
-assert.ok(js.includes('assistantAnalysis:{confirmed:true'),'保留後端相容欄位但不得要求使用者額外確認');
-assert.ok(js.includes("architecture:'doing_2_fixed_products'"),'申請資料必須記錄固定產品架構');
-assert.ok(js.includes("mode','organizer_signup'"),'LINE organizer_signup 相容路徑必須保留');
-assert.ok(js.includes('submitApplication'),'單頁申請必須只有一個正式送出鍵');
-assert.ok(!js.includes('← 上一步'),'單頁申請不得出現上一步');
-assert.ok(!js.includes('下一步 →'),'單頁申請不得出現下一步');
-assert.ok(page.includes('所有資料都在這一頁填完'),'申請頁必須明確為單頁流程');
-assert.ok(page.includes('符合規則就直接開通'),'申請頁必須說明自動開通');
-assert.ok(!page.includes('固定產品申請'),'前台不得顯示內部固定產品術語');
-assert.ok(!page.includes('確認既有模組'),'前台不得顯示內部模組術語');
-assert.ok(page.includes('/doing-smart-activation-v5.js'),'申請頁必須使用固定產品流程');
-assert.ok(shell.includes('href="/apply/"')&&shell.includes('申請 DOING'),'首頁／頂部唯一申請入口必須固定開 /apply/');
-assert.ok(build.includes("'/apply/':'smart-application.html'"),'Pages 必須以 /apply/ 承接正式申請頁');
-assert.ok(build.includes('doing-smart-activation-v5.js'),'Pages 必須包含申請 JS');
-console.log(JSON.stringify({result:'PASS',publicJourney:['同一頁選產品＋使用方式＋填資料','LINE 驗證','自動開通'],helperRole:'customer_service_only',applicationGate:false,moduleConfirmation:false,singlePage:true,compactSubmit:true,applyEntry:'/apply/',dbTablesAdded:0},null,2));
+
+for(const t of ['市集活動系統','室內設計進度系統','美類預約系統'])assert.ok(home.includes(t),'CURRENT 公開系統缺少 '+t);
+for(const t of ['申請市集活動系統','申請室內設計進度系統','申請美類預約系統'])assert.ok(home.includes(t),'CURRENT 個別申請 CTA 缺少 '+t);
+assert.equal((home.match(/class="card-action" href="\/apply\/"/g)||[]).length,3,'三個公開系統必須各自只有一個 /apply/ CTA');
+for(const forbidden of ['一個帳號，多種身分','共用同一資料庫','SSOT','Core','需要什麼再加什麼','手機與電腦同一套','系統亮點'])assert.ok(!home.includes(forbidden),'首頁不得公開內部架構／未定案宣傳：'+forbidden);
+assert.ok(build.includes("'/apply/':'DOING Apply'"),'Pages 必須保留 /apply/ 網址');
+
+execFileSync(process.execPath,['scripts/build-doing-2-site.mjs'],{stdio:'inherit'});
+const page=fs.readFileSync('.doing-2-site/apply/index.html','utf8');
+assert.ok(page.includes('data-doing-ui-state="rebuild-shell"'),'尚未重新製作的申請操作頁必須維持安全重建殼');
+for(const bad of ['<form','<button','tobeloved-api','supabase.co'])assert.ok(!page.includes(bad),'申請頁不得在未完成重建前偷偷復活舊功能：'+bad);
+
+console.log(JSON.stringify({result:'PASS',publicSystems:['市集活動系統','室內設計進度系統','美類預約系統'],systemCount:3,individualApplyCtas:3,applyEntry:'/apply/',applyState:'rebuild-shell',internalArchitecturePublic:false,productionWrites:0},null,2));
