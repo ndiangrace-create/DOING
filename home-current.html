@@ -7,111 +7,143 @@
 <meta name="description" content="DOING 協援人生小幫手：市集活動、室內設計進度、美類預約。">
 <title>DOING｜先做就對了</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="/doing-kawaii-current.css?v=20260825-1">
+<link rel="stylesheet" href="/doing-kawaii-current.css?v=20260825-2">
 </head>
 <body class="doing-kawaii min-h-screen text-slate-800">
 <div class="watercolor-surface" aria-hidden="true"></div>
-<header class="relative z-20 mx-auto w-full max-w-6xl px-4 pt-5 sm:px-6 lg:px-8">
+
+<header class="relative z-20 mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
   <div class="flex items-center justify-between gap-3">
     <a class="inline-flex items-center" href="/" aria-label="DOING 首頁">
-      <img class="h-11 w-auto drop-shadow-sm sm:h-12" src="/doing-logo.png" alt="DOING">
+      <img class="brand-logo-header w-auto" src="/doing-logo.png" alt="DOING">
     </a>
-    <div class="flex items-center gap-2">
+    <div class="top-actions grid grid-cols-2 gap-2">
       <a class="mini-jelly mini-jelly-blue" href="/apply/">申請使用</a>
-      <a class="mini-jelly mini-jelly-lilac" href="/me/">登入</a>
+      <a class="mini-jelly mini-jelly-lilac" href="/me/">租戶登入</a>
     </div>
   </div>
 </header>
 
-<main class="relative z-10 mx-auto w-full max-w-6xl px-4 pb-36 pt-3 sm:px-6 lg:px-8">
+<main class="relative z-10 mx-auto w-full max-w-7xl px-4 pb-40 pt-2 sm:px-6 lg:px-8">
   <section class="hero-copy text-center" aria-labelledby="heroTitle">
-    <img class="mx-auto mt-1 w-[min(760px,92vw)] max-h-64 object-contain" src="/doing-logo.png" alt="DOING">
-    <p class="mt-1 text-lg font-black tracking-[.28em] text-[#7970bc] drop-shadow-[0_2px_0_rgba(255,255,255,.95)] sm:text-xl">協援人生小幫手</p>
-    <p class="mt-2 text-sm font-bold text-slate-600 sm:text-base">把活動、工作進度與預約，放進同一個 DOING 帳號裡。</p>
+    <img class="brand-logo-hero mx-auto" src="/doing-logo.png" alt="DOING">
+    <p class="mt-1 text-lg font-black tracking-[.28em] text-[#7970bc] drop-shadow-[0_2px_0_rgba(255,255,255,.95)] sm:text-2xl">協援人生小幫手</p>
+    <h1 id="heroTitle" class="mx-auto mt-4 max-w-4xl text-2xl font-black leading-tight text-slate-800 sm:text-4xl">把複雜的工作流程，整理成每個人都會用的 DOING</h1>
+    <p class="mx-auto mt-3 max-w-3xl text-base font-bold leading-7 text-slate-600 sm:text-lg">從對外報名、團隊協作、進度管理到客戶預約，一個帳號、一個工作空間，把真正需要做的事放在一起。</p>
   </section>
 
-  <section class="mx-auto mt-6 max-w-4xl" aria-label="搜尋 DOING 功能">
+  <section class="system-intro mx-auto mt-7 max-w-5xl" aria-labelledby="doingIntroTitle">
+    <div class="intro-copy">
+      <span class="kawaii-kicker">DOING 是什麼？</span>
+      <h2 id="doingIntroTitle" class="mt-2 text-2xl font-black text-[#6658bc] sm:text-3xl">不是多一套工具，而是把你的工作流程接起來</h2>
+      <p class="mt-3 max-w-3xl font-bold leading-7 text-slate-600">同一個人可以是會員、品牌、主辦、店家或專案成員；DOING 依你的身分與租戶權限，帶你進入正確工作空間，不用在不同系統重複建立資料。</p>
+    </div>
+    <div class="intro-points mt-5 grid gap-3 sm:grid-cols-3">
+      <div><b>一個帳號</b><span>登入後直接看到自己的報名、品牌與營運空間。</span></div>
+      <div><b>一份正式資料</b><span>報名、付款、進度與預約結果都回到同一個正式資料來源。</span></div>
+      <div><b>依需求開功能</b><span>租戶只看到核准的系統與模組，不把不需要的功能塞進畫面。</span></div>
+    </div>
+  </section>
+
+  <section class="mx-auto mt-7 max-w-4xl" aria-label="搜尋 DOING 功能">
     <label class="sr-only" for="doingSearch">搜尋功能</label>
     <div class="jelly-search flex items-center gap-4 px-5 py-3 sm:px-7 sm:py-4">
       <span class="search-lens" aria-hidden="true"></span>
       <input id="doingSearch" class="min-w-0 flex-1 bg-transparent text-base font-bold text-white placeholder:text-white/90 focus:outline-none sm:text-xl" autocomplete="off" placeholder="搜尋市集、工程進度、美類預約……">
       <button id="clearSearch" class="hidden rounded-full bg-white/45 px-3 py-1 text-sm font-black text-[#7b5987]" type="button">清除</button>
     </div>
-    <div class="mt-3 flex flex-wrap justify-center gap-2" aria-label="快速分類">
-      <button class="filter-chip" type="button" data-filter="all">全部</button>
-      <button class="filter-chip" type="button" data-filter="市集 活動 報名">市集活動</button>
-      <button class="filter-chip" type="button" data-filter="室內 設計 工程 專案">室內設計</button>
-      <button class="filter-chip" type="button" data-filter="美類 預約 美甲 美容">美類預約</button>
-    </div>
   </section>
 
-  <section class="mt-10" aria-labelledby="canDoTitle">
-    <div class="mb-5 flex items-end justify-between gap-4">
+  <section class="mt-12" aria-labelledby="canDoTitle">
+    <div class="mb-6 flex items-end justify-between gap-4">
       <div>
-        <span class="kawaii-kicker">DOING 可以幫你</span>
-        <h1 id="canDoTitle" class="mt-1 text-2xl font-black tracking-tight text-[#6658bc] sm:text-3xl">先把事情做對，再把流程變簡單</h1>
+        <span class="kawaii-kicker">第一階段系統</span>
+        <h2 id="canDoTitle" class="mt-1 text-2xl font-black tracking-tight text-[#6658bc] sm:text-3xl">三種工作，都從同一個 DOING 開始</h2>
+        <p class="mt-2 max-w-3xl font-bold leading-7 text-slate-600">先選你真正要處理的工作；進入後再使用該系統需要的流程與資料。</p>
       </div>
-      <a class="hidden text-sm font-black text-[#6f5cc8] sm:inline" href="/me/">已有帳號？登入 →</a>
+      <a class="hidden text-sm font-black text-[#6f5cc8] sm:inline" href="/me/">已有帳號？租戶登入 →</a>
     </div>
 
-    <div id="systemGrid" class="grid gap-5 md:grid-cols-3">
+    <div id="systemGrid" class="system-grid grid gap-5 lg:grid-cols-3">
       <article class="system-card system-card-blue" data-search="市集 活動 招募 報名 審核 付款 排位 現場 財務 攤商 主辦">
         <div class="system-visual bg-[#dff4ff]" aria-hidden="true">🎪</div>
-        <div class="p-5">
+        <div class="system-card-content p-5">
           <span class="category-tag bg-[#dff4ff] text-[#477e9e]">市集活動</span>
-          <h2 class="mt-3 text-xl font-black text-slate-800">從招募到現場，一條流程完成</h2>
-          <p class="mt-2 text-sm font-bold leading-6 text-slate-600">活動建立、攤商報名、審核、付款、排位、通知、現場報到與財務結案，共用同一份正式資料。</p>
-          <div class="mt-4 flex flex-wrap gap-2 text-xs font-black text-slate-600">
-            <span class="feature-pill">報名／審核</span><span class="feature-pill">收款</span><span class="feature-pill">排位</span><span class="feature-pill">QR 現場</span><span class="feature-pill">結案</span>
-          </div>
-          <a class="card-action mt-5" href="/market/">看看市集活動系統</a>
+          <h3 class="mt-3 text-xl font-black text-slate-800">從招募到結案，一條流程完成</h3>
+          <p class="mt-2 text-sm font-bold leading-6 text-slate-600">適合市集、活動與招募型營運。把報名、審核、收款、攤位、現場與財務收回同一個場次。</p>
+          <ul class="system-feature-list mt-4">
+            <li>報名名單、審核與付款狀態不分家</li>
+            <li>排位、設備、通知與 QR 現場接在同一筆報名</li>
+            <li>活動結束後直接進退款、押金與財務結案</li>
+          </ul>
+          <a class="card-action" href="/market/">看看市集活動系統</a>
         </div>
       </article>
 
       <article class="system-card system-card-peach" data-search="室內 設計 工程 專案 報價 進度 工班 支出 付款 驗收 簽核">
         <div class="system-visual bg-[#fff0d9]" aria-hidden="true">🏠</div>
-        <div class="p-5">
+        <div class="system-card-content p-5">
           <span class="category-tag bg-[#fff0d9] text-[#9a7441]">室內設計進度</span>
-          <h2 class="mt-3 text-xl font-black text-slate-800">讓業主看得懂，團隊也跟得上</h2>
-          <p class="mt-2 text-sm font-bold leading-6 text-slate-600">專案、階段、進度更新、報價、付款、支出、工班與驗收，都回到同一個工程專案資料根。</p>
-          <div class="mt-4 flex flex-wrap gap-2 text-xs font-black text-slate-600">
-            <span class="feature-pill">工程階段</span><span class="feature-pill">進度更新</span><span class="feature-pill">報價</span><span class="feature-pill">付款</span><span class="feature-pill">驗收</span>
-          </div>
-          <a class="card-action mt-5" href="/project/">看看室內設計系統</a>
+          <h3 class="mt-3 text-xl font-black text-slate-800">業主看得懂，團隊也跟得上</h3>
+          <p class="mt-2 text-sm font-bold leading-6 text-slate-600">適合室內設計與工程專案。從報價到驗收，把每一階段的責任、進度與金流留在同一個專案。</p>
+          <ul class="system-feature-list mt-4">
+            <li>階段、進度更新與照片檔案集中查看</li>
+            <li>報價、付款、支出與追加減保留完整脈絡</li>
+            <li>工班協作、階段簽核與完工驗收一路追蹤</li>
+          </ul>
+          <a class="card-action" href="/project/">看看室內設計系統</a>
         </div>
       </article>
 
       <article class="system-card system-card-green" data-search="美類 預約 美甲 美容 服務 日曆 空檔 員工 排班 客戶 提醒">
         <div class="system-visual bg-[#effbcf]" aria-hidden="true">💅</div>
-        <div class="p-5">
+        <div class="system-card-content p-5">
           <span class="category-tag bg-[#effbcf] text-[#67812b]">美類預約</span>
-          <h2 class="mt-3 text-xl font-black text-slate-800">空檔、服務、人員，直接放進日曆</h2>
-          <p class="mt-2 text-sm font-bold leading-6 text-slate-600">服務項目、可預約時段、人員資源、固定排班、臨時休息與客戶到店流程，共用正式預約資料。</p>
-          <div class="mt-4 flex flex-wrap gap-2 text-xs font-black text-slate-600">
-            <span class="feature-pill">空檔日曆</span><span class="feature-pill">服務項目</span><span class="feature-pill">人員排班</span><span class="feature-pill">顧客資料</span><span class="feature-pill">提醒</span>
-          </div>
-          <a class="card-action mt-5" href="/booking/">看看美類預約系統</a>
+          <h3 class="mt-3 text-xl font-black text-slate-800">空檔、服務、人員直接放進日曆</h3>
+          <p class="mt-2 text-sm font-bold leading-6 text-slate-600">適合美甲、美容與服務預約。從可預約時間到到店服務，把店家與顧客需要的資訊放在同一份日曆。</p>
+          <ul class="system-feature-list mt-4">
+            <li>服務時間、緩衝、固定排班與臨時休息一起算</li>
+            <li>多人員與可預約空檔直接呈現給顧客</li>
+            <li>顧客資料、提醒、問卷與到店紀錄可持續累積</li>
+          </ul>
+          <a class="card-action" href="/booking/">看看美類預約系統</a>
         </div>
       </article>
     </div>
     <p id="searchEmpty" class="hidden rounded-3xl bg-white/75 p-8 text-center font-black text-slate-600 shadow-[0_12px_32px_rgba(180,175,218,.2)]">目前沒有符合的分類，換個關鍵字試試看。</p>
   </section>
 
-  <section class="mt-10 grid gap-5 lg:grid-cols-[1.25fr_.75fr]">
+  <section class="mt-12" aria-labelledby="highlightTitle">
+    <div class="text-center">
+      <span class="kawaii-kicker">系統亮點</span>
+      <h2 id="highlightTitle" class="mt-2 text-2xl font-black text-[#6658bc] sm:text-3xl">DOING 真正想省下的，是你每天重複整理的時間</h2>
+      <p class="mx-auto mt-2 max-w-3xl font-bold leading-7 text-slate-600">不同產業有不同流程，但底層應該共用同一套帳號、權限、資料與工作邏輯。</p>
+    </div>
+    <div class="highlight-grid mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <article class="highlight-card"><span>01</span><h3>一個帳號，多種身分</h3><p>參加活動、管理品牌、經營店家或負責專案，都從同一個 DOING 帳號進入。</p></article>
+      <article class="highlight-card"><span>02</span><h3>資料只留一份</h3><p>同一筆報名、付款、專案或預約不在不同頁面各自長成另一套資料。</p></article>
+      <article class="highlight-card"><span>03</span><h3>流程一路接到底</h3><p>不是只完成「送出」；後續審核、通知、執行、紀錄與結案都能接續。</p></article>
+      <article class="highlight-card"><span>04</span><h3>角色與權限分清楚</h3><p>會員、租戶、工作人員與平台管理者看到的內容不同，後端再做最終權限判斷。</p></article>
+      <article class="highlight-card"><span>05</span><h3>手機與電腦同一套</h3><p>現場用手機、辦公室用電腦，看到的是同一份正式狀態，不需要再手動同步。</p></article>
+      <article class="highlight-card"><span>06</span><h3>系統可以跟著你長大</h3><p>先開現在需要的功能，之後再加入收款、通知、財務、照片或其他共用模組。</p></article>
+    </div>
+  </section>
+
+  <section class="mt-12 grid gap-5 lg:grid-cols-[1.25fr_.75fr]">
     <article class="soft-panel p-6 sm:p-7">
-      <span class="kawaii-kicker">一個帳號，多種身分</span>
-      <h2 class="mt-2 text-2xl font-black text-slate-800">申請過 DOING 的租戶，可以直接登入自己的工作空間</h2>
-      <p class="mt-2 max-w-2xl font-bold leading-7 text-slate-600">使用原本申請時綁定的 LINE 帳號登入。DOING 會依正式租戶權限，只顯示你已核准的系統與資料，不另外建立第二套會員或營運資料。</p>
-      <div class="mt-5 flex flex-wrap gap-3">
-        <a class="jelly-cta jelly-cta-lilac" href="/me/">登入我的 DOING</a>
-        <a class="jelly-cta jelly-cta-blue" href="/apply/">申請 DOING</a>
+      <span class="kawaii-kicker">申請過就直接登入</span>
+      <h2 class="mt-2 text-2xl font-black text-slate-800">租戶使用原本申請時綁定的 LINE 帳號，進入自己的工作空間</h2>
+      <p class="mt-2 max-w-2xl font-bold leading-7 text-slate-600">DOING 會依正式租戶權限，只顯示你已核准的系統與資料。登入後不用重新建立另一套會員、品牌或營運資料。</p>
+      <div class="mt-5 grid gap-3 sm:grid-cols-2">
+        <a class="jelly-cta jelly-cta-lilac" href="/me/">租戶登入 DOING</a>
+        <a class="jelly-cta jelly-cta-blue" href="/apply/">申請使用 DOING</a>
       </div>
     </article>
     <article id="support" class="soft-panel p-6 sm:p-7">
       <span class="kawaii-kicker">不知道從哪裡開始？</span>
       <h2 class="mt-2 text-xl font-black text-slate-800">先告訴我們你想處理什麼</h2>
-      <p class="mt-2 text-sm font-bold leading-6 text-slate-600">活動、市集、工程進度或預約，都可以從 DOING 開始整理。</p>
-      <a class="jelly-cta jelly-cta-yellow mt-5" href="/apply/">看看我適合哪個系統</a>
+      <p class="mt-2 text-sm font-bold leading-6 text-slate-600">市集活動、室內設計進度或美類預約，都可以從 DOING 開始整理。</p>
+      <a class="jelly-cta jelly-cta-yellow mt-5 w-full" href="/apply/">看看我適合哪個系統</a>
     </article>
   </section>
 </main>
@@ -122,6 +154,6 @@
   <a class="bottom-jelly bottom-jelly-yellow" href="#support"><span>線上客服</span></a>
 </nav>
 
-<script src="/doing-home-current.js?v=20260825-1" defer></script>
+<script src="/doing-home-current.js?v=20260825-2" defer></script>
 </body>
 </html>
