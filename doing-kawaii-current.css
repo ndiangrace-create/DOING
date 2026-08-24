@@ -38,7 +38,7 @@ body.doing-kawaii{
 .hero-copy{margin-top:-8px}
 .brand-logo-hero{
   display:block;
-  width:min(1400px,98vw);
+  width:min(1400px,calc(100vw - 32px));
   max-width:none;
   max-height:none;
   object-fit:contain;
@@ -136,13 +136,13 @@ body.doing-kawaii{
 [data-search-hidden="1"]{display:none!important}
 
 @media(max-width:1023px){
-  .brand-logo-hero{width:min(1100px,99vw)}
+  .brand-logo-hero{width:min(1100px,calc(100vw - 24px))}
   .benefit-card{min-height:280px}
 }
 @media(max-width:767px){
   .top-actions{max-width:230px}
   .top-actions .mini-jelly{width:auto;padding-left:10px;padding-right:10px;font-size:13px}
-  .brand-logo-hero{width:99vw}
+  .brand-logo-hero{width:calc(100vw - 24px)}
   .brand-tagline{font-size:20px}
 }
 @media(max-width:639px){
