@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 
-const sourceFile='legacy-pages/booking-center.html';
+const sourceFile='modules/booking/booking-center.html';
 const builtFile='.doing-2-site/booking/index.html';
 const source=fs.readFileSync(sourceFile,'utf8');
 const html=fs.readFileSync(builtFile,'utf8');
@@ -23,8 +23,9 @@ if(!html.includes('服務人員／空間／設備')) fail('generic resource word
 if(html.includes('operations-center.html')) fail('canonical booking must not link retired operations page');
 if(!html.includes('doing-global-entry.js')) fail('booking must use unified entry guard');
 if(!router.includes("booking:'/booking/'")) fail('workspace booking route must be /booking/');
-if(!post.includes("legacy-pages','booking-center.html")||!post.includes("booking/index.html")) fail('isolated booking source must publish only to /booking/');
+if(!post.includes("'modules','booking','booking-center.html'")||!post.includes("booking/index.html")) fail('booking module source must publish only to /booking/');
 if(fs.existsSync('booking-center.html')) fail('retired root booking page must stay removed');
+if(fs.existsSync('legacy-pages')) fail('retired legacy-pages directory must stay removed');
 
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(x=>x[1]).filter(x=>x.trim());
 if(!scripts.length) fail('inline script missing');
