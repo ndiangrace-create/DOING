@@ -1,0 +1,1 @@
+FINAL GATE: no further scope expansion before PR. Only CI fixes allowed if necessary to deploy route shells safely.
