@@ -1,0 +1,2 @@
+CURRENT public HTML route count after clean-slate build: 12.
+No old operation UI is included in the Cloudflare Pages build artifact.
