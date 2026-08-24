@@ -21,7 +21,8 @@ assert.ok(!home.includes('我的紀錄</a>'),'首頁不得把我的紀錄當第�
 for(const token of ['data-account-entry="apply"','data-account-entry="login"','href="/apply/"','href="/me/"'])assert.ok(shell.includes(token),`頂部導覽缺少統一入口：${token}`);
 
 assert.equal((memberGate.match(/\/auth\/line\/start/g)||[]).length,1,'/me/ 只能有一個 LINE 登入啟動點');
-for(const token of ["loginUrl.searchParams.set('mode','member')","new URL('/me/',location.origin)","localStorage.setItem(TOKEN_KEY,incoming)",'重新使用 LINE 登入'])assert.ok(memberGate.includes(token),`/me/ 登入契約缺少：${token}`);
+for(const token of ["loginUrl.searchParams.set('mode','member')","new URL('/me/',location.origin)","localStorage.setItem(TOKEN_KEY,incoming)","if(!token){startLine();return}",'getPlatformMemberProfile','DOING_MEMBER_REAUTH'])assert.ok(memberGate.includes(token),`/me/ 登入契約缺少：${token}`);
+assert.ok(!memberGate.includes('wireRetry'),'/me/ 不得再存在登入重試中繼頁');
 assert.ok(!memberGate.includes('/workspace/'),'登入完成不得由登入 gate 自動跳工作空間');
 for(const forbidden of ['directMemberPanelHandoff',"mode','platform","location.href='member.html'","location.replace('member.html'","location.href='operations-center.html'","location.href='about.html#apply'"])assert.ok(!globalEntry.includes(forbidden),`統一入口仍殘留舊自動分流：${forbidden}`);
 assert.ok(globalEntry.includes('a[href*="member.html"]'),'相容層應攔截舊 member 連結並改寫，而不是重新發布舊頁');
@@ -29,6 +30,7 @@ for(const token of ['進入工作空間','createMemberWorkspaceAdminSession',"ne
 assert.ok(globalEntry.includes("clearMemberToken();location.replace('/')"),'登出必須清除 member token 並回首頁');
 for(const token of ["market:'/market/'","booking:'/booking/'","project:'/project/'"])assert.ok(router.includes(token),`工作模組路由缺少：${token}`);
 for(const token of ["'/me/':'member-panel.html'","'/workspace/':'workspace.html'","'/apply/':'smart-application.html'"])assert.ok(build.includes(token),`正式短網址缺少：${token}`);
+assert.ok(build.includes('removeMemberLoginInterstitial'),'建置必須移除 /me/ 登入中繼畫面');
 
 if(!fs.existsSync('.doing-2-site/me/index.html')){
   execFileSync(process.execPath,['scripts/build-doing-2-site.mjs'],{stdio:'inherit'});
@@ -37,6 +39,9 @@ if(!fs.existsSync('.doing-2-site/me/index.html')){
 const builtMe=read('.doing-2-site/me/index.html'),builtWorkspace=read('.doing-2-site/workspace/index.html'),builtRegister=read('.doing-2-site/register/index.html'),builtBooking=read('.doing-2-site/booking/index.html'),redirects=read('.doing-2-site/_redirects');
 assert.ok(builtMe.includes('doing-member-return-direct.js'),'正式 /me/ 缺少唯一登入 gate');
 assert.equal((builtMe.match(/doing-member-return-direct\.js/g)||[]).length,1,'正式 /me/ 不得重複載入登入 gate');
+assert.ok(!builtMe.includes('把參加、品牌與營運放在一起'),'正式 /me/ 不得再發布登入中繼文案');
+assert.ok(!builtMe.includes('<section id="loginView" class="hero"'),'正式 /me/ 不得再發布登入中繼 hero');
+assert.ok(builtMe.indexOf('doing-member-return-direct.js')<builtMe.indexOf('<body'),'正式 /me/ 必須先驗證登入再顯示 body');
 assert.ok(!/<button[^>]+data-workspace-(?:calendar|operations)=/.test(builtMe),'正式 /me/ 同一 workspace 只能有一個進入按鈕');
 assert.ok(builtWorkspace.includes('doing-global-entry.js'),'正式 /workspace/ 缺少統一權限入口');
 assert.ok(builtRegister.includes('doing-global-entry.js'),'正式 /register/ 必須移除第二套 admin 登入');
@@ -45,4 +50,4 @@ for(const token of ['getOperationUnitsAdmin','getBookingCalendarAdmin','saveAvai
 assert.ok(!builtBooking.includes('operations-center.html'),'正式 /booking/ 不得回舊營運頁');
 for(const line of ['/member.html /me/ 302','/admin.html /workspace/ 302','/about.html /apply/ 302','/booking-center.html /booking/ 302'])assert.ok(redirects.includes(line),`缺少舊網址相容轉址：${line}`);
 
-console.log(JSON.stringify({result:'PASS',publicAccountEntries:['申請 DOING','登入'],loginLanding:'/me/',memberHub:'/me/',workspace:'/workspace/',loginCount:1,automaticWorkspaceBounce:false,duplicateWorkspaceButtons:false,legacyRootPages:0,uatRootPages:0,legacyRedirects:true,legacySelectors:'intercept-only',bookingCapabilitiesPreserved:true,productionWrites:0},null,2));
+console.log(JSON.stringify({result:'PASS',publicAccountEntries:['申請 DOING','登入'],loginLanding:'/me/',memberHub:'/me/',workspace:'/workspace/',loginCount:1,loggedOutInterstitial:false,automaticWorkspaceBounce:false,duplicateWorkspaceButtons:false,legacyRootPages:0,uatRootPages:0,legacyRedirects:true,legacySelectors:'intercept-only',bookingCapabilitiesPreserved:true,productionWrites:0},null,2));
