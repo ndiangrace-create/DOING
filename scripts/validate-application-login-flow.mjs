@@ -19,7 +19,9 @@ for(const token of ['readMemberState','routeResolvedMemberState','existing_works
 
 assert.ok(member.includes("new URL('/me/',location.origin)"),'會員登入 return_url 必須回 /me/');
 assert.ok(member.includes("loginUrl.searchParams.set('mode','member')"),'會員中心未登入必須直接走 member LINE OAuth');
-assert.ok(!member.includes("new URL('/',location.origin)"),'會員中心登入不得再繞首頁');
+assert.ok(member.includes("if(!token){startLine();return}"),'未登入不得停在 /me/ 中繼頁');
+assert.ok(member.includes("if(loginError){clearToken();const home=new URL('/',location.origin)"),'只有 LINE 明確登入失敗才回首頁，不得顯示 /me/ 登入中繼頁');
+assert.ok(member.includes('getPlatformMemberProfile'),'舊 token 必須先驗證，失效時直接重新 LINE 登入');
 
 for(const token of ["['approved','auto_activated']", "target.hash='operations'", "auth.searchParams.set('mode','member')", "post_application"]) assert.ok(completion.includes(token),'申請完成接續缺少：'+token);
 assert.ok(completion.includes("new URL('/me/',location.origin)"),'申請完成必須直接進 /me/');
@@ -30,4 +32,4 @@ assert.ok(router.includes("u.searchParams.set('admin_token',adminToken)"),'工�
 for(const token of ["'/apply/':'smart-application.html'","'/workspace/':'workspace.html'","'/me/':'member-panel.html'","'/market/':'market-center.html'","'/booking/':'booking-2-center.html'","'/project/':'project-center.html'","'doing-smart-activation-v5.js'","'doing-formal-application-bridge.js'","'doing-auto-activation-status.js'","'doing-global-entry.js'","'doing-application-completion.js'","'doing-workspace-product-router.js'"]) assert.ok(build.includes(token),'Cloudflare Pages 缺少短網址／必要功能：'+token);
 for(const removed of ["'/admin/'","'/onsite/'","'/platform/'","'/operations/'"]) assert.ok(!build.includes(removed+':'),'不應再發布獨立路由：'+removed);
 
-console.log(JSON.stringify({result:'PASS',journey:['/apply/ 單頁','工作類型＋使用方式＋基本資料','LINE member 驗證','既有空間直接回 /me/','新申請 DB 自動開通','/me/','/workspace/','依工作模組進 /market/ /booking/ /project/'],helperRole:'customer_service_only',applicationGate:false,singlePage:true,duplicateApplicationBlocked:true,duplicateLogin:false,homeBounce:false,multiProductRouting:true,newTables:0,workerSchemaChanges:0},null,2));
+console.log(JSON.stringify({result:'PASS',journey:['/apply/ 單頁','工作類型＋使用方式＋基本資料','LINE member 驗證','既有空間直接回 /me/','新申請 DB 自動開通','/me/','/workspace/','依工作模組進 /market/ /booking/ /project/'],helperRole:'customer_service_only',applicationGate:false,singlePage:true,duplicateApplicationBlocked:true,duplicateLogin:false,loggedOutInterstitial:false,normalHomeBounce:false,multiProductRouting:true,newTables:0,workerSchemaChanges:0},null,2));
