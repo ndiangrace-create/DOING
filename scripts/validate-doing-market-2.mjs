@@ -22,11 +22,12 @@ for(const action of ["api('getSessionDashboard'","api('getSessionRegistrations'"
 for(const bad of ['admin.html','market-center.html','market-public.html','market-session.html','2bl-v7','DOING-Market-App','doingmarket://','douhmxipedgpfbvfynbq'])for(const [name,source] of [['public',publicPage],['center',html],['session',session]])assert.ok(!source.includes(bad),`${name} 不得耦合舊頁／2BL 後端／外部系統：${bad}`);
 for(const source of [html,session])assert.ok(!source.includes('localStorage.setItem'),'主辦 Market 頁不得把正式營運資料寫 localStorage');
 for(const [name,source] of [['market-public.html',publicPage],['market-center.html',html],['market-session.html',session]]){const ids=[...source.matchAll(/\sid="([^"]+)"/g)].map(x=>x[1]);assert.equal(new Set(ids).size,ids.length,`${name} 存在重複 id`);for(const m of source.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){if(m[1].trim())new vm.Script(m[1],{filename:name+'#inline'})}}
-const base=fs.readFileSync('DOING_2.0_WORLD_TREE_V1_BASELINE_20260822.md','utf8');
-const v3=fs.readFileSync('DOING_2.0_WORLD_TREE_V3_MARKET_EXECUTION_20260822.md','utf8');
-const v4=fs.readFileSync('DOING_2.0_WORLD_TREE_V4_MARKET_OPERATIONS_20260822.md','utf8');
-const v5=fs.readFileSync('DOING_2.0_WORLD_TREE_V5_MARKET_PUBLIC_20260822.md','utf8');
+const archive='docs/archive/2026-08/';
+const base=fs.readFileSync(archive+'DOING_2.0_WORLD_TREE_V1_BASELINE_20260822.md','utf8');
+const v3=fs.readFileSync(archive+'DOING_2.0_WORLD_TREE_V3_MARKET_EXECUTION_20260822.md','utf8');
+const v4=fs.readFileSync(archive+'DOING_2.0_WORLD_TREE_V4_MARKET_OPERATIONS_20260822.md','utf8');
+const v5=fs.readFileSync(archive+'DOING_2.0_WORLD_TREE_V5_MARKET_PUBLIC_20260822.md','utf8');
 assert.ok(base.includes('不可覆蓋基準'),'缺少 2.0 v1 不可覆蓋世界樹基準');assert.ok(base.includes('同功能資料必須沿用現有正式資料表名稱'),'缺少 SSOT 防重建規則');assert.ok(v3.includes('單場工作台')&&v3.includes('本次新增資料表：0'),'v3 Market 執行世界樹未同步');assert.ok(v4.includes('getTodos')&&v4.includes('getMembers')&&v4.includes('新資料表：0'),'v4 Market 日常營運世界樹未同步');assert.ok(v5.includes('publicDiscovery')&&v5.includes('新資料表：0'),'v5 Market 公開前台世界樹未同步');
-const parity=fs.readFileSync('DOING_2.0_MARKET_2BL_UI_PARITY_20260823.md','utf8');assert.ok(parity.includes('2BL UI Parity')&&parity.includes('DOING LINE／會員登入'),'本輪 2BL UI parity checkpoint 未同步');
+const parity=fs.readFileSync(archive+'DOING_2.0_MARKET_2BL_UI_PARITY_20260823.md','utf8');assert.ok(parity.includes('2BL UI Parity')&&parity.includes('DOING LINE／會員登入'),'本輪 2BL UI parity checkpoint 未同步');
 const log=fs.readFileSync('DOING_2.0_CHANGELOG.md','utf8');assert.ok(log.includes('只追加'),'ChangeLog 必須只追加');
 console.log(JSON.stringify({result:'PASS',product:'DOING Market',publicPortal:'publicDiscovery',publicRegistration:'/register/',member:'inline panel + DOING member API',publicMemberLabel:'會員',canonicalMemberRegistration:'我的報名',publicInteraction:'category→card→single panel→register; member/support stay same page',adminNav:8,sessionWorkbench:8,sessionApi:'getSessionsAdmin',todoRead:'getTodos',memberRead:'getMembers',registrationRead:'getSessionRegistrations',reviewWrite:'approveReg',paymentWrite:'confirmPayment',onsiteWrite:'checkin',refundWrite:'confirmRefund',auth:'DOING LINE',navigation:'2BL interaction framework + DOING short routes',worldTreeBaseline:'LOCKED',databaseChanges:0,newTables:0},null,2));
