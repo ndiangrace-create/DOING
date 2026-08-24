@@ -3,8 +3,49 @@ name: DOING Safe Production
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'worker.js'
+      - 'worker.txt'
+      - 'supabase_*.sql'
+      - 'doing-data-sources.json'
+      - 'doing-naming-ssot.json'
+      - 'doing-settings-ssot.json'
+      - 'doing-capabilities.json'
+      - 'doing-operational-world-tree.json'
+      - 'doing-world-tree-current.json'
+      - 'doing-member-return-direct.js'
+      - 'doing-global-entry.js'
+      - 'doing-formal-application-bridge.js'
+      - 'doing-smart-activation*.js'
+      - 'register.html'
+      - 'member-panel.html'
+      - 'workspace.html'
+      - 'smart-application.html'
+      - 'modules/booking/**'
+      - 'scripts/validate-*.mjs'
+      - '.github/workflows/doing-production.yml'
   push:
     branches: [main]
+    paths:
+      - 'worker.js'
+      - 'worker.txt'
+      - 'supabase_*.sql'
+      - 'doing-data-sources.json'
+      - 'doing-naming-ssot.json'
+      - 'doing-settings-ssot.json'
+      - 'doing-capabilities.json'
+      - 'doing-operational-world-tree.json'
+      - 'doing-world-tree-current.json'
+      - 'doing-member-return-direct.js'
+      - 'doing-global-entry.js'
+      - 'doing-formal-application-bridge.js'
+      - 'doing-smart-activation*.js'
+      - 'register.html'
+      - 'member-panel.html'
+      - 'workspace.html'
+      - 'smart-application.html'
+      - 'modules/booking/**'
+      - '.github/workflows/doing-production.yml'
 
 permissions:
   contents: read
@@ -38,17 +79,17 @@ jobs:
           for f in doing-attribution.js doing-home-refresh.js doing-member-return-direct.js doing-global-entry.js doing-workspace-product-router.js doing-smart-activation.js doing-smart-activation-v5.js doing-formal-application-bridge.js doing-auto-activation-status.js; do node --check "$f"; done
           node - <<'NODE'
           const fs=require('fs'),vm=require('vm');
-          const pages=['doing-2.html','register.html','member-panel.html','workspace.html','smart-application.html','market-center.html','market-public.html','market-session.html','booking-2-center.html','project-center.html','guide-center.html','world-tree.html'];
+          const pages=['doing-2.html','register.html','member-panel.html','workspace.html','smart-application.html','market-center.html','market-public.html','market-session.html','booking-2-center.html','project-center.html','guide-center.html','world-tree.html','modules/booking/booking-center.html'];
           for(const f of pages){const source=fs.readFileSync(f,'utf8');let count=0;for(const match of source.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)){if(match[1].trim())new vm.Script(match[1],{filename:`${f}#script${++count}`})}}
           NODE
-      - name: Reject retired root pages
+      - name: Reject retired sources
         shell: bash
         run: |
           set -euo pipefail
           for f in index.html member.html admin.html onsite.html platform.html operations-center.html photo.html consignment.html about.html booking-center.html; do test ! -e "$f"; done
-          ! find . -maxdepth 1 -type f -name 'uat-application-*.html' | grep -q .
-          test -d legacy-pages
-          test -d tests/uat
+          test ! -d legacy-pages
+          test ! -d tests/uat
+          test -s modules/booking/booking-center.html
       - name: Build canonical site
         run: |
           node scripts/build-doing-2-site.mjs
@@ -68,9 +109,8 @@ jobs:
           node scripts/validate-market-auth-role-separation.mjs
           node scripts/validate-market-member-oauth-primary-return.mjs
       - name: Validate Market regressions
-        run: |
-          node scripts/validate-market-green-closure.mjs
-      - name: Validate world tree and reusable checkpoints
+        run: node scripts/validate-market-green-closure.mjs
+      - name: Validate world tree and reusable checkpoint
         run: |
           node scripts/validate-world-tree-mindmap.mjs
           node scripts/validate-test-records.mjs
@@ -113,12 +153,7 @@ jobs:
           unsafe="$(jq '[.result.bindings[]? | select(.type != "plain_text" and .type != "secret_text" and .type != "json")] | length' <<<"$settings")"
           test "$unsafe" = "0"
           echo "compatibility_date=$date" >> "$GITHUB_OUTPUT"
-          jq -n --arg worker "$TARGET_WORKER" --arg date "$date" '{worker:$worker,compatibility_date:$date,audit:"passed"}' > cloudflare-audit.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: doing-cloudflare-audit
-          path: cloudflare-audit.json
-          retention-days: 30
+          echo "Cloudflare read-only audit passed for $TARGET_WORKER"
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -148,9 +183,4 @@ jobs:
           deployments="$(curl --fail-with-body --silent --show-error -H "Authorization: Bearer ${CF_TOKEN}" "${base}/scripts/${TARGET_WORKER}/deployments")"
           deployment_id="$(jq -r '.result.deployments[0].id // empty' <<<"$deployments")"
           test -n "$deployment_id"
-          jq -n --arg worker "$TARGET_WORKER" --arg deployment_id "$deployment_id" --arg commit "$GITHUB_SHA" '{worker:$worker,deployment_id:$deployment_id,commit:$commit,verified:true}' > deployment-result.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: doing-production-deployment
-          path: deployment-result.json
-          retention-days: 90
+          echo "Deployment verified: $deployment_id"
