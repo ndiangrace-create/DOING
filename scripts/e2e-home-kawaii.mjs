@@ -36,10 +36,13 @@ try{
 
     const heroLogo=page.locator('.brand-logo-hero');
     const logoBox=await heroLogo.boundingBox();
+    const logoNatural=await heroLogo.evaluate(img=>({width:img.naturalWidth,height:img.naturalHeight}));
     const taglineBox=await page.locator('.brand-tagline').boundingBox();
     if(!logoBox||!taglineBox)throw new Error(`${viewport.name}: logo/tagline missing`);
+    if(logoNatural.width!==1056||logoNatural.height!==412)throw new Error(`${viewport.name}: low-resolution logo regression ${logoNatural.width}x${logoNatural.height}`);
     const minLogoWidth=viewport.name==='mobile'?340:900;
     if(logoBox.width<minLogoWidth)throw new Error(`${viewport.name}: hero logo too small (${logoBox.width})`);
+    if(logoBox.width>1057)throw new Error(`${viewport.name}: logo is being upscaled beyond native width (${logoBox.width})`);
     const logoGap=taglineBox.y-(logoBox.y+logoBox.height);
     if(logoGap>18)throw new Error(`${viewport.name}: excess gap below logo (${logoGap})`);
 
@@ -124,7 +127,7 @@ try{
   if(!String(retryText||'').includes('重新確認'))throw new Error('auth: transient API failure did not offer in-place retry');
   await transientPage.close();
 
-  console.log(JSON.stringify({result:'PASS',viewports:['390x844','1440x1000'],tagline:'斜槓人生小幫手',homepageSearchRemoved:true,latestLogo:true,logoGapChecked:true,publicSystemCount:3,independentApplication:true,benefitsRemoved:true,audienceSplitRemoved:true,bottomNav:true,memberLoginEntry:true,duplicateLineOAuthRace:false,transientMemberLoadKeepsToken:true,horizontalOverflow:false}));
+  console.log(JSON.stringify({result:'PASS',viewports:['390x844','1440x1000'],tagline:'斜槓人生小幫手',homepageSearchRemoved:true,latestLogo:true,logoNaturalSize:'1056x412',logoUpscale:false,logoGapChecked:true,publicSystemCount:3,independentApplication:true,benefitsRemoved:true,audienceSplitRemoved:true,bottomNav:true,memberLoginEntry:true,duplicateLineOAuthRace:false,transientMemberLoadKeepsToken:true,horizontalOverflow:false}));
 } finally {
   await browser.close();
 }
