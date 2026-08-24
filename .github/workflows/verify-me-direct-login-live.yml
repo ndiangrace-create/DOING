@@ -1,0 +1,33 @@
+name: Verify ME Direct Login Live
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-me-direct-login-live.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify live /me has no login interstitial
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://doing.2b-love.com'
+          core='https://tobeloved-api.ndiangrace.workers.dev'
+          me="$(curl -fsSL -H 'Cache-Control: no-cache' "$base/me/?verify=no-interstitial")"
+          gate="$(curl -fsSL -H 'Cache-Control: no-cache' "$base/doing-member-return-direct.js?verify=no-interstitial")"
+          home="$(curl -fsSL -H 'Cache-Control: no-cache' "$base/doing-2-home-v11.js?verify=no-interstitial")"
+          ! grep -q '把參加、品牌與營運放在一起' <<<"$me"
+          ! grep -q '<section id="loginView" class="hero"' <<<"$me"
+          grep -q "document.documentElement.style.visibility='hidden'" <<<"$gate"
+          grep -q "if(!token){startLine();return}" <<<"$gate"
+          grep -q 'getPlatformMemberProfile' <<<"$gate"
+          grep -q 'href="/me/"' <<<"$home"
+          code="$(curl -sS -o /dev/null -w '%{http_code}' "$base/me/")"
+          test "$code" = 200
+          headers="$(curl -sS -D - -o /dev/null "$core/auth/line/start?mode=member&return_url=https%3A%2F%2Fdoing.2b-love.com%2Fme%2F%23home" | tr -d '\r')"
+          grep -q '^HTTP/.* 302' <<<"$headers"
+          grep -qi '^location: https://access.line.me/' <<<"$headers"
+          echo 'LIVE /me direct LINE login PASS'
