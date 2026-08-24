@@ -1,20 +1,18 @@
-name: Booking Center Validation
+name: Booking Route Preservation
+
 on:
   pull_request:
+    branches: [main]
     paths:
-      - 'modules/booking/booking-center.html'
-      - 'booking-2-center.html'
-      - 'doing-workspace-product-router.js'
-      - 'doing-global-entry.js'
       - 'scripts/build-doing-2-site.mjs'
-      - 'scripts/postprocess-market-v19.mjs'
-      - 'scripts/validate-booking-center.mjs'
       - '.github/workflows/booking-center-validation.yml'
   workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
-  validate-booking-center:
+  validate-booking-route:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,19 +21,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Build canonical DOING site
-        run: |
-          node scripts/build-doing-2-site.mjs
-          node scripts/postprocess-market-v19.mjs
-      - name: Validate canonical booking center
-        run: node scripts/validate-booking-center.mjs
-      - name: Repository safety checks
+      - name: Build clean slate route shells
+        run: node scripts/build-doing-2-site.mjs
+      - name: Validate booking URL is preserved without old operation UI
         shell: bash
         run: |
           set -euo pipefail
-          git diff --check ${{ github.event.pull_request.base.sha || 'HEAD^' }}...HEAD
-          test ! -f booking-center.html
-          test ! -d legacy-pages
-          test -s modules/booking/booking-center.html
           test -s .doing-2-site/booking/index.html
-          ! grep -E "DOING-Market-App|doingmarket://|2bl-v7" .doing-2-site/booking/index.html
+          grep -q 'data-doing-ui-state="rebuild-shell"' .doing-2-site/booking/index.html
+          ! grep -Ei '<script|<form|<button|tobeloved-api|supabase\.co|localStorage|sessionStorage|2bl-v7' .doing-2-site/booking/index.html
+          test ! -e .doing-2-site/booking-2-center.html
+          test ! -e .doing-2-site/booking-center.html
+      - name: Diff quality
+        shell: bash
+        run: git diff --check ${{ github.event.pull_request.base.sha }}...HEAD

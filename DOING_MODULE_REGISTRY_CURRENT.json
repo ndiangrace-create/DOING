@@ -1,0 +1,254 @@
+{
+  "version": "CURRENT",
+  "updatedAt": "2026-08-25T00:52:00+08:00",
+  "authority": {
+    "repo": "ndiangrace-create/DOING",
+    "branch": "main",
+    "supabaseProject": "DOING_SaaS",
+    "projectRef": "nayonqbzejoojexxxkyg",
+    "schema": "public",
+    "api": "tobeloved-api",
+    "rule": "live Supabase is business-data SSOT; module registry is logical responsibility mapping, not a second database."
+  },
+  "canonicalRoutes": {
+    "/": "DOING 首頁／入口",
+    "/market/": "Market 主辦營運中心",
+    "/market/public/": "Market 公開活動／場次頁",
+    "/market/session/": "Market 單場工作台",
+    "/project/": "專案入口（目前為工程專案殼層，功能 UI 待重建）",
+    "/booking/": "預約中心",
+    "/guide/": "導覽／Guide 入口",
+    "/workspace/": "營運工作空間＋總日曆",
+    "/me/": "我的 DOING",
+    "/apply/": "正式營運申請",
+    "/register/": "正式報名",
+    "/world-tree/": "世界樹"
+  },
+  "modules": [
+    {
+      "key": "platform-application",
+      "name": "租戶申請與開通",
+      "area": "平台／申請",
+      "kind": "functional",
+      "currentSurfaces": ["/apply/", "/me/#operations", "/workspace/"],
+      "ownedTables": ["tenant_apply_logs", "member_helper_traces", "doing_helper_knowledge_entries", "member_helper_conversations", "member_helper_messages", "doing_helper_improvement_queue"],
+      "sharedTables": ["platform_members", "platform_member_identities", "tenants", "tenant_settings", "staff"]
+    },
+    {
+      "key": "platform-access",
+      "name": "管理人員與登入備援",
+      "area": "平台／權限",
+      "kind": "functional",
+      "currentSurfaces": ["/workspace/#platform"],
+      "ownedTables": ["platform_staff", "admin_login_logs", "platform_sessions"],
+      "sharedTables": ["platform_members", "platform_member_identities", "staff", "staff_session_permissions", "tenants", "sessions"]
+    },
+    {
+      "key": "platform-tenant",
+      "name": "租戶與權限管理",
+      "area": "平台／租戶治理",
+      "kind": "functional",
+      "currentSurfaces": ["/workspace/#platform"],
+      "ownedTables": ["tenants", "tenant_settings", "platform_issue_records", "platform_risk_cases", "audit_logs"],
+      "sharedTables": ["staff", "staff_session_permissions", "platform_staff"]
+    },
+    {
+      "key": "platform-billing",
+      "name": "平台收費與創業金",
+      "area": "平台／帳務",
+      "kind": "functional",
+      "currentSurfaces": ["/workspace/#platform"],
+      "ownedTables": ["billing_entities", "billing_entity_tenants", "billing_session_charges", "billing_monthly_statements", "billing_payments", "billing_logs", "reward_ledger"],
+      "sharedTables": ["platform_settings"]
+    },
+    {
+      "key": "platform-products",
+      "name": "設定服務與專業模組",
+      "area": "平台／商品化",
+      "kind": "functional",
+      "currentSurfaces": ["/workspace/#platform"],
+      "ownedTables": [],
+      "sharedTables": ["platform_settings", "tenant_settings", "billing_logs", "tenants"]
+    },
+    {
+      "key": "platform-exposure",
+      "name": "首頁曝光推廣",
+      "area": "平台／推廣",
+      "kind": "functional",
+      "currentSurfaces": ["/", "/workspace/#platform"],
+      "ownedTables": ["exposure_plans", "exposure_orders", "platform_attribution_events"],
+      "sharedTables": ["payments", "platform_settings"]
+    },
+    {
+      "key": "platform-support",
+      "name": "平台客服",
+      "area": "平台／客服",
+      "kind": "functional",
+      "currentSurfaces": ["/", "/workspace/#platform"],
+      "ownedTables": ["support_threads", "support_messages", "doing_public_support_threads", "doing_public_support_messages"],
+      "sharedTables": ["notifications"]
+    },
+    {
+      "key": "member-center",
+      "name": "我的 DOING",
+      "area": "會員",
+      "kind": "functional",
+      "currentSurfaces": ["/me/"],
+      "ownedTables": ["platform_members", "platform_member_identities", "brands", "brand_members", "brand_access_requests"],
+      "sharedTables": ["members", "registrations", "registration_members", "registration_member_invites", "tenants", "tenant_apply_logs"]
+    },
+    {
+      "key": "tenant-operations",
+      "name": "營運項目與場次",
+      "area": "租戶營運",
+      "kind": "functional",
+      "currentSurfaces": ["/workspace/", "/market/", "/booking/", "/project/"],
+      "ownedTables": ["events", "sessions", "operation_units", "service_items", "resources", "timeslots", "booking_calendars", "availability_rules", "availability_exceptions", "session_bundles", "service_visits", "equipment_items", "short_links"],
+      "sharedTables": []
+    },
+    {
+      "key": "tenant-registration",
+      "name": "報名、審核與通知",
+      "area": "租戶營運",
+      "kind": "functional",
+      "currentSurfaces": ["/register/", "/me/#activities", "/market/", "/market/session/"],
+      "ownedTables": ["registrations", "registration_items", "registration_members", "registration_member_invites", "notifications", "email_templates", "announcements", "force_majeure_logs", "tenant_agreement_templates"],
+      "sharedTables": ["brands", "brand_members", "members", "payments", "refunds", "invoices"]
+    },
+    {
+      "key": "tenant-finance",
+      "name": "財務與結案",
+      "area": "租戶營運",
+      "kind": "functional",
+      "currentSurfaces": ["/market/#finance", "/market/session/?tab=closeout"],
+      "ownedTables": ["payments", "refunds", "finance_items", "finance_ledger", "finance_audit_logs", "invoices", "payment_allocations", "transfer_settlements"],
+      "sharedTables": []
+    },
+    {
+      "key": "tenant-people",
+      "name": "會員與工作人員",
+      "area": "租戶營運",
+      "kind": "functional",
+      "currentSurfaces": ["/market/#members", "/market/#settings"],
+      "ownedTables": ["members", "staff", "roles", "permissions", "role_permissions", "staff_session_permissions", "staff_action_logs", "tenant_customer_profiles"],
+      "sharedTables": []
+    },
+    {
+      "key": "tenant-onsite",
+      "name": "現場工作台",
+      "area": "租戶營運",
+      "kind": "functional",
+      "currentSurfaces": ["/market/#onsite", "/market/session/?tab=onsite", "/me/#activities"],
+      "ownedTables": ["onsite_passcodes"],
+      "sharedTables": ["registrations", "registration_members", "registration_member_invites", "staff_action_logs", "audit_logs", "seat_operation_logs"]
+    },
+    {
+      "key": "advanced-seat",
+      "name": "視覺化排位",
+      "area": "專業模組",
+      "kind": "functional",
+      "currentSurfaces": ["/market/session/?tab=seat"],
+      "ownedTables": ["venue_map_templates", "stalls", "seat_maps", "seat_assignments", "seat_operation_logs"],
+      "sharedTables": ["registrations"]
+    },
+    {
+      "key": "advanced-performance",
+      "name": "攤商業績與保證金",
+      "area": "專業模組",
+      "kind": "functional",
+      "currentSurfaces": ["/me/#activities", "/market/session/?tab=closeout"],
+      "ownedTables": ["vendor_sales_reports"],
+      "sharedTables": ["registrations", "finance_ledger"]
+    },
+    {
+      "key": "advanced-consignment",
+      "name": "寄賣與 POS",
+      "area": "專業模組",
+      "kind": "functional",
+      "currentSurfaces": ["/market/#consignment", "/market/#settings"],
+      "ownedTables": ["consignment_periods", "consignment_applications", "consignment_products", "pos_sales", "pos_sale_items", "inventory_movements"],
+      "sharedTables": ["registration_items", "finance_ledger"]
+    },
+    {
+      "key": "advanced-photo",
+      "name": "拍照框活動",
+      "area": "專業模組",
+      "kind": "functional",
+      "currentSurfaces": ["/market/#settings"],
+      "ownedTables": ["photo_activities", "photo_activity_frames", "photo_leads"],
+      "sharedTables": []
+    },
+    {
+      "key": "tenant-themes",
+      "name": "租戶五套視覺模板",
+      "area": "品牌外觀",
+      "kind": "functional",
+      "currentSurfaces": ["/market/#settings", "/market/public/"],
+      "ownedTables": [],
+      "sharedTables": ["tenant_settings"]
+    },
+    {
+      "key": "platform-visual",
+      "name": "DOING 平台視覺基準",
+      "area": "品牌外觀",
+      "kind": "governance",
+      "currentSurfaces": ["/", "/me/", "/apply/", "/workspace/", "/booking/", "/project/", "/market/"],
+      "ownedTables": [],
+      "sharedTables": ["platform_settings"]
+    },
+    {
+      "key": "platform-map",
+      "name": "DOING 營運世界樹",
+      "area": "平台治理",
+      "kind": "governance",
+      "currentSurfaces": ["/world-tree/"],
+      "ownedTables": ["platform_change_ledger", "platform_feature_versions", "platform_dependency_versions", "platform_verification_records", "platform_verified_baselines"],
+      "sharedTables": ["platform_settings"]
+    },
+    {
+      "key": "future-roadmap",
+      "name": "進階營運閉環",
+      "area": "營運擴充",
+      "kind": "functional",
+      "currentSurfaces": ["/workspace/#operations", "/booking/", "/market/"],
+      "ownedTables": ["promotion_rules", "tenant_domains", "membership_plans", "membership_subscriptions", "customer_wallets", "customer_wallet_ledger", "ai_visual_jobs", "session_visual_assets", "marketing_automations", "marketing_automation_runs", "translations"],
+      "sharedTables": ["platform_settings", "sessions", "registrations", "service_items", "service_visits", "notifications"]
+    },
+    {
+      "key": "market-app-core",
+      "name": "Market App 行動核心",
+      "area": "系統支撐",
+      "kind": "support",
+      "currentSurfaces": [],
+      "ownedTables": ["mobile_auth_exchanges", "mobile_push_devices", "mobile_push_deliveries"],
+      "sharedTables": ["platform_members", "platform_member_identities", "registrations", "registration_members", "seat_operation_logs", "notifications"]
+    },
+    {
+      "key": "project-construction",
+      "name": "工程專案",
+      "area": "專案工作",
+      "kind": "functional-submodule",
+      "currentSurfaces": ["/project/"],
+      "ownedTables": ["construction_projects", "construction_members", "construction_stages", "construction_updates", "construction_quotes", "construction_payments", "construction_expenses", "construction_signoffs"],
+      "sharedTables": []
+    },
+    {
+      "key": "tenant-reporting",
+      "name": "報表與匯出",
+      "area": "資料支撐",
+      "kind": "support",
+      "currentSurfaces": ["/market/#finance", "/workspace/#operations"],
+      "ownedTables": ["report_templates", "report_exports", "report_download_logs", "session_stats"],
+      "sharedTables": []
+    },
+    {
+      "key": "core-system",
+      "name": "核心系統與共用保護",
+      "area": "系統支撐",
+      "kind": "support",
+      "currentSurfaces": [],
+      "ownedTables": ["platform_settings", "error_logs", "idempotency_keys"],
+      "sharedTables": []
+    }
+  ]
+}

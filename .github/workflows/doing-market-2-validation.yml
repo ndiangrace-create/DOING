@@ -1,91 +1,40 @@
-name: DOING Market 2.0 Validation
+name: DOING Market Route Preservation
+
 on:
   pull_request:
+    branches: [main]
     paths:
-      - 'doing-2.html'
-      - 'doing-market-v18.css'
-      - 'doing-market-completion-v16.css'
-      - 'doing-market-admin-entry.js'
-      - 'doing-smart-activation-v5.js'
-      - 'doing-formal-application-bridge.js'
-      - 'smart-application.html'
-      - 'doing-visual-system-20260822.js'
-      - 'doing-home-refresh.js'
-      - 'market-public.html'
-      - 'market-center.html'
-      - 'market-session.html'
-      - 'member-panel.html'
-      - 'project-center.html'
-      - 'booking-2-center.html'
-      - 'modules/booking/booking-center.html'
-      - 'guide-center.html'
-      - 'worker.js'
-      - 'worker.txt'
-      - 'doing-world-tree-current.json'
-      - 'DOING_2.0_CHANGELOG.md'
       - 'scripts/build-doing-2-site.mjs'
-      - 'scripts/validate-doing-market-2.mjs'
-      - 'scripts/validate-doing-2-product-pages.mjs'
-      - 'scripts/validate-doing-2-shell.mjs'
-      - 'scripts/validate-doing-market-compact-ui.mjs'
-      - 'scripts/validate-market-green-closure.mjs'
-      - 'scripts/validate-market-role-ui-v18.mjs'
-      - 'scripts/validate-formal-application-closure.mjs'
-      - 'scripts/e2e-market-ui.mjs'
-      - 'scripts/e2e-market-role-ui-v18.mjs'
-      - 'scripts/e2e-market-logo-upload.mjs'
-      - 'scripts/e2e-market-logo-admin-entry.mjs'
-      - 'scripts/e2e-market-member-login-return.mjs'
-      - 'scripts/e2e-market-public-interaction-v20.mjs'
-      - 'scripts/e2e-formal-application-closure.mjs'
       - '.github/workflows/doing-market-2-validation.yml'
   workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
-  validate:
+  validate-market-routes:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
-      - name: Validate DOING Market 2.0 world tree and UX shell
-        run: node scripts/validate-doing-market-2.mjs
-      - name: Validate DOING 2.0 independent product pages
-        run: node scripts/validate-doing-2-product-pages.mjs
-      - name: Validate elder-friendly 2BL UX shell
-        run: node scripts/validate-doing-2-shell.mjs
-      - name: Validate Market rebuilt compact UI
-        run: node scripts/validate-doing-market-compact-ui.mjs
-      - name: Validate Market end-to-end closure
-        run: node scripts/validate-market-green-closure.mjs
-      - name: Validate Market role UI v18
-        run: node scripts/validate-market-role-ui-v18.mjs
-      - name: Validate formal application closure
-        run: node scripts/validate-formal-application-closure.mjs
-      - name: Build DOING 2.0 site
+          node-version: '24'
+      - name: Build clean slate route shells
         run: node scripts/build-doing-2-site.mjs
-      - name: Install Chromium E2E
+      - name: Validate Market URLs are preserved without old operation UI
+        shell: bash
         run: |
-          npm install --no-save playwright@1.55.0
-          npx playwright install --with-deps chromium
-      - name: Real-browser Market and formal application E2E
-        run: |
-          python3 -m http.server 4173 --directory .doing-2-site >/tmp/doing-market-e2e.log 2>&1 &
-          SERVER_PID=$!
-          python3 -m http.server 4174 --directory . >/tmp/doing-github-e2e.log 2>&1 &
-          ROOT_SERVER_PID=$!
-          trap 'kill $SERVER_PID $ROOT_SERVER_PID || true' EXIT
-          for i in {1..30}; do curl -fsS http://127.0.0.1:4173/market/public/ >/dev/null && break; sleep 1; done
-          for i in {1..30}; do curl -fsS http://127.0.0.1:4173/apply/ >/dev/null && break; sleep 1; done
-          for i in {1..30}; do curl -fsS http://127.0.0.1:4174/market/public/ >/dev/null && break; sleep 1; done
-          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-ui.mjs
-          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-role-ui-v18.mjs
-          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-logo-upload.mjs
-          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-logo-admin-entry.mjs
-          E2E_GITHUB_BASE=http://127.0.0.1:4174 node scripts/e2e-market-member-login-return.mjs
-          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-public-interaction-v20.mjs
-          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-formal-application-closure.mjs
+          set -euo pipefail
+          for f in market/index.html market/public/index.html market/session/index.html; do
+            test -s ".doing-2-site/$f"
+            grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"
+            ! grep -Ei '<script|<form|<button|tobeloved-api|supabase\.co|localStorage|sessionStorage|2bl-v7' ".doing-2-site/$f"
+          done
+          test ! -e .doing-2-site/market-center.html
+          test ! -e .doing-2-site/market-public.html
+          test ! -e .doing-2-site/market-session.html
       - name: Diff quality
-        run: git diff --check HEAD^ HEAD || true
+        shell: bash
+        run: git diff --check ${{ github.event.pull_request.base.sha }}...HEAD

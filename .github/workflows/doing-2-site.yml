@@ -1,88 +1,29 @@
-name: DOING 2.0 Site
+name: DOING Route Shell Site
 
 on:
   pull_request:
     branches: [main]
     paths:
-      - 'doing-2.html'
-      - 'doing-2-shell.js'
-      - 'doing-2-home-v11.css'
-      - 'doing-2-home-v11.js'
-      - 'doing-home-logo-slot-v12.css'
-      - 'doing-home-logo-slot-v12.js'
-      - 'doing-candy-theme.css'
-      - 'doing-member-return-direct.js'
-      - 'doing-global-entry.js'
-      - 'doing-workspace-product-router.js'
-      - 'doing-application-contract-v12.js'
-      - 'doing-formal-application-bridge.js'
-      - 'doing-smart-activation-v5.js'
-      - 'market-center.html'
-      - 'market-public.html'
-      - 'market-session.html'
-      - 'project-center.html'
-      - 'booking-2-center.html'
-      - 'modules/booking/booking-center.html'
-      - 'guide-center.html'
-      - 'smart-application.html'
-      - 'workspace.html'
-      - 'member-panel.html'
-      - 'register.html'
-      - 'world-tree.html'
-      - 'doing-world-tree-current.json'
       - 'scripts/build-doing-2-site.mjs'
-      - 'scripts/postprocess-market-v19.mjs'
-      - 'scripts/validate-member-panel-return.mjs'
-      - 'scripts/validate-application-login-flow.mjs'
-      - 'scripts/validate-fixed-product-application.mjs'
-      - 'scripts/validate-formal-application-closure.mjs'
-      - 'scripts/validate-unified-entry.mjs'
-      - 'scripts/validate-booking-center.mjs'
-      - 'scripts/validate-doing-v11-home-e2e.mjs'
-      - 'scripts/validate-home-real-ui-v11.mjs'
-      - 'scripts/validate-v12-closure.mjs'
-      - 'scripts/validate-doing2-short-route-cleanup.mjs'
-      - 'scripts/validate-world-tree-mindmap.mjs'
       - '.github/workflows/doing-2-site.yml'
+      - '.github/workflows/doing-market-2-validation.yml'
+      - '.github/workflows/booking-center-validation.yml'
+      - 'DOING_UI_REBUILD_CHECKPOINT_20260825.md'
   push:
     branches: [main]
     paths:
-      - 'doing-2.html'
-      - 'doing-2-shell.js'
-      - 'doing-2-home-v11.css'
-      - 'doing-2-home-v11.js'
-      - 'doing-home-logo-slot-v12.css'
-      - 'doing-home-logo-slot-v12.js'
-      - 'doing-candy-theme.css'
-      - 'doing-member-return-direct.js'
-      - 'doing-global-entry.js'
-      - 'doing-workspace-product-router.js'
-      - 'doing-application-contract-v12.js'
-      - 'doing-formal-application-bridge.js'
-      - 'doing-smart-activation-v5.js'
-      - 'market-center.html'
-      - 'market-public.html'
-      - 'market-session.html'
-      - 'project-center.html'
-      - 'booking-2-center.html'
-      - 'modules/booking/booking-center.html'
-      - 'guide-center.html'
-      - 'smart-application.html'
-      - 'workspace.html'
-      - 'member-panel.html'
-      - 'register.html'
-      - 'world-tree.html'
-      - 'doing-world-tree-current.json'
       - 'scripts/build-doing-2-site.mjs'
-      - 'scripts/postprocess-market-v19.mjs'
       - '.github/workflows/doing-2-site.yml'
+      - '.github/workflows/doing-market-2-validation.yml'
+      - '.github/workflows/booking-center-validation.yml'
+      - 'DOING_UI_REBUILD_CHECKPOINT_20260825.md'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: doing-2-site
+  group: doing-route-shell-site
   cancel-in-progress: false
 
 env:
@@ -94,52 +35,53 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Validate member panel LINE return
-        run: node scripts/validate-member-panel-return.mjs
-      - name: Validate application login workspace journey
-        run: node scripts/validate-application-login-flow.mjs
-      - name: Validate single-page application
-        run: |
-          node scripts/validate-fixed-product-application.mjs
-          node scripts/validate-formal-application-closure.mjs
-      - name: Validate homepage contracts
-        run: |
-          node scripts/validate-doing-v11-home-e2e.mjs
-          node scripts/validate-home-real-ui-v11.mjs
-          node scripts/validate-v12-closure.mjs
-      - name: Validate short hierarchy and world tree
-        run: |
-          node scripts/validate-doing2-short-route-cleanup.mjs
-          node scripts/validate-world-tree-mindmap.mjs
-      - name: Build canonical site
-        run: |
-          node scripts/build-doing-2-site.mjs
-          node scripts/postprocess-market-v19.mjs
-      - name: Validate unified entry and preserved booking capability
-        run: |
-          node scripts/validate-unified-entry.mjs
-          node scripts/validate-booking-center.mjs
-      - name: Validate only canonical short routes are published
+      - name: Build route-only clean slate site
+        run: node scripts/build-doing-2-site.mjs
+      - name: Validate preserved formal routes
         shell: bash
         run: |
           set -euo pipefail
-          for f in index.html market/index.html market/public/index.html market/session/index.html project/index.html booking/index.html guide/index.html workspace/index.html me/index.html apply/index.html register/index.html world-tree/index.html; do
-            test -f ".doing-2-site/$f"
+          files=(
+            index.html
+            market/index.html
+            market/public/index.html
+            market/session/index.html
+            project/index.html
+            booking/index.html
+            guide/index.html
+            workspace/index.html
+            me/index.html
+            apply/index.html
+            register/index.html
+            world-tree/index.html
+          )
+          for f in "${files[@]}"; do
+            test -s ".doing-2-site/$f"
+            grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"
           done
-          test -f .doing-2-site/_redirects
-          test -f .doing-2-site/doing-world-tree-current.json
-          test -f .doing-2-site/doing-formal-application-bridge.js
-          test -f .doing-2-site/doing-global-entry.js
-          test -f .doing-2-site/doing-member-return-direct.js
-          for f in doing-2.html market-center.html market-public.html market-session.html project-center.html booking-2-center.html guide-center.html workspace.html member.html member-panel.html smart-application.html register.html admin.html onsite.html platform.html operations-center.html photo.html consignment.html about.html booking-center.html; do
-            test ! -e ".doing-2-site/$f"
-          done
-          for d in admin onsite platform operations photo consignment about member; do test ! -e ".doing-2-site/$d"; done
-          ! grep -R -q '2bl-v7' .doing-2-site
-          test ! -d legacy-pages
+          test -s .doing-2-site/_headers
+          test -s .doing-2-site/_redirects
+          html_count="$(find .doing-2-site -type f -name '*.html' | wc -l | tr -d ' ')"
+          test "$html_count" = "12"
+      - name: Prove old operation UI is not deployed
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -R -Ei '<script|<form|<button|tobeloved-api|supabase\.co|localStorage|sessionStorage|2bl-v7' .doing-2-site --include='*.html'
+          test ! -e .doing-2-site/doing-system.css
+          test ! -e .doing-2-site/doing-global-entry.js
+          test ! -e .doing-2-site/market-center.html
+          test ! -e .doing-2-site/member-panel.html
+          test ! -e .doing-2-site/workspace.html
+          test ! -e .doing-2-site/register.html
+      - name: Diff quality
+        shell: bash
+        run: git diff --check ${{ github.event.pull_request.base.sha || 'HEAD^' }}...HEAD
 
   deploy-pages:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -158,10 +100,8 @@ jobs:
         run: |
           test -n "$CF_TOKEN"
           test -n "$CF_ACCOUNT"
-      - name: Build site
-        run: |
-          node scripts/build-doing-2-site.mjs
-          node scripts/postprocess-market-v19.mjs
+      - name: Build route-only clean slate site
+        run: node scripts/build-doing-2-site.mjs
       - name: Ensure Cloudflare Pages project
         env:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -173,9 +113,10 @@ jobs:
           if [ "$status" = "404" ]; then
             curl --fail-with-body -sS -X POST -H "Authorization: Bearer ${CF_TOKEN}" -H 'Content-Type: application/json' --data "{\"name\":\"${CF_PAGES_PROJECT}\",\"production_branch\":\"main\"}" "${base}" > project-create.json
           elif [ "$status" != "200" ]; then
-            cat project.json; exit 1
+            cat project.json
+            exit 1
           fi
-      - name: Deploy DOING 2.0 site
+      - name: Deploy DOING route shells
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -194,4 +135,4 @@ jobs:
           cat domain.json
           exit 1
       - name: Verify deployment completed
-        run: echo "DOING Pages deployed for $GITHUB_SHA"
+        run: echo "DOING route-only site deployed for $GITHUB_SHA"

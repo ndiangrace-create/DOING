@@ -1,49 +1,144 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const root=process.cwd();
-const out=path.join(root,'.doing-2-site');
-fs.rmSync(out,{recursive:true,force:true});
-fs.mkdirSync(out,{recursive:true});
-const routes={'/market/':'market-center.html','/market/public/':'market-public.html','/market/session/':'market-session.html','/project/':'project-center.html','/booking/':'booking-2-center.html','/guide/':'guide-center.html','/workspace/':'workspace.html','/me/':'member-panel.html','/apply/':'smart-application.html','/register/':'register.html','/world-tree/':'world-tree.html'};
-const legacyToShort={'doing-2.html':'/','index.html':'/','market-center.html':'/market/','market-public.html':'/market/public/','market-session.html':'/market/session/','project-center.html':'/project/','booking-2-center.html':'/booking/','guide-center.html':'/guide/','workspace.html':'/workspace/','member-panel.html':'/me/','member.html':'/me/','smart-application.html':'/apply/','register.html':'/register/','admin.html':'/market/','onsite.html':'/market/#onsite','platform.html':'/workspace/#platform','operations-center.html':'/workspace/#operations','photo.html':'/market/#settings','consignment.html':'/market/#settings','about.html':'/'};
-const rewriteLegacyRefs=(source)=>{let s=String(source);for(const [oldPath,newPath] of Object.entries(legacyToShort))s=s.split('/'+oldPath).join(newPath);for(const [oldPath,newPath] of Object.entries(legacyToShort))s=s.split(oldPath).join(newPath);return s};
-const rewriteRouteAwareJs=(file,source)=>{let s=rewriteLegacyRefs(source);if(file==='doing-global-entry.js'){s=s.replace("const path=location.pathname.split('/').pop().toLowerCase();","const path=location.pathname.endsWith('/')?location.pathname:(location.pathname+'/');");s=s.replace("location.pathname.split('/').pop().replace('.html','')||'page'","location.pathname.replace(/^\\/|\\/$/g,'').split('/').pop()||'page'")}return s};
-function addBodyClass(html,name){return html.replace(/<body([^>]*)>/i,(m,attrs)=>{const hit=attrs.match(/class=(['"])(.*?)\1/i);if(hit){if(hit[2].split(/\s+/).includes(name))return m;const merged=`class=${hit[1]}${hit[2]} ${name}${hit[1]}`;return `<body${attrs.replace(hit[0],merged)}>`}return `<body class="${name}"${attrs}>`})}
-function ensureBase(html){return html.includes('<base ') ? html : html.replace(/<head>/i,'<head><base href="/">')}
-function inject(html,needle,markup,where='head'){if(html.includes(needle))return html;return where==='head'?html.replace('</head>',markup+'</head>'):html.replace('</body>',markup+'</body>')}
-function removeMemberLoginInterstitial(html){
-  let s=String(html);
-  const before=s;
-  s=s.replace(/<section id="loginView" class="hero">[\s\S]*?<\/section>\s*<section id="appView"/, '<section id="loginView" class="hidden" aria-hidden="true"><button id="lineLogin" type="button" hidden></button></section>\n  <section id="appView"');
-  if(s===before||s.includes('把參加、品牌與營運放在一起'))throw new Error('member login interstitial still present');
-  return s;
-}
-function applyWorldTreeTrafficLight(html){let s=String(html);s=s.replace('<div class="legend"><span><i class="dot done"></i>已完成</span><span><i class="dot progress"></i>進行中</span><span><i class="dot verify"></i>待驗證</span><span><i class="dot todo"></i>尚未做</span><span><i class="dot blocked"></i>阻擋</span></div>','<div class="legend traffic-light-legend"><span><i class="dot done"></i>綠燈｜已完成</span><span><i class="dot progress"></i>黃燈｜進行中／待確認</span><span><i class="dot blocked"></i>紅燈｜阻擋／有問題</span></div>');s=s.replace("const labels={done:'已完成',progress:'進行中',verify:'待驗證',todo:'尚未做',blocked:'阻擋'};","const labels={done:'綠燈｜已完成',progress:'黃燈｜進行中',verify:'黃燈｜待驗證',todo:'黃燈｜尚未做',blocked:'紅燈｜阻擋'};");s=s.replace('主分支下會直接展開所有已記錄子節點；狀態只反映既有驗證，不因心智圖整理而自動升級。','紅綠燈顯示：綠＝已完成；黃＝進行中、待驗證或尚未做；紅＝阻擋或有問題。原本細分狀態仍完整保留。');s=inject(s,'world-tree-traffic-light','<style id="world-tree-traffic-light">:root{--done:#e7f7eb;--done-b:#2f9e44;--progress:#fff3bf;--progress-b:#f59f00;--verify:#fff3bf;--verify-b:#f59f00;--todo:#fff3bf;--todo-b:#f59f00;--blocked:#ffe3e3;--blocked-b:#d9485f}.traffic-light-legend .dot{width:11px;height:11px;box-shadow:0 0 0 2px rgba(0,0,0,.05)}.pill.verify,.pill.todo{background:var(--progress);color:#7b651f}.branch[data-status=verify],.branch[data-status=todo]{border-left-color:var(--progress-b)}.child-node[data-status=verify],.child-node[data-status=todo]{border-left-color:var(--progress-b)}.path-node[data-status=verify],.path-node[data-status=todo]{border-top-color:var(--progress-b)}</style>');return s}
-function preparePage(source,route){
-  const isMarket=['market-center.html','market-public.html','market-session.html'].includes(source);
-  let html=fs.readFileSync(path.join(root,source),'utf8');html=rewriteLegacyRefs(html);if(source==='world-tree.html')html=applyWorldTreeTrafficLight(html);if(source==='member-panel.html')html=removeMemberLoginInterstitial(html);html=ensureBase(html);
-  if(!isMarket){html=addBodyClass(html,'d2-candy-theme');html=inject(html,'doing-candy-theme.css','<link rel="stylesheet" href="/doing-candy-theme.css?v=20260822-short5">')}
-  if(['project-center.html','booking-2-center.html','guide-center.html'].includes(source)){html=inject(html,'doing-2-shell.css','<link rel="stylesheet" href="/doing-2-shell.css?v=20260822-short5">');html=inject(html,'doing-2-shell.js','<script src="/doing-2-shell.js?v=20260822-short5"></script>','body')}
-  if(source==='member-panel.html')html=inject(html,'doing-member-return-direct.js','<script src="/doing-member-return-direct.js?v=20260824-no-interstitial"></script>');
-  if(source==='smart-application.html'){html=inject(html,'doing-application-contract-v12.js','<script src="/doing-application-contract-v12.js?v=20260822-short5"></script>','body');html=inject(html,'doing-formal-application-bridge.js','<script src="/doing-formal-application-bridge.js?v=20260823-apply-closure"></script>','body');html=inject(html,'doing-application-completion.js','<script src="/doing-application-completion.js?v=20260822-short5"></script>','body')}
-  if(source==='workspace.html')html=inject(html,'doing-workspace-product-router.js','<script src="/doing-workspace-product-router.js?v=20260822-short5"></script>','body');
-  if(!isMarket){html=inject(html,'doing-visual-system-20260822.css','<link rel="stylesheet" href="/doing-visual-system-20260822.css?v=20260822-v1">');html=inject(html,'doing-visual-system-20260822.js','<script src="/doing-visual-system-20260822.js?v=20260822-v1"></script>','body')}
-  const rel=route==='/'?'index.html':route.replace(/^\//,'')+'index.html';const fp=path.join(out,rel);fs.mkdirSync(path.dirname(fp),{recursive:true});fs.writeFileSync(fp,html)
+const root = process.cwd();
+const out = path.join(root, '.doing-2-site');
+
+fs.rmSync(out, { recursive: true, force: true });
+fs.mkdirSync(out, { recursive: true });
+
+const routes = [
+  ['/', 'DOING'],
+  ['/market/', 'DOING Market'],
+  ['/market/public/', 'DOING Market Public'],
+  ['/market/session/', 'DOING Market Session'],
+  ['/project/', 'DOING Project'],
+  ['/booking/', 'DOING Booking'],
+  ['/guide/', 'DOING Guide'],
+  ['/workspace/', 'DOING Workspace'],
+  ['/me/', 'DOING Member'],
+  ['/apply/', 'DOING Apply'],
+  ['/register/', 'DOING Register'],
+  ['/world-tree/', 'DOING World Tree'],
+];
+
+const legacyRedirects = [
+  ['/doing-2.html', '/'],
+  ['/index.html', '/'],
+  ['/market-center.html', '/market/'],
+  ['/market-public.html', '/market/public/'],
+  ['/market-session.html', '/market/session/'],
+  ['/project-center.html', '/project/'],
+  ['/booking-2-center.html', '/booking/'],
+  ['/booking-center.html', '/booking/'],
+  ['/guide-center.html', '/guide/'],
+  ['/workspace.html', '/workspace/'],
+  ['/member.html', '/me/'],
+  ['/member-panel.html', '/me/'],
+  ['/smart-application.html', '/apply/'],
+  ['/register.html', '/register/'],
+  ['/admin.html', '/market/'],
+  ['/onsite.html', '/market/'],
+  ['/platform.html', '/workspace/'],
+  ['/operations-center.html', '/workspace/'],
+  ['/photo.html', '/market/'],
+  ['/consignment.html', '/market/'],
+  ['/about.html', '/'],
+];
+
+function routeFile(route) {
+  if (route === '/') return path.join(out, 'index.html');
+  return path.join(out, route.replace(/^\//, ''), 'index.html');
 }
 
-let home=fs.readFileSync(path.join(root,'doing-2.html'),'utf8');home=rewriteLegacyRefs(ensureBase(home));home=addBodyClass(home,'d2-candy-theme');home=inject(home,'doing-candy-theme.css','<link rel="stylesheet" href="/doing-candy-theme.css?v=20260822-short5">');home=inject(home,'doing-2-shell.css','<link rel="stylesheet" href="/doing-2-shell.css?v=20260822-short5">');home=inject(home,'doing-2-home-v11.css','<link rel="stylesheet" href="/doing-2-home-v11.css?v=20260822-short5">');home=inject(home,'doing-home-logo-slot-v12.css','<link rel="stylesheet" href="/doing-home-logo-slot-v12.css?v=20260822-short5">');home=inject(home,'doing-2-shell.js','<script src="/doing-2-shell.js?v=20260822-short5"></script>','body');home=inject(home,'doing-2-home-v11.js','<script src="/doing-2-home-v11.js?v=20260822-short5"></script>','body');home=inject(home,'doing-home-logo-slot-v12.js','<script src="/doing-home-logo-slot-v12.js?v=20260822-short5"></script>','body');fs.writeFileSync(path.join(out,'index.html'),home);
-for(const [route,source] of Object.entries(routes))preparePage(source,route);
-const assetFiles=['doing-system.css','doing-design-tokens.css','doing-pastel-pages.css','doing-candy-theme.css','doing-2-shell.css','doing-2-shell.js','doing-2-home-v11.css','doing-2-home-v11.js','doing-home-logo-slot-v12.css','doing-home-logo-slot-v12.js','doing-market-v18.css','doing-market-completion-v16.css','doing-market-completion-v16.js','doing-market-admin-entry.js','doing-member-return-direct.js','doing-application-completion.js','doing-application-contract-v12.js','doing-formal-application-bridge.js','doing-workspace-product-router.js','doing-smart-activation-v5.js','doing-auto-activation-status.js','doing-global-entry.js','doing-attribution.js','doing-home-refresh.js','doing-home-refresh.css','doing-visual-system-20260822.css','doing-visual-system-20260822.js','doing-world-tree-current.json','doing-logo.png','manifest.webmanifest','pwa-icon-192.png'];
-for(const file of assetFiles){const src=path.join(root,file);if(!fs.existsSync(src))continue;const dest=path.join(out,file);if(/\.js$/i.test(file))fs.writeFileSync(dest,rewriteRouteAwareJs(file,fs.readFileSync(src,'utf8')));else if(/\.css$/i.test(file))fs.writeFileSync(dest,rewriteLegacyRefs(fs.readFileSync(src,'utf8')));else fs.copyFileSync(src,dest)}
-for(const legacy of ['doing-market-2bl.css','doing-market-role-ui-v17.css','doing-market-role-ui-v17.js','doing-market-public-query.js','doing-market-session-settings-v16.css','doing-market-session-settings-v16.js'])if(fs.existsSync(path.join(out,legacy)))throw new Error(`legacy Market asset leaked: ${legacy}`);
-const worldTree=JSON.parse(fs.readFileSync(path.join(root,'doing-world-tree-current.json'),'utf8'));if(!worldTree.version||!worldTree.updatedAt||!Array.isArray(worldTree.branches)||!Array.isArray(worldTree.changes))throw new Error('invalid world tree progress data');fs.writeFileSync(path.join(out,'_headers'),`/*\n  Cache-Control: no-store\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`);
-const retiredPublicRoutes=['doing-2.html','market-center.html','market-public.html','market-session.html','project-center.html','booking-2-center.html','guide-center.html','workspace.html','member.html','member-panel.html','smart-application.html','register.html','admin.html','onsite.html','platform.html','operations-center.html','photo.html','consignment.html','about.html'];for(const old of retiredPublicRoutes){if(fs.existsSync(path.join(out,old)))throw new Error(`retired public page leaked: ${old}`)}const forbiddenShortDirs=['admin','onsite','platform','operations','photo','consignment','about','member'];for(const dir of forbiddenShortDirs){if(fs.existsSync(path.join(out,dir)))throw new Error(`extra independent route leaked: /${dir}/`)}
-const publicHtml=[];function walk(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const fp=path.join(dir,e.name);if(e.isDirectory())walk(fp);else if(e.name.endsWith('.html'))publicHtml.push(path.relative(out,fp).replaceAll(path.sep,'/'))}}walk(out);for(const f of publicHtml){if(path.basename(f)!=='index.html')throw new Error(`non-short html published: ${f}`)}
-const jsFiles=fs.readdirSync(out).filter(x=>x.endsWith('.js'));for(const file of jsFiles){const text=fs.readFileSync(path.join(out,file),'utf8');for(const retired of retiredPublicRoutes){if(text.includes(retired))throw new Error(`legacy page reference leaked in ${file}: ${retired}`)}}
-for(const route of Object.keys(routes).filter(x=>!x.startsWith('/market'))){const fp=path.join(out,route.replace(/^\//,'')+'index.html');const html=fs.readFileSync(fp,'utf8');if(!html.includes('doing-visual-system-20260822.css')||!html.includes('doing-visual-system-20260822.js'))throw new Error(`visual system missing: ${route}`)}
-const builtApply=fs.readFileSync(path.join(out,'apply/index.html'),'utf8');if(!builtApply.includes('doing-formal-application-bridge.js')||!fs.existsSync(path.join(out,'doing-formal-application-bridge.js')))throw new Error('formal application bridge missing from built /apply/');
-const builtMe=fs.readFileSync(path.join(out,'me/index.html'),'utf8');if(builtMe.includes('把參加、品牌與營運放在一起')||builtMe.includes('<section id="loginView" class="hero"'))throw new Error('visible /me/ login interstitial leaked into production');if(!builtMe.includes('doing-member-return-direct.js')||builtMe.indexOf('doing-member-return-direct.js')>builtMe.indexOf('<body'))throw new Error('/me/ auth gate must run before body');
-for(const route of ['/market/','/market/public/','/market/session/']){const fp=path.join(out,route.replace(/^\//,'')+'index.html');const html=fs.readFileSync(fp,'utf8');if(!html.includes('doing-market-v18.css'))throw new Error(`Market v18 visual missing: ${route}`);for(const bad of ['doing-market-role-ui-v17','doing-market-public-query','doing-market-session-settings-v16','admin.html','market-center.html','market-public.html','market-session.html'])if(html.includes(bad))throw new Error(`legacy Market reference still present in ${route}: ${bad}`)}
-const builtWorldTree=fs.readFileSync(path.join(out,'world-tree/index.html'),'utf8');for(const token of ['world-tree-traffic-light','綠燈｜已完成','黃燈｜進行中／待確認','紅燈｜阻擋／有問題']){if(!builtWorldTree.includes(token))throw new Error(`world tree traffic light missing: ${token}`)}if(!fs.existsSync(path.join(out,'world-tree/index.html'))||!fs.existsSync(path.join(out,'doing-world-tree-current.json')))throw new Error('world tree progress page missing');if(fs.readFileSync(path.join(out,'index.html'),'utf8').includes('doing-visual-system-20260822.css'))throw new Error('DOING public root must stay untouched in this batch');
-console.log(JSON.stringify({result:'PASS',doingRootChanged:false,marketVisual:'v18-rebuilt',legacyMarketVisual:false,visualRoutes:Object.keys(routes),shortRoutes:Object.keys(routes),worldTreeRoute:'/world-tree/',worldTreeVersion:worldTree.version,worldTreeStatusDisplay:'traffic-light-green-yellow-red',marketInternalTabs:['sessions','tasks','onsite','members','settings'],nestedOnly:['/market/session/'],retiredIndependentRoutes:forbiddenShortDirs.map(x=>`/${x}/`),retiredLongUrls:retiredPublicRoutes,publicHtml,legacyRedirects:0,productionWrites:0},null,2));
+function shell(route, title) {
+  const safeRoute = route.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  return `<!doctype html>
+<html lang="zh-Hant" data-doing-ui-state="rebuild-shell">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>${title}</title>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;color:#202326;background:#fbfaf6}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%}
+    body{min-height:100vh;display:grid;place-items:center;padding:24px}
+    main{width:min(560px,100%);border:1px solid #d9ded8;background:#fff;padding:34px 28px;border-radius:10px;box-shadow:0 12px 36px rgba(32,35,38,.06)}
+    h1{margin:0 0 12px;font-size:30px;letter-spacing:.02em}
+    p{margin:8px 0;line-height:1.7;color:#555d59}
+    .route{margin-top:20px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:#7b827e}
+  </style>
+</head>
+<body>
+  <main aria-labelledby="title">
+    <h1 id="title">DOING</h1>
+    <p>操作介面正在重新建置。</p>
+    <p>此正式網址已保留，舊操作版不再載入。</p>
+    <div class="route">${safeRoute}</div>
+  </main>
+</body>
+</html>`;
+}
+
+for (const [route, title] of routes) {
+  const file = routeFile(route);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, shell(route, title), 'utf8');
+}
+
+fs.writeFileSync(path.join(out, '_headers'), `/*
+  Cache-Control: no-store, max-age=0
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Robots-Tag: noindex, nofollow, noarchive
+`, 'utf8');
+
+fs.writeFileSync(
+  path.join(out, '_redirects'),
+  legacyRedirects.map(([from, to]) => `${from} ${to} 301`).join('\n') + '\n',
+  'utf8',
+);
+
+const expectedHtml = routes.map(([route]) => path.relative(out, routeFile(route)).replaceAll(path.sep, '/')).sort();
+const actualHtml = [];
+function walk(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const fp = path.join(dir, entry.name);
+    if (entry.isDirectory()) walk(fp);
+    else if (entry.name.endsWith('.html')) actualHtml.push(path.relative(out, fp).replaceAll(path.sep, '/'));
+  }
+}
+walk(out);
+actualHtml.sort();
+if (JSON.stringify(actualHtml) !== JSON.stringify(expectedHtml)) {
+  throw new Error(`unexpected public HTML set: ${JSON.stringify(actualHtml)}`);
+}
+
+for (const file of actualHtml) {
+  const html = fs.readFileSync(path.join(out, file), 'utf8');
+  for (const forbidden of ['<script', '<form', '<button', 'tobeloved-api', 'supabase.co', 'localStorage', 'sessionStorage', '2bl-v7']) {
+    if (html.includes(forbidden)) throw new Error(`interactive/legacy content leaked into ${file}: ${forbidden}`);
+  }
+  if (!html.includes('data-doing-ui-state="rebuild-shell"')) throw new Error(`rebuild marker missing: ${file}`);
+}
+
+const topLevel = fs.readdirSync(out).sort();
+const allowedTopLevel = ['_headers','_redirects','apply','booking','guide','index.html','market','me','project','register','workspace','world-tree'].sort();
+if (JSON.stringify(topLevel) !== JSON.stringify(allowedTopLevel)) {
+  throw new Error(`unexpected deployed artifact: ${JSON.stringify(topLevel)}`);
+}
+
+console.log(JSON.stringify({
+  result: 'PASS',
+  mode: 'clean-slate-route-shells',
+  routeCount: routes.length,
+  routes: routes.map(([route]) => route),
+  legacyRedirectCount: legacyRedirects.length,
+  interactiveUiPublished: false,
+  apiCallsPublished: false,
+  databaseWrites: 0,
+  workerChanges: 0,
+  twoBlChanges: 0,
+}, null, 2));

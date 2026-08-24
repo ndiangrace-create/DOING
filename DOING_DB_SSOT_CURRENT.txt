@@ -1,0 +1,10 @@
+DOING DB SSOT CURRENT
+
+此檔只作 CURRENT 唯一資料庫基準入口提示。
+正式完整內容以 live Supabase `DOING_SaaS / nayonqbzejoojexxxkyg / public`、`doing-data-sources.json`、`doing-naming-ssot.json`、`DOING_MODULE_DB_SSOT_CURRENT.md` 與 `DOING_MODULE_REGISTRY_CURRENT.json` 交叉核對。
+
+規則：
+- live Supabase 為最終 authority。
+- 不得自行猜測、改名或建立第二套同義資料。
+- UI 重建不得建立第二套 DB／table／API。
+- 若文件與 live Supabase 不一致，以 live Supabase 為準，並更新 CURRENT SSOT。
