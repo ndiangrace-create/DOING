@@ -1,0 +1,1 @@
+PR plan: rebuild/doing-clean-slate-20260825 -> main. Required checks: Route Shell Site, Market Route Preservation, Booking Route Preservation, Auth Role Separation. Merge only if green; main push deploys Cloudflare Pages.
