@@ -1,0 +1,22 @@
+{
+  "version": "2026-08-25-clean-slate",
+  "state": "rebuild-shells",
+  "formalRoutes": [
+    "/",
+    "/market/",
+    "/market/public/",
+    "/market/session/",
+    "/project/",
+    "/booking/",
+    "/guide/",
+    "/workspace/",
+    "/me/",
+    "/apply/",
+    "/register/",
+    "/world-tree/"
+  ],
+  "publishedOperationUi": false,
+  "workerChanged": false,
+  "databaseChanged": false,
+  "twoBlChanged": false
+}
