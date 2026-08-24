@@ -4,10 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#fff7fb">
-<meta name="description" content="DOING 協援人生小幫手：市集活動、室內設計進度、美類預約。">
+<meta name="description" content="DOING 斜槓人生小幫手：市集活動、室內設計進度、美類預約。">
 <title>DOING｜先做就對了</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="/doing-kawaii-current.css?v=20260825-3">
+<link rel="stylesheet" href="/doing-kawaii-current.css?v=20260825-4">
+<link rel="stylesheet" href="/doing-home-v4.css?v=20260825-1">
 </head>
 <body class="doing-kawaii min-h-screen text-slate-800">
 <div class="watercolor-surface" aria-hidden="true"></div>
@@ -19,18 +20,29 @@
   </div>
 </header>
 
-<main class="relative z-10 mx-auto w-full max-w-[1500px] px-4 pb-40 pt-1 sm:px-6 lg:px-8">
+<main class="relative z-10 mx-auto w-full max-w-[1500px] px-4 pb-40 pt-0 sm:px-6 lg:px-8">
   <section class="hero-copy text-center" aria-labelledby="heroTitle">
-    <img class="brand-logo-hero mx-auto" src="/doing-logo.png" alt="DOING">
-    <p class="brand-tagline mt-1 font-black tracking-[.25em] text-[#7970bc] drop-shadow-[0_2px_0_rgba(255,255,255,.95)]">協援人生小幫手</p>
-    <h1 id="heroTitle" class="mx-auto mt-4 max-w-5xl text-2xl font-black leading-tight text-slate-800 sm:text-4xl">把每天散在 LINE、表單、記事本裡的工作，整理到同一個地方</h1>
-    <p class="mx-auto mt-3 max-w-4xl text-base font-bold leading-7 text-slate-600 sm:text-lg">DOING 讓你知道現在做到哪、下一步要處理什麼，客戶、團隊和工作紀錄不再各自分散。</p>
+    <img class="brand-logo-hero mx-auto" src="/doing-logo.png?v=20260825-4" alt="DOING">
+    <p class="brand-tagline">斜槓人生小幫手</p>
+    <h1 id="heroTitle" class="mx-auto max-w-5xl text-2xl font-black leading-tight text-slate-800 sm:text-4xl">把每天散在 LINE、表單和記事本裡的工作，整理到同一個地方</h1>
+    <p class="mx-auto mt-3 max-w-4xl text-base font-bold leading-7 text-slate-600 sm:text-lg">DOING 讓你知道事情做到哪、下一步要處理什麼，客戶、團隊與工作紀錄不用再各自分散。</p>
   </section>
 
-  <section class="system-intro mx-auto mt-7 max-w-5xl" aria-labelledby="doingIntroTitle">
+  <section class="audience-strip mx-auto mt-7 grid max-w-5xl gap-4 md:grid-cols-2" aria-label="DOING 使用入口說明">
+    <article class="audience-card audience-public">
+      <div class="audience-icon" aria-hidden="true">🎫</div>
+      <div><b>我是來參加活動的</b><span>直接使用下方「報名活動」，查看目前開放的活動與報名入口。</span></div>
+    </article>
+    <article class="audience-card audience-tenant">
+      <div class="audience-icon" aria-hidden="true">🧰</div>
+      <div><b>我是使用 DOING 的店家／主辦／團隊</b><span>往下看目前三套工作系統；已申請過的租戶可直接登入自己的工作空間。</span></div>
+    </article>
+  </section>
+
+  <section class="system-intro mx-auto mt-8 max-w-5xl" aria-labelledby="doingIntroTitle">
     <span class="kawaii-kicker">DOING 可以幫你什麼？</span>
     <h2 id="doingIntroTitle" class="mt-2 text-2xl font-black text-[#6658bc] sm:text-3xl">少一點重複整理，多一點真正把事情做完的時間</h2>
-    <p class="mt-3 max-w-4xl font-bold leading-7 text-slate-600">你不用一直翻訊息、對 Excel、重新抄資料。DOING 把工作狀態接起來，讓該處理的人直接看到自己現在要做的事情。</p>
+    <p class="mt-3 max-w-4xl font-bold leading-7 text-slate-600">不用一直翻訊息、對 Excel、重抄資料。DOING 把每天要做的工作接起來，讓該處理的人直接看到自己現在要做什麼。</p>
     <div class="plain-benefit-row mt-5 grid gap-3 sm:grid-cols-3">
       <div><b>今天要做什麼</b><span>待審核、待收款、今日預約與進度集中看。</span></div>
       <div><b>事情做到哪裡</b><span>從申請、確認、執行到完成都有清楚狀態。</span></div>
@@ -38,24 +50,15 @@
     </div>
   </section>
 
-  <section class="mx-auto mt-7 max-w-4xl" aria-label="搜尋 DOING 功能">
-    <label class="sr-only" for="doingSearch">搜尋功能</label>
-    <div class="jelly-search flex items-center gap-4 px-5 py-3 sm:px-7 sm:py-4">
-      <span class="search-lens" aria-hidden="true"></span>
-      <input id="doingSearch" class="min-w-0 flex-1 bg-transparent text-base font-bold text-white placeholder:text-white/90 focus:outline-none sm:text-xl" autocomplete="off" placeholder="搜尋市集、工程進度、美類預約……">
-      <button id="clearSearch" class="hidden rounded-full bg-white/45 px-3 py-1 text-sm font-black text-[#7b5987]" type="button">清除</button>
-    </div>
-  </section>
-
   <section class="mt-12" aria-labelledby="canDoTitle">
     <div class="mb-6 text-center">
       <span class="kawaii-kicker">目前開放</span>
       <h2 id="canDoTitle" class="mt-2 text-2xl font-black tracking-tight text-[#6658bc] sm:text-3xl">先選你要處理的工作</h2>
-      <p class="mx-auto mt-2 max-w-3xl font-bold leading-7 text-slate-600">每一套都照實際工作方式重新設計，不需要先懂系統名詞。</p>
+      <p class="mx-auto mt-2 max-w-3xl font-bold leading-7 text-slate-600">不用先研究系統名詞，直接從你每天正在處理的工作開始。</p>
     </div>
 
     <div id="systemGrid" class="system-grid grid gap-5 lg:grid-cols-3">
-      <article class="system-card system-card-blue" data-search="市集 活動 招募 報名 審核 付款 排位 現場 財務 攤商 主辦">
+      <article class="system-card system-card-blue">
         <div class="system-visual bg-[#dff4ff]" aria-hidden="true">🎪</div>
         <div class="system-card-content p-5">
           <span class="category-tag bg-[#dff4ff] text-[#477e9e]">市集活動</span>
@@ -70,7 +73,7 @@
         </div>
       </article>
 
-      <article class="system-card system-card-peach" data-search="室內 設計 工程 專案 報價 進度 工班 支出 付款 驗收 簽核">
+      <article class="system-card system-card-peach">
         <div class="system-visual bg-[#fff0d9]" aria-hidden="true">🏠</div>
         <div class="system-card-content p-5">
           <span class="category-tag bg-[#fff0d9] text-[#9a7441]">室內設計進度</span>
@@ -79,13 +82,13 @@
           <ul class="system-feature-list mt-4">
             <li>工程階段、進度更新與照片集中查看</li>
             <li>報價、付款與支出都有前後脈絡</li>
-            <li>工班協作與完工驗收不再靠聊天紀錄找</li>
+            <li>工班協作與完工驗收不用再翻聊天紀錄</li>
           </ul>
           <a class="card-action" href="/project/">看看室內設計系統</a>
         </div>
       </article>
 
-      <article class="system-card system-card-green" data-search="美類 預約 美甲 美容 服務 日曆 空檔 員工 排班 客戶 提醒">
+      <article class="system-card system-card-green">
         <div class="system-visual bg-[#effbcf]" aria-hidden="true">💅</div>
         <div class="system-card-content p-5">
           <span class="category-tag bg-[#effbcf] text-[#67812b]">美類預約</span>
@@ -100,7 +103,6 @@
         </div>
       </article>
     </div>
-    <p id="searchEmpty" class="hidden rounded-3xl bg-white/75 p-8 text-center font-black text-slate-600 shadow-[0_12px_32px_rgba(180,175,218,.2)]">目前沒有符合的分類，換個關鍵字試試看。</p>
   </section>
 
   <section class="mt-12" aria-labelledby="highlightTitle">
@@ -113,33 +115,27 @@
     <div class="benefit-grid mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <article class="benefit-card">
         <div class="benefit-visual visual-gather" aria-hidden="true"><div class="mini-source">報名</div><div class="mini-source">預約</div><div class="mini-source">工程</div><b>→</b><strong>DOING</strong></div>
-        <h3>同一件事不用重複整理</h3>
-        <p>前面已經有的資料，後面的工作直接接著用。</p>
+        <div class="benefit-copy"><h3>同一件事不用重複整理</h3><p>前面已經有的資料，後面的工作直接接著用。</p></div>
       </article>
       <article class="benefit-card">
         <div class="benefit-visual visual-today" aria-hidden="true"><span>待審核</span><span>待收款</span><span>今日預約</span><span>待更新</span></div>
-        <h3>今天該做什麼，一眼就知道</h3>
-        <p>不用再翻 LINE、表格和記事本找待辦。</p>
+        <div class="benefit-copy"><h3>今天該做什麼，一眼就知道</h3><p>不用再翻 LINE、表格和記事本找待辦。</p></div>
       </article>
       <article class="benefit-card">
         <div class="benefit-visual visual-steps" aria-hidden="true"><i></i><b>申請</b><i></i><b>確認</b><i></i><b>執行</b><i></i><b>完成</b></div>
-        <h3>每件事情都有下一步</h3>
-        <p>做到哪裡、接下來要做什麼，都不容易漏掉。</p>
+        <div class="benefit-copy"><h3>每件事情都有下一步</h3><p>做到哪裡、接下來要做什麼，都不容易漏掉。</p></div>
       </article>
       <article class="benefit-card">
-        <div class="benefit-visual visual-team" aria-hidden="true"><span>主辦</span><span>同仁</span><span>現場</span><strong>各做各的工作</strong></div>
-        <h3>團隊知道自己該處理什麼</h3>
-        <p>不同工作角色看到自己需要處理的內容。</p>
+        <div class="benefit-visual visual-team" aria-hidden="true"><span>主辦</span><span>同仁</span><span>現場</span><strong>各自看待辦</strong></div>
+        <div class="benefit-copy"><h3>團隊知道自己該處理什麼</h3><p>不同工作角色看到自己需要處理的內容。</p></div>
       </article>
       <article class="benefit-card">
         <div class="benefit-visual visual-money" aria-hidden="true"><div>工作<br><b>✓</b></div><span>＋</span><div>款項<br><b>✓</b></div></div>
-        <h3>工作跟款項對得起來</h3>
-        <p>付款、退款與實際工作狀態不用分開核對。</p>
+        <div class="benefit-copy"><h3>工作跟款項對得起來</h3><p>付款、退款與實際工作狀態不用分開核對。</p></div>
       </article>
       <article class="benefit-card">
         <div class="benefit-visual visual-history" aria-hidden="true"><span>活動</span><i></i><span>預約</span><i></i><span>專案</span><strong>找得到</strong></div>
-        <h3>做過的事情之後找得到</h3>
-        <p>要查客戶、活動、預約或專案，不用再翻舊訊息。</p>
+        <div class="benefit-copy"><h3>做過的事情之後找得到</h3><p>要查客戶、活動、預約或專案，不用再翻舊訊息。</p></div>
       </article>
     </div>
   </section>
@@ -168,7 +164,5 @@
   <a class="bottom-jelly bottom-jelly-lilac" href="/me/"><span>我的 DOING</span></a>
   <a class="bottom-jelly bottom-jelly-yellow" href="#support"><span>線上客服</span></a>
 </nav>
-
-<script src="/doing-home-current.js?v=20260825-3" defer></script>
 </body>
 </html>

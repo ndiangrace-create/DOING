@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 
 const root=process.cwd();
 const out=path.join(root,'.doing-2-site');
@@ -34,9 +35,21 @@ for(const [route,source] of Object.entries(sourceRoutes)){
 }
 for(const [route,title] of Object.entries(shellRoutes))writeRoute(route,shell(route,title));
 
-for(const asset of ['doing-kawaii-current.css','doing-home-current.js','doing-logo.png']){
+for(const asset of ['doing-kawaii-current.css','doing-home-v4.css','doing-home-current.js']){
   const src=path.join(root,asset);if(!fs.existsSync(src))throw new Error(`missing asset: ${asset}`);fs.copyFileSync(src,path.join(out,asset));
 }
+
+const logoDir=path.join(root,'.assets','doing-logo-new');
+const logoBase64=Array.from({length:6},(_,i)=>{
+  const p=path.join(logoDir,`part${i}.txt`);
+  if(!fs.existsSync(p))throw new Error(`missing logo source part: ${p}`);
+  return fs.readFileSync(p,'utf8').trim();
+}).join('');
+const logoBytes=Buffer.from(logoBase64,'base64');
+const logoHash=crypto.createHash('sha256').update(logoBytes).digest('hex');
+const expectedLogoHash='74ff3206476280800a9c8eb5fa9a5ba02f260623d84949bcf0ea815c1fa5781d';
+if(logoBytes.length!==16162||logoBytes[0]!==0x89||logoBytes[1]!==0x50||logoBytes[2]!==0x4e||logoBytes[3]!==0x47||logoHash!==expectedLogoHash)throw new Error(`invalid DOING logo reconstruction: bytes=${logoBytes.length} sha256=${logoHash}`);
+fs.writeFileSync(path.join(out,'doing-logo.png'),logoBytes);
 
 fs.writeFileSync(path.join(out,'_headers'),`/*\n  Cache-Control: no-store, max-age=0\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`, 'utf8');
 fs.writeFileSync(path.join(out,'_redirects'),legacyRedirects.map(([a,b])=>`${a} ${b} 301`).join('\n')+'\n','utf8');
@@ -57,8 +70,9 @@ for(const route of Object.keys(sourceRoutes)){
   if(!html.includes('doing-kawaii-current.css'))throw new Error(`kawaii visual missing: ${route}`);
 }
 const home=fs.readFileSync(path.join(out,'index.html'),'utf8');
-for(const token of ['市集活動','室內設計進度','美類預約','/me/','/apply/','doingSearch'])if(!home.includes(token))throw new Error(`home contract missing: ${token}`);
+for(const token of ['市集活動','室內設計進度','美類預約','斜槓人生小幫手','/me/','/apply/','doing-home-v4.css'])if(!home.includes(token))throw new Error(`home contract missing: ${token}`);
+for(const removed of ['doingSearch','jelly-search','搜尋市集、工程進度、美類預約'])if(home.includes(removed))throw new Error(`removed homepage search leaked: ${removed}`);
 const member=fs.readFileSync(path.join(out,'me/index.html'),'utf8');for(const token of ['auth/line/start','getPlatformMemberProfile','createMemberWorkspaceAdminSession'])if(!member.includes(token))throw new Error(`member auth contract missing: ${token}`);
 const workspace=fs.readFileSync(path.join(out,'workspace/index.html'),'utf8');for(const token of ['getTenantModuleProfile','adminMe','市集活動系統','室內設計系統','美類預約系統'])if(!workspace.includes(token))throw new Error(`workspace contract missing: ${token}`);
 
-console.log(JSON.stringify({result:'PASS',mode:'kawaii-home-v1',routeCount:allRoutes.length,liveRoutes:Object.keys(sourceRoutes),shellRoutes:Object.keys(shellRoutes),tenantLogin:true,systemCategories:['market-activity','interior-project','beauty-booking'],databaseWrites:0,workerChanges:0,twoBlChanges:0},null,2));
+console.log(JSON.stringify({result:'PASS',mode:'kawaii-home-v4',routeCount:allRoutes.length,liveRoutes:Object.keys(sourceRoutes),shellRoutes:Object.keys(shellRoutes),tenantLogin:true,search:false,tagline:'斜槓人生小幫手',logo:{bytes:logoBytes.length,sha256:logoHash},systemCategories:['market-activity','interior-project','beauty-booking'],databaseWrites:0,workerChanges:0,twoBlChanges:0},null,2));

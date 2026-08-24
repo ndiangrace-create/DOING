@@ -11,8 +11,10 @@ on:
       - 'project-current.html'
       - 'booking-current.html'
       - 'doing-kawaii-current.css'
+      - 'doing-home-v4.css'
       - 'doing-home-current.js'
       - 'doing-logo.png'
+      - '.assets/doing-logo-new/**'
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/e2e-home-kawaii.mjs'
       - '.github/workflows/doing-2-site.yml'
@@ -26,8 +28,10 @@ on:
       - 'project-current.html'
       - 'booking-current.html'
       - 'doing-kawaii-current.css'
+      - 'doing-home-v4.css'
       - 'doing-home-current.js'
       - 'doing-logo.png'
+      - '.assets/doing-logo-new/**'
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/e2e-home-kawaii.mjs'
       - '.github/workflows/doing-2-site.yml'
@@ -70,8 +74,12 @@ jobs:
           for f in market/public/index.html market/session/index.html guide/index.html apply/index.html register/index.html world-tree/index.html; do grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"; done
           for f in index.html market/index.html project/index.html booking/index.html workspace/index.html me/index.html; do grep -q 'doing-kawaii-current.css' ".doing-2-site/$f"; done
           test -s .doing-2-site/doing-kawaii-current.css
+          test -s .doing-2-site/doing-home-v4.css
           test -s .doing-2-site/doing-home-current.js
           test -s .doing-2-site/doing-logo.png
+          grep -q '斜槓人生小幫手' .doing-2-site/index.html
+          ! grep -q 'doingSearch' .doing-2-site/index.html
+          ! grep -q 'jelly-search' .doing-2-site/index.html
           ! grep -R -q '2bl-v7' .doing-2-site
           ! grep -R -q 'supabase.co' .doing-2-site --include='*.html'
           grep -q 'auth/line/start' .doing-2-site/me/index.html
