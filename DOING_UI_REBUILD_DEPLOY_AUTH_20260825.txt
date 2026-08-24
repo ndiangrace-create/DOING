@@ -1,2 +1,0 @@
-Deployment authorization recorded from current conversation: user explicitly stated that deployment is required for the update to take effect.
-Scope: DOING Pages UI clean-slate only. No Worker/API/DB/2BL changes.

@@ -1,7 +1,0 @@
-SCOPE LOCK
-- Deploy Cloudflare Pages route shells only.
-- Keep formal routes.
-- Keep legacy redirects.
-- Do not deploy or modify tobeloved-api.
-- Do not modify Supabase.
-- Do not touch 2BL.

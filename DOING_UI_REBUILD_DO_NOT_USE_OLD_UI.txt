@@ -1,5 +1,0 @@
-CURRENT RULE
-
-Old operation HTML/CSS/JS files are rollback evidence only and are NOT deployment sources during clean-slate rebuild.
-The only Pages deployment source is `scripts/build-doing-2-site.mjs`, which publishes route shells only.
-Do not copy legacy UI into new pages. Rebuild each route from CURRENT Module Registry + DB SSOT + Operation Path Tree.

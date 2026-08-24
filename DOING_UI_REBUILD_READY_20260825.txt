@@ -1,1 +1,0 @@
-Branch is prepared for PR/CI. Next operation: open PR to main, wait for checks, merge, then verify formal Pages deployment.
