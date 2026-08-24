@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "recordedAt": "2026-08-24T01:22:00+08:00",
-  "sourceFingerprint": "584b5a553e6298fd3b1a4a403661ede3667cde2dca1b5bb33a5c228f3193576b",
+  "sourceFingerprint": "e0779ba30b0679a9c66fde529fdf956c5bed69e5762ab431b59dc453a70ac245",
   "environment": "DOING 正式入口已收斂為首頁【申請 DOING】【登入】兩個帳號入口。登入固定進 /me/ 且只啟動一次 LINE member 驗證；/me/ 集中會員資料、報名與營運空間，點工作空間時才由 Core 背景交換管理權限進 /workspace/，不再出現第二套登入頁。已退休的舊會員／後台／平台／營運頁退出正式 root，舊網址只做相容轉址。Booking 正式能力保留並統一發布於 /booking/。正式資料仍由 DOING_SaaS/public/tobeloved-api 單一來源；瀏覽器不保存正式營運資料，Market 僅允許 sessionStorage 保存目前頁籤等 UI 暫存。2BL 未修改，productionWrites=0。",
   "deploymentTarget": "tobeloved-api",
   "forbiddenTarget": "2bl-v7",
