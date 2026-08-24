@@ -1,0 +1,8 @@
+DOING UI REBUILD CURRENT
+state=rebuild-shells
+formal_site=https://doing.2b-love.com/
+worker=tobeloved-api (unchanged)
+supabase=DOING_SaaS / nayonqbzejoojexxxkyg / public (unchanged)
+public_routes=12
+old_operation_ui_published=false
+2bl_changes=0
