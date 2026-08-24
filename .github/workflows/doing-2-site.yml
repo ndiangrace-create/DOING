@@ -1,29 +1,43 @@
-name: DOING Route Shell Site
+name: DOING Kawaii Home
 
 on:
   pull_request:
     branches: [main]
     paths:
+      - 'home-current.html'
+      - 'member-current.html'
+      - 'workspace-current.html'
+      - 'market-current.html'
+      - 'project-current.html'
+      - 'booking-current.html'
+      - 'doing-kawaii-current.css'
+      - 'doing-home-current.js'
+      - 'doing-logo.png'
       - 'scripts/build-doing-2-site.mjs'
+      - 'scripts/e2e-home-kawaii.mjs'
       - '.github/workflows/doing-2-site.yml'
-      - '.github/workflows/doing-market-2-validation.yml'
-      - '.github/workflows/booking-center-validation.yml'
-      - 'DOING_UI_REBUILD_CHECKPOINT_20260825.md'
   push:
     branches: [main]
     paths:
+      - 'home-current.html'
+      - 'member-current.html'
+      - 'workspace-current.html'
+      - 'market-current.html'
+      - 'project-current.html'
+      - 'booking-current.html'
+      - 'doing-kawaii-current.css'
+      - 'doing-home-current.js'
+      - 'doing-logo.png'
       - 'scripts/build-doing-2-site.mjs'
+      - 'scripts/e2e-home-kawaii.mjs'
       - '.github/workflows/doing-2-site.yml'
-      - '.github/workflows/doing-market-2-validation.yml'
-      - '.github/workflows/booking-center-validation.yml'
-      - 'DOING_UI_REBUILD_CHECKPOINT_20260825.md'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: doing-route-shell-site
+  group: doing-kawaii-home
   cancel-in-progress: false
 
 env:
@@ -40,45 +54,45 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Build route-only clean slate site
+      - name: Parse source scripts
+        run: |
+          node --check doing-home-current.js
+          node --check scripts/build-doing-2-site.mjs
+          node --check scripts/e2e-home-kawaii.mjs
+      - name: Build CURRENT DOING site
         run: node scripts/build-doing-2-site.mjs
-      - name: Validate preserved formal routes
+      - name: Validate route and SSOT boundaries
         shell: bash
         run: |
           set -euo pipefail
-          files=(
-            index.html
-            market/index.html
-            market/public/index.html
-            market/session/index.html
-            project/index.html
-            booking/index.html
-            guide/index.html
-            workspace/index.html
-            me/index.html
-            apply/index.html
-            register/index.html
-            world-tree/index.html
-          )
-          for f in "${files[@]}"; do
-            test -s ".doing-2-site/$f"
-            grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"
-          done
-          test -s .doing-2-site/_headers
-          test -s .doing-2-site/_redirects
-          html_count="$(find .doing-2-site -type f -name '*.html' | wc -l | tr -d ' ')"
-          test "$html_count" = "12"
-      - name: Prove old operation UI is not deployed
+          files=(index.html market/index.html market/public/index.html market/session/index.html project/index.html booking/index.html guide/index.html workspace/index.html me/index.html apply/index.html register/index.html world-tree/index.html)
+          for f in "${files[@]}"; do test -s ".doing-2-site/$f"; done
+          for f in market/public/index.html market/session/index.html guide/index.html apply/index.html register/index.html world-tree/index.html; do grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"; done
+          for f in index.html market/index.html project/index.html booking/index.html workspace/index.html me/index.html; do grep -q 'doing-kawaii-current.css' ".doing-2-site/$f"; done
+          test -s .doing-2-site/doing-kawaii-current.css
+          test -s .doing-2-site/doing-home-current.js
+          test -s .doing-2-site/doing-logo.png
+          ! grep -R -q '2bl-v7' .doing-2-site
+          ! grep -R -q 'supabase.co' .doing-2-site --include='*.html'
+          grep -q 'auth/line/start' .doing-2-site/me/index.html
+          grep -q 'getPlatformMemberProfile' .doing-2-site/me/index.html
+          grep -q 'createMemberWorkspaceAdminSession' .doing-2-site/me/index.html
+          grep -q 'getTenantModuleProfile' .doing-2-site/workspace/index.html
+          grep -q '市集活動系統' .doing-2-site/workspace/index.html
+          grep -q '室內設計系統' .doing-2-site/workspace/index.html
+          grep -q '美類預約系統' .doing-2-site/workspace/index.html
+      - name: Install real-browser E2E
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Real-browser mobile + desktop homepage E2E
         shell: bash
         run: |
-          set -euo pipefail
-          ! grep -R -Ei '<script|<form|<button|tobeloved-api|supabase\.co|localStorage|sessionStorage|2bl-v7' .doing-2-site --include='*.html'
-          test ! -e .doing-2-site/doing-system.css
-          test ! -e .doing-2-site/doing-global-entry.js
-          test ! -e .doing-2-site/market-center.html
-          test ! -e .doing-2-site/member-panel.html
-          test ! -e .doing-2-site/workspace.html
-          test ! -e .doing-2-site/register.html
+          python3 -m http.server 4173 --directory .doing-2-site >/tmp/doing-home-e2e.log 2>&1 &
+          PID=$!
+          trap 'kill $PID || true' EXIT
+          for i in {1..30}; do curl -fsS http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
+          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-home-kawaii.mjs
       - name: Diff quality
         shell: bash
         run: git diff --check ${{ github.event.pull_request.base.sha || 'HEAD^' }}...HEAD
@@ -100,7 +114,7 @@ jobs:
         run: |
           test -n "$CF_TOKEN"
           test -n "$CF_ACCOUNT"
-      - name: Build route-only clean slate site
+      - name: Build CURRENT DOING site
         run: node scripts/build-doing-2-site.mjs
       - name: Ensure Cloudflare Pages project
         env:
@@ -116,7 +130,7 @@ jobs:
             cat project.json
             exit 1
           fi
-      - name: Deploy DOING route shells
+      - name: Deploy DOING CURRENT site
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -131,8 +145,8 @@ jobs:
           url="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/pages/projects/${CF_PAGES_PROJECT}/domains"
           code="$(curl -sS -o domain.json -w '%{http_code}' -X POST -H "Authorization: Bearer ${CF_TOKEN}" -H 'Content-Type: application/json' --data "{\"name\":\"${CF_CUSTOM_DOMAIN}\"}" "$url")"
           if [ "$code" = "200" ] || [ "$code" = "201" ] || [ "$code" = "409" ]; then exit 0; fi
-          if jq -e '.errors[]? | select(.code==8000018)' domain.json >/dev/null 2>&1; then echo "Custom domain already attached; continuing."; exit 0; fi
+          if jq -e '.errors[]? | select(.code==8000018)' domain.json >/dev/null 2>&1; then exit 0; fi
           cat domain.json
           exit 1
       - name: Verify deployment completed
-        run: echo "DOING route-only site deployed for $GITHUB_SHA"
+        run: echo "DOING Kawaii homepage deployed for $GITHUB_SHA"

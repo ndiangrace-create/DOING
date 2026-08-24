@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DOING｜市集活動系統</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/doing-kawaii-current.css?v=20260825-1">
+</head>
+<body class="doing-kawaii min-h-screen text-slate-800">
+<div class="watercolor-surface" aria-hidden="true"></div>
+<header class="relative z-20 mx-auto flex w-full max-w-6xl items-center justify-between px-4 pt-5 sm:px-6"><a href="/"><img class="h-11 w-auto" src="/doing-logo.png" alt="DOING"></a><a id="backWorkspace" class="mini-jelly mini-jelly-lilac" href="/me/#operations">我的 DOING</a></header>
+<main class="relative z-10 mx-auto w-full max-w-6xl px-4 pb-20 pt-8 sm:px-6">
+  <section class="soft-panel overflow-hidden p-6 sm:p-8">
+    <div class="grid gap-6 md:grid-cols-[1fr_220px] md:items-center"><div><span class="kawaii-kicker">市集活動</span><h1 class="mt-3 text-3xl font-black text-[#6658bc] sm:text-4xl">從招募、報名到現場結案，一條流程完成</h1><p class="mt-3 max-w-3xl font-bold leading-7 text-slate-600">同一個活動、同一個場次、同一筆報名一路走到底；不另外複製會員、付款或現場資料。</p></div><div class="system-visual bg-[#dff4ff]">🎪</div></div>
+  </section>
+  <section class="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <article class="system-card p-5"><span class="category-tag bg-[#dff4ff] text-[#477e9e]">01</span><h2 class="mt-3 text-xl font-black">活動與場次</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">建立活動、日期場次、招募條件、設備與公開資訊。</p></article>
+    <article class="system-card p-5"><span class="category-tag bg-[#e9e4ff] text-[#6658bc]">02</span><h2 class="mt-3 text-xl font-black">報名與審核</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">品牌帶入、報名資料、審核、候補、通知與取消。</p></article>
+    <article class="system-card p-5"><span class="category-tag bg-[#fff0d9] text-[#9a7441]">03</span><h2 class="mt-3 text-xl font-black">付款與退款</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">正式應收、付款回報、確認、退款與結算。</p></article>
+    <article class="system-card p-5"><span class="category-tag bg-[#effbcf] text-[#67812b]">04</span><h2 class="mt-3 text-xl font-black">視覺化排位</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">場地、攤位、排位、換位與現場位置資料。</p></article>
+    <article class="system-card p-5"><span class="category-tag bg-[#ffe4ef] text-[#a05a78]">05</span><h2 class="mt-3 text-xl font-black">現場工作台</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">工作人員權限、QR 報到、現場名單與操作紀錄。</p></article>
+    <article class="system-card p-5"><span class="category-tag bg-[#e7f5ff] text-[#477e9e]">06</span><h2 class="mt-3 text-xl font-black">財務結案</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">收入、支出、退款、分攤、報表與結案稽核。</p></article>
+  </section>
+</main>
+<script>
+(()=>{const p=new URL(location.href).searchParams,t=p.get('tenant'),a=p.get('admin_token')||p.get('token');if(t&&a){const u=new URL('/workspace/',location.origin);u.searchParams.set('tenant',t);u.searchParams.set('admin_token',a);document.getElementById('backWorkspace').href=u.toString()}})();
+</script>
+</body>
+</html>

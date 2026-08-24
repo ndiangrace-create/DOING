@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DOING｜美類預約</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/doing-kawaii-current.css?v=20260825-1">
+</head>
+<body class="doing-kawaii min-h-screen text-slate-800">
+<div class="watercolor-surface" aria-hidden="true"></div>
+<header class="relative z-20 mx-auto flex w-full max-w-6xl items-center justify-between px-4 pt-5 sm:px-6"><a href="/"><img class="h-11 w-auto" src="/doing-logo.png" alt="DOING"></a><a id="backWorkspace" class="mini-jelly mini-jelly-lilac" href="/me/#operations">我的 DOING</a></header>
+<main class="relative z-10 mx-auto w-full max-w-6xl px-4 pb-20 pt-8 sm:px-6">
+  <section class="soft-panel overflow-hidden p-6 sm:p-8">
+    <div class="grid gap-6 md:grid-cols-[1fr_220px] md:items-center"><div><span class="kawaii-kicker">美類預約</span><h1 class="mt-3 text-3xl font-black text-[#6658bc] sm:text-4xl">把服務、空檔、人員與顧客，直接放進同一個預約日曆</h1><p class="mt-3 max-w-3xl font-bold leading-7 text-slate-600">從可預約時段到到店服務，沿用同一份正式預約資料；店家只需要管理真正可用的時間，不需要另外維護第二套表單。</p></div><div class="system-visual bg-[#effbcf]">💅</div></div>
+  </section>
+  <section class="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <article class="system-card p-5"><span class="category-tag bg-[#effbcf] text-[#67812b]">01</span><h2 class="mt-3 text-xl font-black">服務項目</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">服務名稱、時間、價格與緩衝時間集中設定。</p></article>
+    <article class="system-card p-5"><span class="category-tag bg-[#dff4ff] text-[#477e9e]">02</span><h2 class="mt-3 text-xl font-black">空檔日曆</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">只顯示真的可以預約的時段，避免人工重複確認。</p></article>
+    <article class="system-card p-5"><span class="category-tag bg-[#e9e4ff] text-[#6658bc]">03</span><h2 class="mt-3 text-xl font-black">人員與排班</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">多人員、固定排班、臨時休息與資源占用都能一起判斷。</p></article>
+    <article class="system-card p-5"><span class="category-tag bg-[#fff0d9] text-[#9a7441]">04</span><h2 class="mt-3 text-xl font-black">顧客資料</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">預約紀錄、偏好、VIP／黑名單與回訪資訊集中保存。</p></article>
+    <article class="system-card p-5"><span class="category-tag bg-[#ffe4ef] text-[#a05a78]">05</span><h2 class="mt-3 text-xl font-black">提醒與同意</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">預約提醒、服務前問卷與同意內容可接回同一流程。</p></article>
+    <article class="system-card p-5"><span class="category-tag bg-[#e7f5ff] text-[#477e9e]">06</span><h2 class="mt-3 text-xl font-black">到店流程</h2><p class="mt-2 text-sm font-bold leading-6 text-slate-600">從預約成立、到店、服務完成到後續回訪保留完整狀態。</p></article>
+  </section>
+</main>
+<script>
+(()=>{const p=new URL(location.href).searchParams,t=p.get('tenant'),a=p.get('admin_token')||p.get('token');if(t&&a){const u=new URL('/workspace/',location.origin);u.searchParams.set('tenant',t);u.searchParams.set('admin_token',a);document.getElementById('backWorkspace').href=u.toString()}})();
+</script>
+</body>
+</html>

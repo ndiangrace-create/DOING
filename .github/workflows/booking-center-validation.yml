@@ -1,9 +1,11 @@
-name: Booking Route Preservation
+name: Booking Entry Validation
 
 on:
   pull_request:
     branches: [main]
     paths:
+      - 'booking-current.html'
+      - 'doing-kawaii-current.css'
       - 'scripts/build-doing-2-site.mjs'
       - '.github/workflows/booking-center-validation.yml'
   workflow_dispatch:
@@ -12,7 +14,7 @@ permissions:
   contents: read
 
 jobs:
-  validate-booking-route:
+  validate-booking-entry:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,15 +23,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Build clean slate route shells
+      - name: Build CURRENT site
         run: node scripts/build-doing-2-site.mjs
-      - name: Validate booking URL is preserved without old operation UI
+      - name: Validate beauty booking system entry
         shell: bash
         run: |
           set -euo pipefail
           test -s .doing-2-site/booking/index.html
-          grep -q 'data-doing-ui-state="rebuild-shell"' .doing-2-site/booking/index.html
-          ! grep -Ei '<script|<form|<button|tobeloved-api|supabase\.co|localStorage|sessionStorage|2bl-v7' .doing-2-site/booking/index.html
+          grep -q '美類預約' .doing-2-site/booking/index.html
+          grep -q 'doing-kawaii-current.css' .doing-2-site/booking/index.html
+          ! grep -q '2bl-v7' .doing-2-site/booking/index.html
+          ! grep -q 'supabase.co' .doing-2-site/booking/index.html
           test ! -e .doing-2-site/booking-2-center.html
           test ! -e .doing-2-site/booking-center.html
       - name: Diff quality
