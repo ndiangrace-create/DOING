@@ -47,8 +47,8 @@ const logoBase64=Array.from({length:6},(_,i)=>{
 }).join('');
 const logoBytes=Buffer.from(logoBase64,'base64');
 const logoHash=crypto.createHash('sha256').update(logoBytes).digest('hex');
-const expectedLogoHash='74ff3206476280800a9c8eb5fa9a5ba02f260623d84949bcf0ea815c1fa5781d';
-if(logoBytes.length!==16162||logoBytes[0]!==0x89||logoBytes[1]!==0x50||logoBytes[2]!==0x4e||logoBytes[3]!==0x47||logoHash!==expectedLogoHash)throw new Error(`invalid DOING logo reconstruction: bytes=${logoBytes.length} sha256=${logoHash}`);
+const expectedLogoHash='9c05213a5e4d931490784b0bd10a4b923aa4ae7b3b5591ad10617d76b50a956a';
+if(logoBytes.length!==6449||logoBytes[0]!==0x89||logoBytes[1]!==0x50||logoBytes[2]!==0x4e||logoBytes[3]!==0x47||logoHash!==expectedLogoHash)throw new Error(`invalid DOING logo reconstruction: bytes=${logoBytes.length} sha256=${logoHash}`);
 fs.writeFileSync(path.join(out,'doing-logo.png'),logoBytes);
 
 fs.writeFileSync(path.join(out,'_headers'),`/*\n  Cache-Control: no-store, max-age=0\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`, 'utf8');
@@ -70,9 +70,9 @@ for(const route of Object.keys(sourceRoutes)){
   if(!html.includes('doing-kawaii-current.css'))throw new Error(`kawaii visual missing: ${route}`);
 }
 const home=fs.readFileSync(path.join(out,'index.html'),'utf8');
-for(const token of ['市集活動','室內設計進度','美類預約','斜槓人生小幫手','/me/','/apply/','doing-home-v4.css'])if(!home.includes(token))throw new Error(`home contract missing: ${token}`);
-for(const removed of ['doingSearch','jelly-search','搜尋市集、工程進度、美類預約'])if(home.includes(removed))throw new Error(`removed homepage search leaked: ${removed}`);
+for(const token of ['市集活動系統','室內設計進度系統','美類預約系統','斜槓人生小幫手','申請市集活動系統','申請室內設計進度系統','申請美類預約系統','/me/','/apply/','doing-home-v4.css'])if(!home.includes(token))throw new Error(`home contract missing: ${token}`);
+for(const removed of ['doingSearch','jelly-search','搜尋市集、工程進度、美類預約','benefit-grid','benefit-card','系統亮點','看圖就知道 DOING 幫你省掉哪些麻煩','audience-strip','audience-card','一個帳號，多種身分','共用同一','資料只留一份','需要什麼再加什麼','手機與電腦同一套'])if(home.includes(removed))throw new Error(`private/removed homepage copy leaked: ${removed}`);
 const member=fs.readFileSync(path.join(out,'me/index.html'),'utf8');for(const token of ['auth/line/start','getPlatformMemberProfile','createMemberWorkspaceAdminSession'])if(!member.includes(token))throw new Error(`member auth contract missing: ${token}`);
 const workspace=fs.readFileSync(path.join(out,'workspace/index.html'),'utf8');for(const token of ['getTenantModuleProfile','adminMe','市集活動系統','室內設計系統','美類預約系統'])if(!workspace.includes(token))throw new Error(`workspace contract missing: ${token}`);
 
-console.log(JSON.stringify({result:'PASS',mode:'kawaii-home-v4',routeCount:allRoutes.length,liveRoutes:Object.keys(sourceRoutes),shellRoutes:Object.keys(shellRoutes),tenantLogin:true,search:false,tagline:'斜槓人生小幫手',logo:{bytes:logoBytes.length,sha256:logoHash},systemCategories:['market-activity','interior-project','beauty-booking'],databaseWrites:0,workerChanges:0,twoBlChanges:0},null,2));
+console.log(JSON.stringify({result:'PASS',mode:'kawaii-home-v5',routeCount:allRoutes.length,liveRoutes:Object.keys(sourceRoutes),shellRoutes:Object.keys(shellRoutes),tenantLogin:true,search:false,tagline:'斜槓人生小幫手',publicSystemsOnly:true,publicSystemCount:3,benefitGrid:false,audienceSplit:false,logo:{bytes:logoBytes.length,sha256:logoHash},systemCategories:['market-activity','interior-project','beauty-booking'],databaseWrites:0,workerChanges:0,twoBlChanges:0},null,2));
