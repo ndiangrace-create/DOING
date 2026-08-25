@@ -1,0 +1,45 @@
+name: Atomic Homepage Logo Source Patch
+
+on:
+  push:
+    branches: [fix/atomic-logo-line-20260825]
+    paths:
+      - 'doing-logo-current/**'
+      - '.github/workflows/atomic-home-logo-source.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, '[atomic-home-logo-source]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/atomic-logo-line-20260825
+          fetch-depth: 0
+      - name: Point build at exact eight-part homepage logo source
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');
+          const file='scripts/build-doing-2-site.mjs';
+          let s=fs.readFileSync(file,'utf8');
+          const old=`const homeLogoSource=path.join(root,'doing-logo-current.jpg.b64');\nif(!fs.existsSync(homeLogoSource))throw new Error('missing homepage high-resolution logo source');\nconst homeLogoBytes=Buffer.from(fs.readFileSync(homeLogoSource,'utf8').trim(),'base64');`;
+          const next=`const homeLogoDir=path.join(root,'doing-logo-current');\nconst homeLogoBase64=Array.from({length:8},(_,i)=>{\n  const p=path.join(homeLogoDir,\`part\${String(i).padStart(2,'0')}.txt\`);\n  if(!fs.existsSync(p))throw new Error(\`missing homepage logo source part: \${p}\`);\n  return fs.readFileSync(p,'utf8').trim();\n}).join('');\nconst homeLogoBytes=Buffer.from(homeLogoBase64,'base64');`;
+          const count=s.split(old).length-1;
+          if(count!==1)throw new Error(`expected one homepage-logo source block, got ${count}`);
+          s=s.replace(old,next);
+          fs.writeFileSync(file,s);
+          NODE
+          rm -f doing-logo-current.jpg.b64
+          git diff --check
+          node scripts/build-doing-2-site.mjs
+      - name: Commit only source wiring cleanup
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm -f .github/workflows/atomic-home-logo-source.yml
+          git add scripts/build-doing-2-site.mjs doing-logo-current.jpg.b64 || true
+          git commit -m 'Use exact chunked homepage logo source [atomic-home-logo-source]'
+          git push origin HEAD:fix/atomic-logo-line-20260825
