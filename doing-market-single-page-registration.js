@@ -31,14 +31,21 @@ function installStyle(){
   }`;
   document.head.appendChild(s);
 }
+function syncLoggedInMember(p){
+  if(!p)return;
+  const set=(id,v)=>{const el=$(id);if(el&&v!=null&&String(v).trim()&&!String(el.value||'').trim())el.value=String(v)};
+  set('regEmail',p.email);set('regPhone',p.phone);set('regName',p.name);set('regBrand',p.brand||p.brand_name||p.brandName);
+  set('regIntro',p.brandIntro||p.brand_intro);set('regSellCat',p.sellCat||p.sell_category);set('regSellItem',p.sellItem||p.sell_items);
+  set('regPhoto',p.photo||p.photo_url);set('regFb',p.fb||p.fb_url);set('regIg',p.ig||p.ig_url);set('invoiceEmail',p.email);
+}
 function memberSummary(){
   const section=$('regEmail')?.closest('.form-section'),detail=$('dateSection');if(!section||!detail)return;
   const p=window.doingMemberProfile?.(),token=window.doingMemberToken?.();let box=$('singleMemberSummary');
   if(p&&token){
-    section.classList.add('single-page-member-source');
+    syncLoggedInMember(p);section.classList.add('single-page-member-source');
     if(!box){box=document.createElement('div');box.id='singleMemberSummary';box.className='single-member-summary';detail.parentElement.insertBefore(box,detail)}
     const brand=$('regBrand')?.value||p.brand||p.brand_name||'';
-    box.innerHTML='<b>已登入</b><span>'+[brand,p.name].filter(Boolean).map(x=>String(x)).join('｜')+'</span>';
+    box.innerHTML='<b>已登入</b><span>'+[brand,$('regName')?.value||p.name].filter(Boolean).map(x=>String(x)).join('｜')+'</span>';
     box.classList.remove('hidden');
   }else{
     section.classList.remove('single-page-member-source');if(box)box.classList.add('hidden');
@@ -47,7 +54,7 @@ function memberSummary(){
 function enforceEquipment(){
   const sec=$('equipSection'),m=cfg();if(!sec)return;
   if(!m.equipment){sec.classList.add('hidden');return}
-  const items=Object.values(state?.session?.equip||{}).filter(Boolean);
+  const items=Object.values(state?.session?.equip||{}).filter(x=>x&&x.open!==false);
   sec.classList.toggle('hidden',items.length===0);
 }
 function gateSubmit(){
@@ -69,8 +76,8 @@ async function inlineAgreement(){
 }
 function validateAll(e){
   if(!$('sessionModal')?.classList.contains('single-page-registration'))return;
-  const form=$('regForm');if(form&&!form.checkValidity()){e.preventDefault();e.stopImmediatePropagation();form.reportValidity();return}
-  const s=state?.session,m=cfg();if((s?.dates||[]).length&&![...document.querySelectorAll('[name=regDate]:checked')].length){e.preventDefault();e.stopImmediatePropagation();toast(m.workshopSlots?'請選擇日期／時段':'請選擇報名日期');return}
+  const s=state?.session,m=cfg();
+  if((s?.dates||[]).length&&![...document.querySelectorAll('[name=regDate]:checked')].length){e.preventDefault();e.stopImmediatePropagation();toast(m.workshopSlots?'請選擇日期／時段':'請選擇報名日期');return}
   if(requiredAgreement()&&(!$('agreementCheck')?.checked||!state?.agreementViewed)){e.preventDefault();e.stopImmediatePropagation();toast('請勾選同意合約後再送出')}
 }
 function activate(){
@@ -78,7 +85,7 @@ function activate(){
   installStyle();modal.classList.add('single-page-registration');
   document.querySelectorAll('#sessionModal [data-reg-step]').forEach(x=>{if(!x.classList.contains('hidden'))x.classList.add('active')});
   $('regPrevBtn')?.classList.add('hidden');$('regNextBtn')?.classList.add('hidden');$('submitRegBtn')?.classList.remove('hidden');
-  memberSummary();enforceEquipment();updateSummary?.();inlineAgreement();gateSubmit();
+  memberSummary();enforceEquipment();if(typeof updateSummary==='function')updateSummary();inlineAgreement();gateSubmit();
 }
 $('agreementCheck')?.addEventListener('change',gateSubmit);
 $('submitRegBtn')?.addEventListener('click',validateAll,true);
