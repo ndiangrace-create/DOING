@@ -52,6 +52,7 @@ try{
     await page.goto(`${base}/market/?tenant=demo&admin_token=test-admin`,{waitUntil:'networkidle'});
     await page.locator('text=今天要處理的市集工作，都在這裡').waitFor();
     if(await page.locator('.mk-nav-btn').count()!==8)throw new Error(`${viewport.name}: organizer nav must have 8 items`);
+    await page.waitForFunction(()=>document.querySelectorAll('.mk-session-card').length===2);
     if(await page.locator('.mk-session-card').count()!==2)throw new Error(`${viewport.name}: expected 2 session cards`);
     if(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1))throw new Error(`${viewport.name}: organizer horizontal overflow`);
     await page.locator('[data-page="todos"]').click();await page.locator('text=審核 貓咪手作').waitFor();
