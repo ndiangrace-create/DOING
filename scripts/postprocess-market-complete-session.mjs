@@ -18,4 +18,14 @@ for(const rel of ['market/index.html','market/session/index.html']){
   if(!html.includes('doing-market-complete-session.js'))throw new Error(`complete-session enhancer missing: ${rel}`);
   fs.writeFileSync(file,html,'utf8');
 }
-console.log(JSON.stringify({result:'PASS',asset,targets:['/market/','/market/session/'],legacyDialogSelectorPreserved:true,legacySessionNameSelectorPreserved:true,asyncSessionHydration:true},null,2));
+const topicAsset='doing-market-topic-filter.js';
+const topicSrc=path.join(root,topicAsset);
+if(!fs.existsSync(topicSrc))throw new Error(`missing ${topicAsset}`);
+fs.copyFileSync(topicSrc,path.join(out,topicAsset));
+const publicFile=path.join(out,'market/public/index.html');
+let publicHtml=fs.readFileSync(publicFile,'utf8');
+const topicTag='<script src="/doing-market-topic-filter.js?v=20260826-1"></script>';
+if(!publicHtml.includes(topicTag))publicHtml=publicHtml.replace('</body>',`${topicTag}\n</body>`);
+if(!publicHtml.includes(topicAsset))throw new Error('Market topic filter enhancer missing: /market/public/');
+fs.writeFileSync(publicFile,publicHtml,'utf8');
+console.log(JSON.stringify({result:'PASS',asset,targets:['/market/','/market/session/'],publicAsset:topicAsset,publicTarget:'/market/public/',legacyDialogSelectorPreserved:true,legacySessionNameSelectorPreserved:true,asyncSessionHydration:true},null,2));
