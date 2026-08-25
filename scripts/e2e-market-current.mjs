@@ -46,14 +46,16 @@ async function fulfillApi(route,postLog=[]){const req=route.request(),action=act
 
 try{
   for(const viewport of [{width:390,height:844,name:'mobile'},{width:1440,height:1000,name:'desktop'}]){
-    const postLog=[];
+    const postLog=[],seenActions=[],pageErrors=[];
     const page=await browser.newPage({viewport:{width:viewport.width,height:viewport.height}});
-    await page.route(`${API}/**`,r=>fulfillApi(r,postLog));
+    page.on('pageerror',e=>pageErrors.push(e.message));
+    await page.route(`${API}/**`,r=>{seenActions.push(actionFrom(r.request()));return fulfillApi(r,postLog)});
     await page.goto(`${base}/market/?tenant=demo&admin_token=test-admin`,{waitUntil:'networkidle'});
     await page.locator('text=今天要處理的市集工作，都在這裡').waitFor();
     if(await page.locator('.mk-nav-btn').count()!==8)throw new Error(`${viewport.name}: organizer nav must have 8 items`);
-    await page.waitForFunction(()=>document.querySelectorAll('.mk-session-card').length===2);
-    if(await page.locator('.mk-session-card').count()!==2)throw new Error(`${viewport.name}: expected 2 session cards`);
+    await page.waitForTimeout(1200);
+    const sessionCount=await page.locator('.mk-session-card').count();
+    if(sessionCount!==2){const listText=await page.locator('#sessionList').innerText();throw new Error(`${viewport.name}: expected 2 session cards; got=${sessionCount}; list=${listText}; actions=${seenActions.join(',')}; pageErrors=${pageErrors.join(' | ')}`)}
     if(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1))throw new Error(`${viewport.name}: organizer horizontal overflow`);
     await page.locator('[data-page="todos"]').click();await page.locator('text=審核 貓咪手作').waitFor();
     await page.locator('[data-page="members"]').click();await page.locator('text=貓咪手作').waitFor();
