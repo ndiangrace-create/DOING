@@ -73,8 +73,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: doing-kawaii-home
-  cancel-in-progress: false
+  group: doing-kawaii-home-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   CF_PAGES_PROJECT: doing-2
