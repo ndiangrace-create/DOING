@@ -12,6 +12,10 @@ async function mockApi(page,{system='market',memberDirect=false}={}){
   const actions=[];
   await page.route('https://tobeloved-api.ndiangrace.workers.dev/**',async route=>{
     const req=route.request(),u=new URL(req.url());
+    if(req.method()==='OPTIONS'){
+      await route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'Content-Type'}});
+      return;
+    }
     let body={};try{body=req.postDataJSON()||{}}catch{}
     const action=body.action||u.searchParams.get('action')||'';actions.push(action);
     let data={};
@@ -26,7 +30,7 @@ async function mockApi(page,{system='market',memberDirect=false}={}){
     if(action==='createMemberWorkspaceAdminSession')data={adminToken:'admin-test-token',tenantId:'tn_test'};
     if(action==='getTenantModuleProfile')data={configured:true,useType:'generic',defaults:{registration:true},approvedFlags:{registration:true}};
     if(action==='saveTenantModuleProfile')data={configured:true,useType:'project',defaults:{registration:true}};
-    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,data})});
+    await route.fulfill({status:200,headers:{'access-control-allow-origin':'*'},contentType:'application/json',body:JSON.stringify({ok:true,data})});
   });
   return actions;
 }
