@@ -8,6 +8,7 @@ const memberToken=()=>jwt({type:'member',provider:'line',email:'owner@example.co
 const ADMIN_TOKEN=jwt({email:'owner@example.com',tenant_id:'tn_test',role:'organizer_owner',expires_at:Date.now()+3600000});
 async function mockApi(page,{system='market',memberDirect=false}={}){
   const actions=[];
+  const submittedApplications=[];
   await page.route('https://tobeloved-api.ndiangrace.workers.dev/**',async route=>{
     const req=route.request(),u=new URL(req.url());
     if(req.method()==='OPTIONS'){
@@ -24,25 +25,35 @@ async function mockApi(page,{system='market',memberDirect=false}={}){
       }else data={profile:{name:'測試申請者',email:'owner@example.com',phone:'0912345678',city:'台中市'},applications:[],workspaces:[]};
     }
     if(action==='savePlatformMemberProfile')data={ok:true};
-    if(action==='createOrganizerApplicationDraft')data={lineVerified:true,status:'approved',tenantId:'tn_test',applicationId:'APL_test'};
+    if(action==='createOrganizerApplicationDraft'){
+      submittedApplications.push(body.application||{});
+      data={lineVerified:true,status:'approved',tenantId:'tn_test',applicationId:'APL_test'};
+    }
     if(action==='createMemberWorkspaceAdminSession')data={adminToken:ADMIN_TOKEN,tenantId:'tn_test'};
     if(action==='getTenantModuleProfile')data={configured:true,useType:'generic',defaults:{registration:true},approvedFlags:{registration:true}};
     if(action==='saveTenantModuleProfile')data={configured:true,useType:'project',defaults:{registration:true}};
     await route.fulfill({status:200,headers:{'access-control-allow-origin':'*'},contentType:'application/json',body:JSON.stringify({ok:true,data})});
   });
+  actions.submittedApplications=submittedApplications;
   return actions;
 }
 async function testApplication(system,target){
   const page=await browser.newPage({viewport:{width:390,height:844}}),token=memberToken();
   const actions=await mockApi(page,{system});
-  const values={unit:'測試工作室',owner:'測試申請者',phone:'0912345678',email:'owner@example.com',region:'台中市',link1:'https://example.com/',link2:''};
-  await page.addInitScript(({system,values})=>sessionStorage.setItem('doing_apply_current_v1',JSON.stringify({createdAt:Date.now(),system,values})),{system,values});
+  const slug=`test-${system}`;
+  const values={unit:'測試工作室',systemAccount:slug,owner:'測試申請者',phone:'0912345678',email:'owner@example.com',region:'台中市',link1:'https://example.com/',link2:''};
+  await page.addInitScript(({system,values})=>sessionStorage.setItem('doing_apply_current_v2',JSON.stringify({createdAt:Date.now(),system,values})),{system,values});
   await page.goto(`${base}/apply/?system=${system}&resume=1&member_token=${encodeURIComponent(token)}`,{waitUntil:'domcontentloaded'});
   await page.waitForURL(u=>u.pathname===target&&u.searchParams.get('tenant')==='tn_test'&&u.searchParams.get('admin_token')===ADMIN_TOKEN,{timeout:10000});
   assert.ok(actions.includes('getPlatformMemberProfile'),`${system}: member profile not verified`);
   assert.ok(actions.includes('savePlatformMemberProfile'),`${system}: member profile not saved`);
   assert.ok(actions.includes('createOrganizerApplicationDraft'),`${system}: application not created`);
   assert.ok(actions.includes('createMemberWorkspaceAdminSession'),`${system}: workspace session not created`);
+  assert.equal(actions.submittedApplications.length,1,`${system}: application payload count mismatch`);
+  assert.equal(actions.submittedApplications[0].tenantSlug,slug,`${system}: tenant slug not stored in application payload`);
+  assert.equal(actions.submittedApplications[0].requestedTenantSlug,slug,`${system}: requested tenant slug missing`);
+  assert.equal(actions.submittedApplications[0].routeContract?.tenantSlug,slug,`${system}: route contract tenant slug missing`);
+  assert.equal(actions.submittedApplications[0].routeContract?.publicPath,`/${system}/${slug}/`,`${system}: route contract public path mismatch`);
   if(system==='project'){
     assert.ok(actions.includes('getTenantModuleProfile'),'project: module profile not read');
     assert.ok(actions.includes('saveTenantModuleProfile'),'project: project profile not persisted');
@@ -60,8 +71,21 @@ async function testMemberDirect(system,target){
 }
 try{
   const choice=await browser.newPage({viewport:{width:390,height:844}});
-  await choice.goto(base+'/apply/',{waitUntil:'domcontentloaded'});
+  await choice.goto(base+'/apply/?system=market',{waitUntil:'domcontentloaded'});
   assert.equal(await choice.locator('[data-system]').count(),3,'/apply/ must show exactly three public systems');
+  assert.equal(await choice.locator('#systemAccount').count(),1,'application must include one tenant system account field');
+  await choice.locator('#systemAccount').fill('demo-market');
+  assert.equal(await choice.locator('#systemUrlPreview').textContent(),`${base}/market/demo-market/`,'market tenant URL preview mismatch');
+  await choice.locator('#systemAccount').fill('market');
+  await choice.locator('#unit').fill('測試工作室');
+  await choice.locator('#owner').fill('測試申請者');
+  await choice.locator('#phone').fill('0912345678');
+  await choice.locator('#email').fill('owner@example.com');
+  await choice.locator('#region').selectOption({label:'台中市'});
+  await choice.locator('#link1').fill('https://example.com/');
+  await choice.locator('#applyForm').evaluate(form=>form.requestSubmit());
+  await choice.waitForTimeout(50);
+  assert.match(await choice.locator('#statusBox').textContent(),/保留字/,'reserved tenant slug must be rejected before LINE');
   assert.equal(await choice.locator('text=這個操作頁正在重新建置').count(),0,'/apply/ must not be rebuild shell');
   assert.equal(await choice.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1),false,'apply mobile horizontal overflow');
   await choice.close();
@@ -73,5 +97,5 @@ try{
   await testMemberDirect('project','/project/');
   await testMemberDirect('booking','/booking/');
 
-  console.log(JSON.stringify({result:'PASS',applyRoute:'/apply/',publicSystems:3,lineMode:'member-standard-sso',applicationReturnPreserved:true,directTargets:{market:'/market/',project:'/project/',booking:'/booking/'},memberFreshLoginDirect:true,newRoutes:0,databaseSchemaChanges:0,twoBlChanges:0},null,2));
+  console.log(JSON.stringify({result:'PASS',applyRoute:'/apply/',publicSystems:3,tenantSystemAccount:true,tenantSlugSavedInApplication:true,tenantUrlPatterns:{market:'/market/{tenant-slug}/',project:'/project/{tenant-slug}/',booking:'/booking/{tenant-slug}/'},lineMode:'member-standard-sso',applicationReturnPreserved:true,directTargets:{market:'/market/',project:'/project/',booking:'/booking/'},memberFreshLoginDirect:true,newRoutes:0,databaseSchemaChanges:0,twoBlChanges:0},null,2));
 } finally {await browser.close()}
