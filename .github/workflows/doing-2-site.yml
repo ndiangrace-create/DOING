@@ -122,12 +122,13 @@ jobs:
           grep -q 'getMembers' .doing-2-site/market/index.html
           grep -q 'doing-market-entry-current.js' .doing-2-site/market/index.html
           grep -q 'frontBootstrap' .doing-2-site/market/public/index.html
-          grep -q 'publicDiscovery' .doing-2-site/market/public/index.html
-          grep -q 'doingMarketGlobalBootstrap' .doing-2-site/market/public/index.html
           grep -q 'openRegistration' .doing-2-site/market/public/index.html
           grep -q 'market-2bl-front' .doing-2-site/market/public/index.html
           grep -q 'doing-market-public-2bl.js' .doing-2-site/market/public/index.html
           grep -q 'bottom-nav' .doing-2-site/market/public/index.html
+          grep -q 'publicDiscovery' .doing-2-site/doing-market-public-2bl.js
+          grep -q 'doingMarketGlobalBootstrap' .doing-2-site/doing-market-public-2bl.js
+          grep -q '立即報名' .doing-2-site/doing-market-public-2bl.js
           ! grep -q 'registerUrl(' .doing-2-site/market/public/index.html
           ! grep -q 'href="/register/' .doing-2-site/market/public/index.html
           grep -q 'adminSeatBoard' .doing-2-site/market/session/index.html
