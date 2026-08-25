@@ -27,9 +27,10 @@ try{
 
     const cards=page.locator('.system-card');
     if(await cards.count()!==3)throw new Error(`${viewport.name}: public system card count mismatch`);
+    const expectedApply=['/apply/?system=market','/apply/?system=project','/apply/?system=booking'];
     for(let i=0;i<3;i++){
       const action=cards.nth(i).locator('.system-action');
-      if(await action.getAttribute('href')!=='/apply/')throw new Error(`${viewport.name}: system ${i+1} must apply independently`);
+      if(await action.getAttribute('href')!==expectedApply[i])throw new Error(`${viewport.name}: system ${i+1} application target mismatch`);
     }
 
     const bottom=page.locator('.bottom-nav .jelly');
@@ -93,5 +94,5 @@ try{
   if(transientOauthStarts!==0)throw new Error('auth: transient API failure incorrectly restarted LINE OAuth');
   await transientPage.close();
 
-  console.log(JSON.stringify({result:'PASS',viewports:['390x844','1440x1000'],homepage:'approved-three-system-layout',logoNaturalSize:'1056x412',logoUpscale:false,publicSystemCount:3,bottomNav:true,memberLoginEntry:true,duplicateLineOAuthRace:false,transientMemberLoadKeepsToken:true,horizontalOverflow:false}));
+  console.log(JSON.stringify({result:'PASS',viewports:['390x844','1440x1000'],homepage:'approved-three-system-layout',fixedApplicationLinks:true,logoNaturalSize:'1056x412',logoUpscale:false,publicSystemCount:3,bottomNav:true,memberLoginEntry:true,duplicateLineOAuthRace:false,transientMemberLoadKeepsToken:true,horizontalOverflow:false}));
 } finally { await browser.close(); }

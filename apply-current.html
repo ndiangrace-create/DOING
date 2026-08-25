@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fff7fb">
+<title>DOING｜申請使用</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/doing-kawaii-current.css?v=20260825-3">
+<style>
+.apply-shell{max-width:880px}.apply-logo{height:52px;width:auto}.product-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.product-choice{border:3px solid rgba(255,255,255,.95);border-radius:24px;background:rgba(255,255,255,.9);padding:18px;text-align:left;box-shadow:0 12px 28px rgba(184,176,218,.18);cursor:pointer}.product-choice strong{display:block;font-size:18px;color:#3d4250}.product-choice span{display:block;margin-top:6px;color:#687080;font-weight:700;font-size:13px;line-height:1.6}.product-choice.active{outline:3px solid #c9c4ff;background:#faf8ff}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:14px;font-weight:900;color:#545a68}.field input,.field select{width:100%;min-height:46px;border:2px solid #ebe7f3;border-radius:14px;background:#fff;padding:10px 12px;font:inherit;color:#343946;outline:none}.field input:focus,.field select:focus{border-color:#b8acec;box-shadow:0 0 0 3px rgba(184,172,236,.16)}.status-box{display:none;border-radius:18px;padding:14px 16px;font-weight:800;line-height:1.65}.status-box.show{display:block}.status-info{background:#eef7ff;color:#496b82}.status-error{background:#fff0f2;color:#a24a5e}.status-success{background:#effbdc;color:#58752a}.system-banner{display:flex;align-items:center;gap:14px}.system-icon{display:grid;width:58px;height:58px;place-items:center;border-radius:18px;background:#f4f1ff;font-size:30px}.system-banner h1{margin:0;font-size:25px;font-weight:950;color:#6658bc}.system-banner p{margin:4px 0 0;color:#687080;font-weight:750}.line-note{font-size:13px;color:#6d7480;font-weight:750;line-height:1.6}.actions{display:flex;gap:10px;flex-wrap:wrap}.actions button,.actions a{min-height:48px}.hidden-force{display:none!important}@media(max-width:640px){.product-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.apply-logo{height:44px}.system-banner h1{font-size:22px}}
+</style>
+</head>
+<body class="doing-kawaii min-h-screen text-slate-800">
+<div class="watercolor-surface" aria-hidden="true"></div>
+<header class="relative z-20 mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 pt-5 sm:px-6">
+  <a href="/" class="inline-flex items-center gap-2"><img class="apply-logo" src="/doing-logo.png?v=20260825-6" alt="DOING"><span class="hidden text-sm font-black text-[#7369a7] sm:inline">回首頁</span></a>
+  <a class="mini-jelly mini-jelly-lilac" href="/me/">租戶登入</a>
+</header>
+<main class="apply-shell relative z-10 mx-auto w-full px-4 pb-24 pt-8 sm:px-6">
+  <section id="chooseView" class="soft-panel p-6 sm:p-8">
+    <span class="kawaii-kicker">申請 DOING</span>
+    <h1 class="mt-3 text-3xl font-black text-[#6658bc]">先選你要使用的系統</h1>
+    <p class="mt-2 font-bold leading-7 text-slate-600">三套系統使用同一份申請資料；你從哪一套申請，就只開通那一套。</p>
+    <div class="product-grid mt-6">
+      <button class="product-choice" type="button" data-system="market"><strong>🎪 市集活動系統</strong><span>報名、審核、付款、排位、通知、現場與結案。</span></button>
+      <button class="product-choice" type="button" data-system="project"><strong>🏠 室內設計進度系統</strong><span>專案、階段、照片、報價、付款、支出與驗收。</span></button>
+      <button class="product-choice" type="button" data-system="booking"><strong>💅 美類預約系統</strong><span>服務、空檔、人員排班、顧客預約與提醒。</span></button>
+    </div>
+  </section>
+
+  <section id="formView" class="hidden-force">
+    <div class="soft-panel p-6 sm:p-8">
+      <div class="system-banner"><div id="systemIcon" class="system-icon">🎪</div><div><span class="kawaii-kicker">申請使用</span><h1 id="systemName">市集活動系統</h1><p>資料填一次，LINE 驗證成功後會開啟你申請的這一套系統。</p></div></div>
+    </div>
+
+    <form id="applyForm" class="soft-panel mt-5 p-6 sm:p-8" novalidate>
+      <div class="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-xl font-black">申請資料</h2><p class="mt-1 text-sm font-bold text-slate-500">三套系統欄位相同；品牌／社群／官網只要提供一個可查看網址即可。</p></div><button id="changeSystem" class="filter-chip" type="button">換一套系統</button></div>
+      <div class="form-grid">
+        <div class="field"><label for="unit">營運單位／品牌／工作室 *</label><input id="unit" autocomplete="organization"></div>
+        <div class="field"><label for="owner">姓名 *</label><input id="owner" autocomplete="name"></div>
+        <div class="field"><label for="phone">聯絡電話 *</label><input id="phone" inputmode="tel" autocomplete="tel"></div>
+        <div class="field"><label for="email">Email *</label><input id="email" type="email" autocomplete="email"></div>
+        <div class="field"><label for="region">所在地區 *</label><select id="region"><option value="">請選擇</option><option>台北市</option><option>新北市</option><option>桃園市</option><option>新竹市／新竹縣</option><option>苗栗縣</option><option>台中市</option><option>彰化縣</option><option>南投縣</option><option>雲林縣</option><option>嘉義市／嘉義縣</option><option>台南市</option><option>高雄市</option><option>屏東縣</option><option>宜蘭縣</option><option>花蓮縣</option><option>台東縣</option><option>離島／其他</option></select></div>
+        <div class="field"><label for="link1">品牌／社群／官網 *</label><input id="link1" placeholder="Facebook、Instagram、官網或作品頁其中一個" inputmode="url"></div>
+        <div class="field full"><label for="link2">第二個網址（選填）</label><input id="link2" placeholder="沒有可留空" inputmode="url"></div>
+      </div>
+      <div id="statusBox" class="status-box mt-5" aria-live="polite"></div>
+      <div class="actions mt-6"><button id="submitBtn" class="jelly-cta jelly-cta-lilac" type="submit">LINE 驗證並開通</button><a class="jelly-cta jelly-cta-blue" href="/">先回首頁</a></div>
+      <p class="line-note mt-4">LINE 只用來確認申請人身分。若瀏覽器已有 LINE 登入狀態，LINE 會直接進入確認流程；沒有登入狀態時，由 LINE 顯示可用的登入方式。</p>
+    </form>
+  </section>
+</main>
+<script>
+'use strict';
+const API='https://tobeloved-api.ndiangrace.workers.dev';
+const TOKEN_KEY='doing_member_token';
+const SNAPSHOT_KEY='doing_apply_current_v1';
+const SYSTEMS={
+  market:{name:'市集活動系統',icon:'🎪',route:'/market/',useCases:['market'],industries:['market_retail','event_exhibition'],subtype:'market',useType:'market',modules:['活動與場次','報名審核','付款退款','視覺化排位','通知','現場報到','財務結案']},
+  project:{name:'室內設計進度系統',icon:'🏠',route:'/project/',useCases:['general'],industries:['professional_service'],subtype:'interior',useType:'project',modules:['工程專案','工程階段','進度更新','照片檔案','報價','付款','支出','驗收']},
+  booking:{name:'美類預約系統',icon:'💅',route:'/booking/',useCases:['beauty','service_booking'],industries:['beauty_wellness'],subtype:'beauty',useType:'beauty',modules:['服務項目','服務人員','預約日曆','空檔規則','臨時休息','顧客預約','通知提醒','收款訂金']}
+};
+const $=id=>document.getElementById(id);
+let system='';
+function validSystem(v){return Object.prototype.hasOwnProperty.call(SYSTEMS,v)?v:''}
+function showStatus(text,type='info'){const box=$('statusBox');box.textContent=text;box.className='status-box show mt-5 status-'+type}
+function clearStatus(){const box=$('statusBox');box.textContent='';box.className='status-box mt-5'}
+function normalizeUrl(v){v=String(v||'').trim();if(!v)return'';try{const u=new URL(/^https?:\/\//i.test(v)?v:'https://'+v);return u.hostname.includes('.')?u.toString():''}catch(_){return''}}
+function parseJwt(token){try{const p=String(token||'').split('.');if(p.length!==3)return null;const s=p[1].replace(/-/g,'+').replace(/_/g,'/');const raw=atob(s+'='.repeat((4-s.length%4)%4));return JSON.parse(decodeURIComponent(Array.from(raw,c=>'%'+c.charCodeAt(0).toString(16).padStart(2,'0')).join('')))}catch(_){return null}}
+function jwtEmail(token){return String(parseJwt(token)?.email||'')}
+function usableToken(token){const p=parseJwt(token);return !!(p&&p.type==='member'&&p.provider==='line'&&(!p.expires_at||Number(p.expires_at)>Date.now()+30000))}
+async function apiGet(action,params={}){const u=new URL(API);u.searchParams.set('action',action);Object.entries(params).forEach(([k,v])=>{if(v!==undefined&&v!==null&&v!=='')u.searchParams.set(k,String(v))});const r=await fetch(u,{cache:'no-store'}),d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false||d.error){const e=Error(d.error||'載入失敗');e.status=r.status;throw e}return d.data??d.result??d}
+async function apiPost(action,body={}){const r=await fetch(API+'?action='+encodeURIComponent(action),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...body})}),d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false||d.error){const e=Error(d.error||'操作失敗');e.status=r.status;throw e}return d.data??d.result??d}
+function selectSystem(key,replace=true){system=validSystem(key);if(!system){$('chooseView').classList.remove('hidden-force');$('formView').classList.add('hidden-force');return}$('chooseView').classList.add('hidden-force');$('formView').classList.remove('hidden-force');$('systemIcon').textContent=SYSTEMS[system].icon;$('systemName').textContent=SYSTEMS[system].name;document.title='DOING｜申請'+SYSTEMS[system].name;if(replace){const u=new URL(location.href);u.searchParams.set('system',system);history.replaceState({},'',u.toString())}}
+function values(){return{unit:$('unit').value.trim(),owner:$('owner').value.trim(),phone:$('phone').value.trim(),email:$('email').value.trim(),region:$('region').value,link1:normalizeUrl($('link1').value),link2:normalizeUrl($('link2').value)}}
+function restore(v){if(!v)return;for(const k of ['unit','owner','phone','email','region','link1','link2'])if($(k)&&v[k])$(k).value=v[k]}
+function validate(v){if(!system)return'請先選擇要申請的系統。';if(!v.unit||!v.owner||!v.phone||!v.email||!v.region)return'請把有 * 的資料填完整。';if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email))return'Email 格式不正確。';if(!v.link1)return'品牌、社群、官網或作品頁至少提供一個可開啟網址。';return''}
+function snapshot(v){sessionStorage.setItem(SNAPSHOT_KEY,JSON.stringify({createdAt:Date.now(),system,values:v}))}
+function readSnapshot(){try{const x=JSON.parse(sessionStorage.getItem(SNAPSHOT_KEY)||'null');if(!x||Date.now()-Number(x.createdAt||0)>30*60*1000)return null;return x}catch(_){return null}}
+function clearSnapshot(){sessionStorage.removeItem(SNAPSHOT_KEY)}
+function lineReturn(){const u=new URL('/apply/',location.origin);u.searchParams.set('system',system);u.searchParams.set('resume','1');return u.toString()}
+function startLine(){showStatus('正在前往 LINE 確認身分…');const u=new URL(API+'/auth/line/start');u.searchParams.set('mode','member');u.searchParams.set('return_url',lineReturn());location.assign(u.toString())}
+async function ensureMember(token,v){const p=await apiGet('getPlatformMemberProfile',{member_token:token});const profile=p.profile||p.member||{};if(!$('owner').value&&profile.name)$('owner').value=profile.name;if(!$('email').value&&profile.email)$('email').value=profile.email;if(!$('phone').value&&profile.phone)$('phone').value=profile.phone;if(!$('region').value&&profile.city)$('region').value=profile.city;await apiPost('savePlatformMemberProfile',{member_token:token,name:v.owner,email:v.email,phone:v.phone,city:v.region})}
+function application(v){const s=SYSTEMS[system];return{requestedSystem:system,activationProfile:{version:8,architecture:'doing_3_public_systems',products:[system],subtypes:{[system]:[s.subtype]},modules:s.modules},unitName:v.unit,ownerName:v.owner,contactName:v.owner,phone:v.phone,email:v.email,contactEmail:v.email,region:v.region,industryCategories:s.industries,useCases:s.useCases,workSituations:system==='project'?['team']:system==='booking'?['appointment']:[],painPoints:['other'],primaryPainPoint:'other',otherPainPoint:'DOING 公開系統申請',assistantAnalysis:{confirmed:true,scope:'doing_only',topic:'summary',reply:'使用者已選定一套 DOING 工作系統並完成正式申請資料。'},publicLinks:[v.link1,v.link2].filter(Boolean),noPublicLink:false,confirmations:{confirmReal:true,confirmUse:true,confirmReview:true},operationStage:'operating',helperUnderstanding:{version:8,fixedPublicSystem:true,requestedSystem:system,confirmed:true}}}
+async function ensureProjectProfile(tenant,adminToken){if(system!=='project')return;const email=jwtEmail(adminToken);if(!email)throw Error('工程系統登入資料不完整');const u=new URL(API);u.searchParams.set('action','getTenantModuleProfile');u.searchParams.set('tenant',tenant);u.searchParams.set('token',adminToken);u.searchParams.set('email',email);const r=await fetch(u,{cache:'no-store'}),d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false||d.error)throw Error(d.error||'無法確認工程系統權限');const p=d.data??d.result??d;await apiPost('saveTenantModuleProfile',{tenant,token:adminToken,email,useType:'project',defaults:p.defaults||{}})}
+async function openSystem(tenantId,memberToken){showStatus('系統已開通，正在進入 '+SYSTEMS[system].name+'…','success');const sess=await apiPost('createMemberWorkspaceAdminSession',{member_token:memberToken,tenantId});const adminToken=sess.adminToken||sess.admin_token||'';const tenant=String(sess.tenantId||sess.tenant_id||tenantId);if(!adminToken)throw Error('工作空間登入建立失敗');await ensureProjectProfile(tenant,adminToken);const u=new URL(SYSTEMS[system].route,location.origin);u.searchParams.set('tenant',tenant);u.searchParams.set('admin_token',adminToken);clearSnapshot();location.replace(u.toString())}
+async function submitWithToken(v,token){const btn=$('submitBtn');btn.disabled=true;btn.textContent='正在確認…';try{await ensureMember(token,v);showStatus('LINE 身分已確認，正在建立 '+SYSTEMS[system].name+'…');const d=await apiPost('createOrganizerApplicationDraft',{application:application(v),member_token:token});if(d.existingWorkspace){clearSnapshot();showStatus('這個 LINE 帳號已經有自己的 DOING 工作空間，請先從「我的 DOING」進入。','info');btn.textContent='前往我的 DOING';btn.disabled=false;btn.onclick=()=>location.assign('/me/#operations');return}if(d.lineVerified&&String(d.status||'').toLowerCase()==='approved'&&d.tenantId){await openSystem(d.tenantId,token);return}if(d.lineVerified){clearSnapshot();showStatus(String(d.status||'pending')==='manual_review'?'LINE 驗證已完成，這筆申請需要 DOING 人員確認。':'LINE 驗證已完成，系統正在建立工作空間。','info');btn.textContent='查看我的 DOING';btn.disabled=false;btn.onclick=()=>location.assign('/me/#operations');return}throw Error('LINE 已登入，但這次申請沒有完成驗證，請重新送出。')}catch(e){if(Number(e.status)===401||/登入已失效|重新登入|invalid|expired/i.test(String(e.message||''))){localStorage.removeItem(TOKEN_KEY);snapshot(v);startLine();return}showStatus(e.message||'申請沒有完成，請再試一次。','error');btn.disabled=false;btn.textContent='LINE 驗證並開通'}}
+async function submit(e){e?.preventDefault();clearStatus();const v=values(),msg=validate(v);if(msg){showStatus(msg,'error');return}snapshot(v);let token=localStorage.getItem(TOKEN_KEY)||'';if(!usableToken(token)){localStorage.removeItem(TOKEN_KEY);startLine();return}await submitWithToken(v,token)}
+async function prefill(){const token=localStorage.getItem(TOKEN_KEY)||'';if(!usableToken(token))return;try{const d=await apiGet('getPlatformMemberProfile',{member_token:token}),p=d.profile||d.member||{};if(p.name)$('owner').value=p.name;if(p.email)$('email').value=p.email;if(p.phone)$('phone').value=p.phone;if(p.city)$('region').value=p.city}catch(_){}}
+async function init(){const u=new URL(location.href);const incoming=u.searchParams.get('member_token')||'';const err=u.searchParams.get('member_login_error')||u.searchParams.get('login_error')||'';const resume=u.searchParams.get('resume')==='1';selectSystem(validSystem(u.searchParams.get('system')),false);if(incoming)localStorage.setItem(TOKEN_KEY,incoming);if(incoming||err){u.searchParams.delete('member_token');u.searchParams.delete('member_status');u.searchParams.delete('member_login_error');u.searchParams.delete('login_error');history.replaceState({},'',u.toString())}if(err){showStatus(err==='line_cancelled'?'你已取消 LINE 登入。':'LINE 登入沒有完成，請再試一次。','error')}if(!system)return;const snap=readSnapshot();if(snap&&snap.system===system)restore(snap.values);else await prefill();if(resume&&incoming&&snap&&snap.system===system){const v=snap.values,problem=validate(v);if(problem){showStatus(problem,'error');return}await submitWithToken(v,incoming)}}
+document.querySelectorAll('[data-system]').forEach(b=>b.onclick=()=>selectSystem(b.dataset.system));$('changeSystem').onclick=()=>{system='';const u=new URL('/apply/',location.origin);location.assign(u.toString())};$('applyForm').addEventListener('submit',submit);init();
+</script>
+</body>
+</html>
