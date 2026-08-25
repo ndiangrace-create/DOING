@@ -41,11 +41,7 @@ for(const asset of ['doing-kawaii-current.css','doing-home-v4.css','doing-home-c
 
 const logoDir=path.join(root,'.assets','doing-logo-new');
 const logoParts=['part0.txt','part1.txt','part2.txt','p3c0.txt','p3c1a.txt','p3c1b0a.txt','p3c1b0b0.txt','p3c1b0b1.txt','p3c1b1.txt','p3c2.txt','p3c3.txt','p3c4.txt','part4.txt','part5.txt'];
-const logoBase64=logoParts.map(name=>{
-  const p=path.join(logoDir,name);
-  if(!fs.existsSync(p))throw new Error(`missing logo source part: ${p}`);
-  return fs.readFileSync(p,'utf8').trim();
-}).join('');
+const logoBase64=logoParts.map(name=>{const p=path.join(logoDir,name);if(!fs.existsSync(p))throw new Error(`missing logo source part: ${p}`);return fs.readFileSync(p,'utf8').trim()}).join('');
 const logoBytes=Buffer.from(logoBase64,'base64');
 const logoHash=crypto.createHash('sha256').update(logoBytes).digest('hex');
 const logoWidth=logoBytes.length>=24?logoBytes.readUInt32BE(16):0;
@@ -54,7 +50,7 @@ const expectedLogoHash='f3db93bf278cc2880e8f863eea97dba20b4d7fb44525ab3d658e2c53
 if(logoBytes.length!==63375||logoBytes[0]!==0x89||logoBytes[1]!==0x50||logoBytes[2]!==0x4e||logoBytes[3]!==0x47||logoWidth!==1056||logoHeight!==412||logoHash!==expectedLogoHash)throw new Error(`invalid DOING logo reconstruction: bytes=${logoBytes.length} size=${logoWidth}x${logoHeight} sha256=${logoHash}`);
 fs.writeFileSync(path.join(out,'doing-logo.png'),logoBytes);
 
-fs.writeFileSync(path.join(out,'_headers'),`/*\n  Cache-Control: no-store, max-age=0\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`, 'utf8');
+fs.writeFileSync(path.join(out,'_headers'),`/*\n  Cache-Control: no-store, max-age=0\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`,'utf8');
 fs.writeFileSync(path.join(out,'_redirects'),legacyRedirects.map(([a,b])=>`${a} ${b} 301`).join('\n')+'\n','utf8');
 
 const allRoutes=[...Object.keys(sourceRoutes),...Object.keys(shellRoutes)];
@@ -73,13 +69,22 @@ for(const route of Object.keys(sourceRoutes)){
   if(route==='/'&&!html.includes('doing-home-v4.css'))throw new Error(`homepage visual missing: ${route}`);
   if(route!=='/'&&!html.includes('doing-kawaii-current.css'))throw new Error(`kawaii visual missing: ${route}`);
 }
+
 const home=fs.readFileSync(path.join(out,'index.html'),'utf8');
 for(const token of ['市集活動系統','室內設計進度系統','美類預約系統','斜槓人生小幫手','申請市集活動系統','申請室內設計系統','申請美類預約系統','/apply/?system=market','/apply/?system=project','/apply/?system=booking','/me/','doing-home-v4.css'])if(!home.includes(token))throw new Error(`home contract missing: ${token}`);
 for(const removed of ['doingSearch','jelly-search','搜尋市集、工程進度、美類預約','benefit-grid','benefit-card','系統亮點','看圖就知道 DOING 幫你省掉哪些麻煩','audience-strip','audience-card','一個帳號，多種身分','共用同一','資料只留一份','需要什麼再加什麼','手機與電腦同一套'])if(home.includes(removed))throw new Error(`private/removed homepage copy leaked: ${removed}`);
-const member=fs.readFileSync(path.join(out,'me/index.html'),'utf8');for(const token of ['auth/line/start','getPlatformMemberProfile','createMemberWorkspaceAdminSession'])if(!member.includes(token))throw new Error(`member auth contract missing: ${token}`);
-const apply=fs.readFileSync(path.join(out,'apply/index.html'),'utf8');
-for(const token of ['data-system="market"','data-system="project"','data-system="booking"','createOrganizerApplicationDraft','auth/line/start','createMemberWorkspaceAdminSession','/market/','/project/','/booking/'])if(!apply.includes(token))throw new Error(`application contract missing: ${token}`);
-if(apply.includes('data-doing-ui-state="rebuild-shell"'))throw new Error('application route regressed to rebuild shell');
-const workspace=fs.readFileSync(path.join(out,'workspace/index.html'),'utf8');for(const token of ['getTenantModuleProfile','adminMe','市集活動系統','室內設計系統','美類預約系統'])if(!workspace.includes(token))throw new Error(`workspace contract missing: ${token}`);
 
-console.log(JSON.stringify({result:'PASS',mode:'apply-login-current',routeCount:allRoutes.length,liveRoutes:Object.keys(sourceRoutes),shellRoutes:Object.keys(shellRoutes),tenantLogin:true,applicationLive:true,applicationSystems:['market','project','booking'],directAfterActivation:true,search:false,tagline:'斜槓人生小幫手',publicSystemsOnly:true,publicSystemCount:3,benefitGrid:false,audienceSplit:false,logo:{bytes:logoBytes.length,width:logoWidth,height:logoHeight,sha256:logoHash},databaseWrites:0,workerChangeScope:'none',twoBlChanges:0},null,2));
+const member=fs.readFileSync(path.join(out,'me/index.html'),'utf8');
+for(const token of ['auth/line/start','getPlatformMemberProfile','createMemberWorkspaceAdminSession','getTenantModuleProfile','approvedFlags','workModules','data-system-entry'])if(!member.includes(token))throw new Error(`member entitlement contract missing: ${token}`);
+for(const forbidden of ['inferSystem(','applications.useCases'])if(member.includes(forbidden))throw new Error(`member must not infer system authorization: ${forbidden}`);
+
+const apply=fs.readFileSync(path.join(out,'apply/index.html'),'utf8');
+for(const token of ['data-system="market"','data-system="project"','data-system="booking"','requestedSystem:system','createOrganizerApplicationDraft','auth/line/start','createMemberWorkspaceAdminSession','/market/','/project/','/booking/'])if(!apply.includes(token))throw new Error(`application contract missing: ${token}`);
+if(apply.includes('data-doing-ui-state="rebuild-shell"'))throw new Error('application route regressed to rebuild shell');
+for(const forbidden of ['existingWorkspace','saveTenantModuleProfile','ensureProjectProfile'])if(apply.includes(forbidden))throw new Error(`application still contains old one-workspace blocking logic: ${forbidden}`);
+
+const workspace=fs.readFileSync(path.join(out,'workspace/index.html'),'utf8');
+for(const token of ['getTenantModuleProfile','approvedFlags','workModules','市集活動系統','室內設計進度系統','美類預約系統','data-module-card'])if(!workspace.includes(token))throw new Error(`workspace entitlement contract missing: ${token}`);
+if(workspace.includes('尚未確認權限'))throw new Error('workspace must not render unentitled systems as disabled cards');
+
+console.log(JSON.stringify({result:'PASS',mode:'system-entitlement-current',routeCount:allRoutes.length,liveRoutes:Object.keys(sourceRoutes),shellRoutes:Object.keys(shellRoutes),identityModel:'one-member-one-owned-tenant-multi-system',entitlementSSOT:'tenant_settings.module_flags_json.workModules',tenantLogin:true,applicationLive:true,applicationSystems:['market','project','booking'],directAfterActivation:true,unentitledSystemsVisible:false,useCasesAuthorization:false,search:false,tagline:'斜槓人生小幫手',publicSystemsOnly:true,publicSystemCount:3,logo:{bytes:logoBytes.length,width:logoWidth,height:logoHeight,sha256:logoHash},databaseWrites:0,workerChangeScope:'none',twoBlChanges:0},null,2));
