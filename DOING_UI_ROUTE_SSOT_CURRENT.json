@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-25-clean-slate",
-  "state": "rebuild-shells",
+  "version": "2026-08-25-tenant-slug-navigation",
+  "state": "decision-gate-approved-prototype-next",
   "formalRoutes": [
     "/",
     "/market/",
@@ -15,6 +15,16 @@
     "/register/",
     "/world-tree/"
   ],
+  "routePatterns": {
+    "marketTenant": "/market/{tenant-slug}/",
+    "projectTenant": "/project/{tenant-slug}/",
+    "bookingTenant": "/booking/{tenant-slug}/"
+  },
+  "tenantRouteKey": "tenants.slug",
+  "memberIdentityInUrl": false,
+  "urlGrantsPermission": false,
+  "applicationCapturesRequestedTenantSlug": true,
+  "dynamicTenantRoutesPublished": false,
   "publishedOperationUi": false,
   "workerChanged": false,
   "databaseChanged": false,
