@@ -34,6 +34,20 @@ function payload(action){
     default: return {ok:true,success:true,id:action==='createSession'?'S2':undefined,sent:1,skipped:0,count:1};
   }
 }
+function requestAction(req){
+  try{
+    if(req.method()==='POST')return String(req.postDataJSON?.()?.action||'');
+    return String(new URL(req.url()).searchParams.get('action')||'');
+  }catch(_){return''}
+}
+async function waitAction(page,action,trigger,method='POST'){
+  const responsePromise=page.waitForResponse(res=>res.request().method()===method&&requestAction(res.request())===action,{timeout:10000});
+  await trigger();
+  const response=await responsePromise;
+  assert.equal(response.ok(),true,`${action} response not ok`);
+  return response;
+}
+async function waitEnabled(page,id){await page.waitForFunction(key=>{const el=document.getElementById(key);return !!el&&!el.disabled},id,{timeout:10000})}
 async function installMock(page){
   await page.route(`${API}/**`,async route=>{
     const req=route.request();
@@ -59,19 +73,36 @@ async function adminJourney(browser,viewport){
   await page.goto(`${BASE}/market/session/?tenant=demo&admin_token=${encodeURIComponent(adminToken)}&sessionId=S1`);await page.waitForSelector('#kpis .mk-stat');
   assert.equal(await page.locator('.mk-session-tabs button').count(),8);
   for(const name of ['registrations','payments','seat','notice','onsite','closeout','settings','overview']){await page.locator(`.mk-session-tabs button[data-tab="${name}"]`).click();assert.equal(await page.locator(`#${name}`).evaluate(e=>e.classList.contains('active')),true)}
-  await page.locator('[data-tab="registrations"]').click();await page.locator('[data-status="已錄取"]').first().click();
-  await page.locator('[data-tab="payments"]').click();if(await page.locator('[data-confirm-pay]').count())await page.locator('[data-confirm-pay]').first().click();if(await page.locator('[data-remind]').count())await page.locator('[data-remind]').first().click();
-  await page.locator('[data-tab="seat"]').click();await page.waitForSelector('#seatBoard .mk-seat');await page.locator('#assignReg').selectOption('R4');await page.locator('#assignStall').selectOption('A01');await page.locator('#assignSeat').click();await page.locator('#batchSeat').click();if(await page.locator('[data-unassign]').count())await page.locator('[data-unassign]').first().click();await page.locator('#addEquip').click();await page.locator('#saveEquip').click();
-  await page.locator('[data-tab="notice"]').click();await page.locator('#noticeContent').fill('測試行前通知');await page.locator('#sendNotice').click();await page.locator('#remindUnpaid').click();
-  await page.locator('[data-tab="onsite"]').click();if(await page.locator('[data-checkin]').count())await page.locator('[data-checkin]').first().click();
-  await page.locator('[data-tab="closeout"]').click();await page.waitForTimeout(50);if(await page.locator('[data-refund]').count())await page.locator('[data-refund]').first().click();
-  await page.locator('[data-tab="settings"]').click();await page.locator('#setName').fill('測試市集更新');await page.locator('#saveSession').click();
+
+  await page.locator('[data-tab="registrations"]').click();
+  await waitAction(page,'updateRegStatus',()=>page.locator('[data-status="已錄取"]').first().click());
+
+  await page.locator('[data-tab="payments"]').click();
+  if(await page.locator('[data-confirm-pay]').count()){await waitAction(page,'confirmPayment',()=>page.locator('[data-confirm-pay]').first().click());await page.waitForTimeout(0)}
+  if(await page.locator('[data-remind]').count())await waitAction(page,'sendPaymentReminder',()=>page.locator('[data-remind]').first().click());
+
+  await waitAction(page,'adminSeatBoard',()=>page.locator('[data-tab="seat"]').click(),'GET');
+  await page.waitForFunction(()=>!!document.querySelector('#assignReg option[value="R4"]')&&!!document.querySelector('#assignStall option[value="A01"]'));
+  await page.locator('#assignReg').selectOption('R4');await page.locator('#assignStall').selectOption('A01');
+  await waitAction(page,'adminAssignSeat',()=>page.locator('#assignSeat').click());await waitEnabled(page,'assignSeat');
+  await waitAction(page,'runBatchAssign',()=>page.locator('#batchSeat').click());await waitEnabled(page,'batchSeat');
+  if(await page.locator('[data-unassign]').count()){await waitAction(page,'adminUnassignSeat',()=>page.locator('[data-unassign]').first().click());}
+  await page.locator('#addEquip').click();await waitAction(page,'updateSession',()=>page.locator('#saveEquip').click());await waitEnabled(page,'saveEquip');
+
+  await page.locator('[data-tab="notice"]').click();await page.locator('#noticeContent').fill('測試行前通知');
+  await waitAction(page,'sendNotify',()=>page.locator('#sendNotice').click());await waitEnabled(page,'sendNotice');
+  const unpaidPromise=page.waitForResponse(res=>res.request().method()==='POST'&&requestAction(res.request())==='sendPaymentReminder',{timeout:10000});
+  await page.locator('#remindUnpaid').click();assert.equal((await unpaidPromise).ok(),true);await waitEnabled(page,'remindUnpaid');
+
+  await page.locator('[data-tab="onsite"]').click();if(await page.locator('[data-checkin]').count())await waitAction(page,'checkin',()=>page.locator('[data-checkin]').first().click());
+  await page.locator('[data-tab="closeout"]').click();await page.waitForTimeout(50);if(await page.locator('[data-refund]').count())await waitAction(page,'confirmRefund',()=>page.locator('[data-refund]').first().click());
+  await page.locator('[data-tab="settings"]').click();await page.locator('#setName').fill('測試市集更新');await waitAction(page,'updateSession',()=>page.locator('#saveSession').click());await waitEnabled(page,'saveSession');
   assertNoErrors();await page.close();
 }
 async function publicJourney(browser,viewport){
   const page=await browser.newPage({viewportSize:viewport});await installMock(page);const assertNoErrors=watchErrors(page);
   await page.goto(`${BASE}/market/public/?tenant=demo`);await page.waitForSelector('#events .mk-event');await page.locator('#events .mk-event').first().click();assert.equal(await page.locator('#eventDialog').evaluate(e=>e.open),true);const href=await page.locator('#eventBody a[href*="/register/"]').getAttribute('href');assert.match(href,/\/register\//);await page.locator('[data-close="eventDialog"]').first().click();
-  await page.evaluate(()=>localStorage.setItem('doing_member_token','member-test-token'));await page.locator('#navRecords').click();await page.waitForSelector('#memberArea:not(.mk-hidden)');await page.locator('#saveMember').click();await page.locator('[data-close="memberDialog"]').first().click();await page.locator('#navSupport').click();assert.equal(await page.locator('#supportDialog').evaluate(e=>e.open),true);await page.locator('[data-close="supportDialog"]').first().click();
+  await page.evaluate(()=>localStorage.setItem('doing_member_token','member-test-token'));await page.locator('#navRecords').click();await page.waitForSelector('#memberArea:not(.mk-hidden)');await waitAction(page,'savePlatformMemberProfile',()=>page.locator('#saveMember').click());await page.locator('[data-close="memberDialog"]').first().click();await page.locator('#navSupport').click();assert.equal(await page.locator('#supportDialog').evaluate(e=>e.open),true);await page.locator('[data-close="supportDialog"]').first().click();
   await page.goto(`${BASE}/register/?tenant=demo&session=S1`);await page.waitForLoadState('domcontentloaded');assert.match(await page.title(),/活動報名/);assert.equal(await page.locator('body').count(),1);
   assertNoErrors();await page.close();
 }
