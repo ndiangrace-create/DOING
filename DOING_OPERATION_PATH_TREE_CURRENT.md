@@ -1,6 +1,6 @@
 # DOING｜操作路徑樹 CURRENT
 
-更新：2026-08-25（Asia/Taipei）
+更新：2026-08-26（Asia/Taipei）
 
 ## 驗收單位
 
@@ -18,7 +18,7 @@
 
 `tenant-slug` 沿用既有 `tenants.slug`，不得建立第二套公開 ID 欄位。LINE／會員 ID 不放在網址；網址只負責產品與租戶上下文，管理權限仍由正式 member／staff／admin session 驗證，手動輸入網址不得取得權限。
 
-CURRENT 本輪先完成相容操作路徑 `/market/?tenant={tenant}`、`/market/public/?tenant={tenant}`、`/market/session/?tenant={tenant}&sessionId={id}`；漂亮網址 provisioning 仍是獨立 route 工作，不得重建第二套 Market。
+CURRENT 本輪完成相容操作路徑 `/market/?tenant={tenant}`、`/market/public/?tenant={tenant}`、`/market/session/?tenant={tenant}&sessionId={id}`；漂亮網址 provisioning 仍是獨立 route 工作，不得重建第二套 Market。
 
 ## 首頁分類 → 申請
 
@@ -32,13 +32,17 @@ CURRENT 狀態：`application-ui-preserved`
 
 ## 一般使用者／攤商｜market-public-to-registration
 
+唯一正常入口：`/market/public/`。
+
 CURRENT 路徑：
 
-`/market/public/?tenant={tenant} → 活動列表 → 活動內容 → /register/?tenant={tenant}&session={sessionId} → 報名完成 → 我的紀錄`
+`/market/public/ → 近期場次／分類／日曆 → 立即報名 → 同一 Market 前台開啟正式報名 Modal → 送出 → 我的紀錄 → 客服`
 
-「我的紀錄」在 Market 前台同一區域顯示正式審核、付款、位置與現場狀態；會員登入沿用 LINE member token，不進主辦後台。
+有 tenant 的主辦前台：`/market/public/?tenant={tenant}`；無 tenant 時用正式 `publicDiscovery` 顯示全域近期場次。選場後補入正式 tenant/session 上下文，但仍停留 `/market/public/`，不把 `/register/` 當正常使用入口。
 
-對應正式 Core／資料：`publicDiscovery`、`getPlatformMemberProfile`、`savePlatformMemberProfile`、`getMyRegsGlobal`、既有 register flow、`registrations`。
+「我的紀錄」在同一前台顯示正式審核、付款、位置、設備、現場、退款／異動狀態；會員登入沿用 LINE member token，不進主辦後台。
+
+對應正式 Core／資料：`publicDiscovery`、`frontBootstrap`、既有 register flow、`getPlatformMemberProfile`、`getMyRegsGlobal`、`registrations`。
 
 完成結果：同一筆 `registrations` 從報名一路承接審核、付款、排位、報到與退款狀態；不得前端建立第二筆影子資料。
 
@@ -66,17 +70,23 @@ CURRENT 狀態：`preserved-regression-gated`
 
 ## 租戶使用者｜market-admin
 
-正式相容入口：`/workspace/?tenant={tenant}&admin_token={token} → /market/?tenant={tenant}&admin_token={token}`。
+正常入口：`/market/`。
+
+未登入：`/market/ → LINE 登入 → 自動讀既有工作空間 → 選擇營運空間（如有多個） → /market/?tenant={tenant}&admin_token={token}`。
+
+已有營運權限者不得被導回申請；只有正式資料真的沒有可用工作空間時才顯示同步／客服提示。
 
 主辦 Level 1 固定：
 
 `場次｜待辦｜現場｜會員｜活動｜財務｜寄賣｜設定`
 
-操作原則沿用已核准 2BL UX 參考：
+操作原則沿用 2BL：
 
 `主導航 → 工作區 → 卡片 → 直接操作`
 
 複雜操作最多：`主導航 → 卡片 → 單一 Panel／Modal／單場工作台 → 完成`。
+
+桌機左側直排；手機只改排列與資訊密度，不增加導航深度。
 
 所有主辦 API 必須帶 `tenant + admin_token + JWT email`；後端 staff／tenant 權限為最終裁決。網址或前端顯示不得授權。
 
@@ -86,9 +96,9 @@ CURRENT 狀態：`implemented-e2e-gated`
 
 路徑：`/market/?tenant={tenant}&admin_token={token}`。
 
-場次卡直接顯示報名、待審核、錄取、付款、報到、退款摘要；高頻數字直接進同一場的對應工作分頁。
+場次卡直接顯示報名、待審核、付款、退款摘要；高頻數字直接進同一場的對應工作分頁。
 
-主辦可：新增場次、進名單、進付款、排位／設備、財務、現場；正式資料沿用 `sessions`／`registrations` 與既有 Core。
+主辦可：新增場次、進名單、進付款、排位／設備、退款／結案、現場；正式資料沿用 `sessions`／`registrations` 與既有 Core。
 
 CURRENT 狀態：`implemented-e2e-gated`
 
@@ -103,6 +113,8 @@ CURRENT 狀態：`implemented-e2e-gated`
 ## DOING Market｜單場工作台
 
 路徑：`/market/session/?tenant={tenant}&admin_token={token}&sessionId={sessionId}`。
+
+此頁是後台點單場後的內部工作頁，不是第三個系統入口。
 
 固定分頁：
 
@@ -127,9 +139,16 @@ CURRENT 狀態：`implemented-e2e-gated`
 
 路徑：`/market/ → 會員`。
 
-正式來源：`getMembers`；會員／品牌卡不建立第二套 member 表。後續歷史明細沿用 `getMemberHistory`。
+正式來源：`getMembers`。
 
-CURRENT 狀態：`implemented-base`
+卡片直接顯示品牌／姓名／聯絡資料／社群；同頁操作：
+
+- `歷史 → getMemberHistory → 單一 Modal → 關閉回會員列表`
+- `加備註 → saveMemberNote → members/admin_note → 成功提示`
+
+不得建立第二套 member 表；管理者也不得繞過會員本人驗證去改會員自助欄位。
+
+CURRENT 狀態：`implemented-e2e-gated`
 
 ## DOING Market｜現場
 
@@ -147,13 +166,36 @@ CURRENT 狀態：`implemented-e2e-gated`
 
 CURRENT 狀態：`implemented-e2e-gated`
 
+## DOING Market｜寄賣／POS
+
+路徑：`/market/ → 寄賣`。
+
+與 2BL 相同，寄賣不再跳出 Market 後台；同一工作區完成：
+
+1. 檔期：`getOperationalCloseout → saveConsignmentPeriod → consignment_periods → reload`
+2. 申請審核：`reviewConsignmentApplication → consignment_applications → reload`
+3. 商品／庫存：`saveConsignmentProduct → consignment_products / inventory_movements → reload`
+4. POS：`recordPosSale → record_consignment_pos_sale RPC → pos_sales / pos_sale_items / inventory_movements / finance_ledger → reload`
+
+POS 前端只送正式 `productId + quantity`；單價、庫存檢查、扣庫存、銷售總額及財務 ledger 由 DB RPC 原子裁決，前端不得自行形成第二套庫存／財務結果。
+
+CURRENT 狀態：`implemented-e2e-gated`
+
 ## DOING Market｜設定
 
 路徑：`/market/ → 設定`。
 
-本輪保留品牌設定主入口；場次設定集中於單場工作台。設定一律沿用既有 tenant/session config API，不建立同義設定表。
+同頁保留前台品牌設定，並以 Tile → 單一 Modal 讀取正式設定：
 
-CURRENT 狀態：`implemented-base`
+- 收款設定：`getPaymentSettings / getPaymentProfiles`
+- 合約／規範：`getAgreementTemplates`
+- 團隊／權限：`getStaff`
+- 常用場地圖：`listVenueMaps`
+- 系統客服：`getSupportThreads`
+
+場次設定仍集中於單場工作台。設定一律沿用既有 tenant/session config API，不建立同義設定表。
+
+CURRENT 狀態：`implemented-e2e-gated`
 
 ## 預約營運者｜booking-admin
 
@@ -189,8 +231,20 @@ CURRENT 狀態：`preserve`
 
 CURRENT 狀態：`preserve`
 
-## 本輪固定發布 SOP
+## 2026-08-26 Atomic Checkpoint
+
+PR #187 head `4e9964465bd6b1d2d9456bdd6fc5dd6795ab5a8b`：
+
+- DOING Market Admin 2BL Parity：PASS
+- DOING Market Entry Validation：PASS
+- DOING Market Auth Role Separation：PASS
+- DOING Kawaii Home：PASS
+- Worker change：0
+- DB schema change：0
+- 2BL change：0
+
+## 固定發布 SOP
 
 `Baseline Sync → Module／DB／SSOT Lock → 2BL UX Reference → Role／State／Navigation Contract → CURRENT Implementation → Real-Browser Desktop＋Mobile Click-through → Regression → Fix Until DoD → World Tree／ChangeLog Update → Authorized Merge main → Cloudflare Pages Deploy → Production Verify`
 
-2026-08-25 使用者已明確授權：本輪 DoD 全綠後直接 merge／deploy，不再停在 Release Ready 等第二次確認。
+使用者已明確授權：本輪 DoD 全綠後直接 merge／deploy，不再停在 Release Ready 等第二次確認。
