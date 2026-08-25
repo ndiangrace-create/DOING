@@ -29,6 +29,6 @@ assert.ok(!builtMe.includes('doing-member-return-direct.js'),'正式 /me/ 不得
 assert.ok(builtWorkspace.includes('getTenantModuleProfile')&&builtWorkspace.includes('adminMe'),'正式 /workspace/ 必須保留權限與模組讀取');
 assert.ok(!builtApply.includes('data-doing-ui-state="rebuild-shell"'),'正式 /apply/ 已是 CURRENT 互動申請頁，不得退回重建殼');
 for(const token of ['data-system="market"','data-system="project"','data-system="booking"','createOrganizerApplicationDraft','auth/line/start'])assert.ok(builtApply.includes(token),`正式 /apply/ CURRENT 契約缺少：${token}`);
-for(const line of ['/member.html /me/ 301','/admin.html /market/ 301','/smart-application.html /apply/ 301','/booking-center.html /booking/ 301'])assert.ok(redirects.includes(line),`缺少 CURRENT 舊網址相容轉址：${line}`);
+for(const line of ['/member.html /me/ 302','/admin.html /workspace/ 302','/smart-application.html /apply/ 302','/booking-center.html /booking/ 302'])assert.ok(redirects.includes(line),`缺少 CURRENT 舊網址相容轉址：${line}`);
 
 console.log(JSON.stringify({result:'PASS',architecture:'current-live-routes',publicAccountEntries:['/apply/','/me/'],memberLogin:'/me/',workspace:'/workspace/',lineLoginCount:1,retiredMemberGateInjected:false,staleTokenReauthGuard:true,nonAuthLoadFailureKeepsToken:true,applyRoute:'current-live',legacyRootPages:0,productionWrites:0},null,2));
