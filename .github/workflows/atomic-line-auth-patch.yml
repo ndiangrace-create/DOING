@@ -1,0 +1,45 @@
+name: Atomic LINE Auth Patch
+
+on:
+  push:
+    branches: [fix/atomic-logo-line-20260825]
+    paths:
+      - 'worker.js'
+      - 'worker.txt'
+      - '.github/workflows/atomic-line-auth-patch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, '[atomic-line-patched]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/atomic-logo-line-20260825
+          fetch-depth: 0
+      - name: Remove only forced QR preference
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');
+          const file='worker.js';
+          const needle=",initial_amr_display:'lineqr',ui_locales:'zh-TW'";
+          const source=fs.readFileSync(file,'utf8');
+          const count=source.split(needle).length-1;
+          if(count!==1)throw new Error(`expected exactly one forced-QR fragment, got ${count}`);
+          const next=source.replace(needle,'');
+          fs.writeFileSync(file,next);
+          fs.writeFileSync('worker.txt',next);
+          NODE
+          cmp worker.js worker.txt
+          git diff --exit-code -- . ':!worker.js' ':!worker.txt'
+          git diff --check
+      - name: Commit exact two-file patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add worker.js worker.txt
+          git commit -m 'Remove forced LINE QR preference [atomic-line-patched]'
+          git push origin HEAD:fix/atomic-logo-line-20260825
