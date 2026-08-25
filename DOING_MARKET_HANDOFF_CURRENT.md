@@ -3,7 +3,7 @@
 日期：2026-08-25（Asia/Taipei）
 工作分支：`handoff/market-slug-apply-20260825`
 正式基準：`main` @ `6e117926e883b8f6be99ab3811715e70f95838fc`
-狀態：Release Ready 前驗證中；未部署。
+狀態：Handoff Ready；Draft PR #182；未合併；未部署。
 
 ## 本輪完成
 
@@ -18,6 +18,7 @@
 6. 新增 DOING Market Route／Navigation Contract。
 7. 新增使用者提供的 2BL Interaction Framework → DOING Market 操作參考，僅參考 UX／流程，不連 2BL 資料或 Worker。
 8. E2E 測試已補系統帳號、網址預覽、保留字、申請 payload route contract 驗證。
+9. 已建立 `DOING_MARKET_交接語法_CURRENT.txt` 與精簡 `DOING_MARKET_CHANGELOG_CURRENT.md`，供換新對話直接接續。
 
 ## 已鎖定架構
 
@@ -67,6 +68,17 @@ DOING Market 下一階段必須保留：
 `Baseline Sync → Module／DB／SSOT Lock → Multi-perspective → 依賴關係盤點 → Role × State Matrix → Task Flow → Navigation Contract → Click-through Prototype → Reverse Brainstorming → Decision Gate → 正式實作 → Real-Browser E2E → Regression → Fix Until DoD → World Tree／ChangeLog 更新 → Release Ready`
 
 第一個交付：`/market/{tenant-slug}/` 的手機＋桌機 Click-through Prototype，流程／操作層級參考 2BL，視覺使用 DOING CURRENT。
+
+## 驗證證據
+
+- Draft PR：#182。
+- DOING Kawaii Home：run `32848056019`，PASS。
+- DOING Market Auth Role Separation：run `32848056029`，PASS。
+- Chromium application/login/home E2E：PASS。
+- 手機 390×844、桌機 1440×1000：PASS。
+- 系統帳號欄位、網址預覽、保留字、application `tenantSlug`／`routeContract`：PASS。
+- 正式 `W/worker.txt` 打包來源為 GitHub exact checkout；Git blob SHA `b1bde53075d4ad950dcc27c59be1428bc06dd9d5`。
+- 僅供交接打包使用的 TEMP workflow 已移除，不存在於最終 branch diff。
 
 ## 安全邊界
 
