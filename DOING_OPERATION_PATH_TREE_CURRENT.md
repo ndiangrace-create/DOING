@@ -4,19 +4,41 @@
 
 ## 驗收單位
 
-`角色 → CURRENT 入口 → module_key → 操作 → UI 結果 → API → DB → 刷新／重登 → 下一步`
+`角色 → CURRENT 入口 → 租戶上下文 → 操作 → UI 結果 → API → DB → 刷新／重登 → 下一步／返回`
 
-以下路徑只鎖「應保留的操作結果與資料責任」。舊 UI 樣式可重做，Core／DB 結果不可變。
+以下只鎖操作路徑與資料責任。既有 Module／DB／SSOT 已定案，不因 UI／Navigation 重建而另建同義資料表、API 或資料來源。
+
+## 租戶網址層級｜Decision Gate 已定案
+
+正式方向固定為：`產品前綴 / tenant slug / 後續工作內容`。
+
+- Market：`/market/{tenant-slug}/`
+- Project：`/project/{tenant-slug}/`
+- Booking：`/booking/{tenant-slug}/`
+
+`tenant-slug` 沿用既有 `tenants.slug`，不得建立第二套公開 ID 欄位。LINE／會員 ID 不放在網址；網址只負責產品與租戶上下文，管理權限仍由正式 member／staff／admin session 驗證，手動輸入網址不得取得權限。
+
+目前正式站尚未發布上述動態路由；本段為下一階段 Market Click-through Prototype 與 Navigation Contract 的唯一方向，不得自行另開 `/market-dashboard/`、`/tenant-home/` 等路徑。
+
+## 首頁分類 → 申請
+
+- 市集活動：`/ → /apply/?system=market`
+- 室內設計進度：`/ → /apply/?system=project`
+- 美類預約：`/ → /apply/?system=booking`
+
+申請頁新增「系統帳號／網址代號」，保存為申請 JSON 的 `tenantSlug`／`requestedTenantSlug`，並顯示對應網址預覽。這只是沿用既有 `tenants.slug` 的申請資料，不新增資料表或第二套 tenant ID。
+
+CURRENT 狀態：`application-ui-ready-route-binding-next-stage`
 
 ## 一般使用者／報名者｜public-to-registration
 
-路徑：`/ → /market/public/ → /register/ → /me/#activities`
+Market 下一階段目標路徑：`/market/{tenant-slug}/ → 活動／場次 → /register/ → /me/#activities`
 
 對應模組：`tenant-operations`、`tenant-registration`、`member-center`
 
 完成結果：建立唯一 registrations；審核／付款／退款／報到狀態回到同一筆正式報名。
 
-CURRENT 狀態：`preserve-core-rebuild-ui`
+CURRENT 狀態：`market-clickthrough-next`
 
 ## 品牌使用者｜member-brand
 
@@ -28,70 +50,69 @@ CURRENT 狀態：`preserve-core-rebuild-ui`
 
 CURRENT 狀態：`preserve-core-rebuild-ui`
 
-## 營運申請者｜application-to-workspace
+## 營運申請者｜application-to-tenant
 
-路徑：`/apply/ → LINE OAuth → /me/#operations → /workspace/`
+路徑：`/apply/?system={product} → 填系統帳號／申請資料 → LINE OAuth → /me/`
 
-對應模組：`platform-application`、`member-center`、`platform-tenant`
+資料責任：同一 LINE／DOING member 身分；申請 JSON 保存 requested system 與 requested tenant slug；租戶正式資料仍由既有 tenant／staff／application 流程負責。
 
-完成結果：符合規則時建立唯一 tenant/workspace；例外進風險處理，不建立第二套工作空間。
+完成結果：登入後必須由正式資料判斷本人、租戶關係及可使用系統；不得由前端 useCases 或 URL 猜權限。
 
 CURRENT 狀態：`human-uat-required`
 
-## 租戶擁有者／管理員｜workspace-router
+## 租戶使用者｜product-tenant-entry
 
-主路徑：`/workspace/ → 選擇工作模組`
+固定模型：`產品 → tenant slug → 會員／staff 權限`。
 
-工作分支：
-- **市集**：`/market/ → /market/session/`
-- **活動**：`/market/?work=event → /market/session/`
-- **課程**：`/market/?work=course → /market/session/`
-- **預約**：`/booking/`
-- **專案**：`/project/`
+- Market：`/market/{tenant-slug}/`
+- Project：`/project/{tenant-slug}/`
+- Booking：`/booking/{tenant-slug}/`
 
-對應模組：`tenant-operations`
+同一 tenant 可使用多個已開通產品；同一 member 可與多個 tenant 有正式關係。沒有權限的產品不顯示，不以「尚未確認權限」卡片占位。
 
-完成結果：所有工作模式共用正式 Core／Supabase；路由不同但不得建立第二套資料根。
+CURRENT 狀態：`navigation-contract-approved-prototype-pending`
 
-CURRENT 狀態：`current-router-confirmed`
+## DOING Market｜公開首頁＋隱藏租戶入口
 
-## 市集／活動／課程主辦｜market-admin
+`/market/{tenant-slug}/` 定位為該租戶對外公開的市集／活動首頁，給攤商、參加者與一般民眾使用。
 
-路徑：`/market/ → 場次／待辦／現場／會員／活動／財務／寄賣／設定 → /market/session/`
+租戶 Owner／Staff 使用同一公開頁的隱藏入口發起身分確認；隱藏手勢本身不授權。正式權限確認成功後才切入該 tenant 的操作模式。
 
-對應模組：`tenant-operations`、`tenant-registration`、`tenant-finance`、`tenant-people`、`tenant-onsite`、`advanced-seat`、`advanced-performance`、`advanced-consignment`、`advanced-photo`、`tenant-themes`
+下一階段互動基準沿用 2BL：
 
-完成結果：場次 → 審核 → 付款 → 排位 → 通知 → 現場 → 退款／結案使用同一 tenant/session/registration。
+`主導航 → 工作區 → 卡片 → 直接操作`
 
-CURRENT 狀態：`current-surface-exists`
+複雜操作最多：`主導航 → 卡片 → 單一 Panel／Modal → 完成`
+
+租戶操作 Level 1 固定參考：`場次｜待辦｜現場｜會員｜活動｜財務｜寄賣｜設定`。
+
+單場工作延續至 `/market/{tenant-slug}/session/{session-context}` 的概念，但實際 route shape 必須先在 Click-through Prototype／Navigation Contract 決定，Decision Gate 前不得自行實作新 route。
+
+CURRENT 狀態：`decision-gate-approved-prototype-next`
 
 ## 預約營運者｜booking-admin
 
-路徑：`/workspace/ → /booking/`
+目標租戶入口：`/booking/{tenant-slug}/`
 
-對應模組：`tenant-operations`、`future-roadmap`
+對應模組：既有 booking／operation 資料根與正式 Core。
 
-完成結果：預約工作、日曆、服務、資源、每週規則、臨時例外、空檔與到店流程共用正式 booking/operation tables。
+完成結果：預約工作、日曆、服務、資源、每週規則、臨時例外、空檔與到店流程不得重建第二套資料。
 
-CURRENT 狀態：`current-surface-exists`
+CURRENT 狀態：`route-pattern-approved-ui-later`
 
 ## 工程／專案營運者｜project-admin
 
-路徑：`/workspace/ → /project/`
+目標租戶入口：`/project/{tenant-slug}/`
 
-對應模組：`tenant-operations`、`project-construction`
+對應模組：既有 project／construction 資料根。
 
-完成結果：工程專案資料根已存在，但目前 /project/ 只是入口殼；重建 UI 前不可刪 construction_*。
+完成結果：工程專案資料根保留，UI／Navigation 重建不得刪除或複製 construction_*。
 
-CURRENT 狀態：`ui-missing-core-data-exists`
+CURRENT 狀態：`route-pattern-approved-ui-later`
 
 ## 平台總管｜platform-admin
 
-路徑：`舊 platform.html 已退休 → current compatibility → /workspace/#platform`
-
-對應模組：`platform-access`、`platform-tenant`、`platform-billing`、`platform-products`、`platform-exposure`、`platform-support`、`platform-map`
-
-完成結果：平台 API／DB 能力保留，但 CURRENT 專屬操作面需要重建；不可把舊 platform.html 當新基準。
+平台能力與資料保留；CURRENT 專屬操作面後續依 Role × State Matrix 重建。公開頁不得露出總管入口。
 
 CURRENT 狀態：`surface-missing-rebuild-required`
 
@@ -99,24 +120,12 @@ CURRENT 狀態：`surface-missing-rebuild-required`
 
 路徑：`所有正式操作 → tobeloved-api → DOING_SaaS/public`
 
-對應模組：`core-system`、`tenant-reporting`、`market-app-core`、`platform-map`
-
-完成結果：後端先判權限與 tenant，再寫單一正式 DB；報表只讀正式業務表，不形成第二套主資料。
+完成結果：後端先判 member／staff／tenant，再讀寫單一正式 DB；URL slug 只定位租戶，不是授權來源。
 
 CURRENT 狀態：`preserve`
 
-## CURRENT 路徑衝突／重建阻擋
+## 下一階段固定 SOP
 
-- 正式 build 已將 `admin.html` 退休並轉向 `/market/`；Market 現在有真正的 `/market/` 與 `/market/session/` 操作面。
-- `platform.html` 已退休並相容導向 `/workspace/#platform`，但目前沒有完整 CURRENT 平台總管操作面；這是重建時必做，不是 DB 缺失。
-- `operations-center.html` 已退休並相容導向 `/workspace/#operations`；進階能力與資料仍保留。
-- `/project/` 目前是工程專案入口殼，8 張 `construction_*` 資料表已存在，UI 必須重建後才能驗收。
-- `/booking/` 已有完整預約中心操作面，應保留其資料／API 契約，但視覺可重新設計。
+`Baseline Sync → Module／DB／SSOT Lock → Multi-perspective → 依賴關係盤點 → Role × State Matrix → Task Flow → Navigation Contract → Click-through Prototype → Reverse Brainstorming → Decision Gate → 正式實作 → Real-Browser E2E → Regression → Fix Until DoD → World Tree／ChangeLog 更新 → Release Ready`
 
-## 重建順序鎖定
-
-1. 先以 `DOING_MODULE_REGISTRY_CURRENT.json` 決定模組與資料責任。
-2. 再依本操作路徑樹重做 CURRENT UI。
-3. 每個操作驗證 UI → API → DB → 刷新／重登 → 手機／桌機。
-4. 只有完全沒有 CURRENT 路徑、沒有 API 依賴、沒有 DB 責任的舊前端疊層，才可列入刪除候選。
-5. 刪除候選必須另做 diff＋回歸後才能真的移除。
+Market 下一個新對話從 Role × State Matrix／Task Flow 開始，參考 `2BL_INTERACTION_FRAMEWORK_PACKAGE` 的少層級、卡片直接操作方式；只參考 UX／流程，禁止修改 2BL 或使用 2BL 資料來源。
