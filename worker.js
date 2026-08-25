@@ -24,6 +24,8 @@
 //   crons = ["0 1 * * *", "0 2 * * *"]
 // ================================================================
 
+// MARKET_SESSION_RULES_2BL_PARITY_20260826
+// 2BL CURRENT session settings parity: formal schedule + multi-day tiers + portals/type.
 // ── SECTION 1: 常數設定 ─────────────────────────────────────────
 // DEFAULT_TENANT 已移除：主辦空間必須由正式登入／資料關聯解析，不允許預設 fallback
 const PAY_DEADLINE_HOURS = 48;
@@ -1016,19 +1018,57 @@ function formatSession(s) {
     seatAssignDaysBefore: safeNum(s.seat_assign_days_before) || 7,
     venueMapTemplateId: s.venue_map_template_id || '',
     paymentProfileId: s.payment_profile_id || '',
+    type: s.type || '',
+    portals: safeJson(s.portals_json, []),
+    registrationSchedule: safeJson(s.registration_schedule_json, {}),
+    multiDayTiers: safeJson(s.multi_day_tiers_json, []),
   };
+}
+
+function _marketDateKeyShift(dateKey,days){
+  const base=new Date(String(dateKey||'').slice(0,10)+'T00:00:00+08:00');
+  if(Number.isNaN(base.getTime()))return '';
+  const shifted=new Date(base.getTime()+Number(days||0)*86400000+8*3600000);
+  return shifted.toISOString().slice(0,10);
+}
+function _marketTaipeiTime(dateKey,hhmm){
+  const t=String(hhmm||'00:00').trim();
+  const d=new Date(String(dateKey||'').slice(0,10)+'T'+(t.length===5?t+':00':t)+'+08:00');
+  return Number.isNaN(d.getTime())?null:d.getTime();
+}
+function _marketParseTaipeiDateTime(value){
+  const raw=String(value||'').trim();if(!raw)return null;
+  const hasZone=/[zZ]|[+-]\d\d:?\d\d$/.test(raw);const d=new Date(hasZone?raw:(raw.length===16?raw+':00+08:00':raw+'+08:00'));
+  return Number.isNaN(d.getTime())?null:d.getTime();
+}
+function registrationScheduleError(ses,at=Date.now()){
+  if(!ses)return '找不到場次';
+  const schedule=safeJson(ses.registration_schedule_json,{});if(!schedule||schedule.enabled!==true)return '';
+  const dates=_sessionDateRows(ses.dates_json);const first=dates[0]&&dates[0].date;if(!first)return '場次尚未設定活動日期，不能啟用報名排程';
+  const phases=Array.isArray(schedule.phases)?schedule.phases.slice(0,3):[];let valid=0;
+  for(let i=0;i<phases.length;i++){const p=phases[i]||{};let start=null,end=null;
+    if(i===0){start=_marketParseTaipeiDateTime(p.startAt||p.start_at);const close=Math.max(0,parseInt(p.closeDaysBefore??p.close_days_before,10)||0);const k=_marketDateKeyShift(first,-close);end=_marketTaipeiTime(k,'23:59:59');}
+    else{const reopen=Math.max(0,parseInt(p.reopenDaysBefore??p.reopen_days_before,10)||0),close=Math.max(0,parseInt(p.closeDaysBefore??p.close_days_before,10)||0);start=_marketTaipeiTime(_marketDateKeyShift(first,-reopen),'00:00');end=_marketTaipeiTime(_marketDateKeyShift(first,-close),'23:59:59');}
+    if(start==null||end==null||end<start)continue;valid++;if(at>=start&&at<=end)return '';
+  }
+  if(!valid)return '報名排程已啟用，但尚未填入完整開放階段';
+  return '目前不在本場報名開放時間';
 }
 function calcFee(ses, selectedDates, stallCount) {
   const dates = safeJson(ses.dates_json, []);
   const baseFee = safeNum(ses.fee);
-  const stalls = Math.max(parseInt(stallCount)||1, 1); // 無上限，由後台 maxStalls 控制
-  if (dates.length > 1 && selectedDates && selectedDates.length > 0) {
-    const allSelected = dates.every(d => selectedDates.includes(d.date));
+  const stalls = Math.max(parseInt(stallCount)||1, 1);
+  const selected=Array.isArray(selectedDates)?selectedDates.map(String).filter(Boolean):[];
+  const tiers=safeJson(ses.multi_day_tiers_json,[]);
+  if(selected.length>0&&Array.isArray(tiers)&&tiers.length){
+    const matches=tiers.map((x,i)=>({i,min:Math.max(1,parseInt(x.minDays??x.min_days??x.days??1,10)||1),max:Math.max(0,parseInt(x.maxDays??x.max_days??0,10)||0),price:Math.max(0,safeNum(x.price??x.dailyPrice??x.daily_price))}))
+      .filter(x=>selected.length>=x.min&&(x.max===0||selected.length<=x.max)).sort((a,b)=>b.min-a.min||a.i-b.i);
+    if(matches.length)return matches[0].price*selected.length*stalls;
+  }
+  if (dates.length > 1 && selected.length > 0) {
+    const allSelected = dates.every(d => selected.includes(d.date));
     if (allSelected && baseFee > 0) return baseFee * stalls;
-    return selectedDates.reduce((sum, sd) => {
-      const def = dates.find(d => d.date === sd);
-      return sum + (def ? (Number(def.fee) || 0) : 0);
-    }, 0) * stalls;
+    return selected.reduce((sum, sd) => { const def = dates.find(d => d.date === sd); return sum + (def ? (Number(def.fee) || 0) : 0); }, 0) * stalls;
   }
   if (dates.length === 1) return (Number(dates[0].fee) || baseFee || 0) * stalls;
   return baseFee * stalls;
@@ -7737,6 +7777,8 @@ async function hGetBundlesPublic(env,p){
 // 實際寫入：單場走 claim_session_slot；組合走 SQL 021 的單一交易 RPC，全成或全不成。
 async function prepareRegistration(env, b) {
   const TENANT = (b && b._tenantId);
+  const _scheduleSid=String(b.sessionId||b.session_id||'').trim();
+  if(_scheduleSid){const _scheduleRows=await dbGet(env,'sessions',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(_scheduleSid)}&select=id,dates_json,registration_schedule_json`).catch(()=>[]);const _scheduleErr=registrationScheduleError(_scheduleRows[0]);if(_scheduleErr)return {error:_scheduleErr};}
   b.email = normEmail(b.email);
   b.phone = normPhone(b.phone);
   if (!b.email) return {error:'請填寫 Email'};
@@ -9732,11 +9774,16 @@ function _sessionBasePayload(b, includeDefaults=false) {
   put('seat_assign_days_before', Math.max(3, Number(b.seatAssignDaysBefore)||7), includeDefaults || b.seatAssignDaysBefore !== undefined);
   put('venue_map_template_id', b.venueMapTemplateId ? String(b.venueMapTemplateId) : null, includeDefaults || b.venueMapTemplateId !== undefined);
   put('payment_profile_id', b.paymentProfileId ? String(b.paymentProfileId) : null, includeDefaults || b.paymentProfileId !== undefined);
+  put('type', String(b.type||'').trim(), includeDefaults || b.type !== undefined);
+  put('portals_json', JSON.stringify(_sessionArray(b.portals)), includeDefaults || b.portals !== undefined);
+  put('registration_schedule_json', JSON.stringify(_sessionObject(b.registrationSchedule, {})), includeDefaults || b.registrationSchedule !== undefined);
+  put('multi_day_tiers_json', JSON.stringify(_sessionArray(b.multiDayTiers)), includeDefaults || b.multiDayTiers !== undefined);
   return data;
 }
 
 async function hCreateSession(env, b) {
   const TENANT = b && b._tenantId;
+  if((b.agreementRequired===true||b.agreementRequired==='true')&&!String(b.agreementVersion||'').trim()) return jsonErr('已要求報名同意合約，請先選擇正式合約版本');
   if (!await verifyStaff(env,b.email,b.token,TENANT,'sessions')) return jsonErr('無權限');
   const lock = await checkTenantLocked(env, TENANT);
   if (lock.locked) return jsonErr(lock.reason || '此主辦空間目前為唯讀鎖定');
@@ -9776,6 +9823,7 @@ async function hUpdateSession(env, b) {
   if(b.modules!==undefined){const blocked=await requestedUnapprovedModules(env,TENANT,b.modules||{});if(blocked.length)return jsonErr('以下功能尚未由平台核准：'+blocked.join('、'));b.modules=await tenantAllowedSessionModules(env,TENANT,b.modules||{});}
   const patch = {..._sessionBasePayload(b, false), updated_at:nowIso()};
   const simulated={...current,...patch};
+  if(agreementRequiredOn(simulated.agreement_required)&&!String(simulated.agreement_version||'').trim()) return jsonErr('已要求報名同意合約，請先選擇正式合約版本');
   const basicErr=_validateSessionInput({name:simulated.name,dates:safeJson(simulated.dates_json,[]),status:simulated.status});
   if(basicErr)return jsonErr(basicErr);
   const openErr=await _validateSessionDependenciesForOpen(env,TENANT,simulated);if(openErr)return jsonErr(openErr);
