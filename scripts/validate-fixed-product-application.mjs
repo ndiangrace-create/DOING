@@ -6,8 +6,8 @@ const home=fs.readFileSync('home-current.html','utf8');
 const build=fs.readFileSync('scripts/build-doing-2-site.mjs','utf8');
 
 for(const t of ['市集活動系統','室內設計進度系統','美類預約系統'])assert.ok(home.includes(t),'CURRENT 公開系統缺少 '+t);
-for(const t of ['申請市集活動系統','申請室內設計進度系統','申請美類預約系統'])assert.ok(home.includes(t),'CURRENT 個別申請 CTA 缺少 '+t);
-assert.equal((home.match(/class="card-action" href="\/apply\/"/g)||[]).length,3,'三個公開系統必須各自只有一個 /apply/ CTA');
+for(const t of ['申請市集活動系統','申請室內設計系統','申請美類預約系統'])assert.ok(home.includes(t),'CURRENT 個別申請 CTA 缺少 '+t);
+assert.equal((home.match(/class="system-action" href="\/apply\/"/g)||[]).length,3,'三個公開系統必須各自只有一個 /apply/ CTA');
 for(const forbidden of ['一個帳號，多種身分','共用同一資料庫','SSOT','Core','需要什麼再加什麼','手機與電腦同一套','系統亮點'])assert.ok(!home.includes(forbidden),'首頁不得公開內部架構／未定案宣傳：'+forbidden);
 assert.ok(build.includes("'/apply/':'DOING Apply'"),'Pages 必須保留 /apply/ 網址');
 
