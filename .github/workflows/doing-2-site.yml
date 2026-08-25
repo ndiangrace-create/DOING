@@ -6,6 +6,7 @@ on:
     paths:
       - 'home-current.html'
       - 'member-current.html'
+      - 'apply-current.html'
       - 'workspace-current.html'
       - 'market-current.html'
       - 'project-current.html'
@@ -18,12 +19,14 @@ on:
       - '.assets/doing-logo-new/**'
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/e2e-home-kawaii.mjs'
+      - 'scripts/e2e-apply-login-current.mjs'
       - '.github/workflows/doing-2-site.yml'
   push:
     branches: [main]
     paths:
       - 'home-current.html'
       - 'member-current.html'
+      - 'apply-current.html'
       - 'workspace-current.html'
       - 'market-current.html'
       - 'project-current.html'
@@ -36,6 +39,7 @@ on:
       - '.assets/doing-logo-new/**'
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/e2e-home-kawaii.mjs'
+      - 'scripts/e2e-apply-login-current.mjs'
       - '.github/workflows/doing-2-site.yml'
   workflow_dispatch:
 
@@ -65,6 +69,7 @@ jobs:
           node --check doing-home-current.js
           node --check scripts/build-doing-2-site.mjs
           node --check scripts/e2e-home-kawaii.mjs
+          node --check scripts/e2e-apply-login-current.mjs
       - name: Build CURRENT DOING site
         run: node scripts/build-doing-2-site.mjs
       - name: Validate route and SSOT boundaries
@@ -73,8 +78,14 @@ jobs:
           set -euo pipefail
           files=(index.html market/index.html market/public/index.html market/session/index.html project/index.html booking/index.html guide/index.html workspace/index.html me/index.html apply/index.html register/index.html world-tree/index.html)
           for f in "${files[@]}"; do test -s ".doing-2-site/$f"; done
-          for f in market/public/index.html market/session/index.html guide/index.html apply/index.html register/index.html world-tree/index.html; do grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"; done
-          for f in market/index.html project/index.html booking/index.html workspace/index.html me/index.html; do grep -q 'doing-kawaii-current.css' ".doing-2-site/$f"; done
+          for f in market/public/index.html market/session/index.html guide/index.html register/index.html world-tree/index.html; do grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"; done
+          for f in market/index.html project/index.html booking/index.html workspace/index.html me/index.html apply/index.html; do grep -q 'doing-kawaii-current.css' ".doing-2-site/$f"; done
+          ! grep -q 'data-doing-ui-state="rebuild-shell"' .doing-2-site/apply/index.html
+          grep -q 'data-system="market"' .doing-2-site/apply/index.html
+          grep -q 'data-system="project"' .doing-2-site/apply/index.html
+          grep -q 'data-system="booking"' .doing-2-site/apply/index.html
+          grep -q 'createOrganizerApplicationDraft' .doing-2-site/apply/index.html
+          grep -q 'auth/line/start' .doing-2-site/apply/index.html
           grep -q 'doing-home-v4.css' .doing-2-site/index.html
           grep -q 'doing-logo-current.webp' .doing-2-site/index.html
           test -s .doing-2-site/doing-kawaii-current.css
@@ -83,6 +94,9 @@ jobs:
           test -s .doing-2-site/doing-logo.png
           test -s .doing-2-site/doing-logo-current.webp
           grep -q '斜槓人生小幫手' .doing-2-site/index.html
+          grep -q '/apply/?system=market' .doing-2-site/index.html
+          grep -q '/apply/?system=project' .doing-2-site/index.html
+          grep -q '/apply/?system=booking' .doing-2-site/index.html
           ! grep -q 'doingSearch' .doing-2-site/index.html
           ! grep -q 'jelly-search' .doing-2-site/index.html
           ! grep -R -q '2bl-v7' .doing-2-site
@@ -98,7 +112,7 @@ jobs:
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Real-browser mobile + desktop homepage E2E
+      - name: Real-browser application + login + homepage E2E
         shell: bash
         run: |
           python3 -m http.server 4173 --directory .doing-2-site >/tmp/doing-home-e2e.log 2>&1 &
@@ -106,6 +120,7 @@ jobs:
           trap 'kill $PID || true' EXIT
           for i in {1..30}; do curl -fsS http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-home-kawaii.mjs
+          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-apply-login-current.mjs
       - name: Diff quality
         shell: bash
         run: git diff --check ${{ github.event.pull_request.base.sha || 'HEAD^' }}...HEAD
