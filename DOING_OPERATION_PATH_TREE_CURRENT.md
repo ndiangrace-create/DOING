@@ -4,9 +4,33 @@
 
 ## 驗收單位
 
-`角色 → CURRENT 入口 → module_key → 操作 → UI 結果 → API → DB → 刷新／重登 → 下一步`
+`角色 → CURRENT 入口 → 系統權限 → 操作 → UI 結果 → API → DB → 刷新／重登 → 下一步`
 
 以下路徑只鎖「應保留的操作結果與資料責任」。舊 UI 樣式可重做，Core／DB 結果不可變。
+
+## CURRENT 身分／租戶／系統模型（最高優先）
+
+正式模型：`一個 DOING／LINE 會員 → 一個自有 tenant/workspace → 可開通多個工作系統`。
+
+- 會員身分：`platform_members`＋`platform_member_identities`。
+- 自有營運帳號：`tenants`＋`staff.platform_member_id`。
+- 已開通系統唯一判斷：`tenant_settings.module_flags_json.workModules`。
+- `workModules` 目前公開 key：`market`、`project`、`booking`。
+- 同租戶共用會員／顧客／團隊等共用資料；各系統工作資料仍依正式工作資料表與類型分類。
+- 未開通的系統不可在 `/me/` 或 `/workspace/` 顯示成可選項，也不可用舊 `useCases` 猜測權限。
+- 新申請另一套系統時，只增加原 tenant 的 system entitlement；不得重建會員、不得重建第二個自有 tenant。
+
+## 首頁三個公開分類｜home-system-classification
+
+固定入口與路徑：
+
+- **市集活動系統**：`/ → /apply/?system=market → LINE → /market/`
+- **室內設計進度系統**：`/ → /apply/?system=project → LINE → /project/`
+- **美類預約系統**：`/ → /apply/?system=booking → LINE → /booking/`
+
+三種申請共用同一份基本申請資料；`requestedSystem` 決定本次只開通哪一套。
+
+CURRENT 狀態：`entitlement-router-release-candidate`
 
 ## 一般使用者／報名者｜public-to-registration
 
@@ -28,34 +52,51 @@ CURRENT 狀態：`preserve-core-rebuild-ui`
 
 CURRENT 狀態：`preserve-core-rebuild-ui`
 
-## 營運申請者｜application-to-workspace
+## 營運申請者｜application-to-system
 
-路徑：`/apply/ → LINE OAuth → /me/#operations → /workspace/`
+路徑：`/apply/?system=<market|project|booking> → LINE OAuth → 會員身分解析 → 自有 tenant 解析 → 加開 system entitlement → 對應系統首頁`
 
-對應模組：`platform-application`、`member-center`、`platform-tenant`
+對應模組：`platform-application`、`member-center`、`platform-tenant`、`tenant-operations`
 
-完成結果：符合規則時建立唯一 tenant/workspace；例外進風險處理，不建立第二套工作空間。
+完成結果：
 
-CURRENT 狀態：`human-uat-required`
+1. 沒有自有 tenant：建立第一個且唯一的自有 tenant，並只開通本次系統。
+2. 已有自有 tenant：沿用同一 tenant，只增加本次系統權限。
+3. 同一系統已開通：不得重複申請。
+4. 多自有 tenant 等例外情境：fail closed，轉人工確認，不自行猜目標 tenant。
+
+CURRENT 狀態：`release-candidate-human-line-uat`
+
+## LINE 登入｜member-login-system-resolution
+
+路徑：`/me/ → LINE OAuth → getPlatformMemberProfile → createMemberWorkspaceAdminSession → getTenantModuleProfile → workModules → 系統入口`
+
+判斷規則：
+
+- 只有 1 個已開通系統：登入成功直接進該系統。
+- 有 2 個以上：`/me/` 只列出真正已開通的系統供選擇。
+- 未開通系統：完全不顯示。
+- `applications.useCases`、`moduleProfile.useCases`、畫面文案不得作為登入權限依據。
+- LINE token 只解析會員本人；系統權限仍由正式 tenant entitlement 決定。
+
+CURRENT 狀態：`release-candidate-human-line-uat`
 
 ## 租戶擁有者／管理員｜workspace-router
 
-主路徑：`/workspace/ → 選擇工作模組`
+主路徑：`/workspace/ → 只顯示 workModules=true 的系統`
 
 工作分支：
 - **市集**：`/market/ → /market/session/`
-- **活動**：`/market/?work=event → /market/session/`
-- **課程**：`/market/?work=course → /market/session/`
-- **預約**：`/booking/`
-- **專案**：`/project/`
+- **預約／美類**：`/booking/`
+- **工程／專案**：`/project/`
 
 對應模組：`tenant-operations`
 
-完成結果：所有工作模式共用正式 Core／Supabase；路由不同但不得建立第二套資料根。
+完成結果：同一 tenant 可有多套系統，但 UI 不顯示未開通系統；不同系統共用正式 Core／Supabase，不建立第二套資料根。
 
-CURRENT 狀態：`current-router-confirmed`
+CURRENT 狀態：`entitlement-router-release-candidate`
 
-## 市集／活動／課程主辦｜market-admin
+## 市集主辦｜market-admin
 
 路徑：`/market/ → 場次／待辦／現場／會員／活動／財務／寄賣／設定 → /market/session/`
 
@@ -63,25 +104,25 @@ CURRENT 狀態：`current-router-confirmed`
 
 完成結果：場次 → 審核 → 付款 → 排位 → 通知 → 現場 → 退款／結案使用同一 tenant/session/registration。
 
-CURRENT 狀態：`current-surface-exists`
+CURRENT 狀態：`operation-ui-next`
 
-## 預約營運者｜booking-admin
+## 預約／美類營運者｜booking-admin
 
-路徑：`/workspace/ → /booking/`
+路徑：`/booking/`
 
 對應模組：`tenant-operations`、`future-roadmap`
 
 完成結果：預約工作、日曆、服務、資源、每週規則、臨時例外、空檔與到店流程共用正式 booking/operation tables。
 
-CURRENT 狀態：`current-surface-exists`
+CURRENT 狀態：`operation-ui-rebuild-required`
 
 ## 工程／專案營運者｜project-admin
 
-路徑：`/workspace/ → /project/`
+路徑：`/project/`
 
 對應模組：`tenant-operations`、`project-construction`
 
-完成結果：工程專案資料根已存在，但目前 /project/ 只是入口殼；重建 UI 前不可刪 construction_*。
+完成結果：工程專案正式資料根保留，construction_* 不可刪除；CURRENT 操作 UI 需重建。
 
 CURRENT 狀態：`ui-missing-core-data-exists`
 
@@ -91,8 +132,6 @@ CURRENT 狀態：`ui-missing-core-data-exists`
 
 對應模組：`platform-access`、`platform-tenant`、`platform-billing`、`platform-products`、`platform-exposure`、`platform-support`、`platform-map`
 
-完成結果：平台 API／DB 能力保留，但 CURRENT 專屬操作面需要重建；不可把舊 platform.html 當新基準。
-
 CURRENT 狀態：`surface-missing-rebuild-required`
 
 ## 系統｜governance
@@ -101,22 +140,23 @@ CURRENT 狀態：`surface-missing-rebuild-required`
 
 對應模組：`core-system`、`tenant-reporting`、`market-app-core`、`platform-map`
 
-完成結果：後端先判權限與 tenant，再寫單一正式 DB；報表只讀正式業務表，不形成第二套主資料。
+完成結果：後端先判會員、tenant、system entitlement 與角色，再讀寫單一正式 DB。
 
 CURRENT 狀態：`preserve`
 
-## CURRENT 路徑衝突／重建阻擋
+## CURRENT 禁止事項
 
-- 正式 build 已將 `admin.html` 退休並轉向 `/market/`；Market 現在有真正的 `/market/` 與 `/market/session/` 操作面。
-- `platform.html` 已退休並相容導向 `/workspace/#platform`，但目前沒有完整 CURRENT 平台總管操作面；這是重建時必做，不是 DB 缺失。
-- `operations-center.html` 已退休並相容導向 `/workspace/#operations`；進階能力與資料仍保留。
-- `/project/` 目前是工程專案入口殼，8 張 `construction_*` 資料表已存在，UI 必須重建後才能驗收。
-- `/booking/` 已有完整預約中心操作面，應保留其資料／API 契約，但視覺可重新設計。
+- 禁止新開正式 route。
+- 禁止用 `useCases` 猜登入後可使用系統。
+- 禁止把三套系統全部畫出來再顯示「尚未確認權限」。
+- 禁止同一會員為了加開系統建立第二個會員帳號。
+- 禁止同一自有營運帳號為了加開系統建立第二個 tenant。
+- 禁止系統開關刪除既有正式工作資料。
+- 禁止修改 2BL。
 
 ## 重建順序鎖定
 
-1. 先以 `DOING_MODULE_REGISTRY_CURRENT.json` 決定模組與資料責任。
-2. 再依本操作路徑樹重做 CURRENT UI。
-3. 每個操作驗證 UI → API → DB → 刷新／重登 → 手機／桌機。
-4. 只有完全沒有 CURRENT 路徑、沒有 API 依賴、沒有 DB 責任的舊前端疊層，才可列入刪除候選。
-5. 刪除候選必須另做 diff＋回歸後才能真的移除。
+1. 會員 → tenant → `workModules` 權限閉環先完成。
+2. `/apply/`、`/me/`、`/workspace/` 驗證正確後，再做 `/market/` 正式操作前台。
+3. 市集完成後再做 `/project/`；美類操作 UI 另依排程重建。
+4. 每個操作驗證 UI → API → DB → 刷新／重登 → 手機／桌機。
