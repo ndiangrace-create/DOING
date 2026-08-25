@@ -1,22 +1,34 @@
 # DOING｜統一正式工作指令 CURRENT
 
-## 核心規則
+## 唯一開發 SOP
 
-開始任何資料庫、API、頁面或功能開發前，必須先讀 CURRENT SSOT，並以 live Supabase `DOING_SaaS / nayonqbzejoojexxxkyg` 核對。
+所有 DOING 開發、操作路徑設計、Prototype、正式實作、E2E、Regression、DoD 與 Release Ready 流程，一律以 `DOING_DEVELOPMENT_SOP_CURRENT.md` 為唯一正式 SOP SSOT。
 
-已存在的功能、資料表、API、handler、頁面與檔案名稱一律沿用；不得自行猜測、改名、複製或建立第二套同義資料。若文件與 live Supabase 不一致，以 live Supabase 為準並更新同一份 CURRENT SSOT。
+不得在其他文件另寫第二套流程；若舊文件與 CURRENT SOP 衝突，以 `DOING_DEVELOPMENT_SOP_CURRENT.md` 為準。
 
-目前階段是「操作頁面設計＋操作結果驗收」。驗收單位固定為：
+## 開工前固定動作
 
-`操作前狀態 → 使用者操作 → 畫面結果 → API → DB → 重新整理 → 重登 → 角色／租戶 → 手機／桌機 → Regression`
+開始任何頁面、API、Worker、資料庫或功能工作前，必須先：
 
-只有 UI、API、DB、權限、持久化、角色／租戶隔離與手機／桌機結果全部一致，才算完成。
+1. 讀最新 `main`、CURRENT SSOT 與最後成功 checkpoint。
+2. 核對 live Supabase `DOING_SaaS / nayonqbzejoojexxxkyg`。
+3. 鎖定既有 Module／DB／API／正式 route／資料來源，不得自行猜測、改名、複製或建立第二套同義資料。
+4. 若工作涉及新操作路徑或路徑改動，先依 CURRENT SOP 做到 Decision Gate；使用者確認後才正式實作。
+
+## 完成判準
+
+正式實作後的驗收單位固定為：
+
+`角色／狀態 → 實際點擊 → 畫面 → 權限 → API → DB 讀寫 → 狀態變更 → 下一步 → 返回 → 重新整理／重登 → 手機／桌機 → Regression`
+
+只驗按鈕存在、DOM 存在或 CI 綠燈都不算完整驗收。
 
 ## 安全邊界
 
 - Supabase 是唯一正式營運資料來源。
 - 2BL 與 DOING 永久隔離，不得修改 `2bl-v7` 或 2BL 的 Worker／Routes／Secrets／Supabase／DB／GitHub／網域。
 - `worker.js / worker.txt` 必須一致。
-- 未收到明確發布指令不得正式部署；收到明確發布授權後，依 CI／回歸結果完成正式部署與 production verification。
+- 不得自行新增正式網址；任何 route 先對照 CURRENT Route SSOT／Operation Path Tree。
+- 不得自行修改計費。
 - 發現問題只修 delta，不重做已通過項目。
-- 每次完成須留下 checkpoint、change log 與可核對驗證證據。
+- Atomic Checkpoint＋Audit Trail 貫穿每一階段；詳細歷史留在 GitHub，Supabase 只保留單一 CURRENT SOP 紀錄。
