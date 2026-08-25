@@ -35,7 +35,7 @@ for(const [route,source] of Object.entries(sourceRoutes)){
 }
 for(const [route,title] of Object.entries(shellRoutes))writeRoute(route,shell(route,title));
 
-for(const asset of ['doing-kawaii-current.css','doing-home-v4.css','doing-home-current.js']){
+for(const asset of ['doing-kawaii-current.css','doing-home-v4.css','doing-home-current.js','doing-logo-current.webp']){
   const src=path.join(root,asset);if(!fs.existsSync(src))throw new Error(`missing asset: ${asset}`);fs.copyFileSync(src,path.join(out,asset));
 }
 
@@ -70,7 +70,8 @@ for(const route of Object.keys(shellRoutes)){
 for(const route of Object.keys(sourceRoutes)){
   const html=fs.readFileSync(routeFile(route),'utf8');
   if(html.includes('2bl-v7')||html.includes('supabase.co'))throw new Error(`forbidden direct dependency: ${route}`);
-  if(!html.includes('doing-kawaii-current.css'))throw new Error(`kawaii visual missing: ${route}`);
+  if(route==='/'&&!html.includes('doing-home-v4.css'))throw new Error(`homepage visual missing: ${route}`);
+  if(route!=='/'&&!html.includes('doing-kawaii-current.css'))throw new Error(`kawaii visual missing: ${route}`);
 }
 const home=fs.readFileSync(path.join(out,'index.html'),'utf8');
 for(const token of ['市集活動系統','室內設計進度系統','美類預約系統','斜槓人生小幫手','申請市集活動系統','申請室內設計進度系統','申請美類預約系統','/me/','/apply/','doing-home-v4.css'])if(!home.includes(token))throw new Error(`home contract missing: ${token}`);
