@@ -31,6 +31,18 @@ jobs:
         run: |
           node --check scripts/build-doing-2-site.mjs
           node --check scripts/e2e-market-current.mjs
+          node - <<'NODE'
+          const fs=require('fs');
+          for(const file of ['market-current.html','market-public-current.html','market-session-current.html']){
+            const html=fs.readFileSync(file,'utf8');
+            const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+            if(!scripts.length)throw new Error(`${file}: inline script missing`);
+            fs.writeFileSync(`/tmp/${file}.js`,scripts.join('\n'));
+          }
+          NODE
+          node --check /tmp/market-current.html.js
+          node --check /tmp/market-public-current.html.js
+          node --check /tmp/market-session-current.html.js
       - name: Build CURRENT site
         run: node scripts/build-doing-2-site.mjs
       - name: Validate Market organizer public and session routes
