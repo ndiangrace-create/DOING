@@ -8,6 +8,9 @@ on:
       - 'member-current.html'
       - 'workspace-current.html'
       - 'market-current.html'
+      - 'market-public-current.html'
+      - 'market-session-current.html'
+      - 'doing-market-current.css'
       - 'project-current.html'
       - 'booking-current.html'
       - 'doing-kawaii-current.css'
@@ -26,6 +29,9 @@ on:
       - 'member-current.html'
       - 'workspace-current.html'
       - 'market-current.html'
+      - 'market-public-current.html'
+      - 'market-session-current.html'
+      - 'doing-market-current.css'
       - 'project-current.html'
       - 'booking-current.html'
       - 'doing-kawaii-current.css'
@@ -73,11 +79,16 @@ jobs:
           set -euo pipefail
           files=(index.html market/index.html market/public/index.html market/session/index.html project/index.html booking/index.html guide/index.html workspace/index.html me/index.html apply/index.html register/index.html world-tree/index.html)
           for f in "${files[@]}"; do test -s ".doing-2-site/$f"; done
-          for f in market/public/index.html market/session/index.html guide/index.html apply/index.html register/index.html world-tree/index.html; do grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"; done
-          for f in market/index.html project/index.html booking/index.html workspace/index.html me/index.html; do grep -q 'doing-kawaii-current.css' ".doing-2-site/$f"; done
+          for f in guide/index.html apply/index.html register/index.html world-tree/index.html; do grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"; done
+          for f in market/index.html market/public/index.html market/session/index.html project/index.html booking/index.html workspace/index.html me/index.html; do grep -q 'doing-kawaii-current.css' ".doing-2-site/$f"; done
+          for f in market/index.html market/public/index.html market/session/index.html; do
+            grep -q 'doing-market-current.css' ".doing-2-site/$f"
+            ! grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"
+          done
           grep -q 'doing-home-v4.css' .doing-2-site/index.html
           grep -q 'doing-logo-current.webp' .doing-2-site/index.html
           test -s .doing-2-site/doing-kawaii-current.css
+          test -s .doing-2-site/doing-market-current.css
           test -s .doing-2-site/doing-home-v4.css
           test -s .doing-2-site/doing-home-current.js
           test -s .doing-2-site/doing-logo.png
@@ -94,6 +105,9 @@ jobs:
           grep -q '市集活動系統' .doing-2-site/workspace/index.html
           grep -q '室內設計系統' .doing-2-site/workspace/index.html
           grep -q '美類預約系統' .doing-2-site/workspace/index.html
+          grep -q 'getSessionsAdmin' .doing-2-site/market/index.html
+          grep -q 'publicDiscovery' .doing-2-site/market/public/index.html
+          grep -q 'getSessionDashboard' .doing-2-site/market/session/index.html
       - name: Install real-browser E2E
         run: |
           npm install --no-save playwright@1.55.0
@@ -162,4 +176,4 @@ jobs:
           cat domain.json
           exit 1
       - name: Verify deployment completed
-        run: echo "DOING Kawaii homepage deployed for $GITHUB_SHA"
+        run: echo "DOING CURRENT site deployed for $GITHUB_SHA"
