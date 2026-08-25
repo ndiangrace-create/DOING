@@ -1,114 +1,82 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#fff7fb">
-<meta name="description" content="DOING 斜槓人生小幫手：目前提供市集活動、室內設計進度、美類預約三種工作系統。">
-<title>DOING｜先做就對了</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="/doing-kawaii-current.css?v=20260825-4">
-<link rel="stylesheet" href="/doing-home-v4.css?v=20260825-3">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#fff8fb">
+  <meta name="description" content="DOING 斜槓人生小幫手：目前提供市集活動、室內設計進度、美類預約三種工作系統。">
+  <title>DOING｜斜槓人生小幫手</title>
+  <link rel="stylesheet" href="/doing-home-v4.css?v=20260825-ready1">
 </head>
-<body class="doing-kawaii min-h-screen text-slate-800">
-<div class="watercolor-surface" aria-hidden="true"></div>
+<body>
+  <div class="watercolor-surface" aria-hidden="true"></div>
 
-<header class="relative z-20 mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-  <div class="top-actions ml-auto grid w-full max-w-[270px] grid-cols-2 gap-3">
-    <a class="mini-jelly mini-jelly-blue" href="/apply/">申請使用</a>
-    <a class="mini-jelly mini-jelly-lilac" href="/me/">租戶登入</a>
-  </div>
-</header>
+  <header class="topbar">
+    <nav class="top-actions" aria-label="帳號與申請">
+      <a class="top-button top-button-apply" href="/apply/">申請使用</a>
+      <a class="top-button top-button-login" href="/me/">租戶登入</a>
+    </nav>
+  </header>
 
-<main class="relative z-10 mx-auto w-full max-w-[1500px] px-4 pb-40 pt-0 sm:px-6 lg:px-8">
-  <section class="hero-copy text-center" aria-labelledby="heroTitle">
-    <img class="brand-logo-hero mx-auto" src="/doing-logo.png?v=20260825-6" alt="DOING">
-    <p class="brand-tagline">斜槓人生小幫手</p>
-    <h1 id="heroTitle" class="mx-auto max-w-4xl text-2xl font-black leading-tight text-slate-800 sm:text-4xl">選一套適合你的工作系統，直接開始整理每天要做的事</h1>
-    <p class="mx-auto mt-3 max-w-3xl text-base font-bold leading-7 text-slate-600 sm:text-lg">目前先開放三種系統。看你正在做哪一種工作，就從那一套開始。</p>
-  </section>
+  <main class="page-shell">
+    <section class="hero" aria-labelledby="hero-title">
+      <img class="hero-logo" src="/doing-logo-current.webp?v=20260825-ready2" alt="DOING 營運管理系統">
+      <p class="tagline"><span aria-hidden="true">♥</span> 斜槓人生小幫手 <span aria-hidden="true">♥</span></p>
+      <h1 id="hero-title">選一套適合你的工作系統，直接開始整理每天要做的事</h1>
+      <p class="hero-copy">目前先開放三種系統。看你正在做哪一種工作，就從那一套開始。</p>
+    </section>
 
-  <section class="mt-10" aria-labelledby="systemsTitle">
-    <div class="mb-6 text-center">
-      <span class="kawaii-kicker">目前可申請</span>
-      <h2 id="systemsTitle" class="mt-2 text-2xl font-black tracking-tight text-[#6658bc] sm:text-3xl">DOING 工作系統</h2>
-      <p class="mx-auto mt-2 max-w-3xl font-bold leading-7 text-slate-600">先把你現在最需要的工作流程做好，功能用白話就能看懂。</p>
-    </div>
-
-    <div id="systemGrid" class="system-grid grid gap-5 lg:grid-cols-3">
-      <article class="system-card system-card-blue">
-        <div class="system-visual bg-[#dff4ff]" aria-hidden="true">🎪</div>
-        <div class="system-card-content p-5">
-          <span class="category-tag bg-[#dff4ff] text-[#477e9e]">市集活動系統</span>
-          <h3 class="mt-3 text-xl font-black text-slate-800">主辦從招募一路做到活動結束</h3>
-          <p class="mt-2 text-sm font-bold leading-6 text-slate-600">適合市集、活動與招商管理，把每天最常處理的事情放在同一個操作流程。</p>
-          <ul class="system-feature-list mt-4">
-            <li>活動與場次建立</li>
-            <li>報名、審核與付款</li>
-            <li>排位、通知與現場報到</li>
-            <li>退款與活動結案</li>
-          </ul>
-          <a class="card-action" href="/apply/">申請市集活動系統</a>
+    <section class="system-grid" aria-label="目前開放的三種系統">
+      <article class="system-card market-card">
+        <div class="card-title-row">
+          <div class="system-icon" aria-hidden="true">🏪</div>
+          <div>
+            <h2>市集活動系統</h2>
+            <div class="dot-row" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+          <span class="sparkle" aria-hidden="true">✦</span>
         </div>
+        <p>報名、審核、付款、排位、通知、現場與結案。</p>
+        <a class="system-action" href="/apply/">申請市集活動系統 <span aria-hidden="true">→</span></a>
       </article>
 
-      <article class="system-card system-card-peach">
-        <div class="system-visual bg-[#fff0d9]" aria-hidden="true">🏠</div>
-        <div class="system-card-content p-5">
-          <span class="category-tag bg-[#fff0d9] text-[#9a7441]">室內設計進度系統</span>
-          <h3 class="mt-3 text-xl font-black text-slate-800">專案進度讓團隊與業主都看得懂</h3>
-          <p class="mt-2 text-sm font-bold leading-6 text-slate-600">適合室內設計與工程團隊，把每一案的進度和往來資料整理在專案裡。</p>
-          <ul class="system-feature-list mt-4">
-            <li>工程階段與進度更新</li>
-            <li>照片與專案紀錄</li>
-            <li>報價、付款與支出</li>
-            <li>工班協作與驗收</li>
-          </ul>
-          <a class="card-action" href="/apply/">申請室內設計進度系統</a>
+      <article class="system-card project-card">
+        <div class="card-title-row">
+          <div class="system-icon" aria-hidden="true">🛋️</div>
+          <div>
+            <h2>室內設計進度系統</h2>
+            <div class="dot-row" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+          <span class="sparkle" aria-hidden="true">✦</span>
         </div>
+        <p>專案進度、階段、照片、報價、付款、支出與驗收。</p>
+        <a class="system-action" href="/apply/">申請室內設計系統 <span aria-hidden="true">→</span></a>
       </article>
 
-      <article class="system-card system-card-green">
-        <div class="system-visual bg-[#effbcf]" aria-hidden="true">💅</div>
-        <div class="system-card-content p-5">
-          <span class="category-tag bg-[#effbcf] text-[#67812b]">美類預約系統</span>
-          <h3 class="mt-3 text-xl font-black text-slate-800">把服務、空檔與人員排進一張日曆</h3>
-          <p class="mt-2 text-sm font-bold leading-6 text-slate-600">適合美甲、美容與預約型服務，讓店家直接管理真正可以被預約的時間。</p>
-          <ul class="system-feature-list mt-4">
-            <li>服務項目與服務時間</li>
-            <li>可預約空檔與休息設定</li>
-            <li>人員排班與顧客預約</li>
-            <li>提醒與到店紀錄</li>
-          </ul>
-          <a class="card-action" href="/apply/">申請美類預約系統</a>
+      <article class="system-card booking-card">
+        <div class="card-title-row">
+          <div class="system-icon" aria-hidden="true">💄</div>
+          <div>
+            <h2>美類預約系統</h2>
+            <div class="dot-row" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+          <span class="sparkle" aria-hidden="true">✦</span>
         </div>
+        <p>服務項目、可預約時段、人員排班、顧客預約與提醒。</p>
+        <a class="system-action" href="/apply/">申請美類預約系統 <span aria-hidden="true">→</span></a>
       </article>
-    </div>
-  </section>
+    </section>
 
-  <section class="mt-10 grid gap-5 lg:grid-cols-[1.2fr_.8fr]">
-    <article class="soft-panel p-6 sm:p-7">
-      <span class="kawaii-kicker">已經申請過？</span>
-      <h2 class="mt-2 text-2xl font-black text-slate-800">登入自己的 DOING 工作空間</h2>
-      <p class="mt-2 max-w-2xl font-bold leading-7 text-slate-600">使用申請時綁定的 LINE 帳號登入，就能回到自己的系統。</p>
-      <div class="mt-5 grid gap-3 sm:grid-cols-2">
-        <a class="jelly-cta jelly-cta-lilac" href="/me/">租戶登入 DOING</a>
-        <a class="jelly-cta jelly-cta-blue" href="/apply/">申請使用 DOING</a>
-      </div>
-    </article>
-    <article id="support" class="soft-panel p-6 sm:p-7">
-      <span class="kawaii-kicker">需要協助？</span>
-      <h2 class="mt-2 text-xl font-black text-slate-800">不知道該申請哪一套，可以先問我們</h2>
-      <p class="mt-2 text-sm font-bold leading-6 text-slate-600">先說你現在怎麼工作，我們再一起確認適合哪一套。</p>
-      <a class="jelly-cta jelly-cta-yellow mt-5 w-full" href="/apply/">線上詢問</a>
-    </article>
-  </section>
-</main>
+    <section id="support" class="support-note" aria-label="線上客服">
+      <strong>不知道該申請哪一套？</strong>
+      <span>直接告訴我們你現在怎麼工作，再一起確認適合哪一套。</span>
+    </section>
+  </main>
 
-<nav class="bottom-jelly-nav fixed inset-x-0 bottom-0 z-40 mx-auto grid w-full max-w-5xl grid-cols-3 gap-2 px-3 pb-[max(10px,env(safe-area-inset-bottom))] pt-2 sm:gap-4 sm:px-6" aria-label="主要導覽">
-  <a class="bottom-jelly bottom-jelly-green" href="/market/public/"><span>報名活動</span></a>
-  <a class="bottom-jelly bottom-jelly-lilac" href="/me/"><span>我的 DOING</span></a>
-  <a class="bottom-jelly bottom-jelly-yellow" href="#support"><span>線上客服</span></a>
-</nav>
+  <nav class="bottom-nav" aria-label="主要導覽">
+    <a class="jelly green" href="/market/public/"><span aria-hidden="true">▣</span>報名活動</a>
+    <a class="jelly purple" href="/me/"><span aria-hidden="true">♙</span>我的 DOING</a>
+    <a class="jelly yellow" href="#support"><span aria-hidden="true">◌</span>線上客服</a>
+  </nav>
 </body>
 </html>

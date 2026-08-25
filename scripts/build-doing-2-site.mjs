@@ -35,7 +35,7 @@ for(const [route,source] of Object.entries(sourceRoutes)){
 }
 for(const [route,title] of Object.entries(shellRoutes))writeRoute(route,shell(route,title));
 
-for(const asset of ['doing-kawaii-current.css','doing-home-v4.css','doing-home-current.js']){
+for(const asset of ['doing-kawaii-current.css','doing-home-v4.css','doing-home-current.js','doing-logo-current.webp']){
   const src=path.join(root,asset);if(!fs.existsSync(src))throw new Error(`missing asset: ${asset}`);fs.copyFileSync(src,path.join(out,asset));
 }
 
@@ -70,10 +70,11 @@ for(const route of Object.keys(shellRoutes)){
 for(const route of Object.keys(sourceRoutes)){
   const html=fs.readFileSync(routeFile(route),'utf8');
   if(html.includes('2bl-v7')||html.includes('supabase.co'))throw new Error(`forbidden direct dependency: ${route}`);
-  if(!html.includes('doing-kawaii-current.css'))throw new Error(`kawaii visual missing: ${route}`);
+  if(route==='/'&&!html.includes('doing-home-v4.css'))throw new Error(`homepage visual missing: ${route}`);
+  if(route!=='/'&&!html.includes('doing-kawaii-current.css'))throw new Error(`kawaii visual missing: ${route}`);
 }
 const home=fs.readFileSync(path.join(out,'index.html'),'utf8');
-for(const token of ['市集活動系統','室內設計進度系統','美類預約系統','斜槓人生小幫手','申請市集活動系統','申請室內設計進度系統','申請美類預約系統','/me/','/apply/','doing-home-v4.css'])if(!home.includes(token))throw new Error(`home contract missing: ${token}`);
+for(const token of ['市集活動系統','室內設計進度系統','美類預約系統','斜槓人生小幫手','申請市集活動系統','申請室內設計系統','申請美類預約系統','/me/','/apply/','doing-home-v4.css'])if(!home.includes(token))throw new Error(`home contract missing: ${token}`);
 for(const removed of ['doingSearch','jelly-search','搜尋市集、工程進度、美類預約','benefit-grid','benefit-card','系統亮點','看圖就知道 DOING 幫你省掉哪些麻煩','audience-strip','audience-card','一個帳號，多種身分','共用同一','資料只留一份','需要什麼再加什麼','手機與電腦同一套'])if(home.includes(removed))throw new Error(`private/removed homepage copy leaked: ${removed}`);
 const member=fs.readFileSync(path.join(out,'me/index.html'),'utf8');for(const token of ['auth/line/start','getPlatformMemberProfile','createMemberWorkspaceAdminSession'])if(!member.includes(token))throw new Error(`member auth contract missing: ${token}`);
 const workspace=fs.readFileSync(path.join(out,'workspace/index.html'),'utf8');for(const token of ['getTenantModuleProfile','adminMe','市集活動系統','室內設計系統','美類預約系統'])if(!workspace.includes(token))throw new Error(`workspace contract missing: ${token}`);
