@@ -14,7 +14,7 @@ assert.equal(worker,workerMirror,'worker.js / worker.txt 必須一致');
 for(const t of ['場次','待辦','現場','會員','活動','財務','寄賣','設定'])assert.ok(market.includes(t),'CURRENT Market 後台主導覽缺少：'+t);
 assert.ok(build.includes("'/market/':'market-current.html'"),'正式 /market/ 必須使用 CURRENT Market source');
 for(const t of ["'/market/public/':{source:'register.html'","'/register/':{source:'register.html'"])assert.ok(build.includes(t),'CURRENT Market 公開／相容路由缺少：'+t);
-for(const t of ['createEvent','createSession','updateEvent','updateSession','registrationSchedule','multiDayTiers','fullAgreementTemplate','fullPaymentProfile','fullBundleSessions','fullCoverFile','1200','objectFit'])assert.ok(editor.includes(t),'完整場次設定能力缺少：'+t);
+for(const t of ['createEvent','createSession','updateEvent','updateSession','registrationSchedule','multiDayTiers','agreementTemplate','fullPaymentProfile','bundleOther','fullCoverFile','1200','drawImage'])assert.ok(editor.includes(t),'完整場次設定能力缺少：'+t);
 for(const t of ['async function hydrateTenantInline','frontBootstrap','openRegistration','doingMarketGlobalBootstrap'])assert.ok(publicJs.includes(t),'公開前台同頁報名契約缺少：'+t);
 for(const t of ['MARKET_FINAL_2BL_CARD_MODAL_20260826','aspect-ratio:1/1','object-fit:contain','.modal-bg.show'])assert.ok(css.includes(t),'2BL 卡片／Modal 規格缺少：'+t);
 for(const t of ["'createSession'","'updateSession'","'applyRefund'","'confirmRefund'","'getRefundSuggestion'","'cancelReg'","'adminCancelReg'","'refundDeposit'","'checkin'","'markClear'",'getMyRegsGlobal','MARKET_SESSION_RULES_2BL_PARITY_20260826','registration_schedule_json','multi_day_tiers_json'])assert.ok(worker.includes(t),'Market Core 正式能力缺少：'+t);
