@@ -5312,7 +5312,7 @@ async function hLineStart(env,url){
   // 完成安全登入；有核准並明確開啟設定時，才額外取得已驗證 Email 做跨服務自動合併。
   const lineEmailEnabled=String(env.LINE_LOGIN_EMAIL_ENABLED||'').trim().toLowerCase()==='true';
   const scope=lineEmailEnabled?'openid profile email':'openid profile';
-  const params=new URLSearchParams({response_type:'code',client_id:env.LINE_LOGIN_CHANNEL_ID,redirect_uri:lineRedirectUri(env,url),state,scope,nonce,bot_prompt:'normal',initial_amr_display:'lineqr',ui_locales:'zh-TW'});
+  const params=new URLSearchParams({response_type:'code',client_id:env.LINE_LOGIN_CHANNEL_ID,redirect_uri:lineRedirectUri(env,url),state,scope,nonce,bot_prompt:'normal'});
   return Response.redirect(`https://access.line.me/oauth2/v2.1/authorize?${params}`,302);
 }
 
