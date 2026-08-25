@@ -7,7 +7,7 @@ const member=fs.readFileSync('member-current.html','utf8');
 const worker=fs.readFileSync('worker.js','utf8');
 const build=fs.readFileSync('scripts/build-doing-2-site.mjs','utf8');
 
-for(const token of ['申請市集活動系統','申請室內設計進度系統','申請美類預約系統','href="/apply/"'])assert.ok(home.includes(token),'首頁申請入口缺少：'+token);
+for(const token of ['申請市集活動系統','申請室內設計系統','申請美類預約系統','href="/apply/"'])assert.ok(home.includes(token),'首頁申請入口缺少：'+token);
 assert.ok(build.includes("'/apply/':'DOING Apply'"),'CURRENT /apply/ 必須保留正式網址重建殼');
 assert.ok(build.includes("'/me/':'member-current.html'"),'CURRENT 登入入口必須固定 /me/');
 assert.equal((member.match(/\/auth\/line\/start/g)||[]).length,1,'會員登入只允許一個 LINE OAuth 啟動點');
