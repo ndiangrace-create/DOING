@@ -1,0 +1,128 @@
+【DOING Market｜新對話正式接續語法｜2026-08-25】
+
+請接續 DOING 目前最新正式基準與 `DOING_MARKET_HANDOFF_CURRENT.md`，不要從舊版本猜測、不要重做已通過項目。
+
+一、專案與安全邊界
+- Repo：ndiangrace-create/DOING
+- 正式主線：main
+- 正式網站：https://doing.2b-love.com/
+- Core／Worker：tobeloved-api
+- Supabase DOING_SaaS 為唯一正式營運資料來源。
+- 既有 Module／DB／SSOT 已定案，全部鎖定：不得重新設計、重複建表、改名、建立第二套 API／資料根或改變資料來源。
+- 2BL 永久隔離：禁止修改 2BL Repo、2bl-v7、2BL Supabase／DB／Routes／Secrets／網域。2BL 只能作 UX／操作流程參考。
+
+二、已完成，不得重做
+- DOING 首頁三套系統分類與申請入口。
+- /apply/ 正式申請頁。
+- /apply/ 已新增「系統帳號／網址代號」欄位；此值是既有 tenants.slug 的申請代號，不是 LINE 帳號，不新增第二套 ID。
+- 申請 payload 已保存 tenantSlug、requestedTenantSlug、routeContract。
+- 路由方向已定案：
+  Market  → /market/{tenant-slug}/
+  Project → /project/{tenant-slug}/
+  Booking → /booking/{tenant-slug}/
+- LINE／DOING member 代表「人」；tenant slug 代表「租戶」；market/project/booking 代表「產品」。會員 ID 不放網址，網址本身永遠不授權。
+- DOING Market Route／Navigation Contract 與 Operation Path Tree 已更新。
+
+三、DOING Market 正式定位
+`/market/{tenant-slug}/` 是該租戶對外公開的市集／活動頁，給攤商、參加者與一般民眾使用。
+
+同一頁保留隱藏租戶入口。隱藏入口／長按手勢本身不授權，只能發起 LINE／DOING member 身分確認；必須由正式 tenant staff／owner 權限確認後，才切入租戶操作模式。
+
+不得另開 `/market-dashboard/`、`/tenant-home/`、`/market-admin-home/` 等新首頁。
+
+四、2BL 操作介面與流程參考規則
+請先讀 `DOING_MARKET_2BL_INTERACTION_REFERENCE_CURRENT.md`，並以使用者提供的 `2BL_INTERACTION_FRAMEWORK_PACKAGE(2).zip` 為 UX／操作流程參考。
+
+固定互動：
+`主導航 → 工作區 → 卡片 → 直接操作`
+
+複雜操作最多：
+`主導航 → 卡片 → 單一 Panel／Modal → 完成`
+
+禁止：
+`主導航 → 子頁 → 子頁 → 子頁 → 才能操作`
+
+租戶操作 Level 1 參考 2BL：
+`場次｜待辦｜現場｜會員｜活動｜財務｜寄賣｜設定`
+
+卡片必須直接回答：
+1. 這是誰／哪一場？
+2. 現在什麼狀態？
+3. 下一步是什麼？
+4. 現在能做什麼？
+
+高頻操作留卡片；複雜設定才進 Panel／Modal。手機與桌機只能改排列／資訊密度，不得增加操作層級。
+
+五、本次開始位置：不要直接正式實作
+依 CURRENT SOP 一次執行到 Decision Gate：
+
+Baseline Sync
+→ Module／DB／SSOT Lock
+→ Multi-perspective
+→ 依賴關係盤點
+→ Role × State Matrix
+→ Task Flow
+→ Navigation Contract
+→ Click-through Prototype
+→ Reverse Brainstorming
+→ Decision Gate
+
+先完成 `/market/{tenant-slug}/` 的手機＋電腦可實際點擊 Prototype。
+
+必須涵蓋至少：
+- 未登入一般訪客
+- 已登入攤商／一般會員
+- tenant Owner
+- tenant Admin／Staff
+- 無該 tenant 權限的人使用隱藏入口
+- 新租戶無活動
+- 有草稿活動
+- 報名中
+- 待審核
+- 待付款確認
+- 活動即將開始
+- 活動當日
+- 已結束待結案
+- 權限失效／租戶鎖定／資料載入失敗等異常分支
+
+Reverse Brainstorming 必須主動找：迷路、斷路、重複操作、回不去、錯 tenant、錯 system、錯狀態、權限錯置、LINE 登入後帶錯資料。
+
+六、Navigation Contract
+每一顆正式按鈕在 Decision Gate 前都要定義：
+- 顯示條件
+- 按鈕名稱
+- 所在位置
+- 點擊動作
+- 使用資料
+- API／正式 function
+- 成功結果
+- 失敗結果
+- 下一步
+- 返回位置
+
+此階段 Prototype 不寫正式 DB、不改 Core、不改正式 Worker、不部署。
+
+七、Decision Gate 之後
+只有使用者確認 Prototype／Navigation 後才可以正式實作：
+→ 正式實作
+→ Real-Browser E2E
+→ Regression
+→ Fix Until DoD
+→ World Tree／ChangeLog 更新
+→ Release Ready
+
+Real-Browser E2E 不得只檢查按鈕存在；必須用所有角色／狀態實際點擊並確認頁面、權限、API、正式資料寫入、狀態改變、下一步與返回全部正確。
+
+到 Release Ready 後停止；正式部署／發布仍需使用者明確指令。
+
+八、最重要的禁止事項
+- 不要修改 2BL。
+- 不要重做首頁與已通過申請頁。
+- 不要自行新增租戶 ID 欄位；沿用 tenants.slug。
+- 不要把 LINE/member ID 放進公開 URL。
+- 不要把 URL 當權限。
+- 不要在 Decision Gate 前串正式 Market 動態 route 或修改 DB 架構。
+- 不要自行新增未定案 route。
+- 不要用工程式多層頁面取代 2BL 的卡片直接操作。
+
+請先回報最新 checkpoint 與你讀到的 CURRENT SSOT，然後直接開始 Role × State Matrix／Task Flow／Navigation Contract／Click-through Prototype；不要重跑已完成項目。
