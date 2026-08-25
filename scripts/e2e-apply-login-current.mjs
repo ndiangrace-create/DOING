@@ -3,11 +3,9 @@ import assert from 'node:assert/strict';
 
 const base=process.env.E2E_BASE||'http://127.0.0.1:4173';
 const browser=await chromium.launch({headless:true});
-const memberToken=()=>{
-  const h=Buffer.from(JSON.stringify({alg:'none',typ:'JWT'})).toString('base64url');
-  const p=Buffer.from(JSON.stringify({type:'member',provider:'line',email:'owner@example.com',expires_at:Date.now()+3600000})).toString('base64url');
-  return `${h}.${p}.x`;
-};
+const jwt=(payload)=>`${Buffer.from(JSON.stringify({alg:'none',typ:'JWT'})).toString('base64url')}.${Buffer.from(JSON.stringify(payload)).toString('base64url')}.x`;
+const memberToken=()=>jwt({type:'member',provider:'line',email:'owner@example.com',expires_at:Date.now()+3600000});
+const ADMIN_TOKEN=jwt({email:'owner@example.com',tenant_id:'tn_test',role:'organizer_owner',expires_at:Date.now()+3600000});
 async function mockApi(page,{system='market',memberDirect=false}={}){
   const actions=[];
   await page.route('https://tobeloved-api.ndiangrace.workers.dev/**',async route=>{
@@ -27,7 +25,7 @@ async function mockApi(page,{system='market',memberDirect=false}={}){
     }
     if(action==='savePlatformMemberProfile')data={ok:true};
     if(action==='createOrganizerApplicationDraft')data={lineVerified:true,status:'approved',tenantId:'tn_test',applicationId:'APL_test'};
-    if(action==='createMemberWorkspaceAdminSession')data={adminToken:'admin-test-token',tenantId:'tn_test'};
+    if(action==='createMemberWorkspaceAdminSession')data={adminToken:ADMIN_TOKEN,tenantId:'tn_test'};
     if(action==='getTenantModuleProfile')data={configured:true,useType:'generic',defaults:{registration:true},approvedFlags:{registration:true}};
     if(action==='saveTenantModuleProfile')data={configured:true,useType:'project',defaults:{registration:true}};
     await route.fulfill({status:200,headers:{'access-control-allow-origin':'*'},contentType:'application/json',body:JSON.stringify({ok:true,data})});
@@ -40,7 +38,7 @@ async function testApplication(system,target){
   const values={unit:'測試工作室',owner:'測試申請者',phone:'0912345678',email:'owner@example.com',region:'台中市',link1:'https://example.com/',link2:''};
   await page.addInitScript(({system,values})=>sessionStorage.setItem('doing_apply_current_v1',JSON.stringify({createdAt:Date.now(),system,values})),{system,values});
   await page.goto(`${base}/apply/?system=${system}&resume=1&member_token=${encodeURIComponent(token)}`,{waitUntil:'domcontentloaded'});
-  await page.waitForURL(u=>u.pathname===target&&u.searchParams.get('tenant')==='tn_test'&&u.searchParams.get('admin_token')==='admin-test-token',{timeout:10000});
+  await page.waitForURL(u=>u.pathname===target&&u.searchParams.get('tenant')==='tn_test'&&u.searchParams.get('admin_token')===ADMIN_TOKEN,{timeout:10000});
   assert.ok(actions.includes('getPlatformMemberProfile'),`${system}: member profile not verified`);
   assert.ok(actions.includes('savePlatformMemberProfile'),`${system}: member profile not saved`);
   assert.ok(actions.includes('createOrganizerApplicationDraft'),`${system}: application not created`);
