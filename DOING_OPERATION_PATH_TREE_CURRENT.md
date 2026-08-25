@@ -18,7 +18,7 @@
 
 `tenant-slug` 沿用既有 `tenants.slug`，不得建立第二套公開 ID 欄位。LINE／會員 ID 不放在網址；網址只負責產品與租戶上下文，管理權限仍由正式 member／staff／admin session 驗證，手動輸入網址不得取得權限。
 
-目前正式站尚未發布上述動態路由；本段為下一階段 Market Click-through Prototype 與 Navigation Contract 的唯一方向，不得自行另開 `/market-dashboard/`、`/tenant-home/` 等路徑。
+CURRENT 本輪先完成相容操作路徑 `/market/?tenant={tenant}`、`/market/public/?tenant={tenant}`、`/market/session/?tenant={tenant}&sessionId={id}`；漂亮網址 provisioning 仍是獨立 route 工作，不得重建第二套 Market。
 
 ## 首頁分類 → 申請
 
@@ -26,19 +26,23 @@
 - 室內設計進度：`/ → /apply/?system=project`
 - 美類預約：`/ → /apply/?system=booking`
 
-申請頁新增「系統帳號／網址代號」，保存為申請 JSON 的 `tenantSlug`／`requestedTenantSlug`，並顯示對應網址預覽。這只是沿用既有 `tenants.slug` 的申請資料，不新增資料表或第二套 tenant ID。
+申請頁「系統帳號／網址代號」保存為申請 JSON 的 `tenantSlug`／`requestedTenantSlug`，並顯示對應網址預覽；沿用既有 `tenants.slug`，不新增資料表或第二套 tenant ID。
 
-CURRENT 狀態：`application-ui-ready-route-binding-next-stage`
+CURRENT 狀態：`application-ui-preserved`
 
-## 一般使用者／報名者｜public-to-registration
+## 一般使用者／攤商｜market-public-to-registration
 
-Market 下一階段目標路徑：`/market/{tenant-slug}/ → 活動／場次 → /register/ → /me/#activities`
+CURRENT 路徑：
 
-對應模組：`tenant-operations`、`tenant-registration`、`member-center`
+`/market/public/?tenant={tenant} → 活動列表 → 活動內容 → /register/?tenant={tenant}&session={sessionId} → 報名完成 → 我的紀錄`
 
-完成結果：建立唯一 registrations；審核／付款／退款／報到狀態回到同一筆正式報名。
+「我的紀錄」在 Market 前台同一區域顯示正式審核、付款、位置與現場狀態；會員登入沿用 LINE member token，不進主辦後台。
 
-CURRENT 狀態：`market-clickthrough-next`
+對應正式 Core／資料：`publicDiscovery`、`getPlatformMemberProfile`、`savePlatformMemberProfile`、`getMyRegsGlobal`、既有 register flow、`registrations`。
+
+完成結果：同一筆 `registrations` 從報名一路承接審核、付款、排位、報到與退款狀態；不得前端建立第二筆影子資料。
+
+CURRENT 狀態：`implemented-e2e-gated`
 
 ## 品牌使用者｜member-brand
 
@@ -52,43 +56,104 @@ CURRENT 狀態：`preserve-core-rebuild-ui`
 
 ## 營運申請者｜application-to-tenant
 
-路徑：`/apply/?system={product} → 填系統帳號／申請資料 → LINE OAuth → /me/`
+路徑：`/apply/?system={product} → 填系統帳號／申請資料 → LINE OAuth → /me/ → /workspace/`
 
 資料責任：同一 LINE／DOING member 身分；申請 JSON 保存 requested system 與 requested tenant slug；租戶正式資料仍由既有 tenant／staff／application 流程負責。
 
-完成結果：登入後必須由正式資料判斷本人、租戶關係及可使用系統；不得由前端 useCases 或 URL 猜權限。
+完成結果：登入後由正式資料判斷本人、租戶關係及可使用系統；不得由前端 useCases 或 URL 猜權限。
 
-CURRENT 狀態：`human-uat-required`
+CURRENT 狀態：`preserved-regression-gated`
 
-## 租戶使用者｜product-tenant-entry
+## 租戶使用者｜market-admin
 
-固定模型：`產品 → tenant slug → 會員／staff 權限`。
+正式相容入口：`/workspace/?tenant={tenant}&admin_token={token} → /market/?tenant={tenant}&admin_token={token}`。
 
-- Market：`/market/{tenant-slug}/`
-- Project：`/project/{tenant-slug}/`
-- Booking：`/booking/{tenant-slug}/`
+主辦 Level 1 固定：
 
-同一 tenant 可使用多個已開通產品；同一 member 可與多個 tenant 有正式關係。沒有權限的產品不顯示，不以「尚未確認權限」卡片占位。
+`場次｜待辦｜現場｜會員｜活動｜財務｜寄賣｜設定`
 
-CURRENT 狀態：`navigation-contract-approved-prototype-pending`
-
-## DOING Market｜公開首頁＋隱藏租戶入口
-
-`/market/{tenant-slug}/` 定位為該租戶對外公開的市集／活動首頁，給攤商、參加者與一般民眾使用。
-
-租戶 Owner／Staff 使用同一公開頁的隱藏入口發起身分確認；隱藏手勢本身不授權。正式權限確認成功後才切入該 tenant 的操作模式。
-
-下一階段互動基準沿用 2BL：
+操作原則沿用已核准 2BL UX 參考：
 
 `主導航 → 工作區 → 卡片 → 直接操作`
 
-複雜操作最多：`主導航 → 卡片 → 單一 Panel／Modal → 完成`
+複雜操作最多：`主導航 → 卡片 → 單一 Panel／Modal／單場工作台 → 完成`。
 
-租戶操作 Level 1 固定參考：`場次｜待辦｜現場｜會員｜活動｜財務｜寄賣｜設定`。
+所有主辦 API 必須帶 `tenant + admin_token + JWT email`；後端 staff／tenant 權限為最終裁決。網址或前端顯示不得授權。
 
-單場工作延續至 `/market/{tenant-slug}/session/{session-context}` 的概念，但實際 route shape 必須先在 Click-through Prototype／Navigation Contract 決定，Decision Gate 前不得自行實作新 route。
+CURRENT 狀態：`implemented-e2e-gated`
 
-CURRENT 狀態：`decision-gate-approved-prototype-next`
+## DOING Market｜場次總覽
+
+路徑：`/market/?tenant={tenant}&admin_token={token}`。
+
+場次卡直接顯示報名、待審核、錄取、付款、報到、退款摘要；高頻數字直接進同一場的對應工作分頁。
+
+主辦可：新增場次、進名單、進付款、排位／設備、財務、現場；正式資料沿用 `sessions`／`registrations` 與既有 Core。
+
+CURRENT 狀態：`implemented-e2e-gated`
+
+## DOING Market｜待辦
+
+路徑：`/market/ → 待辦`。
+
+正式來源：`getTodos`。待辦卡直接帶入場次與工作類型，點擊後進同一個單場工作台的對應分頁，不另外建立待辦資料根。
+
+CURRENT 狀態：`implemented-e2e-gated`
+
+## DOING Market｜單場工作台
+
+路徑：`/market/session/?tenant={tenant}&admin_token={token}&sessionId={sessionId}`。
+
+固定分頁：
+
+`總覽｜報名審核｜付款｜排位／設備｜通知｜現場｜退款／結案｜場次設定`
+
+正式閉環：
+
+- 報名審核：`updateRegStatus → registrations.review_status → reload`。
+- 錄取：後端建立正式付款快照並調整名額；前端不自行計算。
+- 付款：`confirmPayment / sendPaymentReminder → registrations/payment records → reload`。
+- 排位：`adminSeatBoard / adminAssignSeat / adminUnassignSeat / runBatchAssign → 正式 seat data → reload`。
+- 設備：`updateSession.equip → sessions.equip_json`；使用明細 `getSessionEquipmentDetails`。
+- 通知：`sendNotify`，付款提醒 `sendPaymentReminder`。
+- 現場：`checkin → 正式 checkin state → reload`。
+- 退款：`getRefundSuggestion → 二次確認 → confirmRefund → reload`。
+- 財務：`financeReport / financeOverview` 讀正式財務資料。
+- 場次設定：`updateSession → sessions → reload`。
+
+CURRENT 狀態：`implemented-e2e-gated`
+
+## DOING Market｜會員
+
+路徑：`/market/ → 會員`。
+
+正式來源：`getMembers`；會員／品牌卡不建立第二套 member 表。後續歷史明細沿用 `getMemberHistory`。
+
+CURRENT 狀態：`implemented-base`
+
+## DOING Market｜現場
+
+路徑：`/market/ → 現場 → 選場次 → 搜尋報名 → 報到`，或由單場工作台進 `現場`。
+
+同一功能只接正式 `checkin`；成功後重新讀取正式 registrations／checkin 狀態。
+
+CURRENT 狀態：`implemented-e2e-gated`
+
+## DOING Market｜財務／退款／結案
+
+總覽：`/market/ → 財務`；單場明細：`/market/session/ → 退款／結案`。
+
+正式來源：`financeOverview / financeReport / getRefundSuggestion / confirmRefund`。不得前端自行形成另一套收入、支出、退款或結餘 SSOT。
+
+CURRENT 狀態：`implemented-e2e-gated`
+
+## DOING Market｜設定
+
+路徑：`/market/ → 設定`。
+
+本輪保留品牌設定主入口；場次設定集中於單場工作台。設定一律沿用既有 tenant/session config API，不建立同義設定表。
+
+CURRENT 狀態：`implemented-base`
 
 ## 預約營運者｜booking-admin
 
@@ -112,20 +177,20 @@ CURRENT 狀態：`route-pattern-approved-ui-later`
 
 ## 平台總管｜platform-admin
 
-平台能力與資料保留；CURRENT 專屬操作面後續依 Role × State Matrix 重建。公開頁不得露出總管入口。
+平台能力與資料保留；公開頁不得露出總管入口。
 
-CURRENT 狀態：`surface-missing-rebuild-required`
+CURRENT 狀態：`preserve`
 
 ## 系統｜governance
 
 路徑：`所有正式操作 → tobeloved-api → DOING_SaaS/public`
 
-完成結果：後端先判 member／staff／tenant，再讀寫單一正式 DB；URL slug 只定位租戶，不是授權來源。
+完成結果：後端先判 member／staff／tenant，再讀寫單一正式 DB；URL slug／tenant query 只定位租戶，不是授權來源。
 
 CURRENT 狀態：`preserve`
 
-## 下一階段固定 SOP
+## 本輪固定發布 SOP
 
-`Baseline Sync → Module／DB／SSOT Lock → Multi-perspective → 依賴關係盤點 → Role × State Matrix → Task Flow → Navigation Contract → Click-through Prototype → Reverse Brainstorming → Decision Gate → 正式實作 → Real-Browser E2E → Regression → Fix Until DoD → World Tree／ChangeLog 更新 → Release Ready`
+`Baseline Sync → Module／DB／SSOT Lock → 2BL UX Reference → Role／State／Navigation Contract → CURRENT Implementation → Real-Browser Desktop＋Mobile Click-through → Regression → Fix Until DoD → World Tree／ChangeLog Update → Authorized Merge main → Cloudflare Pages Deploy → Production Verify`
 
-Market 下一個新對話從 Role × State Matrix／Task Flow 開始，參考 `2BL_INTERACTION_FRAMEWORK_PACKAGE` 的少層級、卡片直接操作方式；只參考 UX／流程，禁止修改 2BL 或使用 2BL 資料來源。
+2026-08-25 使用者已明確授權：本輪 DoD 全綠後直接 merge／deploy，不再停在 Release Ready 等第二次確認。
