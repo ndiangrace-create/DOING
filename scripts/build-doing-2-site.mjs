@@ -10,14 +10,14 @@ fs.mkdirSync(out,{recursive:true});
 const sourceRoutes={
   '/':'home-current.html',
   '/market/':'market-current.html',
+  '/market/public/':'market-public-current.html',
+  '/market/session/':'market-session-current.html',
   '/project/':'project-current.html',
   '/booking/':'booking-current.html',
   '/workspace/':'workspace-current.html',
   '/me/':'member-current.html',
 };
 const shellRoutes={
-  '/market/public/':'DOING Market Public',
-  '/market/session/':'DOING Market Session',
   '/guide/':'DOING Guide',
   '/apply/':'DOING Apply',
   '/register/':'DOING Register',
@@ -35,7 +35,7 @@ for(const [route,source] of Object.entries(sourceRoutes)){
 }
 for(const [route,title] of Object.entries(shellRoutes))writeRoute(route,shell(route,title));
 
-for(const asset of ['doing-kawaii-current.css','doing-home-v4.css','doing-home-current.js','doing-logo-current.webp']){
+for(const asset of ['doing-kawaii-current.css','doing-home-v4.css','doing-home-current.js','doing-logo-current.webp','doing-market-current.css']){
   const src=path.join(root,asset);if(!fs.existsSync(src))throw new Error(`missing asset: ${asset}`);fs.copyFileSync(src,path.join(out,asset));
 }
 
@@ -72,11 +72,15 @@ for(const route of Object.keys(sourceRoutes)){
   if(html.includes('2bl-v7')||html.includes('supabase.co'))throw new Error(`forbidden direct dependency: ${route}`);
   if(route==='/'&&!html.includes('doing-home-v4.css'))throw new Error(`homepage visual missing: ${route}`);
   if(route!=='/'&&!html.includes('doing-kawaii-current.css'))throw new Error(`kawaii visual missing: ${route}`);
+  if(route.startsWith('/market')&&!html.includes('doing-market-current.css'))throw new Error(`market CURRENT visual missing: ${route}`);
 }
 const home=fs.readFileSync(path.join(out,'index.html'),'utf8');
 for(const token of ['市集活動系統','室內設計進度系統','美類預約系統','斜槓人生小幫手','申請市集活動系統','申請室內設計系統','申請美類預約系統','/me/','/apply/','doing-home-v4.css'])if(!home.includes(token))throw new Error(`home contract missing: ${token}`);
 for(const removed of ['doingSearch','jelly-search','搜尋市集、工程進度、美類預約','benefit-grid','benefit-card','系統亮點','看圖就知道 DOING 幫你省掉哪些麻煩','audience-strip','audience-card','一個帳號，多種身分','共用同一','資料只留一份','需要什麼再加什麼','手機與電腦同一套'])if(home.includes(removed))throw new Error(`private/removed homepage copy leaked: ${removed}`);
 const member=fs.readFileSync(path.join(out,'me/index.html'),'utf8');for(const token of ['auth/line/start','getPlatformMemberProfile','createMemberWorkspaceAdminSession'])if(!member.includes(token))throw new Error(`member auth contract missing: ${token}`);
 const workspace=fs.readFileSync(path.join(out,'workspace/index.html'),'utf8');for(const token of ['getTenantModuleProfile','adminMe','市集活動系統','室內設計系統','美類預約系統'])if(!workspace.includes(token))throw new Error(`workspace contract missing: ${token}`);
+const market=fs.readFileSync(path.join(out,'market/index.html'),'utf8');for(const token of ['getSessionsAdmin','getTodos','getMembers','getSessionRegistrations','checkin','createSession','saveSiteConfig','場次','待辦','現場','會員','活動','財務','寄賣','設定'])if(!market.includes(token))throw new Error(`market organizer contract missing: ${token}`);
+const marketPublic=fs.readFileSync(path.join(out,'market/public/index.html'),'utf8');for(const token of ['publicDiscovery','getSiteConfig','/register/','getPlatformMemberProfile','getMyRegsGlobal','savePlatformMemberProfile','auth/line/start'])if(!marketPublic.includes(token))throw new Error(`market public contract missing: ${token}`);
+const marketSession=fs.readFileSync(path.join(out,'market/session/index.html'),'utf8');for(const token of ['getSessionDashboard','getSessionRegistrations','approveReg','confirmPayment','sendPaymentReminder','adminSeatBoard','adminAssignSeat','getAnnouncements','saveAnnouncement','checkin','getRefundSuggestion','confirmRefund','getOperationalCloseout','updateSession','overview','registrations','payments','seat','notice','onsite','closeout','settings'])if(!marketSession.includes(token))throw new Error(`market session contract missing: ${token}`);
 
-console.log(JSON.stringify({result:'PASS',mode:'kawaii-home-v5',routeCount:allRoutes.length,liveRoutes:Object.keys(sourceRoutes),shellRoutes:Object.keys(shellRoutes),tenantLogin:true,search:false,tagline:'斜槓人生小幫手',publicSystemsOnly:true,publicSystemCount:3,benefitGrid:false,audienceSplit:false,logo:{bytes:logoBytes.length,width:logoWidth,height:logoHeight,sha256:logoHash},systemCategories:['market-activity','interior-project','beauty-booking'],databaseWrites:0,workerChangeScope:'line-login-only',twoBlChanges:0},null,2));
+console.log(JSON.stringify({result:'PASS',mode:'market-current-operations',routeCount:allRoutes.length,liveRoutes:Object.keys(sourceRoutes),shellRoutes:Object.keys(shellRoutes),tenantLogin:true,homepageSearch:false,tagline:'斜槓人生小幫手',publicSystemsOnly:true,publicSystemCount:3,market:{organizer:true,public:true,session:true,sessionTabs:8},logo:{bytes:logoBytes.length,width:logoWidth,height:logoHeight,sha256:logoHash},databaseWrites:0,workerChanges:0,twoBlChanges:0},null,2));
