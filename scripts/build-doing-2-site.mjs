@@ -10,17 +10,19 @@ fs.mkdirSync(out,{recursive:true});
 const sourceRoutes={
   '/':'home-current.html',
   '/market/':'market-current.html',
+  '/market/public/':'market-public-current.html',
+  '/market/session/':'market-session-current.html',
   '/project/':'project-current.html',
   '/booking/':'booking-current.html',
   '/workspace/':'workspace-current.html',
   '/me/':'member-current.html',
   '/apply/':'apply-current.html',
 };
+const transformedRoutes={
+  '/register/':{source:'register.html',transform:html=>html.includes('<base href="/">')?html:html.replace('<head>','<head>\n<base href="/">')},
+};
 const shellRoutes={
-  '/market/public/':'DOING Market Public',
-  '/market/session/':'DOING Market Session',
   '/guide/':'DOING Guide',
-  '/register/':'DOING Register',
   '/world-tree/':'DOING World Tree',
 };
 const legacyRedirects=[
@@ -33,9 +35,12 @@ function shell(route,title){const safe=route.replaceAll('&','&amp;').replaceAll(
 for(const [route,source] of Object.entries(sourceRoutes)){
   const file=path.join(root,source);if(!fs.existsSync(file))throw new Error(`missing source: ${source}`);writeRoute(route,fs.readFileSync(file,'utf8'));
 }
+for(const [route,spec] of Object.entries(transformedRoutes)){
+  const file=path.join(root,spec.source);if(!fs.existsSync(file))throw new Error(`missing source: ${spec.source}`);writeRoute(route,spec.transform(fs.readFileSync(file,'utf8')));
+}
 for(const [route,title] of Object.entries(shellRoutes))writeRoute(route,shell(route,title));
 
-for(const asset of ['doing-kawaii-current.css','doing-home-v4.css','doing-home-current.js','doing-logo-current.webp']){
+for(const asset of ['doing-kawaii-current.css','doing-home-v4.css','doing-home-current.js','doing-logo-current.webp','doing-market-current.css','doing-system.css','doing-home-refresh.css','doing-design-tokens.css','doing-pastel-pages.css','doing-attribution.js']){
   const src=path.join(root,asset);if(!fs.existsSync(src))throw new Error(`missing asset: ${asset}`);fs.copyFileSync(src,path.join(out,asset));
 }
 
@@ -57,7 +62,7 @@ fs.writeFileSync(path.join(out,'doing-logo.png'),logoBytes);
 fs.writeFileSync(path.join(out,'_headers'),`/*\n  Cache-Control: no-store, max-age=0\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n`, 'utf8');
 fs.writeFileSync(path.join(out,'_redirects'),legacyRedirects.map(([a,b])=>`${a} ${b} 301`).join('\n')+'\n','utf8');
 
-const allRoutes=[...Object.keys(sourceRoutes),...Object.keys(shellRoutes)];
+const allRoutes=[...Object.keys(sourceRoutes),...Object.keys(transformedRoutes),...Object.keys(shellRoutes)];
 const expectedHtml=allRoutes.map(r=>path.relative(out,routeFile(r)).replaceAll(path.sep,'/')).sort();
 const actualHtml=[];function walk(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const fp=path.join(dir,e.name);if(e.isDirectory())walk(fp);else if(e.name.endsWith('.html'))actualHtml.push(path.relative(out,fp).replaceAll(path.sep,'/'))}}walk(out);actualHtml.sort();
 if(JSON.stringify(actualHtml)!==JSON.stringify(expectedHtml))throw new Error(`unexpected html: ${JSON.stringify(actualHtml)}`);
@@ -73,6 +78,10 @@ for(const route of Object.keys(sourceRoutes)){
   if(route==='/'&&!html.includes('doing-home-v4.css'))throw new Error(`homepage visual missing: ${route}`);
   if(route!=='/'&&!html.includes('doing-kawaii-current.css'))throw new Error(`kawaii visual missing: ${route}`);
 }
+const market=fs.readFileSync(path.join(out,'market/index.html'),'utf8');for(const token of ['getSessionsAdmin','getTodos','getMembers','financeOverview','/market/session/'])if(!market.includes(token))throw new Error(`market admin contract missing: ${token}`);
+const marketPublic=fs.readFileSync(path.join(out,'market/public/index.html'),'utf8');for(const token of ['publicDiscovery','auth/line/start','getPlatformMemberProfile','getMyRegsGlobal','/register/'])if(!marketPublic.includes(token))throw new Error(`market public contract missing: ${token}`);
+const marketSession=fs.readFileSync(path.join(out,'market/session/index.html'),'utf8');for(const token of ['getSessionRegistrations','updateRegStatus','confirmPayment','adminSeatBoard','adminAssignSeat','adminUnassignSeat','runBatchAssign','getSessionEquipmentDetails','sendNotify','sendPaymentReminder','checkin','getRefundSuggestion','confirmRefund','financeReport','updateSession'])if(!marketSession.includes(token))throw new Error(`market session contract missing: ${token}`);
+const register=fs.readFileSync(path.join(out,'register/index.html'),'utf8');for(const token of ['<base href="/">','tobeloved-api','member_token','register','付款回報'])if(!register.includes(token))throw new Error(`register contract missing: ${token}`);if(register.includes('data-doing-ui-state="rebuild-shell"'))throw new Error('register route regressed to rebuild shell');
 const home=fs.readFileSync(path.join(out,'index.html'),'utf8');
 for(const token of ['市集活動系統','室內設計進度系統','美類預約系統','斜槓人生小幫手','申請市集活動系統','申請室內設計系統','申請美類預約系統','/apply/?system=market','/apply/?system=project','/apply/?system=booking','/me/','doing-home-v4.css'])if(!home.includes(token))throw new Error(`home contract missing: ${token}`);
 for(const removed of ['doingSearch','jelly-search','搜尋市集、工程進度、美類預約','benefit-grid','benefit-card','系統亮點','看圖就知道 DOING 幫你省掉哪些麻煩','audience-strip','audience-card','一個帳號，多種身分','共用同一','資料只留一份','需要什麼再加什麼','手機與電腦同一套'])if(home.includes(removed))throw new Error(`private/removed homepage copy leaked: ${removed}`);
@@ -82,4 +91,4 @@ for(const token of ['data-system="market"','data-system="project"','data-system=
 if(apply.includes('data-doing-ui-state="rebuild-shell"'))throw new Error('application route regressed to rebuild shell');
 const workspace=fs.readFileSync(path.join(out,'workspace/index.html'),'utf8');for(const token of ['getTenantModuleProfile','adminMe','市集活動系統','室內設計系統','美類預約系統'])if(!workspace.includes(token))throw new Error(`workspace contract missing: ${token}`);
 
-console.log(JSON.stringify({result:'PASS',mode:'apply-login-current',routeCount:allRoutes.length,liveRoutes:Object.keys(sourceRoutes),shellRoutes:Object.keys(shellRoutes),tenantLogin:true,applicationLive:true,applicationSystems:['market','project','booking'],directAfterActivation:true,search:false,tagline:'斜槓人生小幫手',publicSystemsOnly:true,publicSystemCount:3,benefitGrid:false,audienceSplit:false,logo:{bytes:logoBytes.length,width:logoWidth,height:logoHeight,sha256:logoHash},databaseWrites:0,workerChangeScope:'none',twoBlChanges:0},null,2));
+console.log(JSON.stringify({result:'PASS',mode:'market-current-live',routeCount:allRoutes.length,liveRoutes:[...Object.keys(sourceRoutes),...Object.keys(transformedRoutes)],shellRoutes:Object.keys(shellRoutes),tenantLogin:true,applicationLive:true,marketAdminLive:true,marketPublicLive:true,marketSessionLive:true,registerLive:true,applicationSystems:['market','project','booking'],directAfterActivation:true,search:false,tagline:'斜槓人生小幫手',publicSystemsOnly:true,publicSystemCount:3,benefitGrid:false,audienceSplit:false,logo:{bytes:logoBytes.length,width:logoWidth,height:logoHeight,sha256:logoHash},databaseWrites:0,workerChangeScope:'none',twoBlChanges:0},null,2));
