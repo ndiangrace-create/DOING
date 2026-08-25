@@ -39,6 +39,13 @@ for(const asset of ['doing-kawaii-current.css','doing-home-v4.css','doing-home-c
   const src=path.join(root,asset);if(!fs.existsSync(src))throw new Error(`missing asset: ${asset}`);fs.copyFileSync(src,path.join(out,asset));
 }
 
+const homeLogoSource=path.join(root,'doing-logo-current.jpg.b64');
+if(!fs.existsSync(homeLogoSource))throw new Error('missing homepage high-resolution logo source');
+const homeLogoBytes=Buffer.from(fs.readFileSync(homeLogoSource,'utf8').trim(),'base64');
+const homeLogoHash=crypto.createHash('sha256').update(homeLogoBytes).digest('hex');
+if(homeLogoBytes.length!==69690||homeLogoHash!=='8aaad9f5c6a266656bc472adb2b1eb9cd188b74ee874f649219946252a98bc0a'||homeLogoBytes[0]!==0xff||homeLogoBytes[1]!==0xd8)throw new Error(`invalid homepage logo source: bytes=${homeLogoBytes.length} sha256=${homeLogoHash}`);
+fs.writeFileSync(path.join(out,'doing-logo-current.jpg'),homeLogoBytes);
+
 const logoDir=path.join(root,'.assets','doing-logo-new');
 const logoParts=['part0.txt','part1.txt','part2.txt','p3c0.txt','p3c1a.txt','p3c1b0a.txt','p3c1b0b0.txt','p3c1b0b1.txt','p3c1b1.txt','p3c2.txt','p3c3.txt','p3c4.txt','part4.txt','part5.txt'];
 const logoBase64=logoParts.map(name=>{
@@ -73,9 +80,9 @@ for(const route of Object.keys(sourceRoutes)){
   if(!html.includes('doing-kawaii-current.css'))throw new Error(`kawaii visual missing: ${route}`);
 }
 const home=fs.readFileSync(path.join(out,'index.html'),'utf8');
-for(const token of ['市集活動系統','室內設計進度系統','美類預約系統','斜槓人生小幫手','申請市集活動系統','申請室內設計進度系統','申請美類預約系統','/me/','/apply/','doing-home-v4.css'])if(!home.includes(token))throw new Error(`home contract missing: ${token}`);
+for(const token of ['市集活動系統','室內設計進度系統','美類預約系統','斜槓人生小幫手','營運管理系統','申請市集活動系統','申請室內設計進度系統','申請美類預約系統','doing-logo-current.jpg','/me/','/apply/','doing-home-v4.css'])if(!home.includes(token))throw new Error(`home contract missing: ${token}`);
 for(const removed of ['doingSearch','jelly-search','搜尋市集、工程進度、美類預約','benefit-grid','benefit-card','系統亮點','看圖就知道 DOING 幫你省掉哪些麻煩','audience-strip','audience-card','一個帳號，多種身分','共用同一','資料只留一份','需要什麼再加什麼','手機與電腦同一套'])if(home.includes(removed))throw new Error(`private/removed homepage copy leaked: ${removed}`);
 const member=fs.readFileSync(path.join(out,'me/index.html'),'utf8');for(const token of ['auth/line/start','getPlatformMemberProfile','createMemberWorkspaceAdminSession'])if(!member.includes(token))throw new Error(`member auth contract missing: ${token}`);
 const workspace=fs.readFileSync(path.join(out,'workspace/index.html'),'utf8');for(const token of ['getTenantModuleProfile','adminMe','市集活動系統','室內設計系統','美類預約系統'])if(!workspace.includes(token))throw new Error(`workspace contract missing: ${token}`);
 
-console.log(JSON.stringify({result:'PASS',mode:'kawaii-home-v5',routeCount:allRoutes.length,liveRoutes:Object.keys(sourceRoutes),shellRoutes:Object.keys(shellRoutes),tenantLogin:true,search:false,tagline:'斜槓人生小幫手',publicSystemsOnly:true,publicSystemCount:3,benefitGrid:false,audienceSplit:false,logo:{bytes:logoBytes.length,width:logoWidth,height:logoHeight,sha256:logoHash},systemCategories:['market-activity','interior-project','beauty-booking'],databaseWrites:0,workerChangeScope:'line-login-only',twoBlChanges:0},null,2));
+console.log(JSON.stringify({result:'PASS',mode:'kawaii-home-atomic',routeCount:allRoutes.length,liveRoutes:Object.keys(sourceRoutes),shellRoutes:Object.keys(shellRoutes),tenantLogin:true,search:false,tagline:'斜槓人生小幫手',publicSystemsOnly:true,publicSystemCount:3,benefitGrid:false,audienceSplit:false,homepageLogo:{bytes:homeLogoBytes.length,sha256:homeLogoHash},legacySharedLogo:{bytes:logoBytes.length,width:logoWidth,height:logoHeight,sha256:logoHash},systemCategories:['market-activity','interior-project','beauty-booking'],databaseWrites:0,workerChangeScope:'line-login-only',twoBlChanges:0},null,2));
