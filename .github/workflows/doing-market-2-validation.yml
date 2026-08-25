@@ -5,10 +5,13 @@ on:
     branches: [main]
     paths:
       - 'market-current.html'
-      - 'market-public-current.html'
       - 'market-session-current.html'
       - 'doing-market-current.css'
+      - 'doing-market-entry-current.js'
+      - 'doing-market-public-2bl.js'
+      - 'doing-member-workspace-fix.js'
       - 'doing-kawaii-current.css'
+      - 'doing-home-refresh.js'
       - 'register.html'
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/e2e-market-current.mjs'
@@ -30,11 +33,14 @@ jobs:
           node-version: '24'
       - name: Parse CURRENT Market tests
         run: |
+          node --check doing-market-entry-current.js
+          node --check doing-market-public-2bl.js
+          node --check doing-member-workspace-fix.js
           node --check scripts/build-doing-2-site.mjs
           node --check scripts/e2e-market-current.mjs
       - name: Build CURRENT site
         run: node scripts/build-doing-2-site.mjs
-      - name: Validate live Market routes and preserved SSOT boundaries
+      - name: Validate two-entry Market and preserved SSOT boundaries
         shell: bash
         run: |
           set -euo pipefail
@@ -48,9 +54,19 @@ jobs:
           grep -q 'getTodos' .doing-2-site/market/index.html
           grep -q 'getMembers' .doing-2-site/market/index.html
           grep -q 'financeOverview' .doing-2-site/market/index.html
+          grep -q 'doing-market-entry-current.js' .doing-2-site/market/index.html
+          grep -q 'auth/line/start' .doing-2-site/doing-market-entry-current.js
+          grep -q 'createMemberWorkspaceAdminSession' .doing-2-site/doing-market-entry-current.js
+          grep -q '不需要重新申請' .doing-2-site/doing-market-entry-current.js
+          grep -q 'frontBootstrap' .doing-2-site/market/public/index.html
           grep -q 'publicDiscovery' .doing-2-site/market/public/index.html
-          grep -q 'getMyRegsGlobal' .doing-2-site/market/public/index.html
-          grep -q '/register/' .doing-2-site/market/public/index.html
+          grep -q 'doingMarketGlobalBootstrap' .doing-2-site/market/public/index.html
+          grep -q 'openRegistration' .doing-2-site/market/public/index.html
+          grep -q 'market-2bl-front' .doing-2-site/market/public/index.html
+          grep -q 'doing-market-public-2bl.js' .doing-2-site/market/public/index.html
+          grep -q 'bottom-nav' .doing-2-site/market/public/index.html
+          ! grep -q 'registerUrl(' .doing-2-site/market/public/index.html
+          ! grep -q 'href="/register/' .doing-2-site/market/public/index.html
           grep -q 'getSessionRegistrations' .doing-2-site/market/session/index.html
           grep -q 'updateRegStatus' .doing-2-site/market/session/index.html
           grep -q 'confirmPayment' .doing-2-site/market/session/index.html
@@ -60,6 +76,9 @@ jobs:
           grep -q 'confirmRefund' .doing-2-site/market/session/index.html
           grep -q '<base href="/">' .doing-2-site/register/index.html
           grep -q 'member_token' .doing-2-site/register/index.html
+          test -s .doing-2-site/doing-home-refresh.js
+          test -s .doing-2-site/doing-market-public-2bl.js
+          test -s .doing-2-site/doing-market-entry-current.js
           test ! -e .doing-2-site/market-center.html
           test ! -e .doing-2-site/market-public.html
           test ! -e .doing-2-site/market-session.html
