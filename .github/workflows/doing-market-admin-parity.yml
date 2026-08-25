@@ -1,0 +1,71 @@
+name: DOING Market Admin 2BL Parity
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'market-current.html'
+      - 'doing-market-entry-current.js'
+      - 'scripts/build-doing-2-site.mjs'
+      - 'scripts/e2e-market-admin-parity.mjs'
+      - '.github/workflows/doing-market-admin-parity.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'market-current.html'
+      - 'doing-market-entry-current.js'
+      - 'scripts/build-doing-2-site.mjs'
+      - 'scripts/e2e-market-admin-parity.mjs'
+      - '.github/workflows/doing-market-admin-parity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: doing-market-admin-parity-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  admin-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Parse admin parity scripts
+        run: |
+          node --check doing-market-entry-current.js
+          node --check scripts/build-doing-2-site.mjs
+          node --check scripts/e2e-market-admin-parity.mjs
+      - name: Build CURRENT site
+        run: node scripts/build-doing-2-site.mjs
+      - name: Verify 2BL-style admin contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'getOperationalCloseout' .doing-2-site/doing-market-entry-current.js
+          grep -q 'saveConsignmentPeriod' .doing-2-site/doing-market-entry-current.js
+          grep -q 'reviewConsignmentApplication' .doing-2-site/doing-market-entry-current.js
+          grep -q 'saveConsignmentProduct' .doing-2-site/doing-market-entry-current.js
+          grep -q 'recordPosSale' .doing-2-site/doing-market-entry-current.js
+          grep -q 'getMemberHistory' .doing-2-site/doing-market-entry-current.js
+          grep -q 'saveMemberNote' .doing-2-site/doing-market-entry-current.js
+          grep -q 'getPaymentSettings' .doing-2-site/doing-market-entry-current.js
+          ! grep -q '2bl-v7' .doing-2-site/doing-market-entry-current.js
+          ! grep -q 'supabase.co' .doing-2-site/doing-market-entry-current.js
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Real-browser admin click-through
+        shell: bash
+        run: |
+          python3 -m http.server 4173 --directory .doing-2-site >/tmp/doing-market-admin.log 2>&1 &
+          PID=$!
+          trap 'kill $PID || true' EXIT
+          for i in {1..30}; do curl -fsS http://127.0.0.1:4173/market/ >/dev/null && break; sleep 1; done
+          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-admin-parity.mjs
+      - name: Diff quality
+        run: git diff --check ${{ github.event.pull_request.base.sha || 'HEAD^' }}...HEAD
