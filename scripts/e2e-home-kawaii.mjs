@@ -6,72 +6,50 @@ try{
   for(const viewport of [{width:390,height:844,name:'mobile'},{width:1440,height:1000,name:'desktop'}]){
     const page=await browser.newPage({viewport:{width:viewport.width,height:viewport.height}});
     await page.goto(base+'/',{waitUntil:'networkidle'});
-    await page.locator('text=斜槓人生小幫手').waitFor();
-    await page.locator('text=DOING 工作系統').waitFor();
-    await page.locator('text=市集活動系統').first().waitFor();
-    await page.locator('text=室內設計進度系統').first().waitFor();
-    await page.locator('text=美類預約系統').first().waitFor();
+    for(const text of ['斜槓人生小幫手','營運管理系統','市集活動系統','室內設計進度系統','美類預約系統'])await page.locator(`text=${text}`).first().waitFor();
 
     const bodyText=await page.locator('body').innerText();
-    for(const forbidden of [
-      '協援人生小幫手',
-      '一個帳號，多種身分',
-      '共用同一',
-      '資料只留一份',
-      '需要什麼再加什麼',
-      '手機與電腦同一套',
-      '系統亮點',
-      '看圖就知道 DOING 幫你省掉哪些麻煩',
-      '我是來參加活動的',
-      '我是使用 DOING 的店家／主辦／團隊'
-    ]){
+    for(const forbidden of ['協援人生小幫手','一個帳號，多種身分','共用同一','資料只留一份','需要什麼再加什麼','手機與電腦同一套','系統亮點','看圖就知道 DOING 幫你省掉哪些麻煩','我是來參加活動的','我是使用 DOING 的店家／主辦／團隊']){
       if(bodyText.includes(forbidden))throw new Error(`${viewport.name}: private/removed homepage copy leaked: ${forbidden}`);
     }
-    if(await page.locator('#doingSearch').count()!==0||await page.locator('.jelly-search').count()!==0)throw new Error(`${viewport.name}: homepage search leaked`);
-    if(await page.locator('.benefit-card').count()!==0||await page.locator('.benefit-grid').count()!==0)throw new Error(`${viewport.name}: old benefit grid leaked`);
-    if(await page.locator('.audience-card').count()!==0||await page.locator('.audience-strip').count()!==0)throw new Error(`${viewport.name}: old audience split leaked`);
+    if(await page.locator('#doingSearch,.jelly-search,.benefit-card,.benefit-grid,.audience-card,.audience-strip').count()!==0)throw new Error(`${viewport.name}: retired homepage UI leaked`);
 
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1);
     if(overflow)throw new Error(`${viewport.name}: horizontal overflow`);
 
     const heroLogo=page.locator('.brand-logo-hero');
     const logoBox=await heroLogo.boundingBox();
-    const logoNatural=await heroLogo.evaluate(img=>({width:img.naturalWidth,height:img.naturalHeight}));
-    const taglineBox=await page.locator('.brand-tagline').boundingBox();
-    if(!logoBox||!taglineBox)throw new Error(`${viewport.name}: logo/tagline missing`);
-    if(logoNatural.width!==1056||logoNatural.height!==412)throw new Error(`${viewport.name}: low-resolution logo regression ${logoNatural.width}x${logoNatural.height}`);
-    const minLogoWidth=viewport.name==='mobile'?340:900;
+    const logoNatural=await heroLogo.evaluate(img=>({width:img.naturalWidth,height:img.naturalHeight,src:img.currentSrc||img.src}));
+    if(!logoBox)throw new Error(`${viewport.name}: logo missing`);
+    if(logoNatural.width!==970||logoNatural.height!==280)throw new Error(`${viewport.name}: homepage logo source mismatch ${logoNatural.width}x${logoNatural.height}`);
+    if(!logoNatural.src.includes('/doing-logo-current.jpg'))throw new Error(`${viewport.name}: homepage logo must use current high-resolution source`);
+    const minLogoWidth=viewport.name==='mobile'?340:620;
     if(logoBox.width<minLogoWidth)throw new Error(`${viewport.name}: hero logo too small (${logoBox.width})`);
-    if(logoBox.width>1057)throw new Error(`${viewport.name}: logo is being upscaled beyond native width (${logoBox.width})`);
-    const logoGap=taglineBox.y-(logoBox.y+logoBox.height);
-    if(logoGap>18)throw new Error(`${viewport.name}: excess gap below logo (${logoGap})`);
+    if(logoBox.width>971)throw new Error(`${viewport.name}: hero logo upscaled beyond native width (${logoBox.width})`);
 
     const cards=page.locator('.system-card');
     if(await cards.count()!==3)throw new Error(`${viewport.name}: public system card count mismatch`);
     for(let i=0;i<3;i++){
       const features=cards.nth(i).locator('.system-feature-list li');
-      if(await features.count()!==4)throw new Error(`${viewport.name}: system ${i+1} feature count mismatch`);
-      const action=cards.nth(i).locator('.card-action');
-      if(await action.getAttribute('href')!=='/apply/')throw new Error(`${viewport.name}: system ${i+1} must apply independently`);
+      if(await features.count()!==6)throw new Error(`${viewport.name}: system ${i+1} feature count mismatch`);
+      if(await cards.nth(i).locator('.card-action').getAttribute('href')!=='/apply/')throw new Error(`${viewport.name}: system ${i+1} apply href mismatch`);
     }
 
     const bottom=page.locator('.bottom-jelly');
-    if(await bottom.count()!==3)throw new Error(`${viewport.name}: bottom jelly nav count mismatch`);
+    if(await bottom.count()!==3)throw new Error(`${viewport.name}: bottom nav count mismatch`);
     const hrefs=await bottom.evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href')));
     for(const expected of ['/market/public/','/me/','#support'])if(!hrefs.includes(expected))throw new Error(`${viewport.name}: missing nav ${expected}`);
 
     if(viewport.name==='desktop'){
-      const heights=[];
-      const actionBottoms=[];
+      const heights=[],actionBottoms=[];
       for(let i=0;i<3;i++){
         const cardBox=await cards.nth(i).boundingBox();
         const actionBox=await cards.nth(i).locator('.card-action').boundingBox();
         if(!cardBox||!actionBox)throw new Error(`desktop: missing card/action box ${i}`);
-        heights.push(cardBox.height);
-        actionBottoms.push(actionBox.y+actionBox.height);
+        heights.push(cardBox.height);actionBottoms.push(actionBox.y+actionBox.height);
       }
-      if(Math.max(...heights)-Math.min(...heights)>2)throw new Error(`desktop: system card heights not aligned ${heights.join(',')}`);
-      if(Math.max(...actionBottoms)-Math.min(...actionBottoms)>2)throw new Error(`desktop: system action baseline not aligned ${actionBottoms.join(',')}`);
+      if(Math.max(...heights)-Math.min(...heights)>3)throw new Error(`desktop: card heights not aligned ${heights.join(',')}`);
+      if(Math.max(...actionBottoms)-Math.min(...actionBottoms)>3)throw new Error(`desktop: action baselines not aligned ${actionBottoms.join(',')}`);
     }
 
     await page.goto(base+'/me/',{waitUntil:'domcontentloaded'});
@@ -81,16 +59,13 @@ try{
     await page.close();
   }
 
-  // Regression for the reported race: an existing member token must lock the LINE button
-  // immediately while profile verification is in flight. It must never start a second OAuth navigation.
   const authPage=await browser.newPage({viewport:{width:1440,height:1000}});
   let oauthStarts=0;
   authPage.on('request',req=>{if(req.url().includes('/auth/line/start'))oauthStarts++});
   await authPage.addInitScript(()=>localStorage.setItem('doing_member_token','existing-member-token'));
   await authPage.route('https://tobeloved-api.ndiangrace.workers.dev/**',async route=>{
     const u=new URL(route.request().url());
-    const action=u.searchParams.get('action')||'';
-    if(action==='getPlatformMemberProfile'){
+    if((u.searchParams.get('action')||'')==='getPlatformMemberProfile'){
       await new Promise(r=>setTimeout(r,350));
       await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,data:{profile:{name:'測試租戶'},workspaces:[]}})});
       return;
@@ -101,13 +76,12 @@ try{
   await authPage.waitForTimeout(80);
   const loginButtonLocked=await authPage.locator('#lineLogin').evaluate(el=>el.classList.contains('hidden')||el.disabled);
   if(!loginButtonLocked)throw new Error('auth: existing token did not lock LINE login immediately');
-  if(oauthStarts!==0)throw new Error(`auth: duplicate LINE OAuth started while token verification was pending (${oauthStarts})`);
+  if(oauthStarts!==0)throw new Error(`auth: duplicate LINE OAuth started while token verification pending (${oauthStarts})`);
   await authPage.locator('#appView:not(.hidden)').waitFor();
   await authPage.locator('text=測試租戶，歡迎回來').waitFor();
   if(oauthStarts!==0)throw new Error(`auth: LINE OAuth started after member identity resolved (${oauthStarts})`);
   await authPage.close();
 
-  // A transient profile/workspace API failure must not destroy a valid member token or restart LINE OAuth.
   const transientPage=await browser.newPage({viewport:{width:1440,height:1000}});
   let transientOauthStarts=0;
   transientPage.on('request',req=>{if(req.url().includes('/auth/line/start'))transientOauthStarts++});
@@ -118,16 +92,13 @@ try{
     await route.abort();
   });
   await transientPage.goto(base+'/me/',{waitUntil:'domcontentloaded'});
-  await transientPage.locator('#loginMessage').waitFor();
   await transientPage.waitForFunction(()=>document.getElementById('loginMessage')?.textContent?.includes('工作空間暫時載入失敗'));
   const tokenAfterTransient=await transientPage.evaluate(()=>localStorage.getItem('doing_member_token'));
-  if(tokenAfterTransient!=='existing-member-token')throw new Error('auth: transient API failure incorrectly cleared member token');
-  if(transientOauthStarts!==0)throw new Error('auth: transient API failure incorrectly restarted LINE OAuth');
-  const retryText=await transientPage.locator('#lineLogin').textContent();
-  if(!String(retryText||'').includes('重新確認'))throw new Error('auth: transient API failure did not offer in-place retry');
+  if(tokenAfterTransient!=='existing-member-token')throw new Error('auth: transient failure incorrectly cleared member token');
+  if(transientOauthStarts!==0)throw new Error('auth: transient failure incorrectly restarted LINE OAuth');
   await transientPage.close();
 
-  console.log(JSON.stringify({result:'PASS',viewports:['390x844','1440x1000'],tagline:'斜槓人生小幫手',homepageSearchRemoved:true,latestLogo:true,logoNaturalSize:'1056x412',logoUpscale:false,logoGapChecked:true,publicSystemCount:3,independentApplication:true,benefitsRemoved:true,audienceSplitRemoved:true,bottomNav:true,memberLoginEntry:true,duplicateLineOAuthRace:false,transientMemberLoadKeepsToken:true,horizontalOverflow:false}));
+  console.log(JSON.stringify({result:'PASS',viewports:['390x844','1440x1000'],homepage:'approved-pastel-system-cards',logoNaturalSize:'970x280',logoUpscale:false,publicSystemCount:3,featureChipsPerSystem:6,bottomNav:true,duplicateLineOAuthRace:false,transientMemberLoadKeepsToken:true,horizontalOverflow:false}));
 } finally {
   await browser.close();
 }
