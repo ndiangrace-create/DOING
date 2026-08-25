@@ -1,0 +1,30 @@
+name: TEMP Market Modal URL Patch
+on:
+  push:
+    branches: [fix/market-complete-session-flow-20260826]
+    paths:
+      - '.github/workflows/market-modal-url-patch-temp.yml'
+      - 'scripts/patch-market-modal-url-final.mjs'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/market-complete-session-flow-20260826
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/patch-market-modal-url-final.mjs
+      - run: node --check doing-market-public-2bl.js
+      - shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'doing-closed-loop-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add doing-market-public-2bl.js
+          git commit -m 'Keep Market registration modal on clean public URL'
+          git push origin HEAD:fix/market-complete-session-flow-20260826
