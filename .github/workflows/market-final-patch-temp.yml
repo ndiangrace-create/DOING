@@ -1,0 +1,43 @@
+name: TEMP Market Final Parity Patch
+
+on:
+  push:
+    branches: [fix/market-complete-session-flow-20260826]
+    paths:
+      - '.github/workflows/market-final-patch-temp.yml'
+      - 'scripts/patch-market-final-20260826.mjs'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/market-complete-session-flow-20260826
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Apply final Market parity patch
+        run: node scripts/patch-market-final-20260826.mjs
+      - name: Validate patched sources
+        run: |
+          node --check doing-market-complete-session.js
+          node --check doing-market-public-2bl.js
+          node --check scripts/e2e-market-current.mjs
+          grep -q 'MARKET_FINAL_2BL_CARD_MODAL_20260826' doing-market-current.css
+          grep -q 'async function hydrateTenantInline' doing-market-public-2bl.js
+          grep -q "paymentProfileId:'P1'" scripts/e2e-market-current.mjs
+      - name: Commit patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'doing-closed-loop-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add doing-market-complete-session.js doing-market-public-2bl.js doing-market-current.css scripts/e2e-market-current.mjs
+          git commit -m 'Finish 2BL card modal and session compatibility'
+          git push origin HEAD:fix/market-complete-session-flow-20260826
