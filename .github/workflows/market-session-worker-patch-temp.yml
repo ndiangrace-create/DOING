@@ -1,0 +1,41 @@
+name: TEMP Market Session Worker Patch
+
+on:
+  push:
+    branches: [fix/market-complete-session-flow-20260826]
+    paths:
+      - '.github/workflows/market-session-worker-patch-temp.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/market-complete-session-flow-20260826
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Apply reproducible Market session rules patch
+        run: node scripts/patch-worker-market-session-rules-20260826.mjs
+      - name: Validate Worker pair
+        run: |
+          node -e "import('./worker.js')"
+          cmp worker.js worker.txt
+          grep -q 'MARKET_SESSION_RULES_2BL_PARITY_20260826' worker.js
+          grep -q 'registration_schedule_json' worker.js
+          grep -q 'multi_day_tiers_json' worker.js
+      - name: Commit canonical Worker pair
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- worker.js worker.txt; then exit 0; fi
+          git config user.name 'doing-closed-loop-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add worker.js worker.txt
+          git commit -m 'Add formal Market schedule and multi-day pricing rules'
+          git push origin HEAD:fix/market-complete-session-flow-20260826
