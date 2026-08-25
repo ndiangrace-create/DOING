@@ -27,9 +27,16 @@ function transformSource(route,html){
 }
 function marketPublicTransform(html){
   let x=withBase(html);
-  x=injectHead(x,'<link rel="stylesheet" href="/doing-kawaii-current.css?v=20260825-1">\n<link rel="stylesheet" href="/doing-market-current.css?v=20260825-2">');
+  x=injectHead(x,'<link rel="stylesheet" href="/doing-kawaii-current.css?v=20260825-1">\n<link rel="stylesheet" href="/doing-market-current.css?v=20260825-2">\n<script src="/doing-market-public-2bl.js?v=20260825-2"></script>');
   x=x.replace('<body class="doing-app doing-register">','<body class="doing-app doing-register market-2bl-front">');
-  x=injectBodyEnd(x,'<script src="/doing-market-public-2bl.js?v=20260825-1"></script>');
+  const tenantGuard="if(!urlTenant)throw new Error('無法辨識主辦空間，請從主辦提供的活動連結進入');";
+  const tenantPatch="if(!urlTenant&&document.body.classList.contains('market-2bl-front'))return window.doingMarketGlobalBootstrap();\n    if(!urlTenant)throw new Error('無法辨識主辦空間，請從主辦提供的活動連結進入');";
+  if(!x.includes(tenantGuard))throw new Error('market public tenant guard source changed');
+  x=x.replace(tenantGuard,tenantPatch);
+  const deepLink="if(hit)setTimeout(()=>openSession(hit),50);";
+  const deepPatch="if(hit)setTimeout(()=>new URL(location.href).searchParams.get('market_autoreg')==='1'?openRegistration(hit.id):openSession(hit),50);";
+  if(!x.includes(deepLink))throw new Error('market public deep-link source changed');
+  x=x.replace(deepLink,deepPatch);
   return x;
 }
 const transformedRoutes={
@@ -55,7 +62,7 @@ for(const [route,spec] of Object.entries(transformedRoutes)){
 }
 for(const [route,title] of Object.entries(shellRoutes))writeRoute(route,shell(route,title));
 
-for(const asset of ['doing-kawaii-current.css','doing-home-v4.css','doing-home-current.js','doing-logo-current.webp','doing-market-current.css','doing-market-entry-current.js','doing-market-public-2bl.js','doing-member-workspace-fix.js','doing-system.css','doing-home-refresh.css','doing-design-tokens.css','doing-pastel-pages.css','doing-attribution.js']){
+for(const asset of ['doing-kawaii-current.css','doing-home-v4.css','doing-home-current.js','doing-logo-current.webp','doing-market-current.css','doing-market-entry-current.js','doing-market-public-2bl.js','doing-member-workspace-fix.js','doing-system.css','doing-home-refresh.css','doing-home-refresh.js','doing-design-tokens.css','doing-pastel-pages.css','doing-attribution.js']){
   const src=path.join(root,asset);if(!fs.existsSync(src))throw new Error(`missing asset: ${asset}`);fs.copyFileSync(src,path.join(out,asset));
 }
 
@@ -90,7 +97,7 @@ for(const route of [...Object.keys(sourceRoutes),...Object.keys(transformedRoute
 }
 for(const route of ['/market/','/market/session/','/market/public/']){const html=fs.readFileSync(routeFile(route),'utf8');if(!html.includes('doing-market-current.css'))throw new Error(`market visual missing: ${route}`)}
 const market=fs.readFileSync(path.join(out,'market/index.html'),'utf8');for(const token of ['getSessionsAdmin','getTodos','getMembers','financeOverview','/market/session/','doing-market-entry-current.js'])if(!market.includes(token))throw new Error(`market admin contract missing: ${token}`);
-const marketPublic=fs.readFileSync(path.join(out,'market/public/index.html'),'utf8');for(const token of ['frontBootstrap','openRegistration','bottom-nav','market-2bl-front','doing-market-public-2bl.js','getMyRegs','register'])if(!marketPublic.includes(token))throw new Error(`market public contract missing: ${token}`);if(marketPublic.includes('registerUrl(')||marketPublic.includes('href="/register/'))throw new Error('market public regressed to second registration page');
+const marketPublic=fs.readFileSync(path.join(out,'market/public/index.html'),'utf8');for(const token of ['frontBootstrap','openRegistration','bottom-nav','market-2bl-front','doing-market-public-2bl.js','doingMarketGlobalBootstrap','publicDiscovery','getMyRegs','register'])if(!marketPublic.includes(token))throw new Error(`market public contract missing: ${token}`);if(marketPublic.includes('registerUrl(')||marketPublic.includes('href="/register/'))throw new Error('market public regressed to second registration page');
 const marketSession=fs.readFileSync(path.join(out,'market/session/index.html'),'utf8');for(const token of ['getSessionRegistrations','updateRegStatus','confirmPayment','adminSeatBoard','adminAssignSeat','adminUnassignSeat','runBatchAssign','getSessionEquipmentDetails','sendNotify','sendPaymentReminder','checkin','getRefundSuggestion','confirmRefund','financeReport','updateSession'])if(!marketSession.includes(token))throw new Error(`market session contract missing: ${token}`);
 const register=fs.readFileSync(path.join(out,'register/index.html'),'utf8');for(const token of ['<base href="/">','tobeloved-api','member_token','register','付款回報'])if(!register.includes(token))throw new Error(`register contract missing: ${token}`);if(register.includes('data-doing-ui-state="rebuild-shell"'))throw new Error('register route regressed to rebuild shell');
 const home=fs.readFileSync(path.join(out,'index.html'),'utf8');for(const token of ['市集活動系統','室內設計進度系統','美類預約系統','斜槓人生小幫手','申請市集活動系統','申請室內設計系統','申請美類預約系統','/apply/?system=market','/apply/?system=project','/apply/?system=booking','/me/','doing-home-v4.css'])if(!home.includes(token))throw new Error(`home contract missing: ${token}`);
