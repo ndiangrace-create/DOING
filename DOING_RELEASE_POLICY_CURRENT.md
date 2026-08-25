@@ -1,26 +1,27 @@
 # DOING 當前正式發布規則
 
-狀態：已確認；最高優先；立即生效
-更新：2026-08-22 Asia/Taipei
+狀態：CURRENT／最高優先／立即生效
+更新：2026-08-25 Asia/Taipei
 
-本文件是 DOING／DOING 2.0 目前最高優先發布規則。若其他舊文件仍要求「驗證完成後停在 Release Ready 等待第二次確認發布」，一律由本文件取代。
+本文件只定義執行與發布口令；完整開發流程一律引用 `DOING_DEVELOPMENT_SOP_CURRENT.md`，不得在此另建第二套 SOP。
 
 ## 固定規則
 
 1. 需求尚在溝通、尚未由使用者說「執行」前，不得修改、合併或部署。
-2. 使用者說「執行」後，必須把本次已確認需求整批一次完成，不得說一個改一個、不得分批假交付。
-3. 完成後必須跑本批相關的完整驗證、E2E、權限、API、Supabase SSOT、路由、回歸與發布檢查。
-4. 若所有必跑驗證 PASS、沒有阻斷問題，直接合併 main 並發布正式環境，不再等待使用者第二次說「確認發布」。
-5. 正式部署後繼續做 production verification；若發現問題，立即修正、重跑驗證並再次發布同一批，直到 DoD 通過。
-6. 只有兩種情況可以停止發布：
-   - 使用者明確說「先不要發布／不要部署／只做到 Release Ready」。
-   - 驗證、權限、正式資料或部署環境存在阻斷問題。
-7. 不得把「CI PASS」誤稱為「真人瀏覽器 UAT 已完成」；能實際做 production browser UAT 時必須做，不能做時需明確留下 outstanding evidence。
-8. 每批完成後更新 World Tree、ChangeLog、Audit Trail 與正式版本證據。
+2. 若工作涉及新操作路徑、角色流程、狀態流程或 Navigation Contract，使用者說「執行」後，先依 CURRENT SOP 完成 Prototype／Reverse Brainstorming，停在 Decision Gate。
+3. Decision Gate 未經使用者確認，不得串正式功能、不得修改正式資料與權限邏輯、不得部署。
+4. 使用者確認 Decision Gate 後，才進正式實作、Real-Browser E2E、Regression、Fix Until DoD、World Tree／ChangeLog，最後停在 Release Ready。
+5. 正式部署必須收到明確「部署／發布」指令；Release Ready 不等於已部署。
+6. 若使用者明確要求「只給檔案／不要部署」，完成檔案與驗證後不得合併或發布。
+7. 不得把 CI PASS 誤稱為真人瀏覽器 UAT；能做 production browser UAT 時必須做，不能做時要留下 outstanding evidence。
+8. 已通過項目禁止重做；問題只修 delta，從最近失敗 checkpoint 繼續。
+9. 每批正式功能完成後更新 CURRENT World Tree／ChangeLog／Audit Trail；詳細歷史留 GitHub，Supabase 不堆疊重複開發紀錄。
 
-## 當前發布口令
+## 當前口令
 
-- 「執行」＝授權完成本批需求、驗證無誤後直接正式發布。
-- 「先不要發布」＝只做到驗證／Release Ready，不合併正式環境。
+- 「執行」：開始本批工作；若有新路徑／新操作，先做到 Decision Gate。
+- 「確認／照這版實作」：Decision Gate 通過，進正式實作直到 Release Ready。
+- 「給我檔案／打包」：輸出 W／G／必要時 S＋交接語法；不部署。
+- 「部署／發布」：將已通過 DoD 的 Release Ready 版本正式發布並做 production verification。
 
-本規則自 2026-08-22 起取代舊的「整批驗證完成後仍需第二次確認發布」規則。
+本規則自 2026-08-25 起取代舊的「執行後自動發布」規則。
