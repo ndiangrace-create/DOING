@@ -7,11 +7,12 @@ const b64=x=>Buffer.from(JSON.stringify(x)).toString('base64url');
 const adminToken=`${b64({alg:'none',typ:'JWT'})}.${b64({email:'admin@example.com',normalized_role:'superadmin'})}.x`;
 const writes=[];
 const reads=[];
-const sessions=[{id:'S1',name:'測試市集',dates:[{date:'2026-09-01',label:'2026-09-01'}],venue:'測試場地',registrationCount:3,pendingCount:1,paidCount:1,refundCount:1,status:'open'}];
+const sessions=[{id:'S1',name:'測試市集',dates:[{date:'2026-09-01',label:'2026-09-01'}],venue:'測試場地',registrationCount:4,pendingCount:1,paidCount:2,refundCount:1,status:'open'}];
 const regs=[
   {id:'R1',sessionId:'S1',brand:'品牌甲',name:'王小明',phone:'0900000001',email:'a@example.com',reviewStatus:'已錄取',paymentStatus:'未繳費',checkinStatus:'未報到',refundStatus:''},
   {id:'R2',sessionId:'S1',brand:'品牌乙',name:'李小華',phone:'0900000002',email:'b@example.com',reviewStatus:'待審核',paymentStatus:'付款待確認',checkinStatus:'未報到',refundStatus:'待退款'},
-  {id:'R3',sessionId:'S1',brand:'品牌丙',name:'陳小美',phone:'0900000003',email:'c@example.com',reviewStatus:'已錄取',paymentStatus:'已繳費',checkinStatus:'已報到',stallNumber:'A02',refundStatus:''}
+  {id:'R3',sessionId:'S1',brand:'品牌丙',name:'陳小美',phone:'0900000003',email:'c@example.com',reviewStatus:'已錄取',paymentStatus:'已繳費',checkinStatus:'已報到',stallNumber:'A02',refundStatus:''},
+  {id:'R4',sessionId:'S1',brand:'品牌丁',name:'林小安',phone:'0900000004',email:'d@example.com',reviewStatus:'已錄取',paymentStatus:'已繳費',checkinStatus:'未報到',refundStatus:''}
 ];
 function payload(action){
   switch(action){
@@ -60,7 +61,7 @@ async function adminJourney(browser,viewport){
   for(const name of ['registrations','payments','seat','notice','onsite','closeout','settings','overview']){await page.locator(`.mk-session-tabs button[data-tab="${name}"]`).click();assert.equal(await page.locator(`#${name}`).evaluate(e=>e.classList.contains('active')),true)}
   await page.locator('[data-tab="registrations"]').click();await page.locator('[data-status="已錄取"]').first().click();
   await page.locator('[data-tab="payments"]').click();if(await page.locator('[data-confirm-pay]').count())await page.locator('[data-confirm-pay]').first().click();if(await page.locator('[data-remind]').count())await page.locator('[data-remind]').first().click();
-  await page.locator('[data-tab="seat"]').click();await page.waitForSelector('#seatBoard .mk-seat');await page.locator('#assignReg').selectOption('R1');await page.locator('#assignStall').selectOption('A01');await page.locator('#assignSeat').click();await page.locator('#batchSeat').click();if(await page.locator('[data-unassign]').count())await page.locator('[data-unassign]').first().click();await page.locator('#addEquip').click();await page.locator('#saveEquip').click();
+  await page.locator('[data-tab="seat"]').click();await page.waitForSelector('#seatBoard .mk-seat');await page.locator('#assignReg').selectOption('R4');await page.locator('#assignStall').selectOption('A01');await page.locator('#assignSeat').click();await page.locator('#batchSeat').click();if(await page.locator('[data-unassign]').count())await page.locator('[data-unassign]').first().click();await page.locator('#addEquip').click();await page.locator('#saveEquip').click();
   await page.locator('[data-tab="notice"]').click();await page.locator('#noticeContent').fill('測試行前通知');await page.locator('#sendNotice').click();await page.locator('#remindUnpaid').click();
   await page.locator('[data-tab="onsite"]').click();if(await page.locator('[data-checkin]').count())await page.locator('[data-checkin]').first().click();
   await page.locator('[data-tab="closeout"]').click();await page.waitForTimeout(50);if(await page.locator('[data-refund]').count())await page.locator('[data-refund]').first().click();
