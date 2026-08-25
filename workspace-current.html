@@ -12,38 +12,41 @@
 <div class="watercolor-surface" aria-hidden="true"></div>
 <header class="relative z-20 mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 pt-5 sm:px-6">
   <a href="/" class="inline-flex items-center gap-2"><img class="h-11 w-auto" src="/doing-logo.png" alt="DOING"><span class="hidden text-sm font-black text-[#7369a7] sm:inline">首頁</span></a>
-  <a class="mini-jelly mini-jelly-lilac" href="/me/#operations">切換工作空間</a>
+  <a class="mini-jelly mini-jelly-lilac" href="/me/#operations">我的 DOING</a>
 </header>
 <main class="relative z-10 mx-auto w-full max-w-6xl px-4 pb-24 pt-8 sm:px-6">
   <section class="soft-panel p-6 sm:p-8">
     <span class="kawaii-kicker">WORKSPACE</span>
     <h1 id="tenantName" class="mt-3 text-3xl font-black text-[#6658bc]">正在讀取工作空間</h1>
-    <p id="workspaceHint" class="mt-2 font-bold leading-7 text-slate-600">DOING 只會顯示這個租戶正式核准的系統。</p>
+    <p id="workspaceHint" class="mt-2 font-bold leading-7 text-slate-600">只顯示這個營運帳號正式開通的系統。</p>
   </section>
 
   <section class="mt-8" aria-labelledby="systemsTitle">
-    <h2 id="systemsTitle" class="mb-5 text-2xl font-black text-slate-800">我的系統</h2>
-    <div id="moduleGrid" class="grid gap-5 md:grid-cols-3">
-      <article class="system-card p-5 opacity-70" data-module-card="market"><div class="system-visual bg-[#dff4ff]">🎪</div><span class="category-tag mt-4 bg-[#dff4ff] text-[#477e9e]">市集活動</span><h3 class="mt-3 text-xl font-black">市集活動系統</h3><p class="mt-2 text-sm font-bold leading-6 text-slate-600">招募、報名、審核、付款、排位、現場、退款與結案。</p><a class="card-action pointer-events-none mt-5 opacity-50" data-module-link="market" aria-disabled="true">尚未確認權限</a></article>
-      <article class="system-card p-5 opacity-70" data-module-card="project"><div class="system-visual bg-[#fff0d9]">🏠</div><span class="category-tag mt-4 bg-[#fff0d9] text-[#9a7441]">室內設計進度</span><h3 class="mt-3 text-xl font-black">室內設計系統</h3><p class="mt-2 text-sm font-bold leading-6 text-slate-600">工程階段、進度、報價、付款、支出、工班與驗收。</p><a class="card-action pointer-events-none mt-5 opacity-50" data-module-link="project" aria-disabled="true">尚未確認權限</a></article>
-      <article class="system-card p-5 opacity-70" data-module-card="booking"><div class="system-visual bg-[#effbcf]">💅</div><span class="category-tag mt-4 bg-[#effbcf] text-[#67812b]">美類預約</span><h3 class="mt-3 text-xl font-black">美類預約系統</h3><p class="mt-2 text-sm font-bold leading-6 text-slate-600">服務、可預約空檔、人員、排班、顧客與到店提醒。</p><a class="card-action pointer-events-none mt-5 opacity-50" data-module-link="booking" aria-disabled="true">尚未確認權限</a></article>
-    </div>
+    <div class="mb-5 flex flex-wrap items-center justify-between gap-3"><h2 id="systemsTitle" class="text-2xl font-black text-slate-800">我的系統</h2><a class="mini-jelly mini-jelly-blue" href="/apply/">申請新的系統</a></div>
+    <div id="moduleGrid" class="grid gap-5 md:grid-cols-3"></div>
+    <div id="emptySystems" class="soft-panel hidden p-7 text-center"><h3 class="text-xl font-black">目前沒有已開通的系統</h3><p class="mt-2 font-bold text-slate-600">未開通的系統不會顯示在這裡。</p></div>
     <p id="workspaceError" class="mt-5 hidden rounded-2xl bg-white/80 p-4 font-bold text-rose-600"></p>
   </section>
 </main>
 <script>
 'use strict';
 const API='https://tobeloved-api.ndiangrace.workers.dev';
+const SYSTEMS={
+  market:{name:'市集活動系統',icon:'🎪',route:'/market/',tag:'市集活動',visual:'bg-[#dff4ff]',tagClass:'bg-[#dff4ff] text-[#477e9e]',copy:'招募、報名、審核、付款、排位、現場、退款與結案。'},
+  project:{name:'室內設計進度系統',icon:'🏠',route:'/project/',tag:'室內設計進度',visual:'bg-[#fff0d9]',tagClass:'bg-[#fff0d9] text-[#9a7441]',copy:'工程階段、進度、報價、付款、支出、工班與驗收。'},
+  booking:{name:'美類預約系統',icon:'💅',route:'/booking/',tag:'美類預約',visual:'bg-[#effbcf]',tagClass:'bg-[#effbcf] text-[#67812b]',copy:'服務、可預約空檔、人員、排班、顧客與到店提醒。'}
+};
 const p=new URL(location.href).searchParams;
 const tenant=String(p.get('tenant')||'').trim().toLowerCase();
 const token=String(p.get('admin_token')||p.get('token')||'').trim();
 const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 function jwtEmail(v){try{const s=String(v||'').split('.')[1];if(!s)return'';const raw=s.replace(/-/g,'+').replace(/_/g,'/');return String(JSON.parse(decodeURIComponent(escape(atob(raw+'='.repeat((4-raw.length%4)%4))))).email||'')}catch(_){return''}}
 async function api(action,extra={}){const u=new URL(API);u.searchParams.set('action',action);u.searchParams.set('tenant',tenant);u.searchParams.set('token',token);Object.entries(extra).forEach(([k,v])=>{if(v!==undefined&&v!==null&&v!=='')u.searchParams.set(k,String(v))});const r=await fetch(u,{cache:'no-store'}),d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false||d.error)throw Error(d.error||'載入失敗');return d.data??d.result??d}
-function allowed(profile,flags){const set=new Set();const wm=flags&&typeof flags.workModules==='object'?flags.workModules:{};if(wm.market===true||wm.event===true||wm.course===true)set.add('market');if(wm.project===true)set.add('project');if(wm.booking===true)set.add('booking');const signals=[flags?.businessType,profile?.useType,...(Array.isArray(profile?.useCases)?profile.useCases:[])].map(x=>String(x||'').toLowerCase());for(const s of signals){if(/market|event|activity|course|workshop|市集|活動|課程|攤/.test(s))set.add('market');if(/project|construction|engineering|室內|設計|工程|專案/.test(s))set.add('project');if(/beauty|service_booking|appointment|booking|美甲|美容|美類|預約/.test(s))set.add('booking')}return set}
-function moduleHref(key){const u=new URL(key==='market'?'/market/':key==='project'?'/project/':'/booking/',location.origin);u.searchParams.set('tenant',tenant);u.searchParams.set('admin_token',token);return u.toString()}
-function activate(key){const card=document.querySelector(`[data-module-card="${key}"]`),link=document.querySelector(`[data-module-link="${key}"]`);if(!card||!link)return;card.classList.remove('opacity-70');link.classList.remove('pointer-events-none','opacity-50');link.removeAttribute('aria-disabled');link.href=moduleHref(key);link.textContent='進入系統'}
-async function init(){if(!tenant||!token){location.replace('/me/#operations');return}try{const email=jwtEmail(token);if(!email)throw Error('登入資料不完整，請重新從我的 DOING 進入。');const [profile,me]=await Promise.all([api('getTenantModuleProfile',{email}),api('adminMe',{email:'_'})]);const flags=profile&&profile.approvedFlags&&typeof profile.approvedFlags==='object'?profile.approvedFlags:{};if(!Object.keys(flags).length)throw Error('目前讀不到已核准功能，已停止開啟系統以避免權限誤判。');$('tenantName').textContent=(me?.tenant?.name||me?.tenant_name||profile?.unitName||tenant)+'｜工作空間';const set=allowed(profile,flags);set.forEach(activate);$('workspaceHint').textContent=set.size?`已依正式權限顯示 ${set.size} 個可使用系統。`:'這個工作空間目前沒有核准的系統分類。'}catch(e){$('workspaceError').textContent=e.message||'工作空間載入失敗';$('workspaceError').classList.remove('hidden')}}
+function enabledKeys(profile){const wm=profile?.approvedFlags?.workModules;if(!wm||typeof wm!=='object'||Array.isArray(wm))return[];return ['market','project','booking'].filter(k=>wm[k]===true)}
+function moduleHref(key){const u=new URL(SYSTEMS[key].route,location.origin);u.searchParams.set('tenant',tenant);u.searchParams.set('admin_token',token);return u.toString()}
+function render(key){const s=SYSTEMS[key];return `<article class="system-card p-5" data-module-card="${key}"><div class="system-visual ${s.visual}">${s.icon}</div><span class="category-tag mt-4 ${s.tagClass}">${s.tag}</span><h3 class="mt-3 text-xl font-black">${s.name}</h3><p class="mt-2 text-sm font-bold leading-6 text-slate-600">${s.copy}</p><a class="card-action mt-5" href="${esc(moduleHref(key))}" data-module-link="${key}">進入系統</a></article>`}
+async function init(){if(!tenant||!token){location.replace('/me/#operations');return}try{const email=jwtEmail(token);if(!email)throw Error('登入資料不完整，請重新從我的 DOING 進入。');const [profile,me]=await Promise.all([api('getTenantModuleProfile',{email}),api('adminMe',{email:'_'})]);const wm=profile?.approvedFlags?.workModules;if(!wm||typeof wm!=='object'||Array.isArray(wm))throw Error('目前讀不到正式系統權限，已停止顯示以避免誤判。');const keys=enabledKeys(profile);$('tenantName').textContent=(me?.tenant?.name||me?.tenant_name||profile?.unitName||tenant)+'｜工作空間';$('moduleGrid').innerHTML=keys.map(render).join('');$('moduleGrid').classList.toggle('hidden',keys.length===0);$('emptySystems').classList.toggle('hidden',keys.length!==0);$('workspaceHint').textContent=keys.length?`已依正式資料顯示 ${keys.length} 個已開通系統。`:'這個營運帳號目前沒有已開通的系統。'}catch(e){$('workspaceError').textContent=e.message||'工作空間載入失敗';$('workspaceError').classList.remove('hidden')}}
 init();
 </script>
 </body>
