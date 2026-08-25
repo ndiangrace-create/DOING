@@ -14,6 +14,7 @@ on:
       - 'doing-home-v4.css'
       - 'doing-home-current.js'
       - 'doing-logo.png'
+      - 'doing-logo-current.webp'
       - '.assets/doing-logo-new/**'
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/e2e-home-kawaii.mjs'
@@ -31,6 +32,7 @@ on:
       - 'doing-home-v4.css'
       - 'doing-home-current.js'
       - 'doing-logo.png'
+      - 'doing-logo-current.webp'
       - '.assets/doing-logo-new/**'
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/e2e-home-kawaii.mjs'
@@ -72,11 +74,14 @@ jobs:
           files=(index.html market/index.html market/public/index.html market/session/index.html project/index.html booking/index.html guide/index.html workspace/index.html me/index.html apply/index.html register/index.html world-tree/index.html)
           for f in "${files[@]}"; do test -s ".doing-2-site/$f"; done
           for f in market/public/index.html market/session/index.html guide/index.html apply/index.html register/index.html world-tree/index.html; do grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"; done
-          for f in index.html market/index.html project/index.html booking/index.html workspace/index.html me/index.html; do grep -q 'doing-kawaii-current.css' ".doing-2-site/$f"; done
+          for f in market/index.html project/index.html booking/index.html workspace/index.html me/index.html; do grep -q 'doing-kawaii-current.css' ".doing-2-site/$f"; done
+          grep -q 'doing-home-v4.css' .doing-2-site/index.html
+          grep -q 'doing-logo-current.webp' .doing-2-site/index.html
           test -s .doing-2-site/doing-kawaii-current.css
           test -s .doing-2-site/doing-home-v4.css
           test -s .doing-2-site/doing-home-current.js
           test -s .doing-2-site/doing-logo.png
+          test -s .doing-2-site/doing-logo-current.webp
           grep -q '斜槓人生小幫手' .doing-2-site/index.html
           ! grep -q 'doingSearch' .doing-2-site/index.html
           ! grep -q 'jelly-search' .doing-2-site/index.html
