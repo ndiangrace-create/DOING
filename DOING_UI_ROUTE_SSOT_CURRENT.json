@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-25-clean-slate",
-  "state": "rebuild-shells",
+  "version": "2026-08-25-system-entitlement-router",
+  "state": "release_candidate",
   "formalRoutes": [
     "/",
     "/market/",
@@ -15,8 +15,25 @@
     "/register/",
     "/world-tree/"
   ],
+  "homepageSystems": {
+    "market": {"label": "市集活動系統", "applyPath": "/apply/?system=market", "systemPath": "/market/"},
+    "project": {"label": "室內設計進度系統", "applyPath": "/apply/?system=project", "systemPath": "/project/"},
+    "booking": {"label": "美類預約系統", "applyPath": "/apply/?system=booking", "systemPath": "/booking/"}
+  },
+  "identityRouting": {
+    "model": "one_member_one_owned_tenant_multi_system",
+    "memberSource": ["platform_members", "platform_member_identities"],
+    "ownedTenantSource": ["tenants", "staff.platform_member_id"],
+    "systemEntitlementSource": "tenant_settings.module_flags_json.workModules",
+    "loginResolution": "LINE member -> owned tenant/workspace -> workModules -> enabled system route",
+    "singleEnabledSystem": "direct",
+    "multipleEnabledSystems": "/me/ lists only enabled systems",
+    "unentitledSystemsVisible": false,
+    "useCasesAsAuthorization": false
+  },
+  "newRoutesAdded": false,
   "publishedOperationUi": false,
   "workerChanged": false,
-  "databaseChanged": false,
+  "databaseMigration": "supabase_system_entitlements_current_20260825.sql",
   "twoBlChanged": false
 }
