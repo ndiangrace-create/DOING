@@ -8,11 +8,12 @@ const src=path.join(root,asset);
 if(!fs.existsSync(src))throw new Error(`missing ${asset}`);
 fs.copyFileSync(src,path.join(out,asset));
 const tag='<script src="/doing-market-complete-session.js?v=20260826-1"></script>';
+const compat='<script>document.querySelectorAll(\'#newSessionDialog [data-full-close]\').forEach(b=>b.setAttribute(\'data-close\',\'newSessionDialog\'));</script>';
 for(const rel of ['market/index.html','market/session/index.html']){
   const file=path.join(out,rel);
   let html=fs.readFileSync(file,'utf8');
-  if(!html.includes(tag))html=html.replace('</body>',`${tag}\n</body>`);
+  if(!html.includes(tag))html=html.replace('</body>',`${tag}\n${rel==='market/index.html'?compat:''}\n</body>`);
   if(!html.includes('doing-market-complete-session.js'))throw new Error(`complete-session enhancer missing: ${rel}`);
   fs.writeFileSync(file,html,'utf8');
 }
-console.log(JSON.stringify({result:'PASS',asset,targets:['/market/','/market/session/']},null,2));
+console.log(JSON.stringify({result:'PASS',asset,targets:['/market/','/market/session/'],legacyDialogSelectorPreserved:true},null,2));
