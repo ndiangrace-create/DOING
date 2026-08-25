@@ -10,6 +10,7 @@ on:
       - 'doing-market-entry-current.js'
       - 'doing-market-public-2bl.js'
       - 'doing-market-topic-filter.js'
+      - 'doing-market-single-page-registration.js'
       - 'doing-market-complete-session.js'
       - 'doing-member-workspace-fix.js'
       - 'doing-kawaii-current.css'
@@ -41,6 +42,7 @@ jobs:
           node --check doing-market-entry-current.js
           node --check doing-market-public-2bl.js
           node --check doing-market-topic-filter.js
+          node --check doing-market-single-page-registration.js
           node --check doing-market-complete-session.js
           node --check doing-member-workspace-fix.js
           node --check scripts/build-doing-2-site.mjs
@@ -86,6 +88,9 @@ jobs:
           grep -q 'doing-market-topic-filter.js' .doing-2-site/market/public/index.html
           grep -q 'market-topic-chips' .doing-2-site/doing-market-topic-filter.js
           grep -q 'sortSessions' .doing-2-site/doing-market-topic-filter.js
+          grep -q 'doing-market-single-page-registration.js' .doing-2-site/market/public/index.html
+          grep -q 'single-page-registration' .doing-2-site/doing-market-single-page-registration.js
+          grep -q 'agreementCheckbox' .doing-2-site/doing-market-single-page-registration.js || grep -q 'agreementCheck' .doing-2-site/doing-market-single-page-registration.js
           grep -q 'openRegistration' .doing-2-site/market/public/index.html
           grep -q 'market-2bl-front' .doing-2-site/market/public/index.html
           grep -q 'doing-market-public-2bl.js' .doing-2-site/market/public/index.html
@@ -104,6 +109,7 @@ jobs:
           test -s .doing-2-site/doing-home-refresh.js
           test -s .doing-2-site/doing-market-public-2bl.js
           test -s .doing-2-site/doing-market-topic-filter.js
+          test -s .doing-2-site/doing-market-single-page-registration.js
           test -s .doing-2-site/doing-market-entry-current.js
           test -s .doing-2-site/doing-market-complete-session.js
           test ! -e .doing-2-site/market-center.html
