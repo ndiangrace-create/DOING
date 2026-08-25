@@ -53,6 +53,7 @@ async function adminJourney(browser,viewport){
   assert.equal(await page.locator('.mk-nav button').count(),8);
   for(const name of ['todos','onsite','members','events','finance','consignment','settings','sessions']){await page.locator(`.mk-nav button[data-page="${name}"]`).click();assert.equal(await page.locator(`#${name}`).evaluate(e=>e.classList.contains('active')),true)}
   await page.locator('[data-onsite-session="S1"]').click();await page.waitForSelector('#onsiteList .mk-row');
+  await page.locator('.mk-nav button[data-page="sessions"]').click();
   await page.locator('#newSession').click();assert.equal(await page.locator('#newSessionDialog').evaluate(e=>e.open),true);await page.locator('[data-close="newSessionDialog"]').first().click();
   await page.goto(`${BASE}/market/session/?tenant=demo&admin_token=${encodeURIComponent(adminToken)}&sessionId=S1`);await page.waitForSelector('#kpis .mk-stat');
   assert.equal(await page.locator('.mk-session-tabs button').count(),8);
