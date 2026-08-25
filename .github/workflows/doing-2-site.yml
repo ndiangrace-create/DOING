@@ -9,9 +9,18 @@ on:
       - 'apply-current.html'
       - 'workspace-current.html'
       - 'market-current.html'
+      - 'market-public-current.html'
+      - 'market-session-current.html'
       - 'project-current.html'
       - 'booking-current.html'
+      - 'register.html'
       - 'doing-kawaii-current.css'
+      - 'doing-market-current.css'
+      - 'doing-system.css'
+      - 'doing-home-refresh.css'
+      - 'doing-design-tokens.css'
+      - 'doing-pastel-pages.css'
+      - 'doing-attribution.js'
       - 'doing-home-v4.css'
       - 'doing-home-current.js'
       - 'doing-logo.png'
@@ -20,6 +29,7 @@ on:
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/e2e-home-kawaii.mjs'
       - 'scripts/e2e-apply-login-current.mjs'
+      - 'scripts/e2e-market-current.mjs'
       - '.github/workflows/doing-2-site.yml'
   push:
     branches: [main]
@@ -29,9 +39,18 @@ on:
       - 'apply-current.html'
       - 'workspace-current.html'
       - 'market-current.html'
+      - 'market-public-current.html'
+      - 'market-session-current.html'
       - 'project-current.html'
       - 'booking-current.html'
+      - 'register.html'
       - 'doing-kawaii-current.css'
+      - 'doing-market-current.css'
+      - 'doing-system.css'
+      - 'doing-home-refresh.css'
+      - 'doing-design-tokens.css'
+      - 'doing-pastel-pages.css'
+      - 'doing-attribution.js'
       - 'doing-home-v4.css'
       - 'doing-home-current.js'
       - 'doing-logo.png'
@@ -40,6 +59,7 @@ on:
       - 'scripts/build-doing-2-site.mjs'
       - 'scripts/e2e-home-kawaii.mjs'
       - 'scripts/e2e-apply-login-current.mjs'
+      - 'scripts/e2e-market-current.mjs'
       - '.github/workflows/doing-2-site.yml'
   workflow_dispatch:
 
@@ -70,6 +90,7 @@ jobs:
           node --check scripts/build-doing-2-site.mjs
           node --check scripts/e2e-home-kawaii.mjs
           node --check scripts/e2e-apply-login-current.mjs
+          node --check scripts/e2e-market-current.mjs
       - name: Build CURRENT DOING site
         run: node scripts/build-doing-2-site.mjs
       - name: Validate route and SSOT boundaries
@@ -78,9 +99,23 @@ jobs:
           set -euo pipefail
           files=(index.html market/index.html market/public/index.html market/session/index.html project/index.html booking/index.html guide/index.html workspace/index.html me/index.html apply/index.html register/index.html world-tree/index.html)
           for f in "${files[@]}"; do test -s ".doing-2-site/$f"; done
-          for f in market/public/index.html market/session/index.html guide/index.html register/index.html world-tree/index.html; do grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"; done
-          for f in market/index.html project/index.html booking/index.html workspace/index.html me/index.html apply/index.html; do grep -q 'doing-kawaii-current.css' ".doing-2-site/$f"; done
-          ! grep -q 'data-doing-ui-state="rebuild-shell"' .doing-2-site/apply/index.html
+          for f in guide/index.html world-tree/index.html; do grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"; done
+          for f in market/index.html market/public/index.html market/session/index.html register/index.html; do ! grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"; done
+          for f in market/index.html market/public/index.html market/session/index.html project/index.html booking/index.html workspace/index.html me/index.html apply/index.html; do grep -q 'doing-kawaii-current.css' ".doing-2-site/$f"; done
+          grep -q 'doing-market-current.css' .doing-2-site/market/index.html
+          grep -q 'doing-market-current.css' .doing-2-site/market/public/index.html
+          grep -q 'doing-market-current.css' .doing-2-site/market/session/index.html
+          grep -q '<base href="/">' .doing-2-site/register/index.html
+          grep -q 'tobeloved-api' .doing-2-site/register/index.html
+          grep -q 'member_token' .doing-2-site/register/index.html
+          grep -q 'getSessionsAdmin' .doing-2-site/market/index.html
+          grep -q 'getTodos' .doing-2-site/market/index.html
+          grep -q 'getMembers' .doing-2-site/market/index.html
+          grep -q 'publicDiscovery' .doing-2-site/market/public/index.html
+          grep -q 'getMyRegsGlobal' .doing-2-site/market/public/index.html
+          grep -q 'adminSeatBoard' .doing-2-site/market/session/index.html
+          grep -q 'sendNotify' .doing-2-site/market/session/index.html
+          grep -q 'confirmRefund' .doing-2-site/market/session/index.html
           grep -q 'data-system="market"' .doing-2-site/apply/index.html
           grep -q 'data-system="project"' .doing-2-site/apply/index.html
           grep -q 'data-system="booking"' .doing-2-site/apply/index.html
@@ -88,11 +123,7 @@ jobs:
           grep -q 'auth/line/start' .doing-2-site/apply/index.html
           grep -q 'doing-home-v4.css' .doing-2-site/index.html
           grep -q 'doing-logo-current.webp' .doing-2-site/index.html
-          test -s .doing-2-site/doing-kawaii-current.css
-          test -s .doing-2-site/doing-home-v4.css
-          test -s .doing-2-site/doing-home-current.js
-          test -s .doing-2-site/doing-logo.png
-          test -s .doing-2-site/doing-logo-current.webp
+          for f in doing-kawaii-current.css doing-market-current.css doing-system.css doing-home-refresh.css doing-design-tokens.css doing-pastel-pages.css doing-attribution.js doing-home-v4.css doing-home-current.js doing-logo.png doing-logo-current.webp; do test -s ".doing-2-site/$f"; done
           grep -q '斜槓人生小幫手' .doing-2-site/index.html
           grep -q '/apply/?system=market' .doing-2-site/index.html
           grep -q '/apply/?system=project' .doing-2-site/index.html
@@ -112,7 +143,7 @@ jobs:
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Real-browser application + login + homepage E2E
+      - name: Real-browser application + login + Market E2E
         shell: bash
         run: |
           python3 -m http.server 4173 --directory .doing-2-site >/tmp/doing-home-e2e.log 2>&1 &
@@ -121,6 +152,7 @@ jobs:
           for i in {1..30}; do curl -fsS http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-home-kawaii.mjs
           E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-apply-login-current.mjs
+          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-current.mjs
       - name: Diff quality
         shell: bash
         run: git diff --check ${{ github.event.pull_request.base.sha || 'HEAD^' }}...HEAD
@@ -177,4 +209,4 @@ jobs:
           cat domain.json
           exit 1
       - name: Verify deployment completed
-        run: echo "DOING Kawaii homepage deployed for $GITHUB_SHA"
+        run: echo "DOING CURRENT site deployed for $GITHUB_SHA"
