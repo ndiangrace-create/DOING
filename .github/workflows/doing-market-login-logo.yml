@@ -1,0 +1,77 @@
+name: DOING Market Remembered Login + Logo Upload
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'doing-market-member-session.js'
+      - 'doing-market-admin-session.js'
+      - 'doing-market-branding-upload.js'
+      - 'scripts/build-doing-2-site.mjs'
+      - 'scripts/e2e-market-login-logo.mjs'
+      - '.github/workflows/doing-market-login-logo.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'doing-market-member-session.js'
+      - 'doing-market-admin-session.js'
+      - 'doing-market-branding-upload.js'
+      - 'scripts/build-doing-2-site.mjs'
+      - 'scripts/e2e-market-login-logo.mjs'
+      - '.github/workflows/doing-market-login-logo.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: doing-market-login-logo-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  remembered-login-logo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Parse scripts
+        run: |
+          node --check doing-market-member-session.js
+          node --check doing-market-admin-session.js
+          node --check doing-market-branding-upload.js
+          node --check scripts/build-doing-2-site.mjs
+          node --check scripts/e2e-market-login-logo.mjs
+      - name: Build CURRENT site
+        run: node scripts/build-doing-2-site.mjs
+      - name: Verify auth and upload contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'doing-market-admin-session.js' .doing-2-site/market/index.html
+          grep -q 'doing-market-branding-upload.js' .doing-2-site/market/index.html
+          grep -q 'doing-market-member-session.js' .doing-2-site/market/public/index.html
+          grep -q 'doing-market-member-session.js' .doing-2-site/register/index.html
+          grep -q 'doing_market_admin_session' .doing-2-site/doing-market-admin-session.js
+          grep -q 'doingRequireMember' .doing-2-site/doing-market-member-session.js
+          grep -q 'uploadCover' .doing-2-site/doing-market-branding-upload.js
+          grep -q 'brandLogoUpload' .doing-2-site/doing-market-branding-upload.js
+          ! grep -q 'supabase.co' .doing-2-site/doing-market-branding-upload.js
+          ! grep -q '2bl-v7' .doing-2-site/doing-market-branding-upload.js
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Real-browser remembered login + logo upload
+        shell: bash
+        run: |
+          python3 -m http.server 4173 --directory .doing-2-site >/tmp/doing-market-login-logo.log 2>&1 &
+          PID=$!
+          trap 'kill $PID || true' EXIT
+          for i in {1..30}; do curl -fsS http://127.0.0.1:4173/market/ >/dev/null && break; sleep 1; done
+          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-login-logo.mjs
+      - name: Diff quality
+        run: git diff --check ${{ github.event.pull_request.base.sha || 'HEAD^' }}...HEAD
