@@ -31,12 +31,16 @@ function marketPublicTransform(html){
   x=x.replace('<body class="doing-app doing-register">','<body class="doing-app doing-register market-2bl-front">');
   const tenantGuard="if(!urlTenant)throw new Error('無法辨識主辦空間，請從主辦提供的活動連結進入');";
   const tenantPatch="if(!urlTenant&&document.body.classList.contains('market-2bl-front'))return window.doingMarketGlobalBootstrap();\n    if(!urlTenant)throw new Error('無法辨識主辦空間，請從主辦提供的活動連結進入');";
-  if(!x.includes(tenantGuard))throw new Error('market public tenant guard source changed');
-  x=x.replace(tenantGuard,tenantPatch);
+  const tenantGuardCount=x.split(tenantGuard).length-1;
+  if(!tenantGuardCount)throw new Error('market public tenant guard source changed');
+  x=x.replaceAll(tenantGuard,tenantPatch);
   const deepLink="if(hit)setTimeout(()=>openSession(hit),50);";
   const deepPatch="if(hit)setTimeout(()=>new URL(location.href).searchParams.get('market_autoreg')==='1'?openRegistration(hit.id):openSession(hit),50);";
-  if(!x.includes(deepLink))throw new Error('market public deep-link source changed');
-  x=x.replace(deepLink,deepPatch);
+  const deepLinkCount=x.split(deepLink).length-1;
+  if(!deepLinkCount)throw new Error('market public deep-link source changed');
+  x=x.replaceAll(deepLink,deepPatch);
+  if((x.split("return window.doingMarketGlobalBootstrap()").length-1)!==tenantGuardCount)throw new Error('market public bootstrap patch count mismatch');
+  if((x.split("market_autoreg')==='1'?openRegistration").length-1)!==deepLinkCount)throw new Error('market public deep-link patch count mismatch');
   return x;
 }
 const transformedRoutes={
