@@ -5,8 +5,13 @@ on:
     branches: [main]
     paths:
       - 'market-current.html'
+      - 'market-public-current.html'
+      - 'market-session-current.html'
+      - 'doing-market-current.css'
       - 'doing-kawaii-current.css'
+      - 'register.html'
       - 'scripts/build-doing-2-site.mjs'
+      - 'scripts/e2e-market-current.mjs'
       - '.github/workflows/doing-market-2-validation.yml'
   workflow_dispatch:
 
@@ -23,24 +28,53 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Parse CURRENT Market tests
+        run: |
+          node --check scripts/build-doing-2-site.mjs
+          node --check scripts/e2e-market-current.mjs
       - name: Build CURRENT site
         run: node scripts/build-doing-2-site.mjs
-      - name: Validate Market system entry and preserved public/session URLs
+      - name: Validate live Market routes and preserved SSOT boundaries
         shell: bash
         run: |
           set -euo pipefail
-          test -s .doing-2-site/market/index.html
-          grep -q '市集活動系統' .doing-2-site/market/index.html
-          grep -q 'doing-kawaii-current.css' .doing-2-site/market/index.html
-          ! grep -q '2bl-v7' .doing-2-site/market/index.html
-          ! grep -q 'supabase.co' .doing-2-site/market/index.html
-          for f in market/public/index.html market/session/index.html; do
+          for f in market/index.html market/public/index.html market/session/index.html register/index.html; do
             test -s ".doing-2-site/$f"
-            grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"
+            ! grep -q 'data-doing-ui-state="rebuild-shell"' ".doing-2-site/$f"
+            ! grep -q '2bl-v7' ".doing-2-site/$f"
+            ! grep -q 'supabase.co' ".doing-2-site/$f"
           done
+          grep -q 'getSessionsAdmin' .doing-2-site/market/index.html
+          grep -q 'getTodos' .doing-2-site/market/index.html
+          grep -q 'getMembers' .doing-2-site/market/index.html
+          grep -q 'financeOverview' .doing-2-site/market/index.html
+          grep -q 'publicDiscovery' .doing-2-site/market/public/index.html
+          grep -q 'getMyRegsGlobal' .doing-2-site/market/public/index.html
+          grep -q '/register/' .doing-2-site/market/public/index.html
+          grep -q 'getSessionRegistrations' .doing-2-site/market/session/index.html
+          grep -q 'updateRegStatus' .doing-2-site/market/session/index.html
+          grep -q 'confirmPayment' .doing-2-site/market/session/index.html
+          grep -q 'adminSeatBoard' .doing-2-site/market/session/index.html
+          grep -q 'sendNotify' .doing-2-site/market/session/index.html
+          grep -q 'checkin' .doing-2-site/market/session/index.html
+          grep -q 'confirmRefund' .doing-2-site/market/session/index.html
+          grep -q '<base href="/">' .doing-2-site/register/index.html
+          grep -q 'member_token' .doing-2-site/register/index.html
           test ! -e .doing-2-site/market-center.html
           test ! -e .doing-2-site/market-public.html
           test ! -e .doing-2-site/market-session.html
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Real-browser Market desktop + mobile click-through
+        shell: bash
+        run: |
+          python3 -m http.server 4173 --directory .doing-2-site >/tmp/doing-market-e2e.log 2>&1 &
+          PID=$!
+          trap 'kill $PID || true' EXIT
+          for i in {1..30}; do curl -fsS http://127.0.0.1:4173/market/ >/dev/null && break; sleep 1; done
+          E2E_BASE=http://127.0.0.1:4173 node scripts/e2e-market-current.mjs
       - name: Diff quality
         shell: bash
         run: git diff --check ${{ github.event.pull_request.base.sha }}...HEAD
