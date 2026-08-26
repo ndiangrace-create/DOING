@@ -78,8 +78,32 @@ function validateAll(){
   if(!$('sessionModal')?.classList.contains('single-page-registration'))return true;
   const s=state?.session,m=cfg();
   if((s?.dates||[]).length&&![...document.querySelectorAll('[name=regDate]:checked')].length){toast(m.workshopSlots?'請選擇日期／時段':'請選擇報名日期');return false}
+  for(const el of document.querySelectorAll('#sessionModal [data-custom][required]')){if(!String(el.value||'').trim()){toast('請完成必填欄位');el.focus();return false}}
   if(requiredAgreement()&&(!$('agreementCheck')?.checked||!state?.agreementViewed)){toast('請勾選同意合約後再送出');return false}
   return true;
+}
+async function submitSinglePage(e){
+  if(!$('sessionModal')?.classList.contains('single-page-registration'))return;
+  e.preventDefault();e.stopImmediatePropagation();
+  if(!validateAll())return;
+  const s=state?.session;if(!s)return;
+  const m=cfg(),btn=$('submitRegBtn'),selectedDateInputs=[...document.querySelectorAll('[name=regDate]:checked')];
+  const selectedDates=selectedDateInputs.map(x=>x.value),timeslotIds=selectedDateInputs.map(x=>x.dataset.timeslotId||'').filter(Boolean);
+  const modSel=typeof collectModuleSelections==='function'?collectModuleSelections():{moduleSelections:{},participantQty:{}},dyn=state.dynamicBookingChoice;
+  const val=id=>String($(id)?.value||'').trim();
+  const payload={...(window.DoingAttribution?.payloadFields?.()||{}),sessionId:(state.baseSession||s).id,operationUnitId:state.selectedOperationUnit?.id||'',promotionCode:val('promotionCode'),rewardRedeemAmount:Number($('rewardRedeemAmount')?.value||0),email:val('regEmail'),phone:val('regPhone'),name:val('regName'),brandId:state.selectedBrandId||'',brand:val('regBrand'),brandIntro:val('regIntro'),sellCat:val('regSellCat'),sellItem:val('regSellItem'),fb:val('regFb'),ig:val('regIg'),photo:val('regPhoto'),selectedDates,stallCount:Number($('regStalls')?.value)||1,equip:typeof collectEquip==='function'?collectEquip():{},addonQty:typeof collectAddons==='function'?collectAddons():{},customFields:typeof collectCustom==='function'?collectCustom():[],adultCount:Number($('adultCount')?.value)||0,childCount:Number($('childCount')?.value)||0,seatChoiceIntent:(document.querySelector('[name=seatIntent]:checked')||{}).value||'auto',invoiceType:$('invoiceType')?.value||'不需要',needInvoice:($('invoiceType')?.value||'不需要')!=='不需要',invoiceEmail:val('invoiceEmail')||val('regEmail'),taxId:val('taxId'),invoiceTitle:val('invoiceTitle'),invoiceCarrier:val('invoiceCarrier'),agreementViewed:!!state.agreementViewed,agreementAccepted:!!$('agreementCheck')?.checked,moduleSelections:modSel.moduleSelections||{},participantQty:modSel.participantQty||{},timeslotIds,bookingDate:dyn?.date||'',bookingStart:dyn?.start||'',bookingEnd:dyn?.end||'',bookingCalendarId:dyn?.calendarId||'',serviceItemId:dyn?.serviceId||modSel.moduleSelections?.serviceId||'',syncMemberProfile:!!$('syncMemberProfile')?.checked,idempotencyKey:state.regSubmitKey||(typeof newActionKey==='function'?newActionKey('register'):'register:'+Date.now())};
+  if(!payload.email||!payload.phone||!payload.name){toast('會員資料不完整，請先更新姓名、Email 與手機');return}
+  if(m.invoice&&payload.invoiceType!=='不需要'){if(!payload.invoiceEmail){toast('請填寫發票 Email');return}if(payload.invoiceType==='公司／機關'&&(!payload.taxId||!payload.invoiceTitle)){toast('公司／機關發票請填統一編號與抬頭');return}}
+  if(state.selectedBundleId&&!state.selectedOperationUnit)payload.bundleId=state.selectedBundleId;
+  btn.disabled=true;
+  try{
+    const action=state.selectedBundleId?'registerBundle':'register';
+    await apiPost(action,payload);
+    state.regSubmitKey='';state.dynamicBookingChoice=null;state.selectedBundleId='';state.selectedBrandId='';state.selectedOperationUnit=null;state.baseSession=null;
+    closeModals();toast(action==='registerBundle'?'組合報名成功':'報名成功');
+    if($('myEmail'))$('myEmail').value=payload.email;if($('myPhone'))$('myPhone').value=payload.phone;
+    setPage('my');await loadMy();
+  }catch(err){toast(err?.message||'報名送出失敗')}finally{btn.disabled=false}
 }
 function activate(){
   const modal=$('sessionModal');if(!modal?.classList.contains('show')||!state?.session)return;
@@ -89,15 +113,7 @@ function activate(){
   memberSummary();enforceEquipment();if(typeof updateSummary==='function')updateSummary();inlineAgreement();gateSubmit();
 }
 $('agreementCheck')?.addEventListener('change',gateSubmit);
-const submitBtn=$('submitRegBtn'),legacySubmit=submitBtn?.onclick;
-submitBtn?.addEventListener('click',async e=>{
-  if(!$('sessionModal')?.classList.contains('single-page-registration'))return;
-  e.preventDefault();e.stopImmediatePropagation();
-  if(!validateAll())return;
-  const fn=legacySubmit||submitBtn.onclick;
-  if(typeof fn!=='function'){toast('送出功能尚未就緒，請重新整理後再試');return}
-  await fn.call(submitBtn,e);
-},true);
+$('submitRegBtn')?.addEventListener('click',submitSinglePage,true);
 const modal=$('sessionModal');if(modal)new MutationObserver(()=>{if(modal.classList.contains('show'))setTimeout(activate,0)}).observe(modal,{attributes:true,attributeFilter:['class']});
 window.addEventListener('pageshow',()=>setTimeout(activate,0));
 })();
