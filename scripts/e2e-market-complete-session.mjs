@@ -92,8 +92,8 @@ async function adminCreate(browser,viewport){
   await page.fill('#fullBasicEquip','每攤一桌二椅');
   await page.selectOption('#fullPayment','yes');await page.selectOption('#fullPaymentProfile','P1');
   await page.selectOption('#fullInvoice','yes');
-  await page.selectOption('#fullEquipment','yes');await page.click('#addEquipFull');
-  await page.fill('[data-equip-name]','電力插座');await page.fill('[data-equip-incl]','0');await page.fill('[data-equip-price]','100');await page.fill('[data-equip-max]','1');await page.selectOption('[data-equip-open]','yes');
+  assert.equal(await page.locator('#fullEquipment option[value="no"]').count(),1);await page.selectOption('#fullEquipment','yes');await page.click('#addEquipFull');
+  await page.fill('[data-equip-name]','電力插座');await page.fill('[data-equip-incl]','0');await page.fill('[data-equip-price]','100');await page.fill('[data-equip-max]','1');assert.equal(await page.locator('[data-equip-open] option[value="no"]').count(),1);await page.selectOption('[data-equip-open]','yes');
   await page.selectOption('#fullAddons','yes');await page.click('#addAddonFull');
   await page.fill('[data-addon-name]','桌前椅');await page.fill('[data-addon-price]','80');await page.fill('[data-addon-limit]','2');
   await page.selectOption('#fullCustomFields','yes');await page.click('#addCustomFull');
@@ -130,21 +130,35 @@ async function adminEdit(browser,viewport){
 }
 
 async function memberRegisterCancel(browser,viewport){
-  registered=false;cancelled=false;const start=writes.length;
+  registered=false;cancelled=false;const start=writes.length,browserErrors=[],browserConsole=[];
   const page=await browser.newPage({viewportSize:viewport});page.on('dialog',d=>d.accept());
+  page.on('pageerror',e=>browserErrors.push(e?.stack||e?.message||String(e)));
+  page.on('console',m=>{if(['error','warning'].includes(m.type()))browserConsole.push(`${m.type()}: ${m.text()}`)});
   await page.addInitScript(()=>localStorage.setItem('doing_member_token','member-token'));await mock(page);
   await page.goto(`${BASE}/market/public/?tenant=demo&session=S100&market_autoreg=1`,{waitUntil:'domcontentloaded'});
   await page.waitForSelector('#sessionModal.show');await page.waitForFunction(()=>document.getElementById('regEmail')?.value==='member@example.com');
-  await page.fill('#regBrand','測試品牌');
-  await page.click('#regNextBtn');await page.waitForSelector('[data-reg-step="2"].active');assert.ok(await page.locator('[name="regDate"]:checked').count());
-  await page.click('#regNextBtn');await page.waitForSelector('[data-reg-step="3"].active');await page.fill('[data-custom="0"]','極簡手作選物');
-  await page.click('#regNextBtn');await page.waitForSelector('[data-reg-step="4"].active');await page.click('#readAgreementBtn');await page.waitForSelector('#agreementModal.show');assert.match(await page.locator('#agreementContent').innerText(),/請遵守活動規範/);await page.click('#agreementDoneBtn');await page.waitForSelector('#sessionModal.show');
-  const rr=page.waitForResponse(r=>actionOf(r.request())==='register');await page.click('#submitRegBtn');assert.ok((await rr).ok());
+  await page.waitForFunction(()=>document.getElementById('sessionModal')?.classList.contains('single-page-registration'));
+  assert.equal(await page.locator('#sessionModal .reg-wizard:visible').count(),0);assert.equal(await page.locator('#regNextBtn:visible').count(),0);assert.equal(await page.locator('#regPrevBtn:visible').count(),0);
+  assert.equal(await page.locator('#singleMemberSummary:visible').count(),1);assert.equal(await page.locator('#dateSection:visible').count(),1);assert.equal(await page.locator('#equipSection:visible').count(),1);assert.equal(await page.locator('#agreementSection:visible').count(),1);
+  await page.waitForFunction(()=>document.getElementById('singleAgreementContent')?.textContent.includes('請遵守活動規範'));
+  assert.equal(await page.locator('#submitRegBtn').isDisabled(),true);assert.ok(await page.locator('[name="regDate"]:checked').count());
+  await page.fill('#regBrand','測試品牌');await page.fill('[data-custom="0"]','極簡手作選物');await page.selectOption('[data-equip="equipment_1"]','1');
+  await page.check('#agreementCheck');await page.waitForFunction(()=>!document.getElementById('submitRegBtn')?.disabled);
+  const preClick=await page.evaluate(()=>{const b=document.getElementById('submitRegBtn'),r=b?.getBoundingClientRect(),x=r?Math.max(0,Math.min(innerWidth-1,r.left+r.width/2)):0,y=r?Math.max(0,Math.min(innerHeight-1,r.top+r.height/2)):0,hit=document.elementFromPoint(x,y),cs=b?getComputedStyle(b):null;return{disabled:b?.disabled,rect:r?{left:r.left,top:r.top,width:r.width,height:r.height,bottom:r.bottom,right:r.right}:null,viewport:{w:innerWidth,h:innerHeight},display:cs?.display,visibility:cs?.visibility,opacity:cs?.opacity,pointerEvents:cs?.pointerEvents,hit:{id:hit?.id||'',className:String(hit?.className||''),tag:hit?.tagName||'',text:String(hit?.textContent||'').trim().slice(0,80)},same:hit===b||!!b?.contains(hit)}});console.log('SUBMIT_PRECLICK',JSON.stringify(preClick));
+  let rr;
+  try{
+    const pending=page.waitForResponse(r=>actionOf(r.request())==='register',{timeout:3000});
+    await page.click('#submitRegBtn');rr=await pending;
+  }catch(e){
+    const diag=await page.evaluate(()=>({disabled:document.getElementById('submitRegBtn')?.disabled,modalClass:document.getElementById('sessionModal')?.className,checkedDates:[...document.querySelectorAll('[name=regDate]:checked')].map(x=>x.value),agreementChecked:document.getElementById('agreementCheck')?.checked,agreementViewed:typeof state!=='undefined'?state.agreementViewed:'state-unavailable',custom:[...document.querySelectorAll('[data-custom]')].map(x=>({required:x.required,value:x.value})),token:typeof window.doingMemberToken==='function'?window.doingMemberToken():'no-token-fn'}));
+    console.error('SINGLE_PAGE_SUBMIT_DIAG',JSON.stringify({diag,browserErrors,browserConsole,writes:writes.slice(start)},null,2));throw e;
+  }
+  assert.ok(rr.ok());
   await page.waitForSelector('#myRecords .record');assert.match(await page.locator('#myRecords').innerText(),/春日選物市集/);
   const cr=page.waitForResponse(r=>actionOf(r.request())==='cancelReg');await page.getByRole('button',{name:'取消報名'}).click();assert.ok((await cr).ok());
   await page.waitForFunction(()=>document.getElementById('myRecords')?.innerText.includes('已取消'));
   const local=writes.slice(start),reg=local.find(x=>x.action==='register'),cancel=local.find(x=>x.action==='cancelReg');
-  assert.ok(reg);assert.ok(cancel);assert.equal(reg.body.member_token,'member-token');assert.equal(reg.body.customFields[0].value,'極簡手作選物');assert.equal(reg.body.agreementViewed,true);assert.equal(reg.body.agreementAccepted,true);assert.equal(cancel.body.member_token,'member-token');assert.equal(cancel.body.regId,'R100');
+  assert.ok(reg);assert.ok(cancel);assert.equal(reg.body.member_token,'member-token');assert.equal(reg.body.customFields[0].value,'極簡手作選物');assert.equal(reg.body.equip.equipment_1,1);assert.equal(reg.body.agreementViewed,true);assert.equal(reg.body.agreementAccepted,true);assert.equal(cancel.body.member_token,'member-token');assert.equal(cancel.body.regId,'R100');
   await page.close();
 }
 
@@ -153,5 +167,5 @@ try{
   for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
     await adminCreate(browser,viewport);await adminEdit(browser,viewport);await memberRegisterCancel(browser,viewport);
   }
-  console.log(JSON.stringify({result:'PASS',desktop:true,mobile:true,draftThenFullCreate:true,completeCreate:true,completeEdit:true,createEvent:true,createSessionDraft:true,updateEvent:true,updateSession:true,memberRegister:true,memberWizard:true,agreementRead:true,customField:true,memberCancel:true,workerChanges:0,dbSchemaChanges:0,twoBlChanges:0},null,2));
+  console.log(JSON.stringify({result:'PASS',desktop:true,mobile:true,draftThenFullCreate:true,completeCreate:true,completeEdit:true,createEvent:true,createSessionDraft:true,updateEvent:true,updateSession:true,memberRegister:true,singlePageRegistration:true,loggedInMemberCollapsed:true,equipmentToggle:true,equipmentSelection:true,agreementInline:true,agreementCheckboxGate:true,customField:true,memberCancel:true,workerChanges:0,dbSchemaChanges:0,twoBlChanges:0},null,2));
 }finally{await browser.close()}
