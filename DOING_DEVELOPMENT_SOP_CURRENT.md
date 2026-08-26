@@ -1,9 +1,9 @@
 # DOING｜Development SOP CURRENT
 
 狀態：CURRENT／最高優先
-更新：2026-08-25 Asia/Taipei
+更新：2026-08-26 Asia/Taipei
 
-本文件是 DOING 開發、操作路徑設計、驗收與發布前流程的唯一 SOP SSOT。其他文件只可引用，不得複製出第二套流程。
+本文件是 DOING 開發、操作路徑設計、驗收與發布流程的唯一 SOP SSOT。其他文件只可引用，不得複製出第二套流程。
 
 ## 固定流程
 
@@ -22,7 +22,8 @@
 → `Regression`
 → `Fix Until DoD`
 → `World Tree／ChangeLog 更新`
-→ `Release Ready`
+→ `Phase Release／Production Verify`
+→ `下一 Atomic Checkpoint`
 
 ## 各階段固定契約
 
@@ -78,19 +79,29 @@
 確認本次變更沒有破壞已通過功能、跨角色隔離、既有網址、API、資料庫與 2BL 邊界。
 
 ### 14. Fix Until DoD
-發現問題立即修正並從最近失敗 checkpoint 重驗；禁止為了單一錯誤全面重跑或重做已通過項目。直到 DoD 全部通過才可往下。
+發現問題立即修正並從最近失敗 checkpoint 重驗；禁止為了單一錯誤全面重跑或重做已通過項目。直到本階段 DoD 全部通過才可往下。
 
 ### 15. World Tree／ChangeLog 更新
 只更新現有 CURRENT 世界樹與 ChangeLog；不另開第二套世界樹、不建立重複治理資料。
 
-### 16. Release Ready
-完成所有自動驗證、Real-Browser E2E、Regression、DoD、世界樹與 ChangeLog 後停在 Release Ready。正式部署需要使用者明確說「部署／發布」。
+### 16. Phase Release／Continuous Forward
+使用者已授權本專案採「檢查沒問題就部署、階段性前進」。後續不再對每個階段重複詢問部署。
+
+每一個可獨立驗收的 Atomic Checkpoint，只要該階段 phase-specific Real-Browser E2E、Regression、DoD 全綠，即直接：
+
+`merge → deploy → production verify → checkpoint → 下一階段`
+
+不得因未來尚未完成的其他階段，阻塞已完成階段發布。若本階段有紅燈，只阻擋本階段；修最近失敗點後重驗，通過即發布。全專案最終仍需完整 DoD，但不要求所有未來工作完成後才第一次部署。
+
+只有使用者明確說「不要部署／只給檔案」時，才暫停此自動發布授權。
 
 ## Atomic Checkpoint＋Audit Trail
 
 Atomic Checkpoint 與 Audit Trail 貫穿全部階段，不是額外獨立步驟：
 - 每階段留下「輸入基準／變更範圍／結果／證據／下一 checkpoint」。
-- 已 PASS 項目不得因後續失敗而重做。
+- 每個已通過且可獨立發布的階段應完成 production deployment verification，作為正式前進 checkpoint。
+- 階段性部署是前進 checkpoint，不代表整個專案結束。
+- 已 PASS／已部署項目不得因後續失敗而重做或回退。
 - 失敗只回到最近失敗點修正。
 - GitHub PR／commit／ChangeLog 保存詳細歷史；Supabase 不保存逐步聊天或重複 checkpoint。
 
@@ -105,3 +116,4 @@ Supabase 只允許一筆 `doing_development_sop_current` CURRENT 設定，日後
 - 不得自行新增正式網址；任何 route 先對照 `DOING_UI_ROUTE_SSOT_CURRENT.json` 與 `DOING_OPERATION_PATH_TREE_CURRENT.md`。
 - 不得自行修改計費規則。
 - 使用者未說「執行」前不得動工；新路徑／新操作的「執行」先做到 Decision Gate，確認後才正式實作。
+- 已取得「檢查沒問題就部署」授權後，通過階段 DoD 即自動發布；不得再以等待部署確認為理由停滯。
