@@ -74,11 +74,12 @@ async function inlineAgreement(){
     state.agreementViewed=true;gateSubmit();
   }catch(e){if(seq!==agreementLoad)return;box.textContent='合約載入失敗：'+(e?.message||'請稍後再試');state.agreementViewed=false;gateSubmit()}
 }
-function validateAll(e){
-  if(!$('sessionModal')?.classList.contains('single-page-registration'))return;
+function validateAll(){
+  if(!$('sessionModal')?.classList.contains('single-page-registration'))return true;
   const s=state?.session,m=cfg();
-  if((s?.dates||[]).length&&![...document.querySelectorAll('[name=regDate]:checked')].length){e.preventDefault();e.stopImmediatePropagation();toast(m.workshopSlots?'請選擇日期／時段':'請選擇報名日期');return}
-  if(requiredAgreement()&&(!$('agreementCheck')?.checked||!state?.agreementViewed)){e.preventDefault();e.stopImmediatePropagation();toast('請勾選同意合約後再送出')}
+  if((s?.dates||[]).length&&![...document.querySelectorAll('[name=regDate]:checked')].length){toast(m.workshopSlots?'請選擇日期／時段':'請選擇報名日期');return false}
+  if(requiredAgreement()&&(!$('agreementCheck')?.checked||!state?.agreementViewed)){toast('請勾選同意合約後再送出');return false}
+  return true;
 }
 function activate(){
   const modal=$('sessionModal');if(!modal?.classList.contains('show')||!state?.session)return;
@@ -88,7 +89,15 @@ function activate(){
   memberSummary();enforceEquipment();if(typeof updateSummary==='function')updateSummary();inlineAgreement();gateSubmit();
 }
 $('agreementCheck')?.addEventListener('change',gateSubmit);
-$('submitRegBtn')?.addEventListener('click',validateAll,true);
+const submitBtn=$('submitRegBtn'),legacySubmit=submitBtn?.onclick;
+submitBtn?.addEventListener('click',async e=>{
+  if(!$('sessionModal')?.classList.contains('single-page-registration'))return;
+  e.preventDefault();e.stopImmediatePropagation();
+  if(!validateAll())return;
+  const fn=legacySubmit||submitBtn.onclick;
+  if(typeof fn!=='function'){toast('送出功能尚未就緒，請重新整理後再試');return}
+  await fn.call(submitBtn,e);
+},true);
 const modal=$('sessionModal');if(modal)new MutationObserver(()=>{if(modal.classList.contains('show'))setTimeout(activate,0)}).observe(modal,{attributes:true,attributeFilter:['class']});
 window.addEventListener('pageshow',()=>setTimeout(activate,0));
 })();
