@@ -144,22 +144,14 @@ async function memberRegisterCancel(browser,viewport){
   assert.equal(await page.locator('#submitRegBtn').isDisabled(),true);assert.ok(await page.locator('[name="regDate"]:checked').count());
   await page.fill('#regBrand','測試品牌');await page.fill('[data-custom="0"]','極簡手作選物');await page.selectOption('[data-equip="equipment_1"]','1');
   await page.check('#agreementCheck');await page.waitForFunction(()=>!document.getElementById('submitRegBtn')?.disabled);
+  const preClick=await page.evaluate(()=>{const b=document.getElementById('submitRegBtn'),r=b?.getBoundingClientRect(),x=r?Math.max(0,Math.min(innerWidth-1,r.left+r.width/2)):0,y=r?Math.max(0,Math.min(innerHeight-1,r.top+r.height/2)):0,hit=document.elementFromPoint(x,y),cs=b?getComputedStyle(b):null;return{disabled:b?.disabled,rect:r?{left:r.left,top:r.top,width:r.width,height:r.height,bottom:r.bottom,right:r.right}:null,viewport:{w:innerWidth,h:innerHeight},display:cs?.display,visibility:cs?.visibility,opacity:cs?.opacity,pointerEvents:cs?.pointerEvents,hit:{id:hit?.id||'',className:String(hit?.className||''),tag:hit?.tagName||'',text:String(hit?.textContent||'').trim().slice(0,80)},same:hit===b||!!b?.contains(hit)}});console.log('SUBMIT_PRECLICK',JSON.stringify(preClick));
   let rr;
   try{
     const pending=page.waitForResponse(r=>actionOf(r.request())==='register',{timeout:3000});
     await page.click('#submitRegBtn');rr=await pending;
   }catch(e){
-    const diag=await page.evaluate(()=>({
-      disabled:document.getElementById('submitRegBtn')?.disabled,
-      modalClass:document.getElementById('sessionModal')?.className,
-      checkedDates:[...document.querySelectorAll('[name=regDate]:checked')].map(x=>x.value),
-      agreementChecked:document.getElementById('agreementCheck')?.checked,
-      agreementViewed:typeof state!=='undefined'?state.agreementViewed:'state-unavailable',
-      custom:[...document.querySelectorAll('[data-custom]')].map(x=>({required:x.required,value:x.value})),
-      token:typeof window.doingMemberToken==='function'?window.doingMemberToken():'no-token-fn'
-    }));
-    console.error('SINGLE_PAGE_SUBMIT_DIAG',JSON.stringify({diag,browserErrors,browserConsole,writes:writes.slice(start)},null,2));
-    throw e;
+    const diag=await page.evaluate(()=>({disabled:document.getElementById('submitRegBtn')?.disabled,modalClass:document.getElementById('sessionModal')?.className,checkedDates:[...document.querySelectorAll('[name=regDate]:checked')].map(x=>x.value),agreementChecked:document.getElementById('agreementCheck')?.checked,agreementViewed:typeof state!=='undefined'?state.agreementViewed:'state-unavailable',custom:[...document.querySelectorAll('[data-custom]')].map(x=>({required:x.required,value:x.value})),token:typeof window.doingMemberToken==='function'?window.doingMemberToken():'no-token-fn'}));
+    console.error('SINGLE_PAGE_SUBMIT_DIAG',JSON.stringify({diag,browserErrors,browserConsole,writes:writes.slice(start)},null,2));throw e;
   }
   assert.ok(rr.ok());
   await page.waitForSelector('#myRecords .record');assert.match(await page.locator('#myRecords').innerText(),/春日選物市集/);
