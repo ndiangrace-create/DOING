@@ -130,8 +130,10 @@ async function adminEdit(browser,viewport){
 }
 
 async function memberRegisterCancel(browser,viewport){
-  registered=false;cancelled=false;const start=writes.length;
+  registered=false;cancelled=false;const start=writes.length,browserErrors=[],browserConsole=[];
   const page=await browser.newPage({viewportSize:viewport});page.on('dialog',d=>d.accept());
+  page.on('pageerror',e=>browserErrors.push(e?.stack||e?.message||String(e)));
+  page.on('console',m=>{if(['error','warning'].includes(m.type()))browserConsole.push(`${m.type()}: ${m.text()}`)});
   await page.addInitScript(()=>localStorage.setItem('doing_member_token','member-token'));await mock(page);
   await page.goto(`${BASE}/market/public/?tenant=demo&session=S100&market_autoreg=1`,{waitUntil:'domcontentloaded'});
   await page.waitForSelector('#sessionModal.show');await page.waitForFunction(()=>document.getElementById('regEmail')?.value==='member@example.com');
@@ -142,7 +144,24 @@ async function memberRegisterCancel(browser,viewport){
   assert.equal(await page.locator('#submitRegBtn').isDisabled(),true);assert.ok(await page.locator('[name="regDate"]:checked').count());
   await page.fill('#regBrand','測試品牌');await page.fill('[data-custom="0"]','極簡手作選物');await page.selectOption('[data-equip="equipment_1"]','1');
   await page.check('#agreementCheck');await page.waitForFunction(()=>!document.getElementById('submitRegBtn')?.disabled);
-  const rr=page.waitForResponse(r=>actionOf(r.request())==='register');await page.click('#submitRegBtn');assert.ok((await rr).ok());
+  let rr;
+  try{
+    const pending=page.waitForResponse(r=>actionOf(r.request())==='register',{timeout:3000});
+    await page.click('#submitRegBtn');rr=await pending;
+  }catch(e){
+    const diag=await page.evaluate(()=>({
+      disabled:document.getElementById('submitRegBtn')?.disabled,
+      modalClass:document.getElementById('sessionModal')?.className,
+      checkedDates:[...document.querySelectorAll('[name=regDate]:checked')].map(x=>x.value),
+      agreementChecked:document.getElementById('agreementCheck')?.checked,
+      agreementViewed:typeof state!=='undefined'?state.agreementViewed:'state-unavailable',
+      custom:[...document.querySelectorAll('[data-custom]')].map(x=>({required:x.required,value:x.value})),
+      token:typeof window.doingMemberToken==='function'?window.doingMemberToken():'no-token-fn'
+    }));
+    console.error('SINGLE_PAGE_SUBMIT_DIAG',JSON.stringify({diag,browserErrors,browserConsole,writes:writes.slice(start)},null,2));
+    throw e;
+  }
+  assert.ok(rr.ok());
   await page.waitForSelector('#myRecords .record');assert.match(await page.locator('#myRecords').innerText(),/春日選物市集/);
   const cr=page.waitForResponse(r=>actionOf(r.request())==='cancelReg');await page.getByRole('button',{name:'取消報名'}).click();assert.ok((await cr).ok());
   await page.waitForFunction(()=>document.getElementById('myRecords')?.innerText.includes('已取消'));
