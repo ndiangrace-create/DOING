@@ -2,7 +2,7 @@
 
 ## 唯一開發 SOP
 
-所有 DOING 開發、操作路徑設計、Prototype、正式實作、E2E、Regression、DoD 與 Release Ready 流程，一律以 `DOING_DEVELOPMENT_SOP_CURRENT.md` 為唯一正式 SOP SSOT。
+所有 DOING 開發、操作路徑設計、Prototype、正式實作、E2E、Regression、DoD 與發布流程，一律以 `DOING_DEVELOPMENT_SOP_CURRENT.md` 為唯一正式 SOP SSOT。
 
 不得在其他文件另寫第二套流程；若舊文件與 CURRENT SOP 衝突，以 `DOING_DEVELOPMENT_SOP_CURRENT.md` 為準。
 
@@ -22,6 +22,15 @@
 `角色／狀態 → 實際點擊 → 畫面 → 權限 → API → DB 讀寫 → 狀態變更 → 下一步 → 返回 → 重新整理／重登 → 手機／桌機 → Regression`
 
 只驗按鈕存在、DOM 存在或 CI 綠燈都不算完整驗收。
+
+## 階段性前進與自動部署授權
+
+- 使用者已明確授權 DOING 採「檢查沒問題就部署、階段性前進」。後續同一專案不再每個階段重複詢問部署。
+- 每個可獨立驗收的 Atomic Checkpoint，只要該階段 phase-specific Real-Browser E2E、Regression、DoD 全綠，就直接 merge／deploy／production verify，留下 checkpoint 後繼續下一階段。
+- 不得因未來尚未完成的其他階段，阻塞已經完成且可獨立發布的階段。
+- 若本階段有紅燈，只阻擋本階段；從最近失敗 checkpoint 修 delta，重驗通過後立即部署。
+- 階段性部署是前進 checkpoint，不代表整個專案結束；已部署且 PASS 的階段不得在後續工作中無故回退或重做。
+- 只有使用者明確說「不要部署／只給檔案」時，才停止自動部署。
 
 ## 安全邊界
 
