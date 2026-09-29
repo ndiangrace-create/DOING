@@ -1,0 +1,857 @@
+diff --git a/.github/workflows/doing-market-release.yml b/.github/workflows/doing-market-release.yml
+new file mode 100644
+index 0000000..0e98e01
+--- /dev/null
++++ b/.github/workflows/doing-market-release.yml
+@@ -0,0 +1,62 @@
++name: DOING Market Activity Release Checks
++
++on:
++  pull_request:
++    branches: [main]
++  workflow_dispatch:
++
++permissions:
++  contents: read
++
++jobs:
++  read-only-deployment-provenance:
++    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
++    runs-on: ubuntu-latest
++    timeout-minutes: 3
++    steps:
++      - uses: actions/checkout@v4
++      - uses: actions/setup-node@v4
++        with:
++          node-version: '24'
++      - name: Read existing Pages and Worker provenance
++        env:
++          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
++          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
++        run: node scripts/audit-deployment-provenance.mjs
++      - uses: actions/upload-artifact@v4
++        with:
++          name: doing-deployment-provenance
++          path: test-results/deployment-provenance.json
++  isolated-verification:
++    runs-on: ubuntu-latest
++    timeout-minutes: 10
++    steps:
++      - uses: actions/checkout@v4
++      - uses: actions/setup-node@v4
++        with:
++          node-version: '24'
++          cache: npm
++      - run: npm ci --ignore-scripts
++      - name: Validate retained source and self-hosted styles
++        run: |
++          cmp worker.js worker.txt
++          node --check worker.js
++          npm run build:styles
++          git diff --exit-code -- doing-utilities-current.css
++          npm run build
++      - name: Worker authorization and registration/payment state regression
++        run: |
++          npm run test:market:core
++          node scripts/validate-market-app-core-contracts.mjs
++          node scripts/validate-market-auth-role-separation.mjs
++          node scripts/validate-market-member-oauth-primary-return.mjs
++      - name: Install browser
++        run: npx playwright install --with-deps chromium
++      - name: Desktop and mobile journeys (isolated API fixtures)
++        run: npm run test:market:browser
++      - uses: actions/upload-artifact@v4
++        if: always()
++        with:
++          name: market-activity-browser-evidence
++          path: test-results/market-release/
++          if-no-files-found: ignore
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..d10eca2
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,4 @@
++.doing-2-site/
++node_modules/
++test-results/
++playwright-report/
+diff --git a/DOING_MARKET_CHANGELOG_CURRENT.md b/DOING_MARKET_CHANGELOG_CURRENT.md
+index c60d5c9..8d7fe8b 100644
+--- a/DOING_MARKET_CHANGELOG_CURRENT.md
++++ b/DOING_MARKET_CHANGELOG_CURRENT.md
+@@ -3,6 +3,21 @@
+ 更新：2026-08-26（Asia/Taipei）
+ 範圍：DOING Market CURRENT 前台／主辦後台／單場工作台／報名／寄賣 POS 閉環。
+ 
++## 2026-09-29｜市集／活動整併（隔離分支，未部署）
++
++- 授權：使用者「開始執行」；最新範圍為市集與活動共用報名流程，保留頁面與操作、其餘功能保留擴充。
++- 基準：`ndiangrace-create/DOING` main `55f7584eb1de35c762cac28bb51289f7d999619e`。目前正式 Pages 的來源與這份 Repo 仍不得畫等號。
++- 修正 Worker 報名流程未定義的 `sesType`，補上日期來源檢查，避免偽造／重複日期改變費用與名額。
++- 修正 OAuth 前未保存租戶／場次、會員紀錄首次載入不續行、全站紀錄錯用租戶 API。
++- 寄賣／POS 改為明確租戶旗標才可使用，預設入口與 API 關閉；工程／預約保留原始碼，候選產物不提供互動功能。
++- 修正共享網域誤選租戶、JWT 舊角色繞過最新權限、場次管理員越權操作及清單暴露；錯誤回應正確採用明確指定的 HTTP 狀態。
++- 現有審核按鈕改送 Core 既有的「備取／不錄取」值，顯示名稱與版型保留。
++- 會員／申請／工作空間沿用原本 Tailwind 樣式，編譯成站內 CSS，避免外部樣式腳本失敗時手機頁面溢出。
++- 修正舊瀏覽器測試錯用 viewportSize、日期固定樣本過期，明確標示 API mock 與實際 Worker／隔離資料轉接層。
++- 原「收款設定」由 JSON 展示補成同視窗可儲存帳戶表單；沿用 savePaymentProfile 並讀回核對，不另建收款資料。
++- 明細、測試證據、限制與下一步：`docs/market-activity-consolidation-20260929.md`。
++- **本批確實修改 Worker 原始碼；正式 Worker、Supabase schema、營運資料及 2BL 均未改動。** 下方「Worker 0 變更」等為歷史紀錄。
++
+ ## 2026-08-26｜2BL 操作框架補齊
+ 
+ - 正式前台只保留 `/market/public/` 一個入口；「立即報名」仍停留在同一 Market 前台開啟正式報名表單，不把 `/register/` 當正常使用入口。
+diff --git a/DOING_MODULE_REGISTRY_CURRENT.json b/DOING_MODULE_REGISTRY_CURRENT.json
+index e7cc136..a7c081a 100644
+--- a/DOING_MODULE_REGISTRY_CURRENT.json
++++ b/DOING_MODULE_REGISTRY_CURRENT.json
+@@ -30,80 +30,195 @@
+       "name": "租戶申請與開通",
+       "area": "平台／申請",
+       "kind": "functional",
+-      "currentSurfaces": ["/apply/", "/me/#operations", "/workspace/"],
+-      "ownedTables": ["tenant_apply_logs", "member_helper_traces", "doing_helper_knowledge_entries", "member_helper_conversations", "member_helper_messages", "doing_helper_improvement_queue"],
+-      "sharedTables": ["platform_members", "platform_member_identities", "tenants", "tenant_settings", "staff"]
++      "currentSurfaces": [
++        "/apply/",
++        "/me/#operations",
++        "/workspace/"
++      ],
++      "ownedTables": [
++        "tenant_apply_logs",
++        "member_helper_traces",
++        "doing_helper_knowledge_entries",
++        "member_helper_conversations",
++        "member_helper_messages",
++        "doing_helper_improvement_queue"
++      ],
++      "sharedTables": [
++        "platform_members",
++        "platform_member_identities",
++        "tenants",
++        "tenant_settings",
++        "staff"
++      ]
+     },
+     {
+       "key": "platform-access",
+       "name": "管理人員與登入備援",
+       "area": "平台／權限",
+       "kind": "functional",
+-      "currentSurfaces": ["/workspace/#platform"],
+-      "ownedTables": ["platform_staff", "admin_login_logs", "platform_sessions"],
+-      "sharedTables": ["platform_members", "platform_member_identities", "staff", "staff_session_permissions", "tenants", "sessions"]
++      "currentSurfaces": [
++        "/workspace/#platform"
++      ],
++      "ownedTables": [
++        "platform_staff",
++        "admin_login_logs",
++        "platform_sessions"
++      ],
++      "sharedTables": [
++        "platform_members",
++        "platform_member_identities",
++        "staff",
++        "staff_session_permissions",
++        "tenants",
++        "sessions"
++      ]
+     },
+     {
+       "key": "platform-tenant",
+       "name": "租戶與權限管理",
+       "area": "平台／租戶治理",
+       "kind": "functional",
+-      "currentSurfaces": ["/workspace/#platform"],
+-      "ownedTables": ["tenants", "tenant_settings", "platform_issue_records", "platform_risk_cases", "audit_logs"],
+-      "sharedTables": ["staff", "staff_session_permissions", "platform_staff"]
++      "currentSurfaces": [
++        "/workspace/#platform"
++      ],
++      "ownedTables": [
++        "tenants",
++        "tenant_settings",
++        "platform_issue_records",
++        "platform_risk_cases",
++        "audit_logs"
++      ],
++      "sharedTables": [
++        "staff",
++        "staff_session_permissions",
++        "platform_staff"
++      ]
+     },
+     {
+       "key": "platform-billing",
+       "name": "平台收費與創業金",
+       "area": "平台／帳務",
+       "kind": "functional",
+-      "currentSurfaces": ["/workspace/#platform"],
+-      "ownedTables": ["billing_entities", "billing_entity_tenants", "billing_session_charges", "billing_monthly_statements", "billing_payments", "billing_logs", "reward_ledger"],
+-      "sharedTables": ["platform_settings"]
++      "currentSurfaces": [
++        "/workspace/#platform"
++      ],
++      "ownedTables": [
++        "billing_entities",
++        "billing_entity_tenants",
++        "billing_session_charges",
++        "billing_monthly_statements",
++        "billing_payments",
++        "billing_logs",
++        "reward_ledger"
++      ],
++      "sharedTables": [
++        "platform_settings"
++      ]
+     },
+     {
+       "key": "platform-products",
+       "name": "設定服務與專業模組",
+       "area": "平台／商品化",
+       "kind": "functional",
+-      "currentSurfaces": ["/workspace/#platform"],
++      "currentSurfaces": [
++        "/workspace/#platform"
++      ],
+       "ownedTables": [],
+-      "sharedTables": ["platform_settings", "tenant_settings", "billing_logs", "tenants"]
++      "sharedTables": [
++        "platform_settings",
++        "tenant_settings",
++        "billing_logs",
++        "tenants"
++      ]
+     },
+     {
+       "key": "platform-exposure",
+       "name": "首頁曝光推廣",
+       "area": "平台／推廣",
+       "kind": "functional",
+-      "currentSurfaces": ["/", "/workspace/#platform"],
+-      "ownedTables": ["exposure_plans", "exposure_orders", "platform_attribution_events"],
+-      "sharedTables": ["payments", "platform_settings"]
++      "currentSurfaces": [
++        "/",
++        "/workspace/#platform"
++      ],
++      "ownedTables": [
++        "exposure_plans",
++        "exposure_orders",
++        "platform_attribution_events"
++      ],
++      "sharedTables": [
++        "payments",
++        "platform_settings"
++      ]
+     },
+     {
+       "key": "platform-support",
+       "name": "平台客服",
+       "area": "平台／客服",
+       "kind": "functional",
+-      "currentSurfaces": ["/", "/workspace/#platform"],
+-      "ownedTables": ["support_threads", "support_messages", "doing_public_support_threads", "doing_public_support_messages"],
+-      "sharedTables": ["notifications"]
++      "currentSurfaces": [
++        "/",
++        "/workspace/#platform"
++      ],
++      "ownedTables": [
++        "support_threads",
++        "support_messages",
++        "doing_public_support_threads",
++        "doing_public_support_messages"
++      ],
++      "sharedTables": [
++        "notifications"
++      ]
+     },
+     {
+       "key": "member-center",
+       "name": "我的 DOING",
+       "area": "會員",
+       "kind": "functional",
+-      "currentSurfaces": ["/me/"],
+-      "ownedTables": ["platform_members", "platform_member_identities", "brands", "brand_members", "brand_access_requests"],
+-      "sharedTables": ["members", "registrations", "registration_members", "registration_member_invites", "tenants", "tenant_apply_logs"]
++      "currentSurfaces": [
++        "/me/"
++      ],
++      "ownedTables": [
++        "platform_members",
++        "platform_member_identities",
++        "brands",
++        "brand_members",
++        "brand_access_requests"
++      ],
++      "sharedTables": [
++        "members",
++        "registrations",
++        "registration_members",
++        "registration_member_invites",
++        "tenants",
++        "tenant_apply_logs"
++      ]
+     },
+     {
+       "key": "tenant-operations",
+       "name": "營運項目與場次",
+       "area": "租戶營運",
+       "kind": "functional",
+-      "currentSurfaces": ["/workspace/", "/market/", "/booking/", "/project/"],
+-      "ownedTables": ["events", "sessions", "operation_units", "service_items", "resources", "timeslots", "booking_calendars", "availability_rules", "availability_exceptions", "session_bundles", "service_visits", "equipment_items", "short_links"],
++      "currentSurfaces": [
++        "/workspace/",
++        "/market/",
++        "/booking/",
++        "/project/"
++      ],
++      "ownedTables": [
++        "events",
++        "sessions",
++        "operation_units",
++        "service_items",
++        "resources",
++        "timeslots",
++        "booking_calendars",
++        "availability_rules",
++        "availability_exceptions",
++        "session_bundles",
++        "service_visits",
++        "equipment_items",
++        "short_links"
++      ],
+       "sharedTables": []
+     },
+     {
+@@ -111,17 +226,51 @@
+       "name": "報名、審核與通知",
+       "area": "租戶營運",
+       "kind": "functional",
+-      "currentSurfaces": ["/register/", "/me/#activities", "/market/", "/market/session/"],
+-      "ownedTables": ["registrations", "registration_items", "registration_members", "registration_member_invites", "notifications", "email_templates", "announcements", "force_majeure_logs", "tenant_agreement_templates"],
+-      "sharedTables": ["brands", "brand_members", "members", "payments", "refunds", "invoices"]
++      "currentSurfaces": [
++        "/register/",
++        "/me/#activities",
++        "/market/",
++        "/market/session/"
++      ],
++      "ownedTables": [
++        "registrations",
++        "registration_items",
++        "registration_members",
++        "registration_member_invites",
++        "notifications",
++        "email_templates",
++        "announcements",
++        "force_majeure_logs",
++        "tenant_agreement_templates"
++      ],
++      "sharedTables": [
++        "brands",
++        "brand_members",
++        "members",
++        "payments",
++        "refunds",
++        "invoices"
++      ]
+     },
+     {
+       "key": "tenant-finance",
+       "name": "財務與結案",
+       "area": "租戶營運",
+       "kind": "functional",
+-      "currentSurfaces": ["/market/#finance", "/market/session/?tab=closeout"],
+-      "ownedTables": ["payments", "refunds", "finance_items", "finance_ledger", "finance_audit_logs", "invoices", "payment_allocations", "transfer_settlements"],
++      "currentSurfaces": [
++        "/market/#finance",
++        "/market/session/?tab=closeout"
++      ],
++      "ownedTables": [
++        "payments",
++        "refunds",
++        "finance_items",
++        "finance_ledger",
++        "finance_audit_logs",
++        "invoices",
++        "payment_allocations",
++        "transfer_settlements"
++      ],
+       "sharedTables": []
+     },
+     {
+@@ -129,8 +278,20 @@
+       "name": "會員與工作人員",
+       "area": "租戶營運",
+       "kind": "functional",
+-      "currentSurfaces": ["/market/#members", "/market/#settings"],
+-      "ownedTables": ["members", "staff", "roles", "permissions", "role_permissions", "staff_session_permissions", "staff_action_logs", "tenant_customer_profiles"],
++      "currentSurfaces": [
++        "/market/#members",
++        "/market/#settings"
++      ],
++      "ownedTables": [
++        "members",
++        "staff",
++        "roles",
++        "permissions",
++        "role_permissions",
++        "staff_session_permissions",
++        "staff_action_logs",
++        "tenant_customer_profiles"
++      ],
+       "sharedTables": []
+     },
+     {
+@@ -138,44 +299,94 @@
+       "name": "現場工作台",
+       "area": "租戶營運",
+       "kind": "functional",
+-      "currentSurfaces": ["/market/#onsite", "/market/session/?tab=onsite", "/me/#activities"],
+-      "ownedTables": ["onsite_passcodes"],
+-      "sharedTables": ["registrations", "registration_members", "registration_member_invites", "staff_action_logs", "audit_logs", "seat_operation_logs"]
++      "currentSurfaces": [
++        "/market/#onsite",
++        "/market/session/?tab=onsite",
++        "/me/#activities"
++      ],
++      "ownedTables": [
++        "onsite_passcodes"
++      ],
++      "sharedTables": [
++        "registrations",
++        "registration_members",
++        "registration_member_invites",
++        "staff_action_logs",
++        "audit_logs",
++        "seat_operation_logs"
++      ]
+     },
+     {
+       "key": "advanced-seat",
+       "name": "視覺化排位",
+       "area": "專業模組",
+       "kind": "functional",
+-      "currentSurfaces": ["/market/session/?tab=seat"],
+-      "ownedTables": ["venue_map_templates", "stalls", "seat_maps", "seat_assignments", "seat_operation_logs"],
+-      "sharedTables": ["registrations"]
++      "currentSurfaces": [
++        "/market/session/?tab=seat"
++      ],
++      "ownedTables": [
++        "venue_map_templates",
++        "stalls",
++        "seat_maps",
++        "seat_assignments",
++        "seat_operation_logs"
++      ],
++      "sharedTables": [
++        "registrations"
++      ]
+     },
+     {
+       "key": "advanced-performance",
+       "name": "攤商業績與保證金",
+       "area": "專業模組",
+       "kind": "functional",
+-      "currentSurfaces": ["/me/#activities", "/market/session/?tab=closeout"],
+-      "ownedTables": ["vendor_sales_reports"],
+-      "sharedTables": ["registrations", "finance_ledger"]
++      "currentSurfaces": [
++        "/me/#activities",
++        "/market/session/?tab=closeout"
++      ],
++      "ownedTables": [
++        "vendor_sales_reports"
++      ],
++      "sharedTables": [
++        "registrations",
++        "finance_ledger"
++      ]
+     },
+     {
+       "key": "advanced-consignment",
+       "name": "寄賣與 POS",
+       "area": "專業模組",
+       "kind": "functional",
+-      "currentSurfaces": ["/market/#consignment", "/market/#settings"],
+-      "ownedTables": ["consignment_periods", "consignment_applications", "consignment_products", "pos_sales", "pos_sale_items", "inventory_movements"],
+-      "sharedTables": ["registration_items", "finance_ledger"]
++      "currentSurfaces": [
++        "/market/#consignment",
++        "/market/#settings"
++      ],
++      "ownedTables": [
++        "consignment_periods",
++        "consignment_applications",
++        "consignment_products",
++        "pos_sales",
++        "pos_sale_items",
++        "inventory_movements"
++      ],
++      "sharedTables": [
++        "registration_items",
++        "finance_ledger"
++      ]
+     },
+     {
+       "key": "advanced-photo",
+       "name": "拍照框活動",
+       "area": "專業模組",
+       "kind": "functional",
+-      "currentSurfaces": ["/market/#settings"],
+-      "ownedTables": ["photo_activities", "photo_activity_frames", "photo_leads"],
++      "currentSurfaces": [
++        "/market/#settings"
++      ],
++      "ownedTables": [
++        "photo_activities",
++        "photo_activity_frames",
++        "photo_leads"
++      ],
+       "sharedTables": []
+     },
+     {
+@@ -183,36 +394,84 @@
+       "name": "租戶五套視覺模板",
+       "area": "品牌外觀",
+       "kind": "functional",
+-      "currentSurfaces": ["/market/#settings", "/market/public/"],
++      "currentSurfaces": [
++        "/market/#settings",
++        "/market/public/"
++      ],
+       "ownedTables": [],
+-      "sharedTables": ["tenant_settings"]
++      "sharedTables": [
++        "tenant_settings"
++      ]
+     },
+     {
+       "key": "platform-visual",
+       "name": "DOING 平台視覺基準",
+       "area": "品牌外觀",
+       "kind": "governance",
+-      "currentSurfaces": ["/", "/me/", "/apply/", "/workspace/", "/booking/", "/project/", "/market/"],
++      "currentSurfaces": [
++        "/",
++        "/me/",
++        "/apply/",
++        "/workspace/",
++        "/booking/",
++        "/project/",
++        "/market/"
++      ],
+       "ownedTables": [],
+-      "sharedTables": ["platform_settings"]
++      "sharedTables": [
++        "platform_settings"
++      ]
+     },
+     {
+       "key": "platform-map",
+       "name": "DOING 營運世界樹",
+       "area": "平台治理",
+       "kind": "governance",
+-      "currentSurfaces": ["/world-tree/"],
+-      "ownedTables": ["platform_change_ledger", "platform_feature_versions", "platform_dependency_versions", "platform_verification_records", "platform_verified_baselines"],
+-      "sharedTables": ["platform_settings"]
++      "currentSurfaces": [
++        "/world-tree/"
++      ],
++      "ownedTables": [
++        "platform_change_ledger",
++        "platform_feature_versions",
++        "platform_dependency_versions",
++        "platform_verification_records",
++        "platform_verified_baselines"
++      ],
++      "sharedTables": [
++        "platform_settings"
++      ]
+     },
+     {
+       "key": "future-roadmap",
+       "name": "進階營運閉環",
+       "area": "營運擴充",
+       "kind": "functional",
+-      "currentSurfaces": ["/workspace/#operations", "/booking/", "/market/"],
+-      "ownedTables": ["promotion_rules", "tenant_domains", "membership_plans", "membership_subscriptions", "customer_wallets", "customer_wallet_ledger", "ai_visual_jobs", "session_visual_assets", "marketing_automations", "marketing_automation_runs", "translations"],
+-      "sharedTables": ["platform_settings", "sessions", "registrations", "service_items", "service_visits", "notifications"]
++      "currentSurfaces": [
++        "/workspace/#operations",
++        "/booking/",
++        "/market/"
++      ],
++      "ownedTables": [
++        "promotion_rules",
++        "tenant_domains",
++        "membership_plans",
++        "membership_subscriptions",
++        "customer_wallets",
++        "customer_wallet_ledger",
++        "ai_visual_jobs",
++        "session_visual_assets",
++        "marketing_automations",
++        "marketing_automation_runs",
++        "translations"
++      ],
++      "sharedTables": [
++        "platform_settings",
++        "sessions",
++        "registrations",
++        "service_items",
++        "service_visits",
++        "notifications"
++      ]
+     },
+     {
+       "key": "market-app-core",
+@@ -220,16 +479,38 @@
+       "area": "系統支撐",
+       "kind": "support",
+       "currentSurfaces": [],
+-      "ownedTables": ["mobile_auth_exchanges", "mobile_push_devices", "mobile_push_deliveries"],
+-      "sharedTables": ["platform_members", "platform_member_identities", "registrations", "registration_members", "seat_operation_logs", "notifications"]
++      "ownedTables": [
++        "mobile_auth_exchanges",
++        "mobile_push_devices",
++        "mobile_push_deliveries"
++      ],
++      "sharedTables": [
++        "platform_members",
++        "platform_member_identities",
++        "registrations",
++        "registration_members",
++        "seat_operation_logs",
++        "notifications"
++      ]
+     },
+     {
+       "key": "project-construction",
+       "name": "工程專案",
+       "area": "專案工作",
+       "kind": "functional-submodule",
+-      "currentSurfaces": ["/project/"],
+-      "ownedTables": ["construction_projects", "construction_members", "construction_stages", "construction_updates", "construction_quotes", "construction_payments", "construction_expenses", "construction_signoffs"],
++      "currentSurfaces": [
++        "/project/"
++      ],
++      "ownedTables": [
++        "construction_projects",
++        "construction_members",
++        "construction_stages",
++        "construction_updates",
++        "construction_quotes",
++        "construction_payments",
++        "construction_expenses",
++        "construction_signoffs"
++      ],
+       "sharedTables": []
+     },
+     {
+@@ -237,8 +518,16 @@
+       "name": "報表與匯出",
+       "area": "資料支撐",
+       "kind": "support",
+-      "currentSurfaces": ["/market/#finance", "/workspace/#operations"],
+-      "ownedTables": ["report_templates", "report_exports", "report_download_logs", "session_stats"],
++      "currentSurfaces": [
++        "/market/#finance",
++        "/workspace/#operations"
++      ],
++      "ownedTables": [
++        "report_templates",
++        "report_exports",
++        "report_download_logs",
++        "session_stats"
++      ],
+       "sharedTables": []
+     },
+     {
+@@ -247,8 +536,24 @@
+       "area": "系統支撐",
+       "kind": "support",
+       "currentSurfaces": [],
+-      "ownedTables": ["platform_settings", "error_logs", "idempotency_keys"],
++      "ownedTables": [
++        "platform_settings",
++        "error_logs",
++        "idempotency_keys"
++      ],
+       "sharedTables": []
+     }
+-  ]
+-}
+\ No newline at end of file
++  ],
++  "releaseScope": {
++    "date": "2026-09-29",
++    "enabledProduct": "market_activity",
++    "deferredProducts": [
++      "consignment",
++      "pos",
++      "project",
++      "booking"
++    ],
++    "preservation": "全部既有模組、資料表與業務資料保留；本批沒有 schema 或正式資料異動。",
++    "productionSourceVerified": false
++  }
++}
+diff --git a/DOING_UI_ROUTE_SSOT_CURRENT.json b/DOING_UI_ROUTE_SSOT_CURRENT.json
+index 722cd26..560df27 100644
+--- a/DOING_UI_ROUTE_SSOT_CURRENT.json
++++ b/DOING_UI_ROUTE_SSOT_CURRENT.json
+@@ -28,5 +28,22 @@
+   "publishedOperationUi": false,
+   "workerChanged": false,
+   "databaseChanged": false,
+-  "twoBlChanged": false
++  "twoBlChanged": false,
++  "releaseCandidate": {
++    "date": "2026-09-29",
++    "branch": "codex/market-activity-consolidation-20260929",
++    "enabledProducts": [
++      "market_activity"
++    ],
++    "deferredRoutes": [
++      "/project/",
++      "/booking/"
++    ],
++    "defaultHiddenTenantModules": [
++      "consignment",
++      "pos"
++    ],
++    "productionMappingVerified": false,
++    "note": "此為候選 Repo 建置對應，不能覆蓋目前正式站 /market 前台、/admin 後台的實際證據。"
++  }
+ }
+diff --git a/apply-current.html b/apply-current.html
+index 3a03516..ea746ed 100644
+--- a/apply-current.html
++++ b/apply-current.html
+@@ -5,7 +5,7 @@
+ <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+ <meta name="theme-color" content="#fff7fb">
+ <title>DOING｜申請使用</title>
+-<script src="https://cdn.tailwindcss.com"></script>
++<link rel="stylesheet" href="/doing-utilities-current.css?v=20260929-1">
+ <link rel="stylesheet" href="/doing-kawaii-current.css?v=20260825-3">
+ <style>
+ .apply-shell{max-width:880px}.apply-logo{height:52px;width:auto}.product-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.product-choice{border:3px solid rgba(255,255,255,.95);border-radius:24px;background:rgba(255,255,255,.9);padding:18px;text-align:left;box-shadow:0 12px 28px rgba(184,176,218,.18);cursor:pointer}.product-choice strong{display:block;font-size:18px;color:#3d4250}.product-choice span{display:block;margin-top:6px;color:#687080;font-weight:700;font-size:13px;line-height:1.6}.product-choice.active{outline:3px solid #c9c4ff;background:#faf8ff}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:14px;font-weight:900;color:#545a68}.field input,.field select{width:100%;min-height:46px;border:2px solid #ebe7f3;border-radius:14px;background:#fff;padding:10px 12px;font:inherit;color:#343946;outline:none}.field input:focus,.field select:focus{border-color:#b8acec;box-shadow:0 0 0 3px rgba(184,172,236,.16)}.field-hint{font-size:12px;font-weight:800;line-height:1.55;color:#7a8090}.route-preview{display:block;margin-top:2px;border-radius:12px;background:#f6f4ff;padding:9px 11px;font:700 12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:#6658bc;overflow-wrap:anywhere}.status-box{display:none;border-radius:18px;padding:14px 16px;font-weight:800;line-height:1.65}.status-box.show{display:block}.status-info{background:#eef7ff;color:#496b82}.status-error{background:#fff0f2;color:#a24a5e}.status-success{background:#effbdc;color:#58752a}.system-banner{display:flex;align-items:center;gap:14px}.system-icon{display:grid;width:58px;height:58px;place-items:center;border-radius:18px;background:#f4f1ff;font-size:30px}.system-banner h1{margin:0;font-size:25px;font-weight:950;color:#6658bc}.system-banner p{margin:4px 0 0;color:#687080;font-weight:750}.line-note{font-size:13px;color:#6d7480;font-weight:750;line-height:1.6}.actions{display:flex;gap:10px;flex-wrap:wrap}.actions button,.actions a{min-height:48px}.hidden-force{display:none!important}@media(max-width:640px){.product-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.apply-logo{height:44px}.system-banner h1{font-size:22px}}
+@@ -20,12 +20,12 @@
+ <main class="apply-shell relative z-10 mx-auto w-full px-4 pb-24 pt-8 sm:px-6">
+   <section id="chooseView" class="soft-panel p-6 sm:p-8">
+     <span class="kawaii-kicker">申請 DOING</span>
+-    <h1 class="mt-3 text-3xl font-black text-[#6658bc]">先選你要使用的系統</h1>
+-    <p class="mt-2 font-bold leading-7 text-slate-600">三套系統使用同一份申請資料；你從哪一套申請，就只開通那一套。</p>
++    <h1 class="mt-3 text-3xl font-black text-[#6658bc]">申請市集／活動報名</h1>
++    <p class="mt-2 font-bold leading-7 text-slate-600">完成主辦資料後，即可建立市集或活動場次。</p>
+     <div class="product-grid mt-6">
+       <button class="product-choice" type="button" data-system="market"><strong>🎪 市集活動系統</strong><span>報名、審核、付款、排位、通知、現場與結案。</span></button>
+-      <button class="product-choice" type="button" data-system="project"><strong>🏠 室內設計進度系統</strong><span>專案、階段、照片、報價、付款、支出與驗收。</span></button>
+-      <button class="product-choice" type="button" data-system="booking"><strong>💅 美類預約系統</strong><span>服務、空檔、人員排班、顧客預約與提醒。</span></button>
++      <button class="product-choice" type="button" data-system="project" data-deferred-module="project" hidden style="display:none"><strong>🏠 室內設計進度系統</strong><span>專案、階段、照片、報價、付款、支出與驗收。</span></button>
++      <button class="product-choice" type="button" data-system="booking" data-deferred-module="booking" hidden style="display:none"><strong>💅 美類預約系統</strong><span>服務、空檔、人員排班、顧客預約與提醒。</span></button>
+     </div>
+   </section>
+ 
+@@ -65,7 +65,7 @@ const SYSTEMS={
+ const RESERVED_SLUGS=new Set(['admin','api','apply','me','workspace','market','project','booking','register','guide','world-tree','support','platform']);
+ const $=id=>document.getElementById(id);
+ let system='';
+-function validSystem(v){return Object.prototype.hasOwnProperty.call(SYSTEMS,v)?v:''}
++function validSystem(v){return v==='market'?v:''}
+ function showStatus(text,type='info'){const box=$('statusBox');box.textContent=text;box.className='status-box show mt-5 status-'+type}
+ function clearStatus(){const box=$('statusBox');box.textContent='';box.className='status-box mt-5'}
+ function normalizeUrl(v){v=String(v||'').trim();if(!v)return'';try{const u=new URL(/^https?:\/\//i.test(v)?v:'https://'+v);return u.hostname.includes('.')?u.toString():''}catch(_){return''}}
+diff --git a/docs/market-activity-consolidation-20260929.md b/docs/market-activity-consolidation-20260929.md
+new file mode 100644
+index 0000000..775c0e6
+--- /dev/null
++++ b/docs/market-activity-consolidation-20260929.md
+@@ -0,0 +1,80 @@
++# DOING 市集／活動整併實作紀錄
++
++更新：2026-09-29。狀態：隔離分支已修正、可審查；**不是正式部署完成或正式 UAT 通過**。
++
++## 授權與基準
++
++- 使用者最新指示：開始執行；只做市集與活動報名，兩者共用場次／報名流程；保留現有前後台頁面與主要操作，其餘功能保留擴充。
++- 工作 Repo：`ndiangrace-create/DOING`。基準 `55f7584eb1de35c762cac28bb51289f7d999619e`。
++- 隔離分支：`codex/market-activity-consolidation-20260929`。沒有合併 main，也沒有執行部署。
++- 未合併 PR #191 連帶修改發布規則為自動部署，本批沒有整包合併；仍遵守使用者確認正式部署後才能發布。
++- 本批不新增資料庫、會員系統、業務表或 schema；沒有刪除既有功能檔案或營運資料。
++
++## 正式來源的核對限制
++
++本 Repo 是使用者選定的整併來源，尚未證實與目前正式部署相同。正式站仍有 API 契約差異，不能直接用這份候選版本覆蓋。
++
++帳號、租戶、資料庫識別碼與部署詳細對應保存在使用者的非公開查核紀錄，不寫入此公開 Repo。會員身份、租戶授權與其他系統沒有搬移或修改。
++
++新增 `scripts/audit-deployment-provenance.mjs`：使用既有 Cloudflare secrets 做 **GET 唯讀**，公開輸出僅含存取狀態、來源是否符合候選 Repo／基準，以及既有資料庫 binding 是否存在。沒有 secrets 時明確標 `blocked_missing_credentials`。不輸出帳號、資料庫 hostname、binding 內容、部署 URL／ID、正式 commit 或其他來源帳號。這項布林核對不取代正式版本的完整保存與契約驗證。
++
++## 實際修正
++
++1. **報名會中斷**：`prepareRegistration` 回傳未定義的 `sesType`，實際 Worker 測試重現 ReferenceError。已補回既有場次類型取得流程。
++2. **登入後遺失原場次**：在啟動 OAuth 前保存 tenant、session 與續填意圖；成功開表後清掉續填旗標。仍使用既有 LINE member SSO、報名 Modal 與步驟。
++3. **會員紀錄要再按一次／全站查不到**：等待現有會員載入完成後續行；未選租戶時走既有 `getMyRegsGlobal`，登入回程保存「我的紀錄」。連線失敗保留有效 token。
++4. **共享網域選錯租戶**：以最明確的路徑唯一配對；同網域或同路徑多租戶不取資料庫第一筆。`getSession` 的 id 也可解析其真正租戶。
++5. **舊 JWT 權限持續生效**：角色捷徑前讀取 staff 最新有效狀態。停用、移除、降權或權限查詢失敗不能沿用舊權限。
++6. **場次範圍錯誤**：審核／批次操作從真正 registration 取得 session，拒絕偽造 session hint；場次及報名清單按既有授權過濾；報到日誌使用報名真實 session。
++7. **錯誤 HTTP 狀態被忽略**：`jsonErr` 正確採用原呼叫點指定的 401／403／404 等；未指定的舊業務錯誤格式保留。
++8. **報名日期可信度**：拒絕不屬於場次或重複的日期；唯一日期可沿用單日預設，多日必須選擇，避免偽造日期影響費用或名額。
++9. **審核名稱衝突**：保留按鈕顯示名稱，送出 Core 既有的 `備取／不錄取`；候補篩選同時相容舊值。
++10. **縮減產品範圍**：前台、申請與工作空間只呈現市集／活動。寄賣／POS 的 7 個 API 沿用既有 tenant_settings JSON 旗標，預設關閉，明確核准才可啟用。工程／預約原始碼保留，候選建置的直接網址只顯示未開放提示；非市集產品申請 API 也拒絕。
++11. **樣式外部依賴**：既有會員、申請與工作空間依賴 Tailwind CDN，失敗時手機 Logo／排版溢出。沿用 Tailwind 3.4.17 與原 classes，編譯成 8 KB 站內 CSS；沒有改版型或換前端框架。
++
++12. **主辦無法設定收款**：原收款視窗只展示 JSON；在原視窗補上銀行／戶名／帳號／預設收款表單，使用既有 `savePaymentProfile` 並讀回確認。既有 LINE Pay／信用卡設定保留。其他設定改為易讀資料，不展示程式物件。
++
++`worker.js` 與 `worker.txt` 保持完全一致。收費、抽成、押金及退款規則沒有重訂。
++
++## 角色與流程驗收
++
++| 情境 | 結果／範圍 |
++|---|---|
++| 主辦開草稿、填完整場次、編輯主題與儲存收款帳戶 | Chromium 真實操作，API fixtures；收款設定另有實際 Worker 保存／讀回測試 |
++| 報名者登入回原 tenant／session、填表、合約、取消報名 | Chromium 真實操作，OAuth 與 API 模擬 |
++| 慢速會員載入、過期 token、暫時断線、全站我的紀錄 | 新增 10 組瀏覽器情境，1440 與 390 px |
++| 報名 → 待審 → 錄取 → 回報匯款 → 確認收款 → 報到 | **實際 Worker handlers 共用同一組隔離資料**；核對報名、payment、allocation、ledger 與報到欄位 |
++| 偽造金額／日期、重複報名／確認付款 | 阻擋錯誤輸入與重複入帳；費用從後端計算 |
++| 報名或財務明細寫入失敗、帳本寫入失敗 | 驗證名額／報名回復，付款與分攤資料回復 |
++| 跨租戶、舊角色、停用 staff、跨場次與混合批次 | 實際 Worker 授權與 handler 測試拒絕，沒有越權寫入 |
++| 保留寄賣／POS | 明確開旗標的獨立 fixture 回歸通過；預設入口及 API 关闭另測 |
++| 正式 LINE／真實付款服務／正式 DB | **未完成**，不得用以上測試取代 |
++| 真實 PostgreSQL 原子 RPC／高併發 | **未驗收**；此處 capacity RPC 為隔離模擬 |
++
++核心回歸目前 **30 組通過**。瀏覽器基本組五個腳本通過，另補保留管理功能、登入／Logo、主題分類回歸。全部測試使用測試資料，沒有正式資料寫入。
++
++舊 `e2e-market-*` 部分測試曾把 `viewportSize` 當 newPage 選項；本批使用的主要流程已改成真正的 `viewport`。主題排序的固定日期 fixture 加上固定測試時鐘，避免測試日期過期後誤判。舊 `validate-role-module-access.mjs` 仍引用已移除的 `admin.html`，無法執行；本批以 CURRENT 頁面與實際 Worker 邊界測試驗證，不把該舊腳本標 PASS。
++
++## 重現方式
++
++```sh
++npm ci --ignore-scripts
++npm run build:styles
++npm run build
++npm run test:market:core
++npx playwright install --with-deps chromium
++npm run test:market:browser
++node scripts/run-market-browser-tests.mjs e2e-market-admin-parity.mjs e2e-market-login-logo.mjs e2e-market-topic-filter.mjs
++```
++
++`test:market:browser` 自己啟動並關閉本機 server。新增 GitHub workflow 只驗證與唯讀盤點，沒有部署指令。截圖為測試資料，保存在 CI artifact `market-activity-browser-evidence`。
++
++## 接下來如何整併
++
++1. 將本批存成隔離分支及 Draft PR，保留原始碼、完整 Git 歷史與測試證據；不合併有自動部署規則的舊 PR。
++2. 讀取新 CI 的唯讀 provenance artifact，核對正式 Pages 是否使用這份候選來源及既有 DB binding 是否存在；詳細版本另在非公開紀錄確認。若憑證不可用，明確記錄缺少哪個存取，不猜帳號。
++3. 以正式版本為對照補齊差異。前輪正式前端出現 `exchangeWebAuthCode / memberSession / syncSeatRoster / previewRegistrationResolution / resolveRegistration`，這份基準 Worker 沒有這些接口，**不能直接整包覆蓋正式 Worker**。必須先取得並保存正式來源，套用本批已驗證修正，再檢查頁面路由與 API 契約。
++4. 用正確租戶與既有角色完成實際 LINE、建立測試場次、報名、審核、付款確認、名單與報到的 DB 往返驗收。沒有已授權身份时，不以其他租戶帳號替代。
++5. 以上通過後提供確切 Pages／Worker 版本、備份與回復方式，請使用者確認正式部署；部署後再做正式 smoke test。
++
++本批已完成可審查的程式修正，不只交報告；但正式來源不一致与尚未完成的真人登入／資料庫驗收仍是發布阻擋項。
