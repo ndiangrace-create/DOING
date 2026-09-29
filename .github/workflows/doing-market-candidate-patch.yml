@@ -1,0 +1,71 @@
+name: DOING Market Candidate Patch Checks
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  read-only-deployment-provenance:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply candidate patches only inside this runner
+        run: |
+          git apply --check release-candidates/market-activity-20260929/patches/changes-*.patch
+          git apply release-candidates/market-activity-20260929/patches/changes-*.patch
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Read existing Pages and Worker provenance
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node scripts/audit-deployment-provenance.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: doing-deployment-provenance
+          path: test-results/deployment-provenance.json
+  isolated-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply candidate patches only inside this runner
+        run: |
+          git apply --check release-candidates/market-activity-20260929/patches/changes-*.patch
+          git apply release-candidates/market-activity-20260929/patches/changes-*.patch
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Validate retained source and self-hosted styles
+        run: |
+          cmp worker.js worker.txt
+          node --check worker.js
+          cp doing-utilities-current.css /tmp/doing-utilities-expected.css
+          npm run build:styles
+          cmp doing-utilities-current.css /tmp/doing-utilities-expected.css
+          npm run build
+      - name: Worker authorization and registration/payment state regression
+        run: |
+          npm run test:market:core
+          node scripts/validate-market-app-core-contracts.mjs
+          node scripts/validate-market-auth-role-separation.mjs
+          node scripts/validate-market-member-oauth-primary-return.mjs
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Desktop and mobile journeys (isolated API fixtures)
+        run: npm run test:market:browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: market-activity-browser-evidence
+          path: test-results/market-release/
+          if-no-files-found: ignore

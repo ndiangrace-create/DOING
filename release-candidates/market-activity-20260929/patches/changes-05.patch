@@ -1,0 +1,262 @@
+diff --git a/register.html b/register.html
+index 29f6164..c2e99e4 100644
+--- a/register.html
++++ b/register.html
+@@ -570,8 +570,18 @@ bootstrap();
+ <script>
+ const doingLegacyOpenRegistration=openRegistration;
+ openRegistration=async function(id){
+-  if(window.doingRequireMember&&!await window.doingRequireMember(()=>openRegistration(id)))return;
++  // Store the selected tenant and session BEFORE OAuth captures its return URL.
++  const returnTo=new URL(location.href);
++  if(state.tenant)returnTo.searchParams.set('tenant',state.tenant);
++  returnTo.searchParams.set('session',String(id));
++  returnTo.searchParams.set('market_autoreg','1');
++  returnTo.searchParams.delete('ses');
++  returnTo.searchParams.delete('page');
++  history.replaceState({},'',returnTo.pathname+returnTo.search+returnTo.hash);
++  if(window.doingRequireMember&&!await window.doingRequireMember())return;
+   await doingLegacyOpenRegistration(id);
++  returnTo.searchParams.delete('market_autoreg');
++  history.replaceState({},'',returnTo.pathname+returnTo.search+returnTo.hash);
+   const p=window.doingMemberProfile&&window.doingMemberProfile(),brands=(window.doingMemberBrands&&window.doingMemberBrands()||[]).filter(x=>x.membershipStatus==='active'&&x.permissions?.submit_registration!==false),choice=$('regBrandChoice'),field=$('regBrandChoiceField');state.selectedBrandId='';
+   if(p){$('regEmail').value=p.email||'';$('regPhone').value=p.phone||'';$('regName').value=p.name||'';$('regEmail').readOnly=true;$('regPhone').readOnly=true;$('regName').readOnly=true}
+   if(brands.length){field.classList.remove('hidden');choice.innerHTML=brands.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}${x.category?'｜'+esc(x.category):''}</option>`).join('')+'<option value="">＋ 使用新的品牌名稱</option>';const applyBrand=()=>{const b=brands.find(x=>String(x.id)===String(choice.value));state.selectedBrandId=b?.id||'';$('regBrand').value=b?.name||'';$('regIntro').value=b?.intro||'';$('regSellCat').value=b?.category||'';$('regSellItem').value=b?.items||'';$('regPhoto').value=b?.photoUrl||'';$('regFb').value=b?.facebook||'';$('regIg').value=b?.instagram||'';$('regBrand').readOnly=!!b;$('regBrandHint').textContent=b?'這筆報名會歸到此品牌；同行出攤者可在送出後另外邀請。':'第一次申請可直接填寫。'};choice.onchange=applyBrand;applyBrand()}else{field.classList.add('hidden');$('regBrand').readOnly=false;$('regBrand').value=p?.brand||p?.brand_name||'';$('regIntro').value=p?.brandIntro||'';$('regSellCat').value=p?.sellCat||'';$('regSellItem').value=p?.sellItem||'';$('regPhoto').value=p?.photo||'';$('regFb').value=p?.fb||'';$('regIg').value=p?.ig||'';$('regBrandHint').textContent='第一次申請可直接填寫。'}
+@@ -579,8 +589,9 @@ openRegistration=async function(id){
+ $('regBrand').addEventListener('input',()=>{if(!$('regBrand').readOnly)state.selectedBrandId=''});
+ const doingLegacyApiPost=apiPost;
+ apiPost=async function(action,body={}){const token=window.doingMemberToken&&window.doingMemberToken();if(token)body={...body,member_token:token};return doingLegacyApiPost(action,body)};
+-loadMy=async function(){const p=window.doingMemberProfile&&window.doingMemberProfile(),token=window.doingMemberToken&&window.doingMemberToken();if(!p||!token)return window.doingRequireMember&&window.doingRequireMember(()=>loadMy());state.myEmail=p.email||'';state.myPhone=p.phone||'';try{const [rows,rewards,notes,wallets]=await Promise.all([apiGet('getMyRegs',{member_token:token}),apiGet('getMyRewards',{member_token:token}).catch(()=>({balance:0,rows:[]})),apiGet('getMyNotifications',{member_token:token}).catch(()=>[]),apiGet('getMyCustomerWallets',{member_token:token}).catch(()=>[])]);state.myRows=Array.isArray(rows)?rows:[];renderMy(state.myRows);const rb=$('myRewardSummary');if(rb){rb.classList.remove('hidden');const walletText=(wallets||[]).map(w=>esc(w.name)+' '+(w.unit==='times'?esc(w.balance)+' 次':money(w.balance))).join('｜');rb.innerHTML='<b>可用回饋金 '+money(rewards.balance||0)+'</b>｜下次符合條件的活動／預約可折抵。'+(walletText?'<div style="margin-top:6px"><b>儲值／次數券：</b>'+walletText+'</div>':'')}const nb=$('myNotifications');if(nb){const list=Array.isArray(notes)?notes.slice(0,8):[];nb.innerHTML=list.length?'<div class="section-title"><h2>最新通知</h2></div>'+list.map(n=>'<div class="record"><b>'+esc(n.title||'通知')+'</b><div class="muted">'+esc(n.body||'')+'</div></div>').join(''):''}}catch(e){$('myRecords').innerHTML='<div class="empty">'+esc(e.message)+'</div>';toast(e.message)}};
++loadMy=async function(){const returnTo=new URL(location.href);returnTo.searchParams.set('page','my');returnTo.searchParams.delete('market_autoreg');history.replaceState({},'',returnTo.pathname+returnTo.search+returnTo.hash);if(window.doingRequireMember&&!await window.doingRequireMember())return;const p=window.doingMemberProfile&&window.doingMemberProfile(),token=window.doingMemberToken&&window.doingMemberToken();if(!p||!token)return;state.myEmail=p.email||'';state.myPhone=p.phone||'';try{const [rows,rewards,notes,wallets]=await Promise.all([apiGet(state.tenant?'getMyRegs':'getMyRegsGlobal',{member_token:token}),apiGet('getMyRewards',{member_token:token}).catch(()=>({balance:0,rows:[]})),apiGet('getMyNotifications',{member_token:token}).catch(()=>[]),apiGet('getMyCustomerWallets',{member_token:token}).catch(()=>[])]);state.myRows=Array.isArray(rows)?rows:[];renderMy(state.myRows);const rb=$('myRewardSummary');if(rb){rb.classList.remove('hidden');const walletText=(wallets||[]).map(w=>esc(w.name)+' '+(w.unit==='times'?esc(w.balance)+' 次':money(w.balance))).join('｜');rb.innerHTML='<b>可用回饋金 '+money(rewards.balance||0)+'</b>｜下次符合條件的活動／預約可折抵。'+(walletText?'<div style="margin-top:6px"><b>儲值／次數券：</b>'+walletText+'</div>':'')}const nb=$('myNotifications');if(nb){const list=Array.isArray(notes)?notes.slice(0,8):[];nb.innerHTML=list.length?'<div class="section-title"><h2>最新通知</h2></div>'+list.map(n=>'<div class="record"><b>'+esc(n.title||'通知')+'</b><div class="muted">'+esc(n.body||'')+'</div></div>').join(''):''}}catch(e){$('myRecords').innerHTML='<div class="empty">'+esc(e.message)+'</div>';toast(e.message)}};
+ $('loadMyBtn').onclick=loadMy;
++if(new URL(location.href).searchParams.get('page')==='my'){setPage('my');loadMy()}
+ </script>
+ </body>
+ </html>
+diff --git a/scripts/audit-deployment-provenance.mjs b/scripts/audit-deployment-provenance.mjs
+new file mode 100644
+index 0000000..e5ab12a
+--- /dev/null
++++ b/scripts/audit-deployment-provenance.mjs
+@@ -0,0 +1,40 @@
++// Read-only provenance check. No deployment, secret values, DNS changes, or data writes.
++import fs from 'node:fs';
++const account=process.env.CLOUDFLARE_ACCOUNT_ID;
++const token=process.env.CLOUDFLARE_API_TOKEN;
++const result={checkedAt:new Date().toISOString(),mode:'read-only',productionWrites:0};
++const out='test-results/deployment-provenance.json';
++fs.mkdirSync('test-results',{recursive:true});
++if(!account||!token){
++  result.status='blocked_missing_credentials';
++}else{
++  const base=`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(account)}`;
++  async function get(path){
++    const response=await fetch(base+path,{headers:{Authorization:`Bearer ${token}`},signal:AbortSignal.timeout(20000)});
++    if(!response.ok)return {status:'unavailable',httpStatus:response.status};
++    const data=await response.json();return data.success?{status:'available',data:data.result}:{status:'unavailable',httpStatus:response.status};
++  }
++  try{
++    const [pages,settings,deployments]=await Promise.all([
++      get('/pages/projects/doing-2'),get('/workers/scripts/tobeloved-api/settings'),get('/workers/scripts/tobeloved-api/deployments')
++    ]);
++    result.pages={status:pages.status,httpStatus:pages.httpStatus};
++    if(pages.data){
++      const p=pages.data,source=p.source?.config||{},deployment=p.canonical_deployment;
++      result.pages={...result.pages,
++        sourceRepositoryMatchesCandidate:source.owner==='ndiangrace-create'&&source.repo_name==='DOING',
++        productionBranchMatchesCandidate:p.production_branch==='main',
++        productionCommitMatchesBaseline:deployment?.deployment_trigger?.metadata?.commit_hash==='55f7584eb1de35c762cac28bb51289f7d999619e',
++        hasProductionDeployment:!!deployment};
++    }
++    result.worker={settingsStatus:settings.status,deploymentsStatus:deployments.status};
++    if(settings.data){
++      // Public CI output contains only booleans, never account or database identifiers.
++      result.worker.hasDatabaseBinding=(settings.data.bindings||[]).some(b=>b.name==='SUPABASE_URL');
++    }
++    if(deployments.data)result.worker.hasDeployment=(deployments.data.deployments||[]).length>0;
++    result.status=pages.status==='available'&&settings.status==='available'&&deployments.status==='available'?'read_complete':'partially_unavailable';
++  }catch{result.status='blocked_network_or_response';}
++}
++fs.writeFileSync(out,JSON.stringify(result,null,2)+'\n');
++console.log(JSON.stringify({status:result.status,mode:result.mode,productionWrites:0,artifact:out}));
+diff --git a/scripts/build-doing-2-site.mjs b/scripts/build-doing-2-site.mjs
+index 6a142d0..cb74c77 100644
+--- a/scripts/build-doing-2-site.mjs
++++ b/scripts/build-doing-2-site.mjs
+@@ -20,12 +20,15 @@ const sourceRoutes={
+ function withBase(html){return html.includes('<base href="/">')?html:html.replace('<head>','<head>\n<base href="/">')}
+ function injectHead(html,chunk){return html.replace('</head>',`${chunk}\n</head>`)}
+ function injectBodyEnd(html,chunk){return html.replace('</body>',`${chunk}\n</body>`)}
++const deferredProductRoutes=new Set(['/project/','/booking/']);
++function deferredProductPage(){return `<!doctype html><html lang="zh-Hant" data-doing-product-state="deferred"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>DOING｜市集與活動</title><link rel="stylesheet" href="/doing-kawaii-current.css"><style>body{margin:0;padding:32px;font-family:system-ui;background:#fff8fb;color:#3d4250}main{max-width:640px;margin:10vh auto;padding:28px;background:#fff;border-radius:24px}a{display:inline-block;margin:16px 16px 0 0;color:#6658bc}</style></head><body><main><h1>目前開放市集／活動報名</h1><p>其他功能暫未開放。</p><a href="/market/public/">查看市集與活動</a><a href="/me/">回到我的 DOING</a></main></body></html>`}
+ function transformSource(route,html){
++  if(deferredProductRoutes.has(route))return deferredProductPage();
+   if(route==='/market/')return injectBodyEnd(html,'<script src="/doing-market-admin-session.js?v=20260826-1"></script>\n<script src="/doing-market-entry-current.js?v=20260825-2"></script>\n<script src="/doing-market-branding-upload.js?v=20260826-1"></script>');
+   if(route==='/me/')return injectBodyEnd(html,'<script src="/doing-member-workspace-fix.js?v=20260825-1"></script>');
+   return html;
+ }
+-function registerTransform(html){return injectHead(withBase(html),'<script src="/doing-market-member-session.js?v=20260826-1"></script>')}
++function registerTransform(html){return injectHead(withBase(html.replace("if(hit)setTimeout(()=>openSession(hit),50);","if(hit)setTimeout(()=>new URL(location.href).searchParams.get('market_autoreg')==='1'?openRegistration(hit.id):openSession(hit),50);")),'<script src="/doing-market-member-session.js?v=20260929-1"></script>')}
+ function marketPublicTransform(html){
+   let x=withBase(html);
+   x=injectHead(x,'<link rel="stylesheet" href="/doing-kawaii-current.css?v=20260825-1">\n<link rel="stylesheet" href="/doing-market-current.css?v=20260825-2">\n<link rel="stylesheet" href="/doing-market-2bl-parity.css?v=20260825-1">\n<script src="/doing-market-member-session.js?v=20260826-1"></script>\n<script src="/doing-market-public-2bl.js?v=20260825-3"></script>');
+@@ -67,7 +70,7 @@ for(const [route,spec] of Object.entries(transformedRoutes)){
+ }
+ for(const [route,title] of Object.entries(shellRoutes))writeRoute(route,shell(route,title));
+ 
+-for(const asset of ['doing-kawaii-current.css','doing-home-v4.css','doing-home-current.js','doing-logo-current.webp','doing-market-current.css','doing-market-2bl-parity.css','doing-market-entry-current.js','doing-market-public-2bl.js','doing-market-member-session.js','doing-market-admin-session.js','doing-market-branding-upload.js','doing-member-workspace-fix.js','doing-system.css','doing-home-refresh.css','doing-home-refresh.js','doing-design-tokens.css','doing-pastel-pages.css','doing-attribution.js']){
++for(const asset of ['doing-utilities-current.css','doing-kawaii-current.css','doing-home-v4.css','doing-home-current.js','doing-logo-current.webp','doing-market-current.css','doing-market-2bl-parity.css','doing-market-entry-current.js','doing-market-public-2bl.js','doing-market-member-session.js','doing-market-admin-session.js','doing-market-branding-upload.js','doing-member-workspace-fix.js','doing-system.css','doing-home-refresh.css','doing-home-refresh.js','doing-design-tokens.css','doing-pastel-pages.css','doing-attribution.js']){
+   const src=path.join(root,asset);if(!fs.existsSync(src))throw new Error(`missing asset: ${asset}`);fs.copyFileSync(src,path.join(out,asset));
+ }
+ 
+@@ -112,4 +115,4 @@ const member=fs.readFileSync(path.join(out,'me/index.html'),'utf8');for(const to
+ const apply=fs.readFileSync(path.join(out,'apply/index.html'),'utf8');for(const token of ['data-system="market"','data-system="project"','data-system="booking"','createOrganizerApplicationDraft','auth/line/start','createMemberWorkspaceAdminSession','/market/','/project/','/booking/'])if(!apply.includes(token))throw new Error(`application contract missing: ${token}`);if(apply.includes('data-doing-ui-state="rebuild-shell"'))throw new Error('application route regressed to rebuild shell');
+ const workspace=fs.readFileSync(path.join(out,'workspace/index.html'),'utf8');for(const token of ['getTenantModuleProfile','adminMe','市集活動系統','室內設計系統','美類預約系統'])if(!workspace.includes(token))throw new Error(`workspace contract missing: ${token}`);
+ 
+-console.log(JSON.stringify({result:'PASS',mode:'market-remembered-auth-logo-upload',routeCount:allRoutes.length,liveRoutes:[...Object.keys(sourceRoutes),...Object.keys(transformedRoutes)],shellRoutes:Object.keys(shellRoutes),marketEntries:['/market/public/','/market/'],marketPublicSinglePage:true,marketRegistrationInline:true,marketRememberedMemberLogin:true,marketRememberedAdminSession:true,marketLogoUploadOnly:true,marketLogoAutoResize:true,market2blLayoutParity:true,consignmentCoreBacked:true,legacyRegisterInternal:true,databaseWrites:0,workerChangeScope:'none',twoBlChanges:0,logo:{bytes:logoBytes.length,width:logoWidth,height:logoHeight,sha256:logoHash}},null,2));
+\ No newline at end of file
++console.log(JSON.stringify({result:'PASS',mode:'market-activity-release',routeCount:allRoutes.length,liveRoutes:[...Object.keys(sourceRoutes).filter(r=>!deferredProductRoutes.has(r)),...Object.keys(transformedRoutes)],deferredRoutes:[...deferredProductRoutes],shellRoutes:Object.keys(shellRoutes),marketEntries:['/market/public/','/market/'],marketPublicSinglePage:true,marketRegistrationInline:true,marketRememberedMemberLogin:true,marketRememberedAdminSession:true,marketLogoUploadOnly:true,marketLogoAutoResize:true,market2blLayoutParity:true,consignmentDefaultOff:true,legacyRegisterInternal:true,databaseWrites:0,twoBlChanges:0,logo:{bytes:logoBytes.length,width:logoWidth,height:logoHeight,sha256:logoHash}},null,2));
+\ No newline at end of file
+diff --git a/scripts/e2e-apply-login-current.mjs b/scripts/e2e-apply-login-current.mjs
+index 9256d6e..39a5859 100644
+--- a/scripts/e2e-apply-login-current.mjs
++++ b/scripts/e2e-apply-login-current.mjs
+@@ -71,8 +71,9 @@ async function testMemberDirect(system,target){
+ }
+ try{
+   const choice=await browser.newPage({viewport:{width:390,height:844}});
+-  await choice.goto(base+'/apply/?system=market',{waitUntil:'domcontentloaded'});
+-  assert.equal(await choice.locator('[data-system]').count(),3,'/apply/ must show exactly three public systems');
++  await choice.goto(base+'/apply/',{waitUntil:'domcontentloaded'});
++  assert.equal(await choice.locator('[data-system]:visible').count(),1,'/apply/ exposes only the market/activity product');
++  await choice.locator('[data-system="market"]').click();
+   assert.equal(await choice.locator('#systemAccount').count(),1,'application must include one tenant system account field');
+   await choice.locator('#systemAccount').fill('demo-market');
+   assert.equal(await choice.locator('#systemUrlPreview').textContent(),`${base}/market/demo-market/`,'market tenant URL preview mismatch');
+@@ -91,11 +92,10 @@ try{
+   await choice.close();
+ 
+   await testApplication('market','/market/');
+-  await testApplication('project','/project/');
+-  await testApplication('booking','/booking/');
++
+   await testMemberDirect('market','/market/');
+-  await testMemberDirect('project','/project/');
+-  await testMemberDirect('booking','/booking/');
++  await testMemberDirect('project','/workspace/');
++  await testMemberDirect('booking','/workspace/');
+ 
+-  console.log(JSON.stringify({result:'PASS',applyRoute:'/apply/',publicSystems:3,tenantSystemAccount:true,tenantSlugSavedInApplication:true,tenantUrlPatterns:{market:'/market/{tenant-slug}/',project:'/project/{tenant-slug}/',booking:'/booking/{tenant-slug}/'},lineMode:'member-standard-sso',applicationReturnPreserved:true,directTargets:{market:'/market/',project:'/project/',booking:'/booking/'},memberFreshLoginDirect:true,newRoutes:0,databaseSchemaChanges:0,twoBlChanges:0},null,2));
++  console.log(JSON.stringify({result:'PASS',applyRoute:'/apply/',publicSystems:1,tenantSystemAccount:true,tenantSlugSavedInApplication:true,tenantUrlPatterns:{market:'/market/{tenant-slug}/',project:'/project/{tenant-slug}/',booking:'/booking/{tenant-slug}/'},lineMode:'member-standard-sso',applicationReturnPreserved:true,directTargets:{market:'/market/',project:'/workspace/',booking:'/workspace/'},memberFreshLoginDirect:true,newRoutes:0,databaseSchemaChanges:0,twoBlChanges:0},null,2));
+ } finally {await browser.close()}
+diff --git a/scripts/e2e-home-kawaii.mjs b/scripts/e2e-home-kawaii.mjs
+index eb29e97..8d36472 100644
+--- a/scripts/e2e-home-kawaii.mjs
++++ b/scripts/e2e-home-kawaii.mjs
+@@ -7,7 +7,7 @@ try{
+     const page=await browser.newPage({viewport:{width:viewport.width,height:viewport.height}});
+     await page.goto(base+'/',{waitUntil:'networkidle'});
+     await page.locator('text=斜槓人生小幫手').waitFor();
+-    for(const text of ['市集活動系統','室內設計進度系統','美類預約系統'])await page.locator(`text=${text}`).first().waitFor();
++    for(const text of ['市集活動系統'])await page.locator(`text=${text}`).first().waitFor();
+ 
+     const bodyText=await page.locator('body').innerText();
+     for(const forbidden of ['協援人生小幫手','一個帳號，多種身分','共用同一','資料只留一份','需要什麼再加什麼','手機與電腦同一套','系統亮點','我是來參加活動的','我是使用 DOING 的店家／主辦／團隊']){
+@@ -25,10 +25,10 @@ try{
+     if(viewport.name==='mobile'&&logoBox.width<340)throw new Error(`mobile: logo too small (${logoBox.width})`);
+     if(viewport.name==='desktop'&&logoBox.width<650)throw new Error(`desktop: logo too small (${logoBox.width})`);
+ 
+-    const cards=page.locator('.system-card');
+-    if(await cards.count()!==3)throw new Error(`${viewport.name}: public system card count mismatch`);
+-    const expectedApply=['/apply/?system=market','/apply/?system=project','/apply/?system=booking'];
+-    for(let i=0;i<3;i++){
++    const cards=page.locator('.system-card:visible');
++    if(await cards.count()!==1)throw new Error(`${viewport.name}: public system card count mismatch`);
++    const expectedApply=['/apply/?system=market'];
++    for(let i=0;i<1;i++){
+       const action=cards.nth(i).locator('.system-action');
+       if(await action.getAttribute('href')!==expectedApply[i])throw new Error(`${viewport.name}: system ${i+1} application target mismatch`);
+     }
+@@ -40,7 +40,7 @@ try{
+ 
+     if(viewport.name==='desktop'){
+       const heights=[]; const actionBottoms=[];
+-      for(let i=0;i<3;i++){
++      for(let i=0;i<1;i++){
+         const cardBox=await cards.nth(i).boundingBox();
+         const actionBox=await cards.nth(i).locator('.system-action').boundingBox();
+         if(!cardBox||!actionBox)throw new Error(`desktop: missing card/action box ${i}`);
+@@ -94,5 +94,5 @@ try{
+   if(transientOauthStarts!==0)throw new Error('auth: transient API failure incorrectly restarted LINE OAuth');
+   await transientPage.close();
+ 
+-  console.log(JSON.stringify({result:'PASS',viewports:['390x844','1440x1000'],homepage:'approved-three-system-layout',fixedApplicationLinks:true,logoNaturalSize:'1056x412',logoUpscale:false,publicSystemCount:3,bottomNav:true,memberLoginEntry:true,duplicateLineOAuthRace:false,transientMemberLoadKeepsToken:true,horizontalOverflow:false}));
++  console.log(JSON.stringify({result:'PASS',viewports:['390x844','1440x1000'],homepage:'existing-layout-market-activity-scope',fixedApplicationLinks:true,logoNaturalSize:'1056x412',logoUpscale:false,publicSystemCount:1,bottomNav:true,memberLoginEntry:true,duplicateLineOAuthRace:false,transientMemberLoadKeepsToken:true,horizontalOverflow:false}));
+ } finally { await browser.close(); }
+diff --git a/scripts/e2e-market-admin-parity.mjs b/scripts/e2e-market-admin-parity.mjs
+index 23b927b..78dbd3c 100644
+--- a/scripts/e2e-market-admin-parity.mjs
++++ b/scripts/e2e-market-admin-parity.mjs
+@@ -12,6 +12,7 @@ function payload(action){switch(action){
+   case'getMembers':return[{brand:'品牌甲',name:'王小明',phone:'0900000001',email:'a@example.com',fb:'https://facebook.com/a',ig:'https://instagram.com/a'}];
+   case'getMemberHistory':return[{sessionName:'測試市集',brand:'品牌甲',reviewStatus:'已錄取',paymentStatus:'已繳費',checkinStatus:'已報到'}];
+   case'financeOverview':return{summary:{incomeTotal:2000,refundTotal:0,expenseTotal:300,netTotal:1700}};
++  case'getTenantModuleProfile':return{approvedFlags:{registration:true,consignment:true}};
+   case'getSiteConfig':return{brandName:'測試主辦',logoUrl:'/doing-logo.png',heroImg:'',infoText:'測試'};
+   case'getOperationalCloseout':return{
+     consignment_periods:[{id:'P1',name:'九月寄賣',starts_at:'2026-09-01T00:00:00Z',ends_at:'2026-09-30T23:59:59Z',commission_percent:20,status:'open'}],
+@@ -28,7 +29,7 @@ function payload(action){switch(action){
+   default:return{ok:true,totalAmount:200};
+ }}
+ function actionOf(req){try{return req.method()==='POST'?String(req.postDataJSON?.()?.action||''):String(new URL(req.url()).searchParams.get('action')||'')}catch{return''}}
+-async function main(){const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewportSize:{width:1440,height:1000}});page.setDefaultTimeout(8000);page.on('dialog',d=>d.accept());await page.route(`${API}/**`,async route=>{const req=route.request(),action=actionOf(req);if(req.method()==='POST')writes.push({action,body:req.postDataJSON?.()||{}});return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(payload(action))})});try{
++async function main(){const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1440,height:1000}});page.setDefaultTimeout(8000);page.on('dialog',d=>d.accept());await page.route(`${API}/**`,async route=>{const req=route.request(),action=actionOf(req);if(req.method()==='POST')writes.push({action,body:req.postDataJSON?.()||{}});return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(payload(action))})});try{
+   await page.goto(`${BASE}/market/?tenant=demo&admin_token=${encodeURIComponent(adminToken)}`,{waitUntil:'domcontentloaded'});await page.waitForSelector('#sessionList .mk-card');
+   await page.locator('.mk-nav button[data-page="members"]').click();await page.waitForSelector('[data-member-history]');await page.locator('[data-member-history]').click();await page.waitForSelector('#memberHistoryDialog[open]');await page.waitForFunction(()=>document.getElementById('memberHistoryDialogBody')?.innerText.includes('測試市集'));assert.match(await page.locator('#memberHistoryDialogBody').innerText(),/測試市集/);await page.locator('#memberHistoryDialog [data-admin-close]').click();
+   await page.locator('[data-member-note]').click();await page.waitForSelector('#memberNoteDialog[open]');await page.locator('#memberNoteText').fill('重要會員備註');await page.locator('#saveMemberNoteBtn').click();await page.waitForFunction(()=>!document.querySelector('#memberNoteDialog')?.open);assert.ok(writes.some(x=>x.action==='saveMemberNote'&&x.body.memberEmail==='a@example.com'));
+@@ -39,6 +40,6 @@ async function main(){const browser=await chromium.launch({headless:true});const
+   await page.locator('#posPeriod').selectOption('P1');await page.locator('[data-pos-qty="PD1"]').fill('2');await page.locator('#submitPosSale').click();await page.waitForTimeout(100);const pos=writes.find(x=>x.action==='recordPosSale');assert.ok(pos);assert.deepEqual(pos.body.items,[{productId:'PD1',quantity:2}]);
+   await page.locator('.mk-nav button[data-page="settings"]').click();for(const [kind,action] of [['payment','getPaymentSettings'],['agreement','getAgreementTemplates'],['staff','getStaff'],['venue','listVenueMaps'],['support','getSupportThreads']]){const p=page.waitForResponse(r=>actionOf(r.request())===action);await page.locator(`[data-settings-tool="${kind}"]`).click();await p;await page.waitForSelector('#marketSettingsDialog[open]');await page.locator('#marketSettingsDialog [data-admin-close]').click()}
+   for(const w of writes){if(['saveMemberNote','saveConsignmentPeriod','saveConsignmentProduct','reviewConsignmentApplication','recordPosSale'].includes(w.action)){assert.equal(w.body.tenant,'demo');assert.equal(w.body.token,adminToken);assert.equal(w.body.email,'admin@example.com')}}
+-  console.log(JSON.stringify({result:'PASS',memberHistory:true,memberNote:true,consignmentPeriod:true,consignmentReview:true,consignmentProduct:true,pos:true,settingsTiles:5,workerChanges:0,dbSchemaChanges:0,twoBlChanges:0},null,2));
++  console.log(JSON.stringify({result:'PASS',memberHistory:true,memberNote:true,consignmentPeriod:true,consignmentReview:true,consignmentProduct:true,pos:true,settingsTiles:5,apiMode:'mock',dbSchemaChanges:0,twoBlChanges:0},null,2));
+ }finally{await browser.close()}}
+ main();
+diff --git a/scripts/e2e-market-complete-session.mjs b/scripts/e2e-market-complete-session.mjs
+index 5de25be..68867f2 100644
+--- a/scripts/e2e-market-complete-session.mjs
++++ b/scripts/e2e-market-complete-session.mjs
+@@ -72,7 +72,7 @@ async function mock(page){
+ async function adminCreate(browser,viewport){
+   registered=false;cancelled=false;draftCreated=false;sessionConfigured=false;
+   const start=writes.length;
+-  const page=await browser.newPage({viewportSize:viewport});await mock(page);
++  const page=await browser.newPage({viewport});await mock(page);
+   await page.goto(`${BASE}/market/?tenant=demo&admin_token=${encodeURIComponent(adminToken)}`,{waitUntil:'domcontentloaded'});
+   await page.waitForSelector('#newSession');await page.click('#newSession');
+   await page.waitForSelector('#newSessionDialog[open]');
+@@ -117,7 +117,7 @@ async function adminCreate(browser,viewport){
+ 
+ async function adminEdit(browser,viewport){
+   const start=writes.length;
+-  const page=await browser.newPage({viewportSize:viewport});await mock(page);
++  const page=await browser.newPage({viewport});await mock(page);
+   await page.goto(`${BASE}/market/session/?tenant=demo&admin_token=${encodeURIComponent(adminToken)}&sessionId=S100&tab=settings`,{waitUntil:'domcontentloaded'});
+   await page.waitForSelector('[data-complete-session-editor]');await page.waitForFunction(()=>document.getElementById('fullName')?.value.includes('春日選物市集'));
+   assert.equal(await page.locator('[data-equip]').count(),1);assert.equal(await page.locator('[data-addon]').count(),1);assert.equal(await page.locator('[data-custom]').count(),1);
+@@ -131,7 +131,7 @@ async function adminEdit(browser,viewport){
+ 
+ async function memberRegisterCancel(browser,viewport){
+   registered=false;cancelled=false;const start=writes.length;
+-  const page=await browser.newPage({viewportSize:viewport});page.on('dialog',d=>d.accept());
++  const page=await browser.newPage({viewport});page.on('dialog',d=>d.accept());
+   await page.addInitScript(()=>localStorage.setItem('doing_member_token','member-token'));await mock(page);
+   await page.goto(`${BASE}/market/public/?tenant=demo&session=S100&market_autoreg=1`,{waitUntil:'domcontentloaded'});
+   await page.waitForSelector('#sessionModal.show');await page.waitForFunction(()=>document.getElementById('regEmail')?.value==='member@example.com');
+@@ -153,5 +153,5 @@ try{
+   for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
+     await adminCreate(browser,viewport);await adminEdit(browser,viewport);await memberRegisterCancel(browser,viewport);
+   }
+-  console.log(JSON.stringify({result:'PASS',desktop:true,mobile:true,draftThenFullCreate:true,completeCreate:true,completeEdit:true,createEvent:true,createSessionDraft:true,updateEvent:true,updateSession:true,memberRegister:true,memberWizard:true,agreementRead:true,customField:true,memberCancel:true,workerChanges:0,dbSchemaChanges:0,twoBlChanges:0},null,2));
++  console.log(JSON.stringify({result:'PASS',desktop:true,mobile:true,draftThenFullCreate:true,completeCreate:true,completeEdit:true,createEvent:true,createSessionDraft:true,updateEvent:true,updateSession:true,memberRegister:true,memberWizard:true,agreementRead:true,customField:true,memberCancel:true,apiMode:'mock',dbSchemaChanges:0,twoBlChanges:0},null,2));
+ }finally{await browser.close()}

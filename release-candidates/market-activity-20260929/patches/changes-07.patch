@@ -1,0 +1,535 @@
+diff --git a/scripts/validate-market-release-boundaries.mjs b/scripts/validate-market-release-boundaries.mjs
+new file mode 100644
+index 0000000..fac4463
+--- /dev/null
++++ b/scripts/validate-market-release-boundaries.mjs
+@@ -0,0 +1,252 @@
++// Executes the real Worker routing/auth/handlers with an in-memory database adapter.
++// No network, production credentials, database writes, or schema changes.
++import fs from 'node:fs';
++import vm from 'node:vm';
++import assert from 'node:assert/strict';
++import { webcrypto } from 'node:crypto';
++
++const source = fs.readFileSync('worker.js', 'utf8');
++assert.equal(source, fs.readFileSync('worker.txt', 'utf8'));
++const env = {JWT_SECRET:'isolated-test-secret-not-a-production-credential'};
++const tables = {};
++const writes = [];
++let failedTable = '';
++let failInsert = '';
++const unexpectedFilters=[];
++function matches(row,key,value){
++  if(['select','order','limit','offset'].includes(key))return true;
++  if(key==='or')return value.slice(1,-1).split(',').some(clause=>{
++    const dot=clause.indexOf('.');return matches(row,clause.slice(0,dot),clause.slice(dot+1));
++  });
++  if(value.startsWith('eq.'))return String(row[key])===value.slice(3);
++  if(value.startsWith('neq.'))return String(row[key])!==value.slice(4);
++  if(value.startsWith('ilike.'))return String(row[key]||'').toLowerCase()===value.slice(6).toLowerCase();
++  if(value==='is.null')return row[key]==null;
++  if(value.startsWith('in.('))return value.slice(4,-1).split(',').includes(String(row[key]));
++  if(value.startsWith('not.in.('))return !value.slice(8,-1).split(',').includes(String(row[key]));
++  unexpectedFilters.push(`${key}=${value}`);throw Error(`Unhandled fixture filter ${key}=${value}`);
++}
++function rows(table, query='') {
++  if (table===failedTable) throw Error('simulated database failure');
++  const params = new URLSearchParams(query);
++  return (tables[table]||[]).filter(row => [...params].every(([key,value])=>matches(row,key,value)));
++}
++const db = {
++  get: async (table, query) => structuredClone(rows(table, query)),
++  insert: async (table, data) => { if(failInsert===table){failInsert='';throw Error('simulated insert failure');} writes.push({table, data}); (tables[table]??=[]).push(structuredClone(data)); return data; },
++  update: async (table, query, data) => { const targets=rows(table,query); writes.push({table,query,data}); targets.forEach(row=>Object.assign(row,structuredClone(data))); return true; },
++  delete: async (table,query) => { const selected=rows(table,query);tables[table]=(tables[table]||[]).filter(row=>!selected.includes(row));return true; },
++  upsert: async (table,data,keys='id')=>{const match=(tables[table]||[]).find(row=>keys.split(',').every(key=>row[key]===data[key]));if(match){Object.assign(match,structuredClone(data));return data;}return db.insert(table,data);},
++  rpc:async(name,p)=>{
++    if(!['claim_session_slot','release_session_slot'].includes(name))throw Error('Unsupported fixture RPC '+name);
++    const session=rows('sessions',`tenant_id=eq.${p.p_tenant_id}&id=eq.${p.p_session_id}`)[0];
++    assert.ok(session);const qty=Number(p.p_stall_count);
++    if(name==='claim_session_slot'&&session.limit_count>0&&Number(session.current_count||0)+qty>session.limit_count)return {ok:false,error:'名額不足'};
++    session.current_count=Math.max(0,Number(session.current_count||0)+(name==='claim_session_slot'?qty:-qty));return {ok:true};
++  }
++};
++const context = vm.createContext({
++  URL, URLSearchParams, Request, Response, Headers, TextEncoder, TextDecoder,
++  crypto:webcrypto, btoa, atob, console, setTimeout, clearTimeout, __db:db,
++  fetch:async()=>{throw Error('Unexpected external network request');}
++});
++vm.runInContext(source.replace('export default {','globalThis.worker = {')+`
++  dbGet=async(_env,table,query)=>__db.get(table,query);
++  dbInsert=async(_env,table,data)=>__db.insert(table,data);
++  dbUpdate=async(_env,table,query,data)=>__db.update(table,query,data);
++  dbDelete=async(_env,table,query)=>__db.delete(table,query);
++  dbUpsert=async(_env,table,data,keys)=>__db.upsert(table,data,keys);
++  dbRpc=async(_env,name,p)=>__db.rpc(name,p);
++  sendEmail=async()=>({ok:true,simulated:true});
++  globalThis.testCore={resolveTenantForRequest,signAdminJwt,verifyStaff,enforceTenantRole,
++    enforceTenantFeature,hCheckin,hCreateOrganizerApplicationDraft,checkinGuard,
++    hRegister,hUpdateRegStatus,hSubmitPayment,hConfirmPayment,prepareRegistration,hGetRegs,hGetSessionsAdmin,hSavePaymentProfile,hGetPaymentProfiles};
++`, context);
++const core=context.testCore;
++let passed=0;
++async function check(name, fn) { await fn(); passed++; console.log(`PASS ${name}`); }
++const owner={email:'owner@example.test',tenant_id:'alpha',normalized_role:'organizer_owner',expires_at:Date.now()+60000};
++const ownerToken=await core.signAdminJwt(owner,env);
++const operator={...owner,email:'operator@example.test',normalized_role:'session_admin'};
++const operatorToken=await core.signAdminJwt(operator,env);
++tables.staff=[{tenant_id:'alpha',email:owner.email,normalized_role:'organizer_owner',is_active:true},
++  {tenant_id:'alpha',email:operator.email,normalized_role:'session_admin',is_active:true,limit_sessions:'S-A'}];
++tables.staff_session_permissions=[{tenant_id:'alpha',staff_email:operator.email,session_id:'S-A',is_active:true}];
++tables.sessions=[{id:'S-A',tenant_id:'alpha',name:'Alpha market',status:'關閉'},
++  {id:'S-A2',tenant_id:'alpha',name:'Restricted activity',status:'關閉'},
++  {id:'S-B',tenant_id:'beta',name:'Private beta activity',status:'關閉'}];
++tables.registrations=[{id:'R-A',tenant_id:'alpha',session_id:'S-A',review_status:'已錄取',payment_status:'已繳費'},
++  {id:'R-A2',tenant_id:'alpha',session_id:'S-A2',review_status:'已錄取',payment_status:'已繳費'},
++  {id:'R-B',tenant_id:'beta',session_id:'S-B',review_status:'已錄取',payment_status:'已繳費'}];
++tables.tenants=[{id:'alpha',status:'active',site_url:'https://doing.example.test/alpha/'},
++  {id:'beta',status:'active',site_url:'https://doing.example.test/beta/'}];
++
++await check('shared origin does not select the first tenant',async()=>{
++  const req=new Request('https://api.example.test/',{headers:{Origin:'https://doing.example.test'}});
++  assert.equal(await core.resolveTenantForRequest(env,{},req),'');
++});
++await check('specific tenant path resolves without matching sibling paths',async()=>{
++  const req=path=>new Request('https://api.example.test/',{headers:{Referer:`https://doing.example.test/${path}`}});
++  assert.equal(await core.resolveTenantForRequest(env,{},req('beta/session/')),'beta');
++  assert.equal(await core.resolveTenantForRequest(env,{},req('beta-other/')),'');
++});
++await check('duplicate configured paths fail closed',async()=>{
++  tables.tenants.push({id:'duplicate',status:'active',site_url:tables.tenants[1].site_url});
++  assert.equal(await core.resolveTenantForRequest(env,{},new Request('https://api.example.test/',{headers:{Referer:'https://doing.example.test/beta/'}})),'');
++  tables.tenants.pop();
++});
++await check('getSession id resolves its own tenant',async()=>{
++  assert.equal(await core.resolveTenantForRequest(env,{action:'getSession',id:'S-B'},null),'beta');
++});
++await check('cross-tenant public session lookup cannot read another tenant',async()=>{
++  const response=await context.worker.fetch(new Request('https://api.example.test/?action=getSession&tenant=alpha&id=S-B'),env,{});
++  const body=await response.json(); assert.match(body.error,/找不到/); assert.equal(JSON.stringify(body).includes('Private beta'),false);
++});
++await check('signed owner token cannot operate on another tenant',async()=>{
++  const url=new URL('https://api.example.test/');
++  for(const [k,v] of Object.entries({action:'getSessionsAdmin',tenant:'beta',email:owner.email,token:ownerToken}))url.searchParams.set(k,v);
++  assert.equal((await context.worker.fetch(new Request(url),env,{})).status,403);
++});
++await check('revoked owner cannot retain finance or review authority',async()=>{
++  tables.staff[0].is_active=false;
++  for(const role of ['finance','review','superadmin'])assert.equal(await core.verifyStaff(env,owner.email,ownerToken,'alpha',role),false);
++  tables.staff[0].is_active=true;
++});
++await check('downgraded owner token uses the current database role',async()=>{
++  tables.staff[0].normalized_role='onsite_staff';
++  assert.equal(await core.verifyStaff(env,owner.email,ownerToken,'alpha','finance'),false);
++  tables.staff[0].normalized_role='organizer_owner';
++});
++await check('staff lookup failure cannot grant access',async()=>{
++  failedTable='staff'; assert.equal(await core.verifyStaff(env,owner.email,ownerToken,'alpha','review'),false); failedTable='';
++});
++await check('session-limited review checks the actual registration session',async()=>{
++  const before=writes.length;
++  const denied=await core.enforceTenantRole(env,'alpha','updateRegStatus',{email:operator.email,token:operatorToken,regId:'R-A2',sessionId:'S-A'});
++  assert.equal(denied.status,403); assert.equal(writes.length,before);
++  assert.equal(await core.enforceTenantRole(env,'alpha','updateRegStatus',{email:operator.email,token:operatorToken,regId:'R-A'}),null);
++});
++await check('bulk review rejects a mixed authorized/unauthorized selection',async()=>{
++  const denied=await core.enforceTenantRole(env,'alpha','batchUpdateStatus',{email:operator.email,token:operatorToken,regIds:['R-A','R-A2']});
++  assert.equal(denied.status,403);
++});
++await check('session-limited lists include only database-authorized sessions and registrations',async()=>{
++  const payload={_tenantId:'alpha',email:operator.email,token:operatorToken};
++  const sessions=await (await core.hGetSessionsAdmin(env,payload)).json();
++  const regs=await (await core.hGetRegs(env,payload)).json();
++  assert.deepEqual(sessions.map(s=>s.id),['S-A']);assert.deepEqual(regs.map(r=>r.id),['R-A']);
++});
++await check('check-in refuses another session, including a forged session hint',async()=>{
++  const before=writes.length;
++  const response=await core.hCheckin(env,{_tenantId:'alpha',email:operator.email,token:operatorToken,regId:'R-A2',sessionId:'S-A'});
++  assert.equal(response.status,403); assert.equal(writes.length,before);
++});
++await check('valid check-in and undo update the real registration and audit session',async()=>{
++  const payload={_tenantId:'alpha',email:operator.email,token:operatorToken,regId:'R-A',sessionId:'FORGED'};
++  assert.equal((await (await core.hCheckin(env,payload)).json()).success,true);
++  assert.equal(tables.registrations[0].checkin_status,'已報到');
++  assert.equal(tables.seat_operation_logs.at(-1).session_id,'S-A');
++  await core.hCheckin(env,{...payload,undo:true}); assert.equal(tables.registrations[0].checkin_status,'未報到');
++});
++await check('check-in still requires review and payment, and rejects refunding registrations',async()=>{
++  assert.ok(core.checkinGuard({review_status:'待審核',payment_status:'已繳費'},false));
++  assert.ok(core.checkinGuard({review_status:'已錄取',payment_status:'未繳費'},false));
++  assert.ok(core.checkinGuard({review_status:'已錄取',payment_status:'已繳費',transfer_status:'申請退費'},false));
++  assert.equal(core.checkinGuard({review_status:'已錄取',payment_status:'免費'},false),'');
++});
++const consignmentActions=['getConsignmentPeriodsPublic','getMyConsignment','saveConsignmentPeriod','applyConsignment','reviewConsignmentApplication','saveConsignmentProduct','recordPosSale'];
++await check('all preserved consignment/POS APIs are disabled by default',async()=>{
++  for(const action of consignmentActions)assert.equal((await core.enforceTenantFeature(env,'alpha',action)).status,403);
++});
++await check('extension flag is tenant-specific and explicit',async()=>{
++  tables.tenant_settings=[{tenant_id:'alpha',module_flags_json:{consignment:true}}];
++  assert.equal(await core.enforceTenantFeature(env,'alpha','getConsignmentPeriodsPublic'),null);
++  assert.equal((await core.enforceTenantFeature(env,'beta','getConsignmentPeriodsPublic')).status,403);
++  tables.tenant_settings=[];
++});
++await check('deferred product applications cannot bypass the visible product selector',async()=>{
++  for(const requestedSystem of ['booking','project'])assert.equal((await core.hCreateOrganizerApplicationDraft(env,{application:{requestedSystem}})).status,403);
++});
++// Real registration/review/payment/check-in handlers share the same fixture rows.
++// RPC capacity is simulated, so this does NOT certify PostgreSQL concurrency.
++const pending=[];
++const ctx={waitUntil:promise=>pending.push(promise)};
++tables.platform_members=[{id:'MEM-A',email:'member@example.test',contact_email:'member@example.test',phone:'0912345678',name:'測試會員',completed_at:new Date().toISOString()}];
++tables.platform_member_identities=[{member_id:'MEM-A',provider:'line',provider_subject:'fixture-subject'}];
++const memberToken=await core.signAdminJwt({type:'member',provider:'line',provider_subject:'fixture-subject',expires_at:Date.now()+60000},env);
++Object.assign(tables.tenants[0],{name:'測試主辦',payment_config_json:{bankName:'TEST BANK',bankAccount:'000000000000',accountName:'TEST ONLY'}});
++await check('organizer payment settings save through the existing tenant configuration and read back',async()=>{
++  const identity={_tenantId:'alpha',email:owner.email,token:ownerToken};
++  const result=await (await core.hSavePaymentProfile(env,{...identity,id:'tenant_default',name:'市集報名收款',bankName:'TEST BANK',accountName:'TEST ONLY',bankAccount:'000000000000',allowedMethods:{bank:true,linepay:false,card:false},isDefault:true,isEnabled:true})).json();
++  assert.equal(result.success,true);
++  const profiles=await (await core.hGetPaymentProfiles(env,identity)).json();
++  assert.equal(profiles.find(p=>p.id==='tenant_default').bankAccount.accountNumber,'000000000000');
++});
++tables.sessions.push({id:'S-FLOW',tenant_id:'alpha',name:'完整市集活動',event_id:null,status:'報名中',fee:300,max_stalls:1,limit_count:10,current_count:0,need_review:true,dates_json:[{date:'2030-10-10',fee:300}],modules_json:{registration:true,review:true,payment:true,checkin:true,quantityMode:'stall',depositKind:'none'}});
++const form={_tenantId:'alpha',member_token:memberToken,sessionId:'S-FLOW',email:'member@example.test',phone:'0912345678',name:'測試會員',brand:'',stallCount:1,selectedDates:['2030-10-10'],amount:1,total:1};
++let regId;
++await check('forged or duplicate dates cannot bypass date-based prices and capacity',async()=>{
++  for(const selectedDates of [['2099-01-01'],['2030-10-10','2030-10-10']]){
++    const result=await core.prepareRegistration(env,{...form,selectedDates});assert.match(result.error,/日期/);
++  }
++});
++await check('failed registration or financial-item inserts restore both row and capacity',async()=>{
++  for(const table of ['registrations','registration_items']){
++    failInsert=table;
++    const count=tables.registrations.length,result=await (await core.hRegister(env,structuredClone(form),ctx)).json();
++    assert.ok(result.error);assert.equal(tables.registrations.length,count);assert.equal(tables.sessions.at(-1).current_count,0);
++  }
++});
++await check('registration computes its price on the server and reserves one place',async()=>{
++  const result=await (await core.hRegister(env,structuredClone(form),ctx)).json();assert.equal(result.error,undefined,JSON.stringify(result));
++  regId=result.id;assert.ok(regId);assert.equal(result.total,300);
++  const reg=tables.registrations.find(r=>r.id===regId);assert.equal(reg.review_status,'待審核');assert.equal(reg.total_amount,300);
++  assert.equal(tables.sessions.at(-1).current_count,1);assert.equal(tables.registration_members.find(r=>r.registration_id===regId).platform_member_id,'MEM-A');
++});
++await check('duplicate registration creates neither a second row nor extra capacity',async()=>{
++  const count=tables.registrations.length,result=await (await core.hRegister(env,structuredClone(form),ctx)).json();
++  assert.match(result.error,/已報名/);assert.equal(tables.registrations.length,count);assert.equal(tables.sessions.at(-1).current_count,1);
++});
++await check('payment is refused before review',async()=>{
++  const result=await (await core.hSubmitPayment(env,{...form,regId,method:'匯款',last5:'12345',amount:1})).json();assert.match(result.error,/尚未錄取/);
++});
++await check('organizer review updates the registration and its payment instructions',async()=>{
++  const result=await (await core.hUpdateRegStatus(env,{_tenantId:'alpha',email:owner.email,token:ownerToken,regId,status:'已錄取'})).json();
++  assert.equal(result.error,undefined,JSON.stringify(result));assert.equal(tables.registrations.find(r=>r.id===regId).review_status,'已錄取');
++});
++await check('member payment report ignores the client amount',async()=>{
++  const result=await (await core.hSubmitPayment(env,{...form,regId,method:'匯款',last5:'12345',amount:1})).json();
++  assert.equal(result.error,undefined,JSON.stringify(result));
++  const reg=tables.registrations.find(r=>r.id===regId);assert.equal(reg.payment_status,'待確認');assert.equal(reg.payment_report_amount,300);
++  assert.equal(tables.payments.find(p=>p.registration_id===regId).amount,300);
++});
++await check('organizer confirmation writes matching payment, allocation, and ledger amounts',async()=>{
++  const result=await (await core.hConfirmPayment(env,{_tenantId:'alpha',email:owner.email,token:ownerToken,regId,_deferSideEffects:true})).json();
++  assert.equal(result.error,undefined,JSON.stringify(result));
++  const reg=tables.registrations.find(r=>r.id===regId);assert.equal(reg.payment_status,'已繳費');assert.equal(reg.paid_amount,300);
++  assert.equal(tables.payments.find(p=>p.registration_id===regId).status,'已確認');
++  assert.equal(tables.payment_allocations.filter(p=>p.registration_id===regId).reduce((sum,p)=>sum+p.amount,0),300);
++  assert.equal(tables.finance_ledger.filter(p=>p.registration_id===regId&&p.entry_type==='payment_received').reduce((sum,p)=>sum+p.amount,0),300);
++});
++await check('financial ledger failure restores the pending payment and allocations',async()=>{
++  const original=structuredClone(tables.registrations.find(r=>r.id===regId));
++  const reg={...original,id:'R-ROLLBACK',paid_amount:0,payment_status:'待確認'};tables.registrations.push(reg);
++  tables.payments.push({id:'PAY-ROLLBACK',tenant_id:'alpha',registration_id:reg.id,session_id:reg.session_id,status:'待確認',amount:300});
++  failInsert='finance_ledger';
++  const result=await (await core.hConfirmPayment(env,{_tenantId:'alpha',email:owner.email,token:ownerToken,regId:reg.id,_deferSideEffects:true})).json();
++  assert.match(result.error,/回復/);assert.equal(reg.payment_status,'待確認');assert.equal(reg.paid_amount,0);
++  assert.equal(tables.payments.find(p=>p.registration_id===reg.id).status,'待確認');
++  assert.equal(tables.payment_allocations.filter(p=>p.registration_id===reg.id).length,0);
++});
++await check('repeated payment confirmation does not double charge',async()=>{
++  const payments=tables.payments.length,allocations=tables.payment_allocations.length;
++  const result=await (await core.hConfirmPayment(env,{_tenantId:'alpha',email:owner.email,token:ownerToken,regId,_deferSideEffects:true})).json();
++  assert.match(result.error,/不能重複/);assert.equal(tables.payments.length,payments);assert.equal(tables.payment_allocations.length,allocations);
++});
++await check('the paid registration can check in and retain the same tenant/session',async()=>{
++  const result=await (await core.hCheckin(env,{_tenantId:'alpha',email:owner.email,token:ownerToken,regId})).json();assert.equal(result.success,true);
++  const reg=tables.registrations.find(r=>r.id===regId);assert.equal(reg.checkin_status,'已報到');assert.equal(reg.tenant_id,'alpha');assert.equal(reg.session_id,'S-FLOW');
++});
++await Promise.all(pending);
++assert.deepEqual(unexpectedFilters,[],'fixture must not silently skip query semantics');
++console.log(JSON.stringify({result:'PASS',checks:passed,kind:'real-worker-with-isolated-database-adapter',productionWrites:0,externalNetwork:0,mailDelivery:'simulated',capacityRPC:'simulated'}));
+diff --git a/styles/doing-utilities.css b/styles/doing-utilities.css
+new file mode 100644
+index 0000000..864c513
+--- /dev/null
++++ b/styles/doing-utilities.css
+@@ -0,0 +1,4 @@
++/* Compile the existing Tailwind classes locally; preserve the current page design. */
++@tailwind base;
++@tailwind components;
++@tailwind utilities;
+diff --git a/tailwind.config.cjs b/tailwind.config.cjs
+new file mode 100644
+index 0000000..d35f7a4
+--- /dev/null
++++ b/tailwind.config.cjs
+@@ -0,0 +1,5 @@
++module.exports = {
++  content: ['./member-current.html', './apply-current.html', './workspace-current.html', './doing-member-workspace-fix.js'],
++  theme: {extend: {}},
++  plugins: []
++};
+diff --git a/worker.js b/worker.js
+index 7bc13c5..40f9949 100644
+--- a/worker.js
++++ b/worker.js
+@@ -129,7 +129,7 @@ async function resolveTenantForRequest(env, p, req) {
+   if(hinted && hinted!=='platform') return hinted;
+ 
+   // Session-specific public links can resolve their tenant without exposing any tenant code.
+-  const sid=String((p&&(p.sessionId||p.session_id))||'').trim();
++  const sid=String((p&&(p.sessionId||p.session_id||(p.action==='getSession'?p.id:'')))||'').trim();
+   if(sid){
+     const rows=await dbGet(env,'sessions',`id=eq.${encodeURIComponent(sid)}&select=tenant_id`).catch(()=>[]);
+     if(rows[0]?.tenant_id) return String(rows[0].tenant_id).trim().toLowerCase();
+@@ -149,9 +149,15 @@ async function resolveTenantForRequest(env, p, req) {
+   const candidates=[pageHeader,referer,origin].map(normalizeSiteBase).filter(Boolean);
+   if(candidates.length){
+     const tenants=await dbGet(env,'tenants','status=eq.active&select=id,site_url').catch(()=>[]);
+-    for(const t of tenants){
+-      const site=normalizeSiteBase(t.site_url);
+-      if(site && candidates.some(c=>c.startsWith(site)||site.startsWith(c))) return String(t.id).trim().toLowerCase();
++    // A shared origin is not a tenant identity. Prefer the most specific page path,
++    // and never select the first database row when two tenants match equally.
++    for(const candidate of candidates){
++      const matches=tenants.map(t=>({id:String(t.id).trim().toLowerCase(),site:normalizeSiteBase(t.site_url)}))
++        .filter(t=>t.site&&candidate.startsWith(t.site));
++      if(!matches.length)continue;
++      const longest=Math.max(...matches.map(t=>t.site.length));
++      const ids=new Set(matches.filter(t=>t.site.length===longest).map(t=>t.id));
++      return ids.size===1?[...ids][0]:'';
+     }
+   }
+   return '';
+@@ -516,7 +522,8 @@ function corsHeaders() {
+   };
+ }
+ const jsonOk  = data => new Response(JSON.stringify(data), {status:200, headers:corsHeaders()});
+-const jsonErr = msg  => new Response(JSON.stringify({error:msg}), {status:200, headers:corsHeaders()});
++// Preserve legacy business-error responses while honoring explicit auth/HTTP errors.
++const jsonErr = (msg, status=200) => new Response(JSON.stringify({error:msg}), {status, headers:corsHeaders()});
+ 
+ // ── SECTION 6: Supabase 查詢工具 ────────────────────────────────
+ function supabaseServiceRoleKey(env) {
+@@ -847,61 +854,31 @@ async function verifyStaff(env, email, token, tenantId, requiredRole='', session
+     return true;
+   }
+ 
+-  // JWT 格式：從 payload 取角色
+-  const normalizedRole = role;
+-  const ownerRoles = ['organizer_owner', 'platform_super_admin', 'organizer_admin'];
+-
+-  if (requiredRole === 'superadmin') {
+-    return normalizedRole === 'organizer_owner' || normalizedRole === 'platform_super_admin';
+-  }
+-
+-  if (requiredRole === 'finance') {
+-    const allowed = ['organizer_owner','platform_super_admin','organizer_admin','finance_admin'];
+-    return allowed.includes(normalizedRole);
+-  }
+-
+-  if (requiredRole === 'checkin') {
+-    const allowed = ['organizer_owner','platform_super_admin','organizer_admin','session_admin','onsite_staff'];
+-    if (!allowed.includes(normalizedRole)) return false;
+-    // 不可在此直接 return。現場人員 / 場次管理員還必須繼續往下檢查 session 授權，
+-    // 避免改 URL 或直接打 API 就讀到未授權場次。
+-  }
+-
+-  if (requiredRole === 'review' || requiredRole === 'sessions' || requiredRole === 'events') {
+-    const allowed = ['organizer_owner','platform_super_admin','organizer_admin','session_admin','finance_admin'];
+-    return allowed.includes(normalizedRole);
+-  }
+-
+-  if (requiredRole === 'announce') {
+-    const allowed = ['organizer_owner','platform_super_admin','organizer_admin'];
+-    return allowed.includes(normalizedRole);
+-  }
+-
+-  // 有 sessionId 限制：session_admin / onsite_staff 只能看授權場次
+-  if (sessionId && limitSessions) {
+-    if (['session_admin','onsite_staff'].includes(normalizedRole)) {
+-      const allowed = String(limitSessions).split(',').map(s=>s.trim()).filter(Boolean);
+-      if (allowed.length && !allowed.includes(sessionId)) return false;
+-    }
+-  }
+-
+-  // JWT 驗證通過後仍回查 staff 最新狀態，避免停用或場次權限變更後舊 token 仍可使用。
++  // Read current staff authority before ANY role shortcut. Revoked/downgraded
++  // credentials and failed permission reads must never keep their old authority.
+   const activeRows = await dbGet(env, 'staff', `tenant_id=eq.${tid}&email=eq.${encodeURIComponent(email)}&select=is_active,active,limit_sessions,role,normalized_role`).catch(()=>[]);
+-  if (activeRows[0]) {
+-    const active = activeRows[0].is_active !== undefined ? activeRows[0].is_active : activeRows[0].active;
+-    if (active === false) return false;
+-    const dbRole = activeRows[0].normalized_role || activeRows[0].role || normalizedRole;
+-    const dbLimitSessions = activeRows[0].limit_sessions || '';
+-    if (sessionId && ['onsite_staff','session_admin'].includes(dbRole)) {
+-      // 009 權限表優先；若尚未執行 009 或查不到表，才回退 staff.limit_sessions。
+-      const permRows = await dbGet(env, 'staff_session_permissions', `tenant_id=eq.${tid}&staff_email=eq.${encodeURIComponent(email)}&session_id=eq.${encodeURIComponent(sessionId)}&is_active=eq.true&select=session_id`).catch(()=>null);
+-      if (Array.isArray(permRows)) {
+-        if (!permRows.length) return false;
+-      } else {
+-        const allowed = String(dbLimitSessions).split(',').map(s=>s.trim()).filter(Boolean);
+-        if (dbRole === 'onsite_staff' && !allowed.length) return false;
+-        if (allowed.length && !allowed.includes(sessionId)) return false;
+-      }
++  const staff = activeRows[0];
++  if (!staff || (staff.is_active !== undefined ? staff.is_active : staff.active) === false) return false;
++  const normalizedRole = staff.normalized_role || staff.role || '';
++  const rolesByPermission = {
++    superadmin:['organizer_owner','platform_super_admin'],
++    finance:['organizer_owner','platform_super_admin','organizer_admin','finance_admin'],
++    checkin:['organizer_owner','platform_super_admin','organizer_admin','session_admin','onsite_staff'],
++    review:['organizer_owner','platform_super_admin','organizer_admin','session_admin','finance_admin'],
++    sessions:['organizer_owner','platform_super_admin','organizer_admin','session_admin','finance_admin'],
++    events:['organizer_owner','platform_super_admin','organizer_admin','session_admin','finance_admin'],
++    announce:['organizer_owner','platform_super_admin','organizer_admin']
++  };
++  if (rolesByPermission[requiredRole] && !rolesByPermission[requiredRole].includes(normalizedRole)) return false;
++  // Keep existing 009 permission precedence; use legacy limits only when the
++  // permissions table is unavailable, never when it explicitly has no grant.
++  if (sessionId && ['onsite_staff','session_admin'].includes(normalizedRole)) {
++    const permRows = await dbGet(env, 'staff_session_permissions', `tenant_id=eq.${tid}&staff_email=eq.${encodeURIComponent(email)}&session_id=eq.${encodeURIComponent(sessionId)}&is_active=eq.true&select=session_id`).catch(()=>null);
++    if (Array.isArray(permRows)) {
++      if (!permRows.length) return false;
++    } else {
++      const allowed = String(staff.limit_sessions || '').split(',').map(x=>x.trim()).filter(Boolean);
++      if (!allowed.includes(String(sessionId))) return false;
+     }
+   }
+   return true; // 通過基本驗證，無特殊 requiredRole
+@@ -1870,7 +1847,7 @@ const DEFAULT_TENANT_MODULE_FLAGS = {
+   registration: true, review: true, payment: true, equipment: true, seatSelection: true,
+   checkin: true, invoice: true, workshopSlots: true, service: true, resource: true,
+   participants: true, customFields: true, addons: true, agreement: true, i18n: true, googleCalendar: true,
+-  themeEvents: false, photoFrames: false, ai_visual: false
++  themeEvents: false, photoFrames: false, ai_visual: false, consignment: false
+ };
+ 
+ function normalizeApprovedModuleFlags(raw,fallback={}){
+@@ -2084,6 +2061,11 @@ async function hMarkPlatformSupportRead(env,b){
+ }
+ 
+ const TENANT_FEATURE_ACTIONS = {
++  // Preserved extension: only a platform-approved tenant flag enables these APIs.
++  consignment: new Set([
++    'getConsignmentPeriodsPublic','getMyConsignment','saveConsignmentPeriod',
++    'applyConsignment','reviewConsignmentApplication','saveConsignmentProduct','recordPosSale'
++  ]),
+   registration: new Set([
+     'register','registerBundle','saveBundle','deleteBundle','cancelReg','adminCancelReg',
+     'getBundles','getBundlesPublic','getMember','getMyRegs','getRegLookup','getRegs','getRegsBySession',
+@@ -2175,6 +2157,17 @@ async function enforceTenantRole(env,tenantId,action,payload){
+     role=String(staff.normalized_role||staff.role||role).trim();
+   }
+   if(!(TENANT_ROLE_ALLOW[group]||[]).includes(role))return jsonErr('你的角色不能執行這項操作',403);
++  if(['session_admin','onsite_staff'].includes(role)){
++    const sessionIds=new Set([payload.sessionId,payload.session_id].filter(Boolean).map(String));
++    if(['updateSession','copySession','deleteSession','toggleSession','toggleSessionStatus'].includes(action)&&payload.id)sessionIds.add(String(payload.id));
++    const regIds=[payload.regId,payload.reg_id,payload.registrationId,...(Array.isArray(payload.regIds)?payload.regIds:[])].filter(Boolean);
++    for(const id of new Set(regIds)){
++      const rows=await dbGet(env,'registrations',`tenant_id=eq.${encodeURIComponent(tenantId)}&id=eq.${encodeURIComponent(id)}&select=session_id`);
++      if(!rows[0]?.session_id)return jsonErr('找不到報名',404);
++      sessionIds.add(String(rows[0].session_id));
++    }
++    for(const id of sessionIds)if(!await verifyStaff(env,email,token,tenantId,'',id))return jsonErr('你沒有這個場次的操作權限',403);
++  }
+   return null;
+ }
+ 
+@@ -4272,6 +4265,7 @@ function normalizeApplicationPublicUrl(value){
+ // 營運帳號申請先完整寫入資料庫，再以申請編號進行 LINE 驗證；Google 流程保留但不從公開入口觸發。
+ async function hCreateOrganizerApplicationDraft(env,b){
+   const app=(b&&b.application&&typeof b.application==='object')?b.application:{};
++  if(app.requestedSystem&&app.requestedSystem!=='market')return jsonErr('目前開放市集／活動報名系統',403);
+   const unitName=String(app.unitName||'').trim(),ownerName=String(app.ownerName||'').trim(),phone=String(app.phone||'').trim(),contactEmail=normEmail(app.contactEmail||app.email||'');
+   const industries=Array.isArray(app.industryCategories)?app.industryCategories.map(String).filter(Boolean).slice(0,20):[];
+   const useCases=doingHelperSelections(app,'useCases');
+@@ -6807,7 +6801,9 @@ async function hGetRegs(env, p) {
+   let qs = `tenant_id=eq.${TENANT}&select=*`;
+   if (p.sessionId) qs += `&session_id=eq.${encodeURIComponent(p.sessionId)}`;
+   if (p.eventId)   qs += `&event_id=eq.${encodeURIComponent(p.eventId)}`;
+-  const rows = await dbGet(env, 'registrations', qs);
++  const jwt=await verifyAdminToken(p.token,p.email,TENANT,env);
++  const allowedIds=await getStaffScopedSessionIds(env,TENANT,p.email,jwt?.normalized_role||jwt?.role||'');
++  const rows = (await dbGet(env, 'registrations', qs)).filter(r=>allowedIds===null||allowedIds.includes(String(r.session_id)));
+   return jsonOk(rows.map(r=>({
+     id:r.id, sessionId:r.session_id, eventId:r.event_id,
+     email:r.email, name:r.name, phone:r.phone,
+@@ -7161,6 +7157,10 @@ async function getStaffScopedSessionIds(env, tenantId, email, role) {
+   const s = rows[0];
+   if (!s) return [];
+   const dbRole = s.normalized_role || s.role || role;
++  if (['session_admin','onsite_staff'].includes(dbRole)) {
++    const permissions=await dbGet(env,'staff_session_permissions',`tenant_id=eq.${tenantId}&staff_email=eq.${encodeURIComponent(email)}&is_active=eq.true&select=session_id`).catch(()=>null);
++    if(Array.isArray(permissions))return [...new Set(permissions.map(p=>String(p.session_id||'')).filter(Boolean))];
++  }
+   const scopeType = s.scope_type || 'all';
+   if (scopeType === 'all') {
+     // 財務以上角色若設定為「全部」，可看整租戶；場次／現場角色仍依正式授權縮限。
+@@ -7433,6 +7433,7 @@ async function hGetEventsAdmin(env, p) {
+ async function hGetSessionsAdmin(env, p) {
+   const TENANT = (p && p._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+   if (!await verifyStaff(env, p.email, p.token, TENANT)) return jsonErr('無權限');
++  const allowedSessionIds=await getStaffScopedSessionIds(env,TENANT,p.email,(await verifyAdminToken(p.token,p.email,TENANT,env))?.normalized_role||'');
+   let qs = `tenant_id=eq.${TENANT}&select=*`;
+   if (p.eventId) qs += `&event_id=eq.${encodeURIComponent(p.eventId)}`;
+   const [sessionsRaw, allRegs, events] = await Promise.all([
+@@ -7442,7 +7443,7 @@ async function hGetSessionsAdmin(env, p) {
+   ]);
+   const itemMap = await _getRegistrationItemsForRegs(env, allRegs);
+   const evtMap = {}; events.forEach(e=>evtMap[e.id]=e);
+-  return jsonOk(sessionsRaw.map(s => _buildAdminSessionRow(
++  return jsonOk(sessionsRaw.filter(s=>allowedSessionIds===null||allowedSessionIds.includes(String(s.id))).map(s => _buildAdminSessionRow(
+     s,
+     allRegs.filter(r=>String(r.session_id)===String(s.id)),
+     evtMap[s.event_id] || {},
+@@ -7785,6 +7786,7 @@ async function prepareRegistration(env, b) {
+   if (!b.phone) return {error:'請填寫手機'};
+   const ses = await getSessionRow(env, b.sessionId, TENANT);
+   if (!ses) return {error:'找不到場次'};
++  const sesType = await getSessionType(env, b.sessionId, TENANT);
+   if (ses.status==='關閉'||ses.status==='停用') return {error:'此場次已關閉報名'};
+   const operationUnitId=String(b.operationUnitId||'').trim();
+   const operationUnit=operationUnitId?await getOperationUnitRow(env,TENANT,operationUnitId,b.sessionId):null;
+@@ -7800,6 +7802,14 @@ async function prepareRegistration(env, b) {
+   const modules=normalizeSessionModules(operationUnit?safeJson(operationUnit.modules_json,{}):safeJson(ses.modules_json,{}));
+   const moduleSelections=(b.moduleSelections&&typeof b.moduleSelections==='object')?b.moduleSelections:{};
+   const sessionDateRows=safeJson(ses.dates_json,[]),selectedDateList=Array.isArray(b.selectedDates)?b.selectedDates.map(String):[];
++  if(!modules.workshopSlots&&sessionDateRows.length){
++    const validDates=new Set(sessionDateRows.map(d=>String(d&&d.date||'')).filter(Boolean));
++    if(selectedDateList.some(d=>!validDates.has(d))||new Set(selectedDateList).size!==selectedDateList.length)return {error:'報名日期不正確，請重新選擇場次提供的日期'};
++    if(!selectedDateList.length){
++      if(validDates.size!==1)return {error:'請選擇報名日期'};
++      b.selectedDates=[...validDates];
++    }
++  }
+   if(modules.operatingMode==='activity'&&modules.activityDatesTogether&&sessionDateRows.length>1){
+     const allDates=sessionDateRows.map(x=>String(x&&x.date||'')).filter(Boolean);
+     if(selectedDateList.length!==allDates.length||!allDates.every(d=>selectedDateList.includes(d)))return {error:'此為同一完整多日活動，必須一次報名全部日期'};
+@@ -10312,15 +10322,16 @@ async function hCheckin(env, b) {
+   const TENANT = (b && b._tenantId) ;  // M-02：tenant 已由路由層驗證（見 routeGet/routePost）
+   if (!await verifyStaff(env,b.email,b.token,TENANT,'checkin')) return jsonErr('無權限');
+   const undo = b.undo===true||b.undo==='true';
+-  const rows = await dbGet(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.regId)}&select=review_status,payment_status,transfer_status`);
++  const rows = await dbGet(env,'registrations',`tenant_id=eq.${TENANT}&id=eq.${encodeURIComponent(b.regId)}&select=session_id,review_status,payment_status,transfer_status`);
+   if (!rows.length) return jsonErr('找不到報名');
+   const reg = rows[0];
++  if (!await verifyStaff(env,b.email,b.token,TENANT,'checkin',reg.session_id)) return jsonErr('無權限',403);
+   const err = checkinGuard(reg, undo);
+   if (err) return jsonErr(err);
+   const now = nowIso();
+   await dbUpdate(env,'registrations',`id=eq.${encodeURIComponent(b.regId)}&tenant_id=eq.${TENANT}`, checkinData(undo, now));
+   const operator = await staffDisplayName(env, TENANT, b.email);
+-  await dbInsert(env,'seat_operation_logs',{ id: genId('OPL'), tenant_id: TENANT, session_id: (b.sessionId||null), registration_id: b.regId, stall_id: null, action: undo?'undoCheckin':'checkin', operator_type:'admin', operator_id: operator, note: null, created_at: now }).catch(()=>{});
++  await dbInsert(env,'seat_operation_logs',{ id: genId('OPL'), tenant_id: TENANT, session_id: reg.session_id, registration_id: b.regId, stall_id: null, action: undo?'undoCheckin':'checkin', operator_type:'admin', operator_id: operator, note: null, created_at: now }).catch(()=>{});
+   return jsonOk({success:true, undo});
+ }
+ 
